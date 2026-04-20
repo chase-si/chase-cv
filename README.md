@@ -3,7 +3,10 @@
 
 ## Tech Stack
 - Frontend: NextJS, TailwindCSS, shadcn
-- Backend: Su
+- Backend: Supabase
 
 ## Features
-- [ ]
+- [ ] light/dark mode
+- [ ] en/chinese
+- [ ] Google login
+- [ ] Google analytics
