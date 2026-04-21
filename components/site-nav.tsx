@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, GitFork, Sparkles } from "lucide-react";
+import { GitFork, Sparkles } from "lucide-react";
+
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function SiteNav() {
   return (
@@ -48,13 +50,7 @@ export function SiteNav() {
           >
             <GitFork className="h-4 w-4" />
           </a>
-          <Link
-            href="#contact"
-            className="inline-flex h-9 items-center gap-2 rounded-xl bg-zinc-950 px-4 text-sm font-medium text-white shadow-[0_14px_40px_rgba(0,0,0,0.20)] transition hover:-translate-y-px hover:shadow-[0_18px_48px_rgba(0,0,0,0.26)] dark:bg-white dark:text-black dark:shadow-[0_18px_52px_rgba(0,0,0,0.45)]"
-          >
-            开始聊聊
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          <ThemeToggle />
         </div>
       </div>
     </header>
