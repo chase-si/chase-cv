@@ -6,9 +6,6 @@ import * as React from "react";
 
 import { Toggle } from "@/components/ui/toggle";
 
-const navToggleClass =
-  "rounded-xl border shadow-sm";
-
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);

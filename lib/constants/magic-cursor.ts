@@ -22,16 +22,6 @@ export const MAGIC_CURSOR_EFFECTS = {
       smoothing: 0.18,
     } satisfies RingOptions,
   },
-  INVERT_RING: {
-    type: "invertRing" as const,
-    options: {
-      size: 42,
-      color: "rgba(99, 102, 241, 0.95)",
-      borderWidth: 2,
-      smoothing: 0.18,
-      blendMode: "difference",
-    } satisfies InvertRingOptions,
-  },
   MAGNIFIER: {
     type: "magnifier" as const,
     options: {
@@ -49,16 +39,16 @@ export const MAGIC_CURSOR_EFFECTS = {
   TRAIL: {
     type: "trail" as const,
     options: {
-      maxDots: 26,
-      color: "rgba(99, 102, 241, 0.65)",
-      size: 6,
-      throttleMs: 16,
+      maxDots: 50,
+      color: "rgba(54, 255, 155, 0.65)",
+      size: 18,
+      throttleMs: 5,
     } satisfies TrailOptions,
   },
   SPOTLIGHT: {
     type: "spotlight" as const,
     options: {
-      radius: 150,
+      radius: 80,
       dimColor: "rgba(0, 0, 0, 0.82)",
     } satisfies SpotlightOptions,
   },
@@ -91,17 +81,27 @@ export const MAGIC_CURSOR_EFFECTS = {
       color: "rgba(226,232,240,0.18)",
     } satisfies SmokeOptions,
   },
+  INVERT_RING: {
+    type: "invertRing" as const,
+    options: {
+      size: 42,
+      color: "rgba(99, 102, 241, 0.95)",
+      borderWidth: 2,
+      smoothing: 0.9,
+      blendMode: "difference",
+    } satisfies InvertRingOptions,
+  },
 } as const;
 
 export const MAGIC_CURSOR_EFFECT_ORDER: readonly EffectName[] = [
   "ring",
-  "invertRing",
   "magnifier",
   "trail",
   "spotlight",
   "magnetic",
   "flame",
   "smoke",
+  "invertRing",
 ];
 
 export const defaultOptionsByEffect: OptionsByEffect = Object.values(

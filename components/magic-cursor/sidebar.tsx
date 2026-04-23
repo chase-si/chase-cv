@@ -12,6 +12,7 @@ import type {
   SpotlightOptions,
   TrailOptions,
 } from "magic-cursor-effect";
+import { useRouter } from "next/navigation";
 
 import type { EffectOptions, OptionsByEffect } from "@/components/magic-cursor/types";
 import { MAGIC_CURSOR_EFFECT_ORDER } from "@/lib/constants/magic-cursor";
@@ -62,22 +63,23 @@ function SliderField({ label, min, max, step, value, onChange }: SliderFieldProp
   );
 }
 
-type Props = {
-  effect: EffectName;
-  setEffect: (next: EffectName) => void;
+type AllProps = {
+  activeEffect: null;
+};
+
+type DetailProps = {
+  activeEffect: EffectName;
   optionsByEffect: OptionsByEffect;
   setOptionsByEffect: Dispatch<SetStateAction<OptionsByEffect>>;
   defaultOptionsByEffect: OptionsByEffect;
 };
 
-export function MagicCursorSidebar({
-  effect,
-  setEffect,
-  optionsByEffect,
-  setOptionsByEffect,
-  defaultOptionsByEffect,
-}: Props) {
-  const options = optionsByEffect[effect];
+type Props = AllProps | DetailProps;
+
+export function MagicCursorSidebar(props: Props) {
+  const router = useRouter();
+  const effect = props.activeEffect;
+  const options = effect ? props.optionsByEffect[effect] : null;
 
   return (
     <Card className="border-border/80 bg-card/80 shadow-lg backdrop-blur-xl">
@@ -88,6 +90,15 @@ export function MagicCursorSidebar({
       <CardContent className="grid gap-4 pt-0">
         <div className="grid gap-2">
           <Label className="text-xs text-muted-foreground">效果</Label>
+          <Button
+            type="button"
+            variant={effect === null ? "default" : "outline"}
+            size="lg"
+            className="h-10 rounded-2xl font-normal"
+            onClick={() => router.push("/magic-cursor")}
+          >
+            All
+          </Button>
           <div className="grid grid-cols-2 gap-2">
             {MAGIC_CURSOR_EFFECT_ORDER.map((name) => {
               const active = name === effect;
@@ -98,7 +109,7 @@ export function MagicCursorSidebar({
                   variant={active ? "default" : "outline"}
                   size="lg"
                   className="h-10 rounded-2xl font-normal"
-                  onClick={() => setEffect(name)}
+                  onClick={() => router.push(`/magic-cursor/${name}`)}
                 >
                   {name}
                 </Button>
@@ -107,521 +118,525 @@ export function MagicCursorSidebar({
           </div>
         </div>
 
-        <div className="rounded-3xl border border-border bg-muted/30 p-4">
-          <Label className="text-xs text-muted-foreground">参数</Label>
+        {effect !== null && (
+          <div className="rounded-3xl border border-border bg-muted/30 p-4">
+            <Label className="text-xs text-muted-foreground">参数</Label>
 
-          {effect === "spotlight" && (
-            <div className="mt-3 grid gap-3">
-              <SliderField
-                label={`radius (${(options as SpotlightOptions).radius ?? 0}px)`}
-                min={60}
-                max={260}
-                step={1}
-                value={(options as SpotlightOptions).radius ?? 140}
-                onChange={(radius) =>
-                  setOptionsByEffect((prev) => ({
-                    ...prev,
-                    spotlight: {
-                      ...(prev.spotlight as SpotlightOptions),
-                      radius,
-                    },
-                  }))
-                }
-              />
-              <div className="grid gap-2">
-                <Label className="text-xs font-normal text-muted-foreground">
-                  dimColor (rgba)
-                </Label>
-                <Input
-                  value={(options as SpotlightOptions).dimColor ?? ""}
-                  onChange={(e) =>
-                    setOptionsByEffect((prev) => ({
+            {effect === "spotlight" && (
+              <div className="mt-3 grid gap-3">
+                <SliderField
+                  label={`radius (${(options as SpotlightOptions).radius ?? 0}px)`}
+                  min={60}
+                  max={260}
+                  step={1}
+                  value={(options as SpotlightOptions).radius ?? 140}
+                  onChange={(radius) =>
+                    props.setOptionsByEffect((prev) => ({
                       ...prev,
                       spotlight: {
                         ...(prev.spotlight as SpotlightOptions),
-                        dimColor: e.target.value,
+                        radius,
                       },
                     }))
                   }
                 />
+                <div className="grid gap-2">
+                  <Label className="text-xs font-normal text-muted-foreground">
+                    dimColor (rgba)
+                  </Label>
+                  <Input
+                    value={(options as SpotlightOptions).dimColor ?? ""}
+                    onChange={(e) =>
+                      props.setOptionsByEffect((prev) => ({
+                        ...prev,
+                        spotlight: {
+                          ...(prev.spotlight as SpotlightOptions),
+                          dimColor: e.target.value,
+                        },
+                      }))
+                    }
+                  />
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {effect === "trail" && (
-            <div className="mt-3 grid gap-3">
-              <SliderField
-                label={`maxDots (${(options as TrailOptions).maxDots ?? 0})`}
-                min={6}
-                max={80}
-                step={1}
-                value={(options as TrailOptions).maxDots ?? 24}
-                onChange={(maxDots) =>
-                  setOptionsByEffect((prev) => ({
-                    ...prev,
-                    trail: {
-                      ...(prev.trail as TrailOptions),
-                      maxDots,
-                    },
-                  }))
-                }
-              />
-              <SliderField
-                label={`size (${(options as TrailOptions).size ?? 0}px)`}
-                min={2}
-                max={18}
-                step={1}
-                value={(options as TrailOptions).size ?? 6}
-                onChange={(size) =>
-                  setOptionsByEffect((prev) => ({
-                    ...prev,
-                    trail: {
-                      ...(prev.trail as TrailOptions),
-                      size,
-                    },
-                  }))
-                }
-              />
-              <SliderField
-                label={`throttleMs (${(options as TrailOptions).throttleMs ?? 0}ms)`}
-                min={0}
-                max={40}
-                step={1}
-                value={(options as TrailOptions).throttleMs ?? 16}
-                onChange={(throttleMs) =>
-                  setOptionsByEffect((prev) => ({
-                    ...prev,
-                    trail: {
-                      ...(prev.trail as TrailOptions),
-                      throttleMs,
-                    },
-                  }))
-                }
-              />
-              <div className="grid gap-2">
-                <Label className="text-xs font-normal text-muted-foreground">
-                  color (rgba)
-                </Label>
-                <Input
-                  value={(options as TrailOptions).color ?? ""}
-                  onChange={(e) =>
-                    setOptionsByEffect((prev) => ({
+            {effect === "trail" && (
+              <div className="mt-3 grid gap-3">
+                <SliderField
+                  label={`maxDots (${(options as TrailOptions).maxDots ?? 0})`}
+                  min={6}
+                  max={80}
+                  step={1}
+                  value={(options as TrailOptions).maxDots ?? 24}
+                  onChange={(maxDots) =>
+                    props.setOptionsByEffect((prev) => ({
                       ...prev,
                       trail: {
                         ...(prev.trail as TrailOptions),
-                        color: e.target.value,
+                        maxDots,
                       },
                     }))
                   }
                 />
-              </div>
-            </div>
-          )}
-
-          {(effect === "ring" || effect === "invertRing" || effect === "magnifier") && (
-            <div className="mt-3 grid gap-3">
-              <SliderField
-                label={`size (${(options as RingOptions).size ?? 0}px)`}
-                min={18}
-                max={120}
-                step={1}
-                value={(options as RingOptions).size ?? 36}
-                onChange={(size) =>
-                  setOptionsByEffect((prev) => ({
-                    ...prev,
-                    [effect]: {
-                      ...(prev[effect] as RingOptions),
-                      size,
-                    },
-                  }))
-                }
-              />
-              <SliderField
-                label={`borderWidth (${(options as RingOptions).borderWidth ?? 0}px)`}
-                min={1}
-                max={8}
-                step={1}
-                value={(options as RingOptions).borderWidth ?? 2}
-                onChange={(borderWidth) =>
-                  setOptionsByEffect((prev) => ({
-                    ...prev,
-                    [effect]: {
-                      ...(prev[effect] as RingOptions),
-                      borderWidth,
-                    },
-                  }))
-                }
-              />
-              <SliderField
-                label={`smoothing (${(options as RingOptions).smoothing ?? 0})`}
-                min={0.02}
-                max={0.5}
-                step={0.01}
-                value={(options as RingOptions).smoothing ?? 0.18}
-                onChange={(smoothing) =>
-                  setOptionsByEffect((prev) => ({
-                    ...prev,
-                    [effect]: {
-                      ...(prev[effect] as RingOptions),
-                      smoothing: clampNumber(smoothing, 0.02, 0.5),
-                    },
-                  }))
-                }
-              />
-              <div className="grid gap-2">
-                <Label className="text-xs font-normal text-muted-foreground">
-                  color (rgba)
-                </Label>
-                <Input
-                  value={(options as RingOptions).color ?? ""}
-                  onChange={(e) =>
-                    setOptionsByEffect((prev) => ({
+                <SliderField
+                  label={`size (${(options as TrailOptions).size ?? 0}px)`}
+                  min={2}
+                  max={18}
+                  step={1}
+                  value={(options as TrailOptions).size ?? 6}
+                  onChange={(size) =>
+                    props.setOptionsByEffect((prev) => ({
                       ...prev,
-                      [effect]: {
-                        ...(prev[effect] as RingOptions),
-                        color: e.target.value,
+                      trail: {
+                        ...(prev.trail as TrailOptions),
+                        size,
                       },
                     }))
                   }
                 />
-              </div>
-
-              {effect === "magnifier" && (
-                <>
-                  <SliderField
-                    label={`zoom (${(options as MagnifierOptions).zoom ?? 1})`}
-                    min={1}
-                    max={2.6}
-                    step={0.05}
-                    value={(options as MagnifierOptions).zoom ?? 1.6}
-                    onChange={(zoom) =>
-                      setOptionsByEffect((prev) => ({
-                        ...prev,
-                        magnifier: {
-                          ...(prev.magnifier as MagnifierOptions),
-                          zoom: clampNumber(zoom, 1, 2.6),
-                        },
-                      }))
-                    }
-                  />
-                  <SliderField
-                    label={`lensBlurPx (${(options as MagnifierOptions).lensBlurPx ?? 0})`}
-                    min={0}
-                    max={24}
-                    step={1}
-                    value={(options as MagnifierOptions).lensBlurPx ?? 6}
-                    onChange={(lensBlurPx) =>
-                      setOptionsByEffect((prev) => ({
-                        ...prev,
-                        magnifier: {
-                          ...(prev.magnifier as MagnifierOptions),
-                          lensBlurPx: clampNumber(lensBlurPx, 0, 24),
-                        },
-                      }))
-                    }
-                  />
-                  <SliderField
-                    label={`lensBrightness (${(options as MagnifierOptions).lensBrightness ?? 1})`}
-                    min={0.5}
-                    max={2}
-                    step={0.05}
-                    value={(options as MagnifierOptions).lensBrightness ?? 1.15}
-                    onChange={(lensBrightness) =>
-                      setOptionsByEffect((prev) => ({
-                        ...prev,
-                        magnifier: {
-                          ...(prev.magnifier as MagnifierOptions),
-                          lensBrightness: clampNumber(lensBrightness, 0.5, 2),
-                        },
-                      }))
-                    }
-                  />
-                  <SliderField
-                    label={`lensSaturate (${(options as MagnifierOptions).lensSaturate ?? 1})`}
-                    min={0}
-                    max={2.5}
-                    step={0.05}
-                    value={(options as MagnifierOptions).lensSaturate ?? 1.25}
-                    onChange={(lensSaturate) =>
-                      setOptionsByEffect((prev) => ({
-                        ...prev,
-                        magnifier: {
-                          ...(prev.magnifier as MagnifierOptions),
-                          lensSaturate: clampNumber(lensSaturate, 0, 2.5),
-                        },
-                      }))
-                    }
-                  />
-                  <SliderField
-                    label={`lensFillOpacity (${(options as MagnifierOptions).lensFillOpacity ?? 0})`}
-                    min={0}
-                    max={0.35}
-                    step={0.01}
-                    value={(options as MagnifierOptions).lensFillOpacity ?? 0.06}
-                    onChange={(lensFillOpacity) =>
-                      setOptionsByEffect((prev) => ({
-                        ...prev,
-                        magnifier: {
-                          ...(prev.magnifier as MagnifierOptions),
-                          lensFillOpacity: clampNumber(lensFillOpacity, 0, 0.35),
-                        },
-                      }))
-                    }
-                  />
-                </>
-              )}
-
-              {effect === "invertRing" && (
-                <div className="grid gap-2">
-                  <Label className="text-xs font-normal text-muted-foreground">
-                    blendMode
-                  </Label>
-                  <Select
-                    value={(options as InvertRingOptions).blendMode ?? "difference"}
-                    onValueChange={(blendMode) =>
-                      setOptionsByEffect((prev) => ({
-                        ...prev,
-                        invertRing: {
-                          ...(prev.invertRing as InvertRingOptions),
-                          blendMode,
-                        },
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="difference">difference（默认）</SelectItem>
-                      <SelectItem value="exclusion">exclusion</SelectItem>
-                      <SelectItem value="screen">screen</SelectItem>
-                      <SelectItem value="multiply">multiply</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-          )}
-
-          {effect === "magnetic" && (
-            <div className="mt-3 grid gap-3">
-              <SliderField
-                label={`strength (${(options as MagneticOptions).strength ?? 0})`}
-                min={0}
-                max={1}
-                step={0.01}
-                value={(options as MagneticOptions).strength ?? 0.35}
-                onChange={(strength) =>
-                  setOptionsByEffect((prev) => ({
-                    ...prev,
-                    magnetic: {
-                      ...(prev.magnetic as MagneticOptions),
-                      strength: clampNumber(strength, 0, 1),
-                    },
-                  }))
-                }
-              />
-              <div className="grid gap-2">
-                <Label className="text-xs font-normal text-muted-foreground">
-                  selector（CSS 选择器）
-                </Label>
-                <Input
-                  value={(options as MagneticOptions).selector ?? "[data-magnetic]"}
-                  onChange={(e) =>
-                    setOptionsByEffect((prev) => ({
+                <SliderField
+                  label={`throttleMs (${(options as TrailOptions).throttleMs ?? 0}ms)`}
+                  min={0}
+                  max={40}
+                  step={1}
+                  value={(options as TrailOptions).throttleMs ?? 16}
+                  onChange={(throttleMs) =>
+                    props.setOptionsByEffect((prev) => ({
                       ...prev,
-                      magnetic: {
-                        ...(prev.magnetic as MagneticOptions),
-                        selector: e.target.value,
+                      trail: {
+                        ...(prev.trail as TrailOptions),
+                        throttleMs,
                       },
                     }))
                   }
                 />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                预览区域里匹配该选择器的元素会被吸引；默认{" "}
-                <code className="font-mono text-foreground">[data-magnetic]</code>。
-              </p>
-            </div>
-          )}
-
-          {(effect === "flame" || effect === "smoke") && (
-            <div className="mt-3 grid gap-3">
-              <SliderField
-                label={`emission (${(options as FlameOptions | SmokeOptions).emission ?? 0})`}
-                min={1}
-                max={8}
-                step={1}
-                value={(options as FlameOptions | SmokeOptions).emission ?? 2}
-                onChange={(emission) =>
-                  setOptionsByEffect((prev) => ({
-                    ...prev,
-                    [effect]: {
-                      ...(prev[effect] as FlameOptions | SmokeOptions),
-                      emission,
-                    },
-                  }))
-                }
-              />
-              <SliderField
-                label={`size (${(options as FlameOptions | SmokeOptions).size ?? 0}px)`}
-                min={4}
-                max={40}
-                step={1}
-                value={(options as FlameOptions | SmokeOptions).size ?? 10}
-                onChange={(size) =>
-                  setOptionsByEffect((prev) => ({
-                    ...prev,
-                    [effect]: {
-                      ...(prev[effect] as FlameOptions | SmokeOptions),
-                      size,
-                    },
-                  }))
-                }
-              />
-              <SliderField
-                label={`lifeMs (${(options as FlameOptions | SmokeOptions).lifeMs ?? 0}ms)`}
-                min={200}
-                max={2400}
-                step={20}
-                value={(options as FlameOptions | SmokeOptions).lifeMs ?? 700}
-                onChange={(lifeMs) =>
-                  setOptionsByEffect((prev) => ({
-                    ...prev,
-                    [effect]: {
-                      ...(prev[effect] as FlameOptions | SmokeOptions),
-                      lifeMs,
-                    },
-                  }))
-                }
-              />
-
-              {effect === "flame" && (
-                <>
-                  <SliderField
-                    label={`rise (${(options as FlameOptions).rise ?? 0})`}
-                    min={0}
-                    max={4}
-                    step={0.05}
-                    value={(options as FlameOptions).rise ?? 1.6}
-                    onChange={(rise) =>
-                      setOptionsByEffect((prev) => ({
-                        ...prev,
-                        flame: {
-                          ...(prev.flame as FlameOptions),
-                          rise: clampNumber(rise, 0, 4),
-                        },
-                      }))
-                    }
-                  />
-                  <SliderField
-                    label={`jitter (${(options as FlameOptions).jitter ?? 0})`}
-                    min={0}
-                    max={3}
-                    step={0.05}
-                    value={(options as FlameOptions).jitter ?? 0.9}
-                    onChange={(jitter) =>
-                      setOptionsByEffect((prev) => ({
-                        ...prev,
-                        flame: {
-                          ...(prev.flame as FlameOptions),
-                          jitter: clampNumber(jitter, 0, 3),
-                        },
-                      }))
-                    }
-                  />
-                  <SliderField
-                    label={`maxDpr (${(options as FlameOptions).maxDpr ?? 2})`}
-                    min={1}
-                    max={4}
-                    step={0.5}
-                    value={(options as FlameOptions).maxDpr ?? 2}
-                    onChange={(maxDpr) =>
-                      setOptionsByEffect((prev) => ({
-                        ...prev,
-                        flame: {
-                          ...(prev.flame as FlameOptions),
-                          maxDpr: clampNumber(maxDpr, 1, 4),
-                        },
-                      }))
-                    }
-                  />
-                </>
-              )}
-
-              {effect === "smoke" && (
-                <>
-                  <SliderField
-                    label={`rise (${(options as SmokeOptions).rise ?? 0})`}
-                    min={0}
-                    max={2.4}
-                    step={0.05}
-                    value={(options as SmokeOptions).rise ?? 0.8}
-                    onChange={(rise) =>
-                      setOptionsByEffect((prev) => ({
-                        ...prev,
-                        smoke: {
-                          ...(prev.smoke as SmokeOptions),
-                          rise: clampNumber(rise, 0, 2.4),
-                        },
-                      }))
-                    }
-                  />
-                  <SliderField
-                    label={`drift (${(options as SmokeOptions).drift ?? 0})`}
-                    min={0}
-                    max={2}
-                    step={0.05}
-                    value={(options as SmokeOptions).drift ?? 0.7}
-                    onChange={(drift) =>
-                      setOptionsByEffect((prev) => ({
-                        ...prev,
-                        smoke: {
-                          ...(prev.smoke as SmokeOptions),
-                          drift: clampNumber(drift, 0, 2),
-                        },
-                      }))
-                    }
-                  />
-                </>
-              )}
-
-              {effect === "smoke" && (
                 <div className="grid gap-2">
                   <Label className="text-xs font-normal text-muted-foreground">
                     color (rgba)
                   </Label>
                   <Input
-                    value={(options as SmokeOptions).color ?? ""}
+                    value={(options as TrailOptions).color ?? ""}
                     onChange={(e) =>
-                      setOptionsByEffect((prev) => ({
+                      props.setOptionsByEffect((prev) => ({
                         ...prev,
-                        smoke: {
-                          ...(prev.smoke as SmokeOptions),
+                        trail: {
+                          ...(prev.trail as TrailOptions),
                           color: e.target.value,
                         },
                       }))
                     }
                   />
                 </div>
-              )}
-            </div>
-          )}
-        </div>
+              </div>
+            )}
 
-        <Button
-          type="button"
-          size="lg"
-          className="h-11 rounded-2xl"
-          onClick={() =>
-            setOptionsByEffect((prev) => ({
-              ...prev,
-              [effect]: defaultOptionsByEffect[effect] as EffectOptions,
-            }))
-          }
-        >
-          重置为默认参数
-        </Button>
+            {(effect === "ring" || effect === "invertRing" || effect === "magnifier") && (
+              <div className="mt-3 grid gap-3">
+                <SliderField
+                  label={`size (${(options as RingOptions).size ?? 0}px)`}
+                  min={18}
+                  max={120}
+                  step={1}
+                  value={(options as RingOptions).size ?? 36}
+                  onChange={(size) =>
+                    props.setOptionsByEffect((prev) => ({
+                      ...prev,
+                      [effect]: {
+                        ...(prev[effect] as RingOptions),
+                        size,
+                      },
+                    }))
+                  }
+                />
+                <SliderField
+                  label={`borderWidth (${(options as RingOptions).borderWidth ?? 0}px)`}
+                  min={1}
+                  max={8}
+                  step={1}
+                  value={(options as RingOptions).borderWidth ?? 2}
+                  onChange={(borderWidth) =>
+                    props.setOptionsByEffect((prev) => ({
+                      ...prev,
+                      [effect]: {
+                        ...(prev[effect] as RingOptions),
+                        borderWidth,
+                      },
+                    }))
+                  }
+                />
+                <SliderField
+                  label={`smoothing (${(options as RingOptions).smoothing ?? 0})`}
+                  min={0.02}
+                  max={0.5}
+                  step={0.01}
+                  value={(options as RingOptions).smoothing ?? 0.18}
+                  onChange={(smoothing) =>
+                    props.setOptionsByEffect((prev) => ({
+                      ...prev,
+                      [effect]: {
+                        ...(prev[effect] as RingOptions),
+                        smoothing: clampNumber(smoothing, 0.02, 0.5),
+                      },
+                    }))
+                  }
+                />
+                <div className="grid gap-2">
+                  <Label className="text-xs font-normal text-muted-foreground">
+                    color (rgba)
+                  </Label>
+                  <Input
+                    value={(options as RingOptions).color ?? ""}
+                    onChange={(e) =>
+                      props.setOptionsByEffect((prev) => ({
+                        ...prev,
+                        [effect]: {
+                          ...(prev[effect] as RingOptions),
+                          color: e.target.value,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+
+                {effect === "magnifier" && (
+                  <>
+                    <SliderField
+                      label={`zoom (${(options as MagnifierOptions).zoom ?? 1})`}
+                      min={1}
+                      max={2.6}
+                      step={0.05}
+                      value={(options as MagnifierOptions).zoom ?? 1.6}
+                      onChange={(zoom) =>
+                        props.setOptionsByEffect((prev) => ({
+                          ...prev,
+                          magnifier: {
+                            ...(prev.magnifier as MagnifierOptions),
+                            zoom: clampNumber(zoom, 1, 2.6),
+                          },
+                        }))
+                      }
+                    />
+                    <SliderField
+                      label={`lensBlurPx (${(options as MagnifierOptions).lensBlurPx ?? 0})`}
+                      min={0}
+                      max={24}
+                      step={1}
+                      value={(options as MagnifierOptions).lensBlurPx ?? 6}
+                      onChange={(lensBlurPx) =>
+                        props.setOptionsByEffect((prev) => ({
+                          ...prev,
+                          magnifier: {
+                            ...(prev.magnifier as MagnifierOptions),
+                            lensBlurPx: clampNumber(lensBlurPx, 0, 24),
+                          },
+                        }))
+                      }
+                    />
+                    <SliderField
+                      label={`lensBrightness (${(options as MagnifierOptions).lensBrightness ?? 1})`}
+                      min={0.5}
+                      max={2}
+                      step={0.05}
+                      value={(options as MagnifierOptions).lensBrightness ?? 1.15}
+                      onChange={(lensBrightness) =>
+                        props.setOptionsByEffect((prev) => ({
+                          ...prev,
+                          magnifier: {
+                            ...(prev.magnifier as MagnifierOptions),
+                            lensBrightness: clampNumber(lensBrightness, 0.5, 2),
+                          },
+                        }))
+                      }
+                    />
+                    <SliderField
+                      label={`lensSaturate (${(options as MagnifierOptions).lensSaturate ?? 1})`}
+                      min={0}
+                      max={2.5}
+                      step={0.05}
+                      value={(options as MagnifierOptions).lensSaturate ?? 1.25}
+                      onChange={(lensSaturate) =>
+                        props.setOptionsByEffect((prev) => ({
+                          ...prev,
+                          magnifier: {
+                            ...(prev.magnifier as MagnifierOptions),
+                            lensSaturate: clampNumber(lensSaturate, 0, 2.5),
+                          },
+                        }))
+                      }
+                    />
+                    <SliderField
+                      label={`lensFillOpacity (${(options as MagnifierOptions).lensFillOpacity ?? 0})`}
+                      min={0}
+                      max={0.35}
+                      step={0.01}
+                      value={(options as MagnifierOptions).lensFillOpacity ?? 0.06}
+                      onChange={(lensFillOpacity) =>
+                        props.setOptionsByEffect((prev) => ({
+                          ...prev,
+                          magnifier: {
+                            ...(prev.magnifier as MagnifierOptions),
+                            lensFillOpacity: clampNumber(lensFillOpacity, 0, 0.35),
+                          },
+                        }))
+                      }
+                    />
+                  </>
+                )}
+
+                {effect === "invertRing" && (
+                  <div className="grid gap-2">
+                    <Label className="text-xs font-normal text-muted-foreground">
+                      blendMode
+                    </Label>
+                    <Select
+                      value={(options as InvertRingOptions).blendMode ?? "difference"}
+                      onValueChange={(blendMode) =>
+                        props.setOptionsByEffect((prev) => ({
+                          ...prev,
+                          invertRing: {
+                            ...(prev.invertRing as InvertRingOptions),
+                            blendMode,
+                          },
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="difference">difference（默认）</SelectItem>
+                        <SelectItem value="exclusion">exclusion</SelectItem>
+                        <SelectItem value="screen">screen</SelectItem>
+                        <SelectItem value="multiply">multiply</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {effect === "magnetic" && (
+              <div className="mt-3 grid gap-3">
+                <SliderField
+                  label={`strength (${(options as MagneticOptions).strength ?? 0})`}
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={(options as MagneticOptions).strength ?? 0.35}
+                  onChange={(strength) =>
+                    props.setOptionsByEffect((prev) => ({
+                      ...prev,
+                      magnetic: {
+                        ...(prev.magnetic as MagneticOptions),
+                        strength: clampNumber(strength, 0, 1),
+                      },
+                    }))
+                  }
+                />
+                <div className="grid gap-2">
+                  <Label className="text-xs font-normal text-muted-foreground">
+                    selector（CSS 选择器）
+                  </Label>
+                  <Input
+                    value={(options as MagneticOptions).selector ?? "[data-magnetic]"}
+                    onChange={(e) =>
+                      props.setOptionsByEffect((prev) => ({
+                        ...prev,
+                        magnetic: {
+                          ...(prev.magnetic as MagneticOptions),
+                          selector: e.target.value,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  预览区域里匹配该选择器的元素会被吸引；默认{" "}
+                  <code className="font-mono text-foreground">[data-magnetic]</code>。
+                </p>
+              </div>
+            )}
+
+            {(effect === "flame" || effect === "smoke") && (
+              <div className="mt-3 grid gap-3">
+                <SliderField
+                  label={`emission (${(options as FlameOptions | SmokeOptions).emission ?? 0})`}
+                  min={1}
+                  max={8}
+                  step={1}
+                  value={(options as FlameOptions | SmokeOptions).emission ?? 2}
+                  onChange={(emission) =>
+                    props.setOptionsByEffect((prev) => ({
+                      ...prev,
+                      [effect]: {
+                        ...(prev[effect] as FlameOptions | SmokeOptions),
+                        emission,
+                      },
+                    }))
+                  }
+                />
+                <SliderField
+                  label={`size (${(options as FlameOptions | SmokeOptions).size ?? 0}px)`}
+                  min={4}
+                  max={40}
+                  step={1}
+                  value={(options as FlameOptions | SmokeOptions).size ?? 10}
+                  onChange={(size) =>
+                    props.setOptionsByEffect((prev) => ({
+                      ...prev,
+                      [effect]: {
+                        ...(prev[effect] as FlameOptions | SmokeOptions),
+                        size,
+                      },
+                    }))
+                  }
+                />
+                <SliderField
+                  label={`lifeMs (${(options as FlameOptions | SmokeOptions).lifeMs ?? 0}ms)`}
+                  min={200}
+                  max={2400}
+                  step={20}
+                  value={(options as FlameOptions | SmokeOptions).lifeMs ?? 700}
+                  onChange={(lifeMs) =>
+                    props.setOptionsByEffect((prev) => ({
+                      ...prev,
+                      [effect]: {
+                        ...(prev[effect] as FlameOptions | SmokeOptions),
+                        lifeMs,
+                      },
+                    }))
+                  }
+                />
+
+                {effect === "flame" && (
+                  <>
+                    <SliderField
+                      label={`rise (${(options as FlameOptions).rise ?? 0})`}
+                      min={0}
+                      max={4}
+                      step={0.05}
+                      value={(options as FlameOptions).rise ?? 1.6}
+                      onChange={(rise) =>
+                        props.setOptionsByEffect((prev) => ({
+                          ...prev,
+                          flame: {
+                            ...(prev.flame as FlameOptions),
+                            rise: clampNumber(rise, 0, 4),
+                          },
+                        }))
+                      }
+                    />
+                    <SliderField
+                      label={`jitter (${(options as FlameOptions).jitter ?? 0})`}
+                      min={0}
+                      max={3}
+                      step={0.05}
+                      value={(options as FlameOptions).jitter ?? 0.9}
+                      onChange={(jitter) =>
+                        props.setOptionsByEffect((prev) => ({
+                          ...prev,
+                          flame: {
+                            ...(prev.flame as FlameOptions),
+                            jitter: clampNumber(jitter, 0, 3),
+                          },
+                        }))
+                      }
+                    />
+                    <SliderField
+                      label={`maxDpr (${(options as FlameOptions).maxDpr ?? 2})`}
+                      min={1}
+                      max={4}
+                      step={0.5}
+                      value={(options as FlameOptions).maxDpr ?? 2}
+                      onChange={(maxDpr) =>
+                        props.setOptionsByEffect((prev) => ({
+                          ...prev,
+                          flame: {
+                            ...(prev.flame as FlameOptions),
+                            maxDpr: clampNumber(maxDpr, 1, 4),
+                          },
+                        }))
+                      }
+                    />
+                  </>
+                )}
+
+                {effect === "smoke" && (
+                  <>
+                    <SliderField
+                      label={`rise (${(options as SmokeOptions).rise ?? 0})`}
+                      min={0}
+                      max={2.4}
+                      step={0.05}
+                      value={(options as SmokeOptions).rise ?? 0.8}
+                      onChange={(rise) =>
+                        props.setOptionsByEffect((prev) => ({
+                          ...prev,
+                          smoke: {
+                            ...(prev.smoke as SmokeOptions),
+                            rise: clampNumber(rise, 0, 2.4),
+                          },
+                        }))
+                      }
+                    />
+                    <SliderField
+                      label={`drift (${(options as SmokeOptions).drift ?? 0})`}
+                      min={0}
+                      max={2}
+                      step={0.05}
+                      value={(options as SmokeOptions).drift ?? 0.7}
+                      onChange={(drift) =>
+                        props.setOptionsByEffect((prev) => ({
+                          ...prev,
+                          smoke: {
+                            ...(prev.smoke as SmokeOptions),
+                            drift: clampNumber(drift, 0, 2),
+                          },
+                        }))
+                      }
+                    />
+                  </>
+                )}
+
+                {effect === "smoke" && (
+                  <div className="grid gap-2">
+                    <Label className="text-xs font-normal text-muted-foreground">
+                      color (rgba)
+                    </Label>
+                    <Input
+                      value={(options as SmokeOptions).color ?? ""}
+                      onChange={(e) =>
+                        props.setOptionsByEffect((prev) => ({
+                          ...prev,
+                          smoke: {
+                            ...(prev.smoke as SmokeOptions),
+                            color: e.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {effect !== null && (
+          <Button
+            type="button"
+            size="lg"
+            className="h-11 rounded-2xl"
+            onClick={() =>
+              props.setOptionsByEffect((prev) => ({
+                ...prev,
+                [effect]: props.defaultOptionsByEffect[effect] as EffectOptions,
+              }))
+            }
+          >
+            重置为默认参数
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
