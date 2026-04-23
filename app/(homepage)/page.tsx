@@ -1,11 +1,8 @@
 import { HomepageHero } from "@/components/homepage/hero";
-import { SiteNav } from "@/components/site-nav";
 
 export default function Page() {
   return (
-    <div className="relative flex min-h-svh flex-col overflow-hidden">
-      <SiteNav />
-
+    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-14 sm:px-6 sm:py-20">
         <HomepageHero />
 

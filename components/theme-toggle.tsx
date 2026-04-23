@@ -4,21 +4,23 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import * as React from "react";
 
-const navIconButtonClass =
-  "inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-900/10 bg-white/70 text-zinc-700 shadow-sm transition hover:bg-white hover:shadow-md dark:border-white/10 dark:bg-black/40 dark:text-zinc-200 dark:hover:bg-black/50";
+import { Toggle } from "@/components/ui/toggle";
+
+const navToggleClass =
+  "rounded-xl border shadow-sm";
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    setMounted(true);
+    queueMicrotask(() => setMounted(true));
   }, []);
 
   if (!mounted) {
     return (
       <span
-        className={`${navIconButtonClass} pointer-events-none opacity-0`}
+        className={`inline-flex h-9 w-9 items-center justify-center border shadow-sm pointer-events-none opacity-0`}
         aria-hidden
       />
     );
@@ -27,10 +29,12 @@ export function ThemeToggle() {
   const isDark = resolvedTheme === "dark";
 
   return (
-    <button
-      type="button"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      className={navIconButtonClass}
+    <Toggle
+      variant="outline"
+      size="icon"
+      pressed={isDark}
+      onPressedChange={(next) => setTheme(next ? "dark" : "light")}
+      className="rounded-xl border shadow-sm"
       aria-label={isDark ? "切换为浅色" : "切换为深色"}
     >
       {isDark ? (
@@ -38,6 +42,6 @@ export function ThemeToggle() {
       ) : (
         <Moon className="h-4 w-4" />
       )}
-    </button>
+    </Toggle>
   );
 }

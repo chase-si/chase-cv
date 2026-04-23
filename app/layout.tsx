@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { SiteNav } from "@/components/site-nav";
 import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 
@@ -39,7 +40,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <SiteNav />
+          <div className="flex min-h-0 flex-1 flex-col">{children}</div>
         </ThemeProvider>
       </body>
     </html>

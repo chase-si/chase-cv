@@ -22,12 +22,10 @@ export function SiteNav() {
           </span>
         </Button>
 
-        <nav className="hidden items-center gap-1 text-sm sm:flex">
+        {/* <nav className="hidden items-center gap-1 text-sm sm:flex">
           <Button
-            variant="ghost"
             size="sm"
             nativeButton={false}
-            className="text-muted-foreground hover:text-foreground"
             render={<Link href="#work" />}
           >
             作品
@@ -50,7 +48,7 @@ export function SiteNav() {
           >
             联系
           </Button>
-        </nav>
+        </nav> */}
 
         <div className="flex items-center gap-2">
           <Button
@@ -61,7 +59,7 @@ export function SiteNav() {
             className="rounded-xl shadow-sm hover:shadow-md"
             render={
               <a
-                href="https://github.com/"
+                href="https://github.com/chase-si"
                 target="_blank"
                 rel="noreferrer"
               />
@@ -69,6 +67,7 @@ export function SiteNav() {
           >
             <GitFork className="h-4 w-4" />
           </Button>
+          
           <ThemeToggle />
         </div>
       </div>

@@ -18,7 +18,6 @@ import { createEffect } from "magic-cursor-effect";
 
 import { MagicCursorSidebar } from "@/components/magic-cursor/sidebar";
 import type { OptionsByEffect } from "@/components/magic-cursor/types";
-import { SiteNav } from "@/components/site-nav";
 
 const defaultOptionsByEffect: OptionsByEffect = {
   ring: { size: 38, color: "rgba(99, 102, 241, 0.95)", borderWidth: 2, smoothing: 0.18 },
@@ -108,15 +107,13 @@ export default function Page() {
   }, [effect, optionsKey]);
 
   return (
-    <div className="relative flex min-h-svh flex-col overflow-hidden bg-zinc-50 text-zinc-950 dark:bg-black dark:text-zinc-50">
+    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-zinc-50 text-zinc-950 dark:bg-black dark:text-zinc-50">
       {/* background */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(1200px_circle_at_15%_10%,rgba(99,102,241,0.20),transparent_45%),radial-gradient(900px_circle_at_80%_20%,rgba(236,72,153,0.18),transparent_48%),radial-gradient(900px_circle_at_40%_90%,rgba(14,165,233,0.14),transparent_55%)] dark:bg-[radial-gradient(1200px_circle_at_15%_10%,rgba(99,102,241,0.25),transparent_45%),radial-gradient(900px_circle_at_80%_20%,rgba(236,72,153,0.22),transparent_48%),radial-gradient(900px_circle_at_40%_90%,rgba(14,165,233,0.18),transparent_55%)]" />
         <div className="absolute inset-0 opacity-[0.55] bg-[linear-gradient(to_right,rgba(0,0,0,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.06)_1px,transparent_1px)] bg-size-[48px_48px] dark:opacity-[0.35] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)]" />
         <div className="absolute inset-0 bg-linear-to-b from-white/50 via-white/20 to-white/70 dark:from-black/30 dark:via-black/10 dark:to-black/40" />
       </div>
-
-      <SiteNav />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
         <div className="grid gap-6 lg:grid-cols-12">
