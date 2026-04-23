@@ -6,7 +6,7 @@
 - Backend: Supabase
 
 ## Features
-- [ ] light/dark mode
+- [X] light/dark mode
 - [ ] en/chinese
 - [ ] Google login
 - [ ] Google analytics
