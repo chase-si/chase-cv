@@ -3,7 +3,7 @@ import { SiteNav } from "@/components/site-nav";
 
 export default function Page() {
   return (
-    <div className="relative flex min-h-svh flex-col overflow-hidden bg-zinc-50 text-zinc-950 dark:bg-black dark:text-zinc-50">
+    <div className="relative flex min-h-svh flex-col overflow-hidden">
       <SiteNav />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-14 sm:px-6 sm:py-20">

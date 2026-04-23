@@ -1,8 +1,9 @@
 ## Summary
-一个练习项目, 链接supabase以及展示一些前端历史成果
+个人网站
+
 
 ## Tech Stack
-- Frontend: NextJS, TailwindCSS, shadcn
+- Frontend: NextJS, TailwindCSS, Shadcn
 - Backend: Supabase
 
 ## Features
@@ -10,3 +11,7 @@
 - [ ] en/chinese
 - [ ] Google login
 - [ ] Google analytics
+- [ ] Pages
+  - [ ] Magic cursor effect
+  - [ ] Flow chart
+  - [ ] 

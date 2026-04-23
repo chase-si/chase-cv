@@ -2,54 +2,73 @@ import Link from "next/link";
 import { GitFork, Sparkles } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
 
 export function SiteNav() {
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-zinc-900/10 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-black/40">
+    <header className="sticky top-0 z-30 w-full border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link
-          href="/"
-          className="group inline-flex items-center gap-2 font-semibold tracking-tight"
+        <Button
+          variant="ghost"
+          nativeButton={false}
+          className="h-auto gap-2 px-2 font-semibold text-foreground hover:text-foreground"
+          render={<Link href="/" />}
         >
-          <span className="relative grid h-8 w-8 place-items-center rounded-xl bg-zinc-950 text-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] dark:bg-white dark:text-black dark:shadow-[0_12px_36px_rgba(0,0,0,0.45)]">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-foreground text-background shadow-md">
             <Sparkles className="h-4 w-4" />
           </span>
           <span className="text-sm sm:text-base">
-            Chase <span className="text-zinc-500 dark:text-zinc-400">CV</span>
+            Chase <span className="text-muted-foreground">CV</span>
           </span>
-        </Link>
+        </Button>
 
-        <nav className="hidden items-center gap-6 text-sm text-zinc-600 dark:text-zinc-300 sm:flex">
-          <Link
-            href="#work"
-            className="transition-colors hover:text-zinc-950 dark:hover:text-white"
+        <nav className="hidden items-center gap-1 text-sm sm:flex">
+          <Button
+            variant="ghost"
+            size="sm"
+            nativeButton={false}
+            className="text-muted-foreground hover:text-foreground"
+            render={<Link href="#work" />}
           >
             作品
-          </Link>
-          <Link
-            href="#about"
-            className="transition-colors hover:text-zinc-950 dark:hover:text-white"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            nativeButton={false}
+            className="text-muted-foreground hover:text-foreground"
+            render={<Link href="#about" />}
           >
             关于
-          </Link>
-          <Link
-            href="#contact"
-            className="transition-colors hover:text-zinc-950 dark:hover:text-white"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            nativeButton={false}
+            className="text-muted-foreground hover:text-foreground"
+            render={<Link href="#contact" />}
           >
             联系
-          </Link>
+          </Button>
         </nav>
 
         <div className="flex items-center gap-2">
-          <a
-            href="https://github.com/"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-900/10 bg-white/70 text-zinc-700 shadow-sm transition hover:bg-white hover:shadow-md dark:border-white/10 dark:bg-black/40 dark:text-zinc-200 dark:hover:bg-black/50"
+          <Button
+            variant="outline"
+            size="icon"
+            nativeButton={false}
             aria-label="GitHub"
+            className="rounded-xl shadow-sm hover:shadow-md"
+            render={
+              <a
+                href="https://github.com/"
+                target="_blank"
+                rel="noreferrer"
+              />
+            }
           >
             <GitFork className="h-4 w-4" />
-          </a>
+          </Button>
           <ThemeToggle />
         </div>
       </div>
