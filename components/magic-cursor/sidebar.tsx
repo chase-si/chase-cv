@@ -14,6 +14,7 @@ import type {
 } from "magic-cursor-effect";
 
 import type { EffectOptions, OptionsByEffect } from "@/components/magic-cursor/types";
+import { MAGIC_CURSOR_EFFECT_ORDER } from "@/lib/constants/magic-cursor";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,17 +33,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-
-const effectNames: EffectName[] = [
-  "ring",
-  "invertRing",
-  "magnifier",
-  "trail",
-  "spotlight",
-  "magnetic",
-  "flame",
-  "smoke",
-];
 
 function clampNumber(input: number, min: number, max: number) {
   return Math.min(max, Math.max(min, input));
@@ -99,7 +89,7 @@ export function MagicCursorSidebar({
         <div className="grid gap-2">
           <Label className="text-xs text-muted-foreground">效果</Label>
           <div className="grid grid-cols-2 gap-2">
-            {effectNames.map((name) => {
+            {MAGIC_CURSOR_EFFECT_ORDER.map((name) => {
               const active = name === effect;
               return (
                 <Button
@@ -297,22 +287,88 @@ export function MagicCursorSidebar({
               </div>
 
               {effect === "magnifier" && (
-                <SliderField
-                  label={`zoom (${(options as MagnifierOptions).zoom ?? 1})`}
-                  min={1}
-                  max={2.6}
-                  step={0.05}
-                  value={(options as MagnifierOptions).zoom ?? 1.6}
-                  onChange={(zoom) =>
-                    setOptionsByEffect((prev) => ({
-                      ...prev,
-                      magnifier: {
-                        ...(prev.magnifier as MagnifierOptions),
-                        zoom: clampNumber(zoom, 1, 2.6),
-                      },
-                    }))
-                  }
-                />
+                <>
+                  <SliderField
+                    label={`zoom (${(options as MagnifierOptions).zoom ?? 1})`}
+                    min={1}
+                    max={2.6}
+                    step={0.05}
+                    value={(options as MagnifierOptions).zoom ?? 1.6}
+                    onChange={(zoom) =>
+                      setOptionsByEffect((prev) => ({
+                        ...prev,
+                        magnifier: {
+                          ...(prev.magnifier as MagnifierOptions),
+                          zoom: clampNumber(zoom, 1, 2.6),
+                        },
+                      }))
+                    }
+                  />
+                  <SliderField
+                    label={`lensBlurPx (${(options as MagnifierOptions).lensBlurPx ?? 0})`}
+                    min={0}
+                    max={24}
+                    step={1}
+                    value={(options as MagnifierOptions).lensBlurPx ?? 6}
+                    onChange={(lensBlurPx) =>
+                      setOptionsByEffect((prev) => ({
+                        ...prev,
+                        magnifier: {
+                          ...(prev.magnifier as MagnifierOptions),
+                          lensBlurPx: clampNumber(lensBlurPx, 0, 24),
+                        },
+                      }))
+                    }
+                  />
+                  <SliderField
+                    label={`lensBrightness (${(options as MagnifierOptions).lensBrightness ?? 1})`}
+                    min={0.5}
+                    max={2}
+                    step={0.05}
+                    value={(options as MagnifierOptions).lensBrightness ?? 1.15}
+                    onChange={(lensBrightness) =>
+                      setOptionsByEffect((prev) => ({
+                        ...prev,
+                        magnifier: {
+                          ...(prev.magnifier as MagnifierOptions),
+                          lensBrightness: clampNumber(lensBrightness, 0.5, 2),
+                        },
+                      }))
+                    }
+                  />
+                  <SliderField
+                    label={`lensSaturate (${(options as MagnifierOptions).lensSaturate ?? 1})`}
+                    min={0}
+                    max={2.5}
+                    step={0.05}
+                    value={(options as MagnifierOptions).lensSaturate ?? 1.25}
+                    onChange={(lensSaturate) =>
+                      setOptionsByEffect((prev) => ({
+                        ...prev,
+                        magnifier: {
+                          ...(prev.magnifier as MagnifierOptions),
+                          lensSaturate: clampNumber(lensSaturate, 0, 2.5),
+                        },
+                      }))
+                    }
+                  />
+                  <SliderField
+                    label={`lensFillOpacity (${(options as MagnifierOptions).lensFillOpacity ?? 0})`}
+                    min={0}
+                    max={0.35}
+                    step={0.01}
+                    value={(options as MagnifierOptions).lensFillOpacity ?? 0.06}
+                    onChange={(lensFillOpacity) =>
+                      setOptionsByEffect((prev) => ({
+                        ...prev,
+                        magnifier: {
+                          ...(prev.magnifier as MagnifierOptions),
+                          lensFillOpacity: clampNumber(lensFillOpacity, 0, 0.35),
+                        },
+                      }))
+                    }
+                  />
+                </>
               )}
 
               {effect === "invertRing" && (
@@ -365,9 +421,26 @@ export function MagicCursorSidebar({
                   }))
                 }
               />
+              <div className="grid gap-2">
+                <Label className="text-xs font-normal text-muted-foreground">
+                  selector（CSS 选择器）
+                </Label>
+                <Input
+                  value={(options as MagneticOptions).selector ?? "[data-magnetic]"}
+                  onChange={(e) =>
+                    setOptionsByEffect((prev) => ({
+                      ...prev,
+                      magnetic: {
+                        ...(prev.magnetic as MagneticOptions),
+                        selector: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </div>
               <p className="text-xs text-muted-foreground">
-                预览区域里带 <code className="font-mono text-foreground">data-magnetic</code>{" "}
-                的元素会被吸引。
+                预览区域里匹配该选择器的元素会被吸引；默认{" "}
+                <code className="font-mono text-foreground">[data-magnetic]</code>。
               </p>
             </div>
           )}
@@ -422,6 +495,59 @@ export function MagicCursorSidebar({
                   }))
                 }
               />
+
+              {effect === "flame" && (
+                <>
+                  <SliderField
+                    label={`rise (${(options as FlameOptions).rise ?? 0})`}
+                    min={0}
+                    max={4}
+                    step={0.05}
+                    value={(options as FlameOptions).rise ?? 1.6}
+                    onChange={(rise) =>
+                      setOptionsByEffect((prev) => ({
+                        ...prev,
+                        flame: {
+                          ...(prev.flame as FlameOptions),
+                          rise: clampNumber(rise, 0, 4),
+                        },
+                      }))
+                    }
+                  />
+                  <SliderField
+                    label={`jitter (${(options as FlameOptions).jitter ?? 0})`}
+                    min={0}
+                    max={3}
+                    step={0.05}
+                    value={(options as FlameOptions).jitter ?? 0.9}
+                    onChange={(jitter) =>
+                      setOptionsByEffect((prev) => ({
+                        ...prev,
+                        flame: {
+                          ...(prev.flame as FlameOptions),
+                          jitter: clampNumber(jitter, 0, 3),
+                        },
+                      }))
+                    }
+                  />
+                  <SliderField
+                    label={`maxDpr (${(options as FlameOptions).maxDpr ?? 2})`}
+                    min={1}
+                    max={4}
+                    step={0.5}
+                    value={(options as FlameOptions).maxDpr ?? 2}
+                    onChange={(maxDpr) =>
+                      setOptionsByEffect((prev) => ({
+                        ...prev,
+                        flame: {
+                          ...(prev.flame as FlameOptions),
+                          maxDpr: clampNumber(maxDpr, 1, 4),
+                        },
+                      }))
+                    }
+                  />
+                </>
+              )}
 
               {effect === "smoke" && (
                 <>

@@ -18,40 +18,7 @@ import { createEffect } from "magic-cursor-effect";
 
 import { MagicCursorSidebar } from "@/components/magic-cursor/sidebar";
 import type { OptionsByEffect } from "@/components/magic-cursor/types";
-
-const defaultOptionsByEffect: OptionsByEffect = {
-  ring: { size: 38, color: "rgba(99, 102, 241, 0.95)", borderWidth: 2, smoothing: 0.18 },
-  invertRing: {
-    size: 42,
-    color: "rgba(99, 102, 241, 0.95)",
-    borderWidth: 2,
-    smoothing: 0.18,
-    blendMode: "difference",
-  },
-  magnifier: {
-    size: 52,
-    color: "rgba(99, 102, 241, 0.95)",
-    borderWidth: 2,
-    smoothing: 0.18,
-    zoom: 1.6,
-    lensBlurPx: 6,
-    lensBrightness: 1.15,
-    lensSaturate: 1.25,
-    lensFillOpacity: 0.06,
-  },
-  trail: { maxDots: 26, color: "rgba(99, 102, 241, 0.65)", size: 6, throttleMs: 16 },
-  spotlight: { radius: 150, dimColor: "rgba(0, 0, 0, 0.82)" },
-  magnetic: { strength: 0.35, selector: "[data-magnetic]" },
-  flame: { emission: 2, size: 10, lifeMs: 700, rise: 1.6, jitter: 0.9, maxDpr: 2 },
-  smoke: {
-    emission: 2,
-    size: 18,
-    lifeMs: 1400,
-    rise: 0.8,
-    drift: 0.7,
-    color: "rgba(226,232,240,0.18)",
-  },
-};
+import { defaultOptionsByEffect } from "@/lib/constants/magic-cursor";
 
 export default function Page() {
   const rootRef = useRef<HTMLDivElement | null>(null);
