@@ -19,7 +19,7 @@ export const MAGIC_CURSOR_EFFECTS = {
       size: 38,
       color: "rgba(99, 102, 241, 0.95)",
       borderWidth: 2,
-      smoothing: 0.18,
+      smoothing: 0.9,
     } satisfies RingOptions,
   },
   MAGNIFIER: {
@@ -28,7 +28,7 @@ export const MAGIC_CURSOR_EFFECTS = {
       size: 52,
       color: "rgba(99, 102, 241, 0.95)",
       borderWidth: 2,
-      smoothing: 0.18,
+      smoothing: 0.9,
       zoom: 1.6,
       lensBlurPx: 6,
       lensBrightness: 1.15,
