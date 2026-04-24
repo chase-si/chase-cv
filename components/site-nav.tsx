@@ -18,7 +18,7 @@ export function SiteNav() {
             <Sparkles className="h-4 w-4" />
           </span>
           <span className="text-sm sm:text-base">
-            Chase <span className="text-muted-foreground">CV</span>
+            Chase&apos;s <span className="text-muted-foreground">CV</span>
           </span>
         </Button>
 
