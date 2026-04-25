@@ -3,6 +3,7 @@ import { GitFork, Sparkles } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 export function SiteNav() {
   return (
@@ -14,12 +15,7 @@ export function SiteNav() {
           className="h-auto gap-2 px-2 font-semibold text-foreground hover:text-foreground"
           render={<Link href="/" />}
         >
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-foreground text-background shadow-md">
-            <Sparkles className="h-4 w-4" />
-          </span>
-          <span className="text-sm sm:text-base">
-            Chase&apos;s <span className="text-muted-foreground">CV</span>
-          </span>
+          <Image src="/logo.png" alt="Logo" width={192} height={52} />
         </Button>
 
         {/* <nav className="hidden items-center gap-1 text-sm sm:flex">
