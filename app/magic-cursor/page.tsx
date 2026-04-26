@@ -21,14 +21,13 @@ export default function Page() {
             <MagicCursorSidebar activeEffect={null} />
           </section>
 
-          <section className="lg:col-span-8 border border-card shadow-lg backdrop-blur-xl rounded-xl overflow-hidden">
+          <section className="lg:col-span-8 shadow-lg backdrop-blur-xl rounded-xl overflow-hidden">
             <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
               {[...MAGIC_CURSOR_EFFECT_ORDER, MAGIC_CURSOR_EFFECTS.INVERT_RING.type].map((effect, index) => {
                 const enabled = active === effect;
                 return (
-                  <Link
+                  <div
                     key={index}
-                    href={`/magic-cursor/${effect}`}
                     onMouseEnter={() => setActive(effect)}
                     onMouseLeave={() => setActive((prev) => (prev === effect ? null : prev))}
                     onFocus={() => setActive(effect)}
@@ -40,7 +39,7 @@ export default function Page() {
                       effect={effect}
                       options={defaultOptionsByEffect[effect]}
                     />
-                  </Link>
+                  </div>
                 );
               })}
             </div>
