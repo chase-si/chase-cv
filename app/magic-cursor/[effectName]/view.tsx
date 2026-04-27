@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { MagicCursorSidebar } from "@/components/magic-cursor/sidebar";
 import { MagicCursorDemoDetail } from "@/components/magic-cursor/demo-detail";
+import { MagicCursorEffectCode } from "@/components/magic-cursor/effect-code";
 import type { OptionsByEffect } from "@/components/magic-cursor/types";
 import { defaultOptionsByEffect } from "@/lib/constants/magic-cursor";
 
@@ -60,6 +61,7 @@ export function MagicCursorEffectPage({ effect }: Props) {
             </CardHeader>
             <CardContent>
               <MagicCursorDemoDetail effect={effect} options={options} />
+              <MagicCursorEffectCode effect={effect} options={options} />
             </CardContent>
           </Card>
         </div>
