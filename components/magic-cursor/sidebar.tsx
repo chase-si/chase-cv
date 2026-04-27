@@ -91,10 +91,9 @@ export function MagicCursorSidebar(props: Props) {
         <div className="grid gap-2">
           <Label className="text-xs text-muted-foreground">效果</Label>
           <Button
-            type="button"
             variant={effect === null ? "default" : "outline"}
             size="lg"
-            className="h-10 rounded-2xl font-normal"
+            className={effect === null ? "shadow-sm border-none" : "shadow-sm"}
             onClick={() => router.push("/magic-cursor")}
           >
             All
@@ -108,7 +107,7 @@ export function MagicCursorSidebar(props: Props) {
                   type="button"
                   variant={active ? "default" : "outline"}
                   size="lg"
-                  className="h-10 rounded-2xl font-normal"
+                  className={active ? "shadow-sm border-none" : "shadow-sm"}
                   onClick={() => router.push(`/magic-cursor/${name}`)}
                 >
                   {name}

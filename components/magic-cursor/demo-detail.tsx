@@ -1,6 +1,8 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef } from "react";
+import { useTheme } from "next-themes";
 
 import type {
   Destroyable,
@@ -15,6 +17,7 @@ import type {
   TrailOptions,
 } from "magic-cursor-effect";
 import { createEffect } from "magic-cursor-effect";
+import { MAGIC_CURSOR_EFFECTS } from "@/lib/constants/magic-cursor";
 
 import { cn } from "@/lib/utils";
 
@@ -31,28 +34,27 @@ type Props = {
     | SmokeOptions;
   enabled?: boolean;
   className?: string;
-  style?: React.CSSProperties;
-  children?: React.ReactNode;
+  children?: ReactNode;
 };
 
 function create(effect: EffectName, root: HTMLDivElement, options: Props["options"]) {
   switch (effect) {
-    case "spotlight":
-      return createEffect("spotlight", root, options as SpotlightOptions);
-    case "trail":
-      return createEffect("trail", root, options as TrailOptions);
-    case "magnetic":
-      return createEffect("magnetic", root, options as MagneticOptions);
-    case "ring":
-      return createEffect("ring", root, options as RingOptions);
-    case "magnifier":
-      return createEffect("magnifier", root, options as MagnifierOptions);
-    case "invertRing":
-      return createEffect("invertRing", root, options as InvertRingOptions);
-    case "flame":
-      return createEffect("flame", root, options as FlameOptions);
-    case "smoke":
-      return createEffect("smoke", root, options as SmokeOptions);
+    case MAGIC_CURSOR_EFFECTS.SPOTLIGHT.type:
+      return createEffect(MAGIC_CURSOR_EFFECTS.SPOTLIGHT.type, root, options as SpotlightOptions);
+    case MAGIC_CURSOR_EFFECTS.TRAIL.type:
+      return createEffect(MAGIC_CURSOR_EFFECTS.TRAIL.type, root, options as TrailOptions);
+    case MAGIC_CURSOR_EFFECTS.MAGNETIC.type:
+      return createEffect(MAGIC_CURSOR_EFFECTS.MAGNETIC.type, root, options as MagneticOptions);
+    case MAGIC_CURSOR_EFFECTS.RING.type:
+      return createEffect(MAGIC_CURSOR_EFFECTS.RING.type, root, options as RingOptions);
+    case MAGIC_CURSOR_EFFECTS.MAGNIFIER.type:
+      return createEffect(MAGIC_CURSOR_EFFECTS.MAGNIFIER.type, root, options as MagnifierOptions);
+    case MAGIC_CURSOR_EFFECTS.INVERT_RING.type:
+      return createEffect(MAGIC_CURSOR_EFFECTS.INVERT_RING.type, root, options as InvertRingOptions);
+    case MAGIC_CURSOR_EFFECTS.FLAME.type:
+      return createEffect(MAGIC_CURSOR_EFFECTS.FLAME.type, root, options as FlameOptions);
+    case MAGIC_CURSOR_EFFECTS.SMOKE.type:
+      return createEffect(MAGIC_CURSOR_EFFECTS.SMOKE.type, root, options as SmokeOptions);
     default: {
       const _never: never = effect;
       throw new Error(`Unknown effect: ${_never}`);
@@ -60,18 +62,41 @@ function create(effect: EffectName, root: HTMLDivElement, options: Props["option
   }
 }
 
-export function MagicCursorDemo({
+const basicStyle =
+  "relative overflow-hidden rounded-xl border border-border bg-card min-h-[240px] flex items-center justify-center text-3xl bold uppercase";
+
+export function MagicCursorDemoDetail({
   effect,
   options,
   enabled = true,
-  className,
-  style,
   children,
 }: Props) {
+  const { resolvedTheme } = useTheme();
+  const isLight = resolvedTheme === "light";
   const rootRef = useRef<HTMLDivElement | null>(null);
   const instanceRef = useRef<Destroyable | null>(null);
 
   const optionsKey = useMemo(() => JSON.stringify(options), [options]);
+  const MAGNETIC_ITEMS = useMemo(() => [
+    {
+      id: "1",
+      top: "15%",
+      left: "10%",
+      size: 60,
+    },
+    {
+      id: "2",
+      top: "20%",
+      left: "80%",
+      size: 60,
+    },
+    {
+      id: "3",
+      top: "80%",
+      left: "65%",
+      size: 60,
+    },
+  ], []);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -83,18 +108,67 @@ export function MagicCursorDemo({
       return;
     }
 
+    const handledOption: Props["options"] =
+      effect === MAGIC_CURSOR_EFFECTS.SMOKE.type
+        ? ({
+            ...(options as SmokeOptions),
+            color: isLight ? "rgba(0,0,0,0.28)" : "rgba(226,232,240,0.18)",
+          } satisfies SmokeOptions)
+        : options;
+
     instanceRef.current?.destroy();
-    instanceRef.current = create(effect, root, options);
+    instanceRef.current = create(effect, root, handledOption);
 
     return () => {
       instanceRef.current?.destroy();
       instanceRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, effect, optionsKey]);
+  }, [enabled, effect, isLight, optionsKey]);
 
+  if (effect === MAGIC_CURSOR_EFFECTS.MAGNETIC.type) {
+    return (
+      <div ref={rootRef} className={cn(basicStyle, "flex items-center justify-center")}>
+        <div>{effect}</div>
+        {children}
+        {MAGNETIC_ITEMS.map((item) => (
+          <div
+            key={item.id}
+            data-magnetic
+            className="absolute shadow-xs z-10 rounded-full bg-primary text-sm flex items-center justify-center"
+            style={{
+              top: item.top,
+              left: item.left,
+              width: item.size,
+              height: item.size,
+              transform: "translate(-50%, -50%)",
+            }}
+          >
+            {item.id}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (effect === MAGIC_CURSOR_EFFECTS.INVERT_RING.type) {
+    return (
+      <div
+        ref={rootRef}
+        className={cn(
+          basicStyle,
+          "bg-[conic-gradient(from_180deg,#22c55e,#06b6d4,#3b82f6,#a855f7,#ec4899,#f97316,#facc15,#22c55e)]",
+          "dark:bg-[conic-gradient(from_180deg,#ec4899,#f97316,#facc15,#22c55e,#06b6d4,#3b82f6,#a855f7,#ec4899)]",
+        )}
+      >
+        {effect}
+        {children}
+      </div>
+    );
+  }
   return (
-    <div ref={rootRef} className={cn("relative", className)} style={style}>
+    <div ref={rootRef} className={cn(basicStyle)}>
+      {effect}
       {children}
     </div>
   );

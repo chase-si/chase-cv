@@ -20,10 +20,11 @@ export function SiteNav() {
         </Link>
 
         <div>
-          <nav className="hidden items-center gap-1 text-sm sm:flex">
+          <nav className="hidden items-center gap-2 text-sm sm:flex">
             <Button
               size="sm"
               nativeButton={false}
+              className="shadow-sm border-none"
               render={<Link href="/magic-cursor" />}
             >
               作品
@@ -32,30 +33,29 @@ export function SiteNav() {
               variant="ghost"
               size="sm"
               nativeButton={false}
+              className="shadow-sm"
               render={<Link href="https://blog.dashuaibi.vip/blog" target="_blank" />}
             >
               博客
             </Button>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                nativeButton={false}
-                aria-label="GitHub"
-                className="rounded-xl shadow-sm hover:shadow-md"
-                render={
-                  <a
-                    href="https://github.com/chase-si"
-                    target="_blank"
-                    rel="noreferrer"
-                  />
-                }
-              >
-                <GitFork className="h-4 w-4" />
-              </Button>
-              
-              <ThemeToggle />
-            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              nativeButton={false}
+              aria-label="GitHub"
+              className="shadow-sm hover:shadow-md"
+              render={
+                <a
+                  href="https://github.com/chase-si"
+                  target="_blank"
+                  rel="noreferrer"
+                />
+              }
+            >
+              <GitFork className="h-4 w-4" />
+            </Button>
+            
+            <ThemeToggle />
           </nav>
         </div>
       </div>
