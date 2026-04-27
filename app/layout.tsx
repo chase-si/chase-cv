@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 import "./globals.css";
 import { SiteNav } from "@/components/site-nav";
@@ -24,6 +25,8 @@ export const metadata: Metadata = {
   description: "Chase's personal website to show his skills",
 };
 
+const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -46,6 +49,7 @@ export default function RootLayout({
           <div className="flex min-h-0 flex-1 flex-col">{children}</div>
           <Toaster />
         </ThemeProvider>
+        {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
       </body>
     </html>
   );

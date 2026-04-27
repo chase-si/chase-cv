@@ -17,6 +17,8 @@ jobs:
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.PORT }}
+          envs: NEXT_PUBLIC_GA_MEASUREMENT_ID
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
 
           script: |
             cd /root/project/chase-cv

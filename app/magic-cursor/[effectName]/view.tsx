@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import type { EffectName } from "magic-cursor-effect";
@@ -19,6 +19,7 @@ import { MagicCursorDemoDetail } from "@/components/magic-cursor/demo-detail";
 import { MagicCursorEffectCode } from "@/components/magic-cursor/effect-code";
 import type { OptionsByEffect } from "@/components/magic-cursor/types";
 import { defaultOptionsByEffect } from "@/lib/constants/magic-cursor";
+import { trackEvent } from "@/lib/analytics";
 
 type Props = {
   effect: EffectName;
@@ -27,6 +28,10 @@ type Props = {
 export function MagicCursorEffectPage({ effect }: Props) {
   const [optionsByEffect, setOptionsByEffect] = useState<OptionsByEffect>(defaultOptionsByEffect);
   const options = optionsByEffect[effect];
+
+  useEffect(() => {
+    trackEvent("effect_view", { effect });
+  }, [effect]);
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
