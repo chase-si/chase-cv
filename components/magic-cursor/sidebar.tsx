@@ -15,7 +15,10 @@ import type {
 import { useRouter } from "next/navigation";
 
 import type { EffectOptions, OptionsByEffect } from "@/components/magic-cursor/types";
-import { MAGIC_CURSOR_EFFECT_ORDER } from "@/lib/constants/magic-cursor";
+import {
+  INVERT_RING_BLEND_MODE_OPTIONS,
+  MAGIC_CURSOR_EFFECT_ORDER,
+} from "@/lib/constants/magic-cursor";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -34,9 +37,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { ColorPicker } from "@/components/ui/color-picker";
 
 function clampNumber(input: number, min: number, max: number) {
   return Math.min(max, Math.max(min, input));
+}
+
+function invertRingBlendModeSelectValue(options: InvertRingOptions): string {
+  const raw = options.blendMode ?? "difference";
+  return INVERT_RING_BLEND_MODE_OPTIONS.some((o) => o.value === raw) ? raw : "difference";
 }
 
 type SliderFieldProps = {
@@ -125,7 +134,7 @@ export function MagicCursorSidebar(props: Props) {
               <div className="mt-3 grid gap-3">
                 <SliderField
                   label={`radius (${(options as SpotlightOptions).radius ?? 0}px)`}
-                  min={60}
+                  min={10}
                   max={260}
                   step={1}
                   value={(options as SpotlightOptions).radius ?? 140}
@@ -143,14 +152,15 @@ export function MagicCursorSidebar(props: Props) {
                   <Label className="text-xs font-normal text-muted-foreground">
                     dimColor (rgba)
                   </Label>
-                  <Input
+                  <ColorPicker
                     value={(options as SpotlightOptions).dimColor ?? ""}
+                    allowEmpty
                     onChange={(e) =>
                       props.setOptionsByEffect((prev) => ({
                         ...prev,
                         spotlight: {
                           ...(prev.spotlight as SpotlightOptions),
-                          dimColor: e.target.value,
+                          dimColor: e,
                         },
                       }))
                     }
@@ -164,7 +174,7 @@ export function MagicCursorSidebar(props: Props) {
                 <SliderField
                   label={`maxDots (${(options as TrailOptions).maxDots ?? 0})`}
                   min={6}
-                  max={80}
+                  max={2000}
                   step={1}
                   value={(options as TrailOptions).maxDots ?? 24}
                   onChange={(maxDots) =>
@@ -180,7 +190,7 @@ export function MagicCursorSidebar(props: Props) {
                 <SliderField
                   label={`size (${(options as TrailOptions).size ?? 0}px)`}
                   min={2}
-                  max={18}
+                  max={180}
                   step={1}
                   value={(options as TrailOptions).size ?? 6}
                   onChange={(size) =>
@@ -213,14 +223,15 @@ export function MagicCursorSidebar(props: Props) {
                   <Label className="text-xs font-normal text-muted-foreground">
                     color (rgba)
                   </Label>
-                  <Input
+                  <ColorPicker
                     value={(options as TrailOptions).color ?? ""}
+                    allowEmpty
                     onChange={(e) =>
                       props.setOptionsByEffect((prev) => ({
                         ...prev,
                         trail: {
                           ...(prev.trail as TrailOptions),
-                          color: e.target.value,
+                          color: e,
                         },
                       }))
                     }
@@ -249,7 +260,7 @@ export function MagicCursorSidebar(props: Props) {
                 />
                 <SliderField
                   label={`borderWidth (${(options as RingOptions).borderWidth ?? 0}px)`}
-                  min={1}
+                  min={effect === "invertRing" ? 0 : 1}
                   max={8}
                   step={1}
                   value={(options as RingOptions).borderWidth ?? 2}
@@ -283,14 +294,15 @@ export function MagicCursorSidebar(props: Props) {
                   <Label className="text-xs font-normal text-muted-foreground">
                     color (rgba)
                   </Label>
-                  <Input
+                  <ColorPicker
                     value={(options as RingOptions).color ?? ""}
+                    allowEmpty
                     onChange={(e) =>
                       props.setOptionsByEffect((prev) => ({
                         ...prev,
                         [effect]: {
                           ...(prev[effect] as RingOptions),
-                          color: e.target.value,
+                          color: e,
                         },
                       }))
                     }
@@ -383,32 +395,54 @@ export function MagicCursorSidebar(props: Props) {
                 )}
 
                 {effect === "invertRing" && (
-                  <div className="grid gap-2">
-                    <Label className="text-xs font-normal text-muted-foreground">
-                      blendMode
-                    </Label>
-                    <Select
-                      value={(options as InvertRingOptions).blendMode ?? "difference"}
-                      onValueChange={(blendMode) =>
-                        props.setOptionsByEffect((prev) => ({
-                          ...prev,
-                          invertRing: {
-                            ...(prev.invertRing as InvertRingOptions),
-                            blendMode,
-                          },
-                        }))
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="difference">difference（默认）</SelectItem>
-                        <SelectItem value="exclusion">exclusion</SelectItem>
-                        <SelectItem value="screen">screen</SelectItem>
-                        <SelectItem value="multiply">multiply</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid gap-3">
+                    <div className="grid gap-2">
+                      <Label className="text-xs font-normal text-muted-foreground">
+                        blendMode（mix-blend-mode）
+                      </Label>
+                      <Select
+                        value={invertRingBlendModeSelectValue(options as InvertRingOptions)}
+                        onValueChange={(blendMode) =>
+                          props.setOptionsByEffect((prev) => ({
+                            ...prev,
+                            invertRing: {
+                              ...(prev.invertRing as InvertRingOptions),
+                              blendMode,
+                            },
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {INVERT_RING_BLEND_MODE_OPTIONS.map((o) => (
+                            <SelectItem key={o.value} value={o.value}>
+                              {o.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-xs font-normal text-muted-foreground">
+                        blendBackground（可选，rgba / 留空用库默认）
+                      </Label>
+                      <Input
+                        value={(options as InvertRingOptions).blendBackground ?? ""}
+                        placeholder="例如 rgba(255,255,255,0.9)"
+                        onChange={(e) => {
+                          const v = e.target.value.trim();
+                          props.setOptionsByEffect((prev) => ({
+                            ...prev,
+                            invertRing: {
+                              ...(prev.invertRing as InvertRingOptions),
+                              blendBackground: v === "" ? undefined : e.target.value,
+                            },
+                          }));
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -602,14 +636,15 @@ export function MagicCursorSidebar(props: Props) {
                     <Label className="text-xs font-normal text-muted-foreground">
                       color (rgba)
                     </Label>
-                    <Input
+                    <ColorPicker
                       value={(options as SmokeOptions).color ?? ""}
+                      allowEmpty
                       onChange={(e) =>
                         props.setOptionsByEffect((prev) => ({
                           ...prev,
                           smoke: {
                             ...(prev.smoke as SmokeOptions),
-                            color: e.target.value,
+                            color: e,
                           },
                         }))
                       }

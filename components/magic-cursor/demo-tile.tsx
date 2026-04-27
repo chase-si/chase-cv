@@ -117,17 +117,9 @@ export function MagicCursorDemoTile({
       instanceRef.current = null;
       return;
     }
-
-    const handledOption: Props["options"] =
-      effect === MAGIC_CURSOR_EFFECTS.SMOKE.type
-        ? ({
-            ...(options as SmokeOptions),
-            color: isLight ? "rgba(0,0,0,0.28)" : "rgba(226,232,240,0.18)",
-          } satisfies SmokeOptions)
-        : options;
-
+    
     instanceRef.current?.destroy();
-    instanceRef.current = create(effect, root, handledOption);
+    instanceRef.current = create(effect, root, options);
 
     return () => {
       instanceRef.current?.destroy();

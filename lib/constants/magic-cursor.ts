@@ -78,7 +78,7 @@ export const MAGIC_CURSOR_EFFECTS = {
       lifeMs: 1400,
       rise: 0.8,
       drift: 0.7,
-      color: "rgba(226,232,240,0.18)",
+      color: "rgba(99, 102, 241, 0.95)",
     } satisfies SmokeOptions,
   },
   INVERT_RING: {
@@ -102,6 +102,28 @@ export const MAGIC_CURSOR_EFFECT_ORDER: readonly EffectName[] = [
   "flame",
   "smoke",
   "invertRing",
+];
+
+/** 与 `magic-cursor-effect` 的 `InvertRingOptions.blendMode`（CSS mix-blend-mode）对齐 */
+export const INVERT_RING_BLEND_MODE_OPTIONS: readonly { value: string; label: string }[] = [
+  { value: "normal", label: "normal" },
+  { value: "multiply", label: "multiply" },
+  { value: "screen", label: "screen" },
+  { value: "overlay", label: "overlay" },
+  { value: "darken", label: "darken" },
+  { value: "lighten", label: "lighten" },
+  { value: "color-dodge", label: "color-dodge" },
+  { value: "color-burn", label: "color-burn" },
+  { value: "hard-light", label: "hard-light" },
+  { value: "soft-light", label: "soft-light" },
+  { value: "difference", label: "difference（默认）" },
+  { value: "exclusion", label: "exclusion" },
+  { value: "hue", label: "hue" },
+  { value: "saturation", label: "saturation" },
+  { value: "color", label: "color" },
+  { value: "luminosity", label: "luminosity" },
+  { value: "plus-darker", label: "plus-darker" },
+  { value: "plus-lighter", label: "plus-lighter" },
 ];
 
 export const defaultOptionsByEffect: OptionsByEffect = Object.values(
