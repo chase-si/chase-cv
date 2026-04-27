@@ -21,6 +21,7 @@ My personal website to show my skills
 - [ ] Pages
   - [ ] Homepage
     - [ ] Design
+    - [ ] Add Graph for Skills
   - [X] Magic cursor effect
   - [ ] Flow chart
   - [ ] High frequency render Chart
@@ -33,3 +34,14 @@ My personal website to show my skills
     - [ ] Stripe demo
     - [ ] Email templates?
 
+
+- Chase
+  - Skills
+    - Frontend
+      - React
+      - Vue
+    - Backend
+    - Mobile
+  - Project
+    - Aladia
+    - CV website
