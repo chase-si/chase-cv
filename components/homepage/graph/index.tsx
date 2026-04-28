@@ -2,81 +2,24 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
-
-type SkillTreeNode = {
-  id: string;
-  children?: SkillTreeNode[];
-};
+import { HomepageGraphTooltip } from "@/components/homepage/graph/tooltip";
+import {
+  buildTree,
+  flattenTreeToGraph,
+  type GraphLink as TreeGraphLink,
+  type GraphNode as TreeGraphNode,
+} from "@/components/homepage/graph/tree";
 
 type GraphNode = {
-  id: string;
-  depth: number;
-  group: string;
+  id: TreeGraphNode["id"];
+  depth: TreeGraphNode["depth"];
+  group: TreeGraphNode["group"];
 } & d3.SimulationNodeDatum;
 
 type GraphLink = {
-  source: string | GraphNode;
-  target: string | GraphNode;
+  source: TreeGraphLink["source"] | GraphNode;
+  target: TreeGraphLink["target"] | GraphNode;
 };
-
-function buildTree(): SkillTreeNode {
-  return {
-    id: "Chase",
-    children: [
-      {
-        id: "Skills",
-        children: [
-          {
-            id: "Frontend",
-            children: [{ id: "React" }, { id: "Vue" }],
-          },
-          { id: "Backend" },
-          { id: "Mobile" },
-        ],
-      },
-      {
-        id: "Project",
-        children: [{ id: "Aladia" }, { id: "CV website" }],
-      },
-    ],
-  };
-}
-
-function flattenTreeToGraph(root: SkillTreeNode): {
-  nodes: GraphNode[];
-  links: GraphLink[];
-} {
-  const nodes: GraphNode[] = [];
-  const links: GraphLink[] = [];
-
-  const walk = (
-    node: SkillTreeNode,
-    parent: SkillTreeNode | null,
-    depth: number,
-    group: string,
-  ) => {
-    const resolvedGroup =
-      depth === 0 ? "root" : depth === 1 ? node.id : group;
-
-    nodes.push({
-      id: node.id,
-      depth,
-      group: resolvedGroup,
-    });
-
-    if (parent) {
-      links.push({ source: parent.id, target: node.id });
-    }
-
-    for (const child of node.children ?? []) {
-      walk(child, node, depth + 1, resolvedGroup);
-    }
-  };
-
-  walk(root, null, 0, "root");
-
-  return { nodes, links };
-}
 
 function useElementSize<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);
@@ -127,12 +70,27 @@ export function HomepageGraph() {
   const simulationRef = useRef<d3.Simulation<GraphNode, GraphLink> | null>(
     null,
   );
+  const [tooltip, setTooltip] = useState<{
+    open: boolean;
+    x: number;
+    y: number;
+  }>({ open: false, x: 0, y: 0 });
 
   useEffect(() => {
     const svgEl = svgRef.current;
     const containerEl = containerRef.current;
     if (!svgEl || !containerEl) return;
     if (size.width === 0 || size.height === 0) return;
+
+    const cx = size.width / 2;
+    const cy = size.height / 2;
+
+    // IMPORTANT: clone nodes/links for D3 simulation to avoid mutating hook outputs.
+    const simNodes: GraphNode[] = nodes.map((n) => ({ ...n }));
+    const simLinks: GraphLink[] = links.map((l) => ({
+      source: l.source,
+      target: l.target,
+    }));
 
     const stroke = getCssVar("--color-zinc-900", "#18181b");
     const strokeMuted = getCssVar("--color-zinc-900-10", "rgba(24,24,27,0.12)");
@@ -157,6 +115,41 @@ export function HomepageGraph() {
       .attr("width", size.width)
       .attr("height", size.height);
 
+    // Seed initial positions to match desired layout:
+    // - Chase centered
+    // - Skills on the left, Project on the right
+    // Simulation will refine from these anchors.
+    const seed = new Map<string, { x: number; y: number }>([
+      ["Chase", { x: cx, y: cy }],
+      ["Skills", { x: cx - 180, y: cy }],
+      ["Project", { x: cx + 180, y: cy }],
+      ["Frontend", { x: cx - 300, y: cy - 40 }],
+      ["Backend", { x: cx - 300, y: cy + 30 }],
+      ["Mobile", { x: cx - 300, y: cy + 100 }],
+      ["React", { x: cx - 420, y: cy - 65 }],
+      ["Vue", { x: cx - 420, y: cy - 15 }],
+      ["Aladia", { x: cx + 320, y: cy - 30 }],
+      ["CV website", { x: cx + 320, y: cy + 40 }],
+    ]);
+
+    for (const n of simNodes) {
+      const s = seed.get(n.id);
+      if (!s) continue;
+      n.x = s.x;
+      n.y = s.y;
+      n.vx = 0;
+      n.vy = 0;
+    }
+
+    const defs = svg.append("defs");
+    defs
+      .append("clipPath")
+      .attr("id", "homepage-graph-avatar-clip")
+      .append("circle")
+      .attr("r", nodeRadius(0) - 1)
+      .attr("cx", 0)
+      .attr("cy", 0);
+
     const rootG = svg.append("g").attr("class", "viewport");
 
     const zoom = d3
@@ -173,22 +166,84 @@ export function HomepageGraph() {
       .attr("stroke", strokeMuted)
       .attr("stroke-width", 1.2)
       .selectAll<SVGLineElement, GraphLink>("line")
-      .data(links)
+      .data(simLinks)
       .join("line");
 
     const nodeG = rootG
       .append("g")
       .selectAll<SVGGElement, GraphNode>("g")
-      .data(nodes)
+      .data(simNodes)
       .join("g");
 
+    // Non-root nodes: normal circles
     nodeG
+      .filter((d) => d.depth !== 0)
       .append("circle")
       .attr("r", (d) => nodeRadius(d.depth))
       .attr("fill", colorFor)
       .attr("stroke", stroke)
       .attr("stroke-opacity", 0.25)
       .attr("stroke-width", 1);
+
+    // Root node: avatar image clipped to circle + border ring
+    const rootNodeG = nodeG.filter((d) => d.depth === 0);
+    const r0 = nodeRadius(0);
+
+    rootNodeG
+      .append("circle")
+      .attr("r", r0)
+      .attr("fill", getCssVar("--color-background", "#ffffff"))
+      .attr("stroke", stroke)
+      .attr("stroke-opacity", 0.25)
+      .attr("stroke-width", 1);
+
+    const avatarSel = rootNodeG
+      .append("image")
+      .attr("href", "/avatar.png")
+      .attr("x", -r0)
+      .attr("y", -r0)
+      .attr("width", r0 * 2)
+      .attr("height", r0 * 2)
+      .attr("preserveAspectRatio", "xMidYMid slice")
+      .attr("clip-path", "url(#homepage-graph-avatar-clip)")
+      .attr("opacity", 0)
+      .attr("pointer-events", "none");
+
+    rootNodeG
+      .on("mouseenter.avatar", () => {
+        avatarSel.interrupt().transition().duration(140).attr("opacity", 1);
+      })
+      .on("mouseleave.avatar", () => {
+        avatarSel.interrupt().transition().duration(140).attr("opacity", 0);
+      });
+
+    const updateTooltip = (event: MouseEvent) => {
+      const r = containerEl.getBoundingClientRect();
+      setTooltip({
+        open: true,
+        x: event.clientX - r.left + 12,
+        y: event.clientY - r.top + 12,
+      });
+    };
+
+    rootNodeG
+      .on("mouseenter.tooltip", (event) => {
+        updateTooltip(event as unknown as MouseEvent);
+      })
+      .on("mousemove.tooltip", (event) => {
+        updateTooltip(event as unknown as MouseEvent);
+      })
+      .on("mouseleave.tooltip", () => {
+        setTooltip((prev) => (prev.open ? { ...prev, open: false } : prev));
+      });
+
+    rootNodeG
+      .append("circle")
+      .attr("r", r0)
+      .attr("fill", "none")
+      .attr("stroke", stroke)
+      .attr("stroke-opacity", 0.35)
+      .attr("stroke-width", 1.2);
 
     nodeG
       .append("text")
@@ -226,11 +281,34 @@ export function HomepageGraph() {
     nodeG.on("mouseup", () => nodeG.style("cursor", "grab"));
 
     const sim = d3
-      .forceSimulation<GraphNode>(nodes)
+      .forceSimulation<GraphNode>(simNodes)
+      .force(
+        "x",
+        d3
+          .forceX<GraphNode>((d) => {
+            if (d.depth === 0) return cx;
+            if (d.id === "Skills" || d.group === "Skills") return cx - 180;
+            if (d.id === "Project" || d.group === "Project") return cx + 180;
+            return cx;
+          })
+          .strength((d) => (d.depth <= 1 ? 0.22 : 0.10)),
+      )
+      .force(
+        "y",
+        d3
+          .forceY<GraphNode>((d) => {
+            if (d.depth === 0) return cy;
+            if (d.id === "Frontend") return cy - 40;
+            if (d.id === "Backend") return cy + 30;
+            if (d.id === "Mobile") return cy + 100;
+            return cy;
+          })
+          .strength((d) => (d.depth <= 1 ? 0.16 : 0.08)),
+      )
       .force(
         "link",
         d3
-          .forceLink<GraphNode, GraphLink>(links)
+          .forceLink<GraphNode, GraphLink>(simLinks)
           .id((d) => d.id)
           .distance((l) => {
             const s = l.source as GraphNode;
@@ -244,7 +322,7 @@ export function HomepageGraph() {
       )
       .force("charge", d3.forceManyBody().strength(-260))
       .force("collide", d3.forceCollide<GraphNode>().radius((d) => nodeRadius(d.depth) + 18))
-      .force("center", d3.forceCenter(size.width / 2, size.height / 2));
+      .force("center", d3.forceCenter(cx, cy));
 
     sim.on("tick", () => {
       linkSel
@@ -264,6 +342,8 @@ export function HomepageGraph() {
     return () => {
       svg.on(".zoom", null);
       nodeG.on("mousedown", null).on("mouseup", null);
+      rootNodeG.on(".avatar", null);
+      rootNodeG.on(".tooltip", null);
       sim.stop();
       simulationRef.current = null;
     };
@@ -281,6 +361,7 @@ export function HomepageGraph() {
   return (
     <div ref={containerRef} className="relative h-[420px] w-full">
       <svg ref={svgRef} className="h-full w-full select-none" />
+      <HomepageGraphTooltip open={tooltip.open} x={tooltip.x} y={tooltip.y} />
       <div className="pointer-events-none absolute bottom-3 left-3 rounded-xl border border-zinc-900/10 bg-white/70 px-3 py-2 text-[11px] text-zinc-600 shadow-sm backdrop-blur dark:border-white/10 dark:bg-black/40 dark:text-zinc-300">
         拖拽节点 · 滚轮缩放
       </div>
