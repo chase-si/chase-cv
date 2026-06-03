@@ -3,11 +3,8 @@ import { cn } from "@/lib/utils";
 import type { PosterTemplate } from "./templates";
 
 export type PosterPageContent = {
-  eyebrow: string;
   title: string;
-  subtitle: string;
-  note: string;
-  tags: string[];
+  description: string;
 };
 
 export function TemplatePreview({
@@ -29,14 +26,17 @@ export function TemplatePreview({
         <span />
       </div>
       <div className="pm-template__body">
-        <p className="pm-template__eyebrow">{content.eyebrow}</p>
-        <h3 className="pm-template__title">{content.title}</h3>
-        <p className="pm-template__subtitle">{content.subtitle}</p>
+        <p className="pm-template__eyebrow">Poster page</p>
+        <h3 className="pm-template__title">{content.title || "Untitled page"}</h3>
+        {content.description ? (
+          <p className="pm-template__subtitle whitespace-pre-line">
+            {content.description}
+          </p>
+        ) : null}
       </div>
       <div className="pm-template__footer">
-        <p>{content.note}</p>
         <div className="pm-template__tags" aria-label="Template tags">
-          {content.tags.map((tag) => (
+          {[template.category, template.name].map((tag) => (
             <span key={tag}>{tag}</span>
           ))}
         </div>
