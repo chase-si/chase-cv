@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { readdir } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 
 import { ensureDownloadsDir } from "./fixtures/downloads";
 
@@ -77,6 +77,12 @@ test.describe("poster maker page editor", () => {
     const downloadsDir = await ensureDownloadsDir();
     const downloadEvents: string[] = [];
 
+    await page.addInitScript(() => {
+      Object.defineProperty(window, "showDirectoryPicker", {
+        configurable: true,
+        value: undefined,
+      });
+    });
     page.on("download", async (download) => {
       const suggestedFilename = download.suggestedFilename();
       await download.saveAs(`${downloadsDir}/${suggestedFilename}`);
@@ -157,6 +163,10 @@ Line B`);
     const savedFiles = await readdir(downloadsDir);
     for (const filename of downloadEvents) {
       expect(savedFiles).toContain(filename);
+      await expectPngDimensions(`${downloadsDir}/${filename}`, {
+        height: 1440,
+        width: 1080,
+      });
     }
 
     await page.setViewportSize({ width: 390, height: 844 });
@@ -175,6 +185,17 @@ Line B`);
   test("renders page labels and footer, blocks empty-title export, and warns on overflow risk", async ({
     page,
   }) => {
+    const downloadEvents: string[] = [];
+
+    await page.addInitScript(() => {
+      Object.defineProperty(window, "showDirectoryPicker", {
+        configurable: true,
+        value: undefined,
+      });
+    });
+    page.on("download", (download) => {
+      downloadEvents.push(download.suggestedFilename());
+    });
     await page.goto("/poster-maker");
 
     const mainPreview = page.getByLabel("Current poster page preview");
@@ -193,6 +214,10 @@ Line B`);
     await expect(mainPreview.getByText("01 / 02")).toBeVisible();
 
     await page.getByLabel("Page title").fill("");
+    const invalidDownloadAttempt = page
+      .waitForEvent("download", { timeout: 500 })
+      .then(() => true)
+      .catch(() => false);
     await page.getByRole("button", { name: "Export poster pages" }).click();
 
     await expect(page.getByLabel("Page title")).toHaveAttribute(
@@ -202,6 +227,8 @@ Line B`);
     await expect(
       page.getByText("Add a title before exporting every poster page."),
     ).toBeVisible();
+    await expect(invalidDownloadAttempt).resolves.toBe(false);
+    expect(downloadEvents).toEqual([]);
 
     await page.getByLabel("Page title").fill("Long Content");
     await page
@@ -216,6 +243,75 @@ Line B`);
     await expect(page.getByRole("status", { name: "Export status" })).toContainText(
       "Downloaded 2 PNG files",
     );
+    await expect
+      .poll(() => downloadEvents.length, { message: "valid export downloads" })
+      .toBe(2);
+  });
+
+  test("saves PNGs through the directory picker when available", async ({
+    page,
+  }) => {
+    const downloadEvents: string[] = [];
+
+    await page.addInitScript(() => {
+      Object.defineProperty(window, "__directoryWrites", {
+        configurable: true,
+        value: [],
+      });
+      Object.defineProperty(window, "showDirectoryPicker", {
+        configurable: true,
+        value: async () => ({
+          getFileHandle: async (
+            name: string,
+            options?: { create?: boolean },
+          ) => {
+            (
+              window as unknown as { __directoryWrites: string[] }
+            ).__directoryWrites.push(`${name}:${String(options?.create)}`);
+
+            return {
+              createWritable: async () => ({
+                close: async () => {},
+                write: async (blob: Blob) => {
+                  (
+                    window as unknown as { __directoryWrites: string[] }
+                  ).__directoryWrites.push(`${name}:${blob.type}:${blob.size > 0}`);
+                },
+              }),
+            };
+          },
+        }),
+      });
+    });
+    page.on("download", (download) => {
+      downloadEvents.push(download.suggestedFilename());
+    });
+
+    await page.goto("/poster-maker");
+    await page.getByLabel("Markdown import").fill(`# Launch Plan
+First line
+
+## Metrics Snapshot
+Revenue up 18%`);
+    await page.getByRole("button", { name: "Replace pages" }).click();
+    await page.getByRole("button", { name: "Export poster pages" }).click();
+
+    await expect(page.getByRole("status", { name: "Export status" })).toContainText(
+      "Saved 2 PNG files to selected directory",
+    );
+    expect(downloadEvents).toEqual([]);
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () => (window as unknown as { __directoryWrites: string[] }).__directoryWrites,
+        ),
+      )
+      .toEqual([
+        "poster-01-launch-plan.png:true",
+        "poster-01-launch-plan.png:image/png:true",
+        "poster-02-metrics-snapshot.png:true",
+        "poster-02-metrics-snapshot.png:image/png:true",
+      ]);
   });
 
   test("imports Markdown pages by replacing and appending parsed headings", async ({
@@ -347,3 +443,14 @@ Line B`);
     await expect(mainPreview.getByText("把复杂能力讲清楚")).toBeVisible();
   });
 });
+
+async function expectPngDimensions(
+  filePath: string,
+  expectedSize: { height: number; width: number },
+) {
+  const png = await readFile(filePath);
+
+  expect(png.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
+  expect(png.readUInt32BE(16)).toBe(expectedSize.width);
+  expect(png.readUInt32BE(20)).toBe(expectedSize.height);
+}
