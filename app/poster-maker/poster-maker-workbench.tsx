@@ -262,8 +262,17 @@ export function PosterMakerWorkbench() {
       return;
     }
 
+    const downloadedPageCount = downloadPosterPngFallbacks({
+      footerText: footerTextForPreview,
+      pages,
+      showPageLabels,
+      template: selectedTemplate,
+    });
+
     setExportFeedback(
-      `Export ready for ${formatPageCount(pages.length)}${
+      `Downloaded ${downloadedPageCount} PNG files for ${formatPageCount(
+        pages.length,
+      )}${
         overflowRiskCount > 0 ? " with overflow warnings" : ""
       }.`,
     );
@@ -770,6 +779,196 @@ function formatPageLabel(pageNumber: number, pageCount: number) {
 function hasOverflowRisk(page: PosterPageContent) {
   const descriptionLines = page.description.split(/\r\n?|\n/);
   return page.title.length > 46 || descriptionLines.length > 12;
+}
+
+function downloadPosterPngFallbacks({
+  footerText,
+  pages,
+  showPageLabels,
+  template,
+}: {
+  footerText: string;
+  pages: PosterPage[];
+  showPageLabels: boolean;
+  template: PosterTemplate;
+}) {
+  pages.forEach((page, index) => {
+    const dataUrl = renderPosterPagePng({
+      footerText,
+      page,
+      pageLabel: showPageLabels
+        ? formatPageLabel(index + 1, pages.length)
+        : undefined,
+      template,
+    });
+    const anchor = document.createElement("a");
+    anchor.download = `poster-${String(index + 1).padStart(2, "0")}-${slugifyFilename(
+      page.title,
+    )}.png`;
+    anchor.href = dataUrl;
+    anchor.rel = "noopener";
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+  });
+
+  return pages.length;
+}
+
+function renderPosterPagePng({
+  footerText,
+  page,
+  pageLabel,
+  template,
+}: {
+  footerText: string;
+  page: PosterPage;
+  pageLabel?: string;
+  template: PosterTemplate;
+}) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1350;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    return "";
+  }
+
+  const palette = getTemplateExportPalette(template.id);
+  context.fillStyle = palette.background;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.fillStyle = palette.accent;
+  context.fillRect(72, 72, 128, 16);
+  context.fillRect(canvas.width - 200, canvas.height - 88, 128, 16);
+
+  context.strokeStyle = palette.border;
+  context.lineWidth = 4;
+  context.strokeRect(72, 72, canvas.width - 144, canvas.height - 144);
+
+  context.fillStyle = palette.muted;
+  context.font = "500 34px Arial, sans-serif";
+  context.fillText(`${template.category} / ${template.name}`, 104, 164);
+
+  if (pageLabel) {
+    context.textAlign = "right";
+    context.fillText(pageLabel, canvas.width - 104, 164);
+    context.textAlign = "left";
+  }
+
+  context.fillStyle = palette.foreground;
+  context.font = "700 88px Arial, sans-serif";
+  drawWrappedText(context, page.title || "Untitled page", 104, 380, 872, 98, 4);
+
+  if (page.description) {
+    context.fillStyle = palette.body;
+    context.font = "400 40px Arial, sans-serif";
+    drawWrappedText(context, page.description, 104, 690, 872, 58, 9);
+  }
+
+  if (footerText) {
+    context.fillStyle = palette.muted;
+    context.font = "500 30px Arial, sans-serif";
+    drawWrappedText(context, footerText, 104, canvas.height - 158, 872, 40, 2);
+  }
+
+  return canvas.toDataURL("image/png");
+}
+
+function drawWrappedText(
+  context: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  maxLines: number,
+) {
+  const lines = text.split(/\r\n?|\n/);
+  let drawnLines = 0;
+
+  for (const sourceLine of lines) {
+    const words = sourceLine.split(/\s+/).filter(Boolean);
+    const lineWords = words.length > 0 ? words : [""];
+    let currentLine = "";
+
+    for (const word of lineWords) {
+      const nextLine = currentLine ? `${currentLine} ${word}` : word;
+      if (
+        currentLine &&
+        context.measureText(nextLine).width > maxWidth
+      ) {
+        context.fillText(currentLine, x, y + drawnLines * lineHeight);
+        drawnLines += 1;
+        currentLine = word;
+        if (drawnLines >= maxLines) {
+          return;
+        }
+        continue;
+      }
+
+      currentLine = nextLine;
+    }
+
+    context.fillText(currentLine, x, y + drawnLines * lineHeight);
+    drawnLines += 1;
+    if (drawnLines >= maxLines) {
+      return;
+    }
+  }
+}
+
+function getTemplateExportPalette(templateId: PosterTemplateId) {
+  switch (templateId) {
+    case "magazine":
+      return {
+        accent: "#d44f2f",
+        background: "#fbf7ef",
+        body: "#3d332b",
+        border: "#1f1b18",
+        foreground: "#191512",
+        muted: "#7b6656",
+      };
+    case "retro":
+      return {
+        accent: "#f0b429",
+        background: "#2f221b",
+        body: "#f7e4bd",
+        border: "#d58b3b",
+        foreground: "#fff3d0",
+        muted: "#d9b06f",
+      };
+    case "tech":
+      return {
+        accent: "#36d399",
+        background: "#101820",
+        body: "#d4e7ef",
+        border: "#2a9fd6",
+        foreground: "#f3fbff",
+        muted: "#8fb8c8",
+      };
+    case "minimalist":
+    default:
+      return {
+        accent: "#111111",
+        background: "#f8f8f5",
+        body: "#3f3f39",
+        border: "#d8d6ce",
+        foreground: "#111111",
+        muted: "#706f68",
+      };
+  }
+}
+
+function slugifyFilename(value: string) {
+  const slug = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || "untitled-page";
 }
 
 function TemplateCssLinks({ templates }: { templates: PosterTemplate[] }) {
