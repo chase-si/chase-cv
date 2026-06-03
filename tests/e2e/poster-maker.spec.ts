@@ -68,6 +68,73 @@ test.describe("poster maker templates", () => {
 });
 
 test.describe("poster maker page editor", () => {
+  test("imports Markdown pages by replacing and appending parsed headings", async ({
+    page,
+  }) => {
+    await page.goto("/poster-maker");
+
+    const pageList = page.getByRole("list", { name: "Poster pages" });
+    const mainPreview = page.getByLabel("Current poster page preview");
+    const markdownInput = page.getByLabel("Markdown import");
+
+    await markdownInput.fill("Intro without a heading");
+    await page.getByRole("button", { name: "Replace pages" }).click();
+    await expect(page.getByRole("status")).toContainText(
+      "Add at least one Markdown heading",
+    );
+    await expect(page.getByLabel("Page title")).toHaveValue(
+      "把复杂能力讲清楚",
+    );
+
+    await markdownInput.fill(`# Launch Plan
+First line
+Second line
+
+## Metrics Snapshot
+Revenue up 18%`);
+    await page.getByRole("button", { name: "Replace pages" }).click();
+
+    await expect(page.getByRole("status")).toContainText(
+      "Imported 2 pages",
+    );
+    await expect(page.getByLabel("Page title")).toHaveValue("Launch Plan");
+    await expect(mainPreview.getByText("Launch Plan")).toBeVisible();
+    await expect(mainPreview.getByText("First line")).toBeVisible();
+    await expect(mainPreview.getByText("Second line")).toBeVisible();
+    await expect(pageList.getByRole("listitem").first()).toContainText(
+      "Launch Plan",
+    );
+    await expect(pageList.getByRole("listitem").nth(1)).toContainText(
+      "Metrics Snapshot",
+    );
+    await expect(
+      pageList.getByRole("button", { name: /把复杂能力讲清楚/ }),
+    ).toBeHidden();
+
+    await markdownInput.fill(`# Risks
+Line A
+Line B`);
+    await page.getByRole("button", { name: "Append pages" }).click();
+
+    await expect(page.getByRole("status")).toContainText(
+      "Appended 1 page",
+    );
+    await expect(pageList.getByRole("listitem").nth(0)).toContainText(
+      "Launch Plan",
+    );
+    await expect(pageList.getByRole("listitem").nth(1)).toContainText(
+      "Metrics Snapshot",
+    );
+    await expect(pageList.getByRole("listitem").nth(2)).toContainText("Risks");
+
+    await page.getByRole("button", { name: /Risks/ }).click();
+    await expect(page.getByLabel("Page description")).toHaveValue(
+      "Line A\nLine B",
+    );
+    await expect(mainPreview.getByText("Line A")).toBeVisible();
+    await expect(mainPreview.getByText("Line B")).toBeVisible();
+  });
+
   test("edits pages, follows the selected page, persists drafts, clears with confirmation, and resets examples", async ({
     page,
   }) => {

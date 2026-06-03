@@ -12,6 +12,7 @@ import {
   Plus,
   RotateCcw,
   Trash2,
+  Upload,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
@@ -73,6 +74,10 @@ const previewFallbackContent: PosterPageContent = {
 
 export function PosterMakerWorkbench() {
   const [draftState, setDraftState] = useState(readInitialDraftState);
+  const [markdownImportValue, setMarkdownImportValue] = useState("");
+  const [importFeedback, setImportFeedback] = useState(
+    "Paste Markdown headings to import poster pages.",
+  );
   const { pages, selectedCategory, selectedPageId, selectedTemplateId } =
     draftState;
 
@@ -184,6 +189,38 @@ export function PosterMakerWorkbench() {
       pages: nextPages,
       selectedPageId: nextPages[0].id,
     }));
+  }
+
+  function importMarkdown(mode: "replace" | "append") {
+    const importedPages = parseMarkdownPages(markdownImportValue);
+
+    if (importedPages.length === 0) {
+      setImportFeedback("Add at least one Markdown heading before importing.");
+      return;
+    }
+
+    const nextImportedPages = importedPages.map((page) => ({
+      ...page,
+      id: createPageId(),
+    }));
+
+    setDraftState((currentDraft) => {
+      const nextPages =
+        mode === "replace"
+          ? nextImportedPages
+          : [...currentDraft.pages, ...nextImportedPages];
+
+      return {
+        ...currentDraft,
+        pages: nextPages,
+        selectedPageId: nextImportedPages[0].id,
+      };
+    });
+    setImportFeedback(
+      `${mode === "replace" ? "Imported" : "Appended"} ${formatPageCount(
+        nextImportedPages.length,
+      )}.`,
+    );
   }
 
   return (
@@ -377,6 +414,44 @@ export function PosterMakerWorkbench() {
                   </label>
                 </div>
 
+                <div className="grid gap-2 rounded-[8px] border border-border bg-background p-3">
+                  <label className="grid gap-1 text-sm font-medium">
+                    Markdown import
+                    <textarea
+                      value={markdownImportValue}
+                      onChange={(event) =>
+                        setMarkdownImportValue(event.target.value)
+                      }
+                      placeholder={"# Page title\nDescription line 1\nDescription line 2"}
+                      className="min-h-32 resize-y rounded-[8px] border border-border bg-card px-3 py-2 font-mono text-xs font-normal leading-5 outline-none transition focus:border-foreground"
+                    />
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => importMarkdown("replace")}
+                      className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-border bg-foreground px-3 text-sm font-medium text-background transition hover:opacity-85"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Replace pages
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => importMarkdown("append")}
+                      className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-border bg-background px-3 text-sm font-medium transition hover:bg-muted"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Append pages
+                    </button>
+                  </div>
+                  <p
+                    role="status"
+                    className="min-h-5 text-xs leading-5 text-muted-foreground"
+                  >
+                    {importFeedback}
+                  </p>
+                </div>
+
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -498,6 +573,66 @@ function createPageId() {
   }
 
   return `page-${Date.now()}`;
+}
+
+function parseMarkdownPages(markdown: string): Omit<PosterPage, "id">[] {
+  const pages: Omit<PosterPage, "id">[] = [];
+  let currentPage: { title: string; descriptionLines: string[] } | null = null;
+
+  for (const line of markdown.replace(/\r\n?/g, "\n").split("\n")) {
+    const headingMatch = line.match(/^#{1,6}\s+(.+?)\s*#*\s*$/);
+
+    if (headingMatch) {
+      if (currentPage) {
+        pages.push(toPosterPage(currentPage));
+      }
+
+      currentPage = {
+        title: headingMatch[1].trim(),
+        descriptionLines: [],
+      };
+      continue;
+    }
+
+    if (currentPage) {
+      currentPage.descriptionLines.push(line);
+    }
+  }
+
+  if (currentPage) {
+    pages.push(toPosterPage(currentPage));
+  }
+
+  return pages.filter((page) => page.title.length > 0);
+}
+
+function toPosterPage(page: {
+  title: string;
+  descriptionLines: string[];
+}): Omit<PosterPage, "id"> {
+  return {
+    title: page.title,
+    description: trimBlankLines(page.descriptionLines).join("\n"),
+  };
+}
+
+function trimBlankLines(lines: string[]) {
+  let startIndex = 0;
+  let endIndex = lines.length;
+
+  while (startIndex < endIndex && lines[startIndex].trim() === "") {
+    startIndex += 1;
+  }
+
+  while (endIndex > startIndex && lines[endIndex - 1].trim() === "") {
+    endIndex -= 1;
+  }
+
+  return lines.slice(startIndex, endIndex);
+}
+
+function formatPageCount(count: number) {
+  return `${count} ${count === 1 ? "page" : "pages"}`;
 }
 
 function TemplateCssLinks({ templates }: { templates: PosterTemplate[] }) {
