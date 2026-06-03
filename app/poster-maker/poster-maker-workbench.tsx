@@ -14,7 +14,8 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { toPng } from "html-to-image";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -77,13 +78,16 @@ const previewFallbackContent: PosterPageContent = {
 };
 
 export function PosterMakerWorkbench() {
-  const [draftState, setDraftState] = useState(readInitialDraftState);
+  const [draftState, setDraftState] = useState(defaultDraftState);
+  const [hasLoadedStoredDraft, setHasLoadedStoredDraft] = useState(false);
   const [markdownImportValue, setMarkdownImportValue] = useState("");
   const [importFeedback, setImportFeedback] = useState(
     "Paste Markdown headings to import poster pages.",
   );
   const [exportFeedback, setExportFeedback] = useState("Ready to review.");
+  const [isExporting, setIsExporting] = useState(false);
   const [didAttemptExport, setDidAttemptExport] = useState(false);
+  const exportRenderRootRef = useRef<HTMLDivElement | null>(null);
   const {
     footerText,
     pages,
@@ -127,8 +131,26 @@ export function PosterMakerWorkbench() {
   );
 
   useEffect(() => {
+    const loadStoredDraft = window.setTimeout(() => {
+      const storedDraft = readDraftState();
+
+      if (storedDraft) {
+        setDraftState(storedDraft);
+      }
+
+      setHasLoadedStoredDraft(true);
+    }, 0);
+
+    return () => window.clearTimeout(loadStoredDraft);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedStoredDraft) {
+      return;
+    }
+
     window.localStorage.setItem(draftStorageKey, JSON.stringify(draftState));
-  }, [draftState]);
+  }, [draftState, hasLoadedStoredDraft]);
 
   function addPage() {
     const nextPage: PosterPage = {
@@ -252,7 +274,7 @@ export function PosterMakerWorkbench() {
     );
   }
 
-  function exportPosterPages() {
+  async function exportPosterPages() {
     setDidAttemptExport(true);
 
     if (invalidTitleCount > 0) {
@@ -262,20 +284,43 @@ export function PosterMakerWorkbench() {
       return;
     }
 
-    const downloadedPageCount = downloadPosterPngFallbacks({
-      footerText: footerTextForPreview,
-      pages,
-      showPageLabels,
-      template: selectedTemplate,
-    });
+    setIsExporting(true);
+    setExportFeedback(`Preparing ${formatPageCount(pages.length)} for export.`);
 
-    setExportFeedback(
-      `Downloaded ${downloadedPageCount} PNG files for ${formatPageCount(
-        pages.length,
-      )}${
-        overflowRiskCount > 0 ? " with overflow warnings" : ""
-      }.`,
-    );
+    try {
+      const exportedPages = await renderPosterPagePngs({
+        onProgress: (completedCount) =>
+          setExportFeedback(
+            `Rendered ${completedCount} of ${pages.length} PNG files.`,
+          ),
+        renderRoot: exportRenderRootRef.current,
+      });
+      const directoryResult = await writePosterPngsToDirectory(exportedPages);
+
+      if (directoryResult === "written") {
+        setExportFeedback(
+          `Saved ${exportedPages.length} PNG files to selected directory${
+            overflowRiskCount > 0 ? " with overflow warnings" : ""
+          }.`,
+        );
+        return;
+      }
+
+      downloadPosterPngFallbacks(exportedPages);
+      setExportFeedback(
+        `Downloaded ${exportedPages.length} PNG files for ${formatPageCount(
+          pages.length,
+        )}${overflowRiskCount > 0 ? " with overflow warnings" : ""}.`,
+      );
+    } catch (error) {
+      setExportFeedback(
+        error instanceof Error
+          ? `Export failed: ${error.message}`
+          : "Export failed. Please try again.",
+      );
+    } finally {
+      setIsExporting(false);
+    }
   }
 
   return (
@@ -612,10 +657,11 @@ export function PosterMakerWorkbench() {
                 <button
                   type="button"
                   onClick={exportPosterPages}
-                  className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-border bg-foreground px-3 text-sm font-medium text-background transition hover:opacity-85"
+                  disabled={isExporting}
+                  className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-border bg-foreground px-3 text-sm font-medium text-background transition hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Download className="h-4 w-4" />
-                  Export poster pages
+                  {isExporting ? "Exporting poster pages" : "Export poster pages"}
                 </button>
                 <p
                   aria-label="Export status"
@@ -629,16 +675,33 @@ export function PosterMakerWorkbench() {
           </aside>
         </section>
       </div>
+      <div
+        ref={exportRenderRootRef}
+        aria-hidden="true"
+        className="pointer-events-none fixed top-0 left-[-20000px] grid gap-8"
+      >
+        {pages.map((page, index) => (
+          <div
+            key={page.id}
+            data-export-page-index={index}
+            style={{ height: 1440, width: 1080 }}
+          >
+            <TemplatePreview
+              className="h-full w-full"
+              content={page}
+              footerText={footerTextForPreview}
+              pageLabel={
+                showPageLabels
+                  ? formatPageLabel(index + 1, pages.length)
+                  : undefined
+              }
+              template={selectedTemplate}
+            />
+          </div>
+        ))}
+      </div>
     </main>
   );
-}
-
-function readInitialDraftState() {
-  if (typeof window === "undefined") {
-    return defaultDraftState;
-  }
-
-  return readDraftState() ?? defaultDraftState;
 }
 
 function readDraftState(): PosterDraftState | null {
@@ -781,184 +844,121 @@ function hasOverflowRisk(page: PosterPageContent) {
   return page.title.length > 46 || descriptionLines.length > 12;
 }
 
-function downloadPosterPngFallbacks({
-  footerText,
-  pages,
-  showPageLabels,
-  template,
+type ExportedPosterPage = {
+  dataUrl: string;
+  filename: string;
+};
+
+type DirectoryWriteResult = "unavailable" | "written";
+
+type FileSystemDirectoryHandleLike = {
+  getFileHandle: (
+    name: string,
+    options?: { create?: boolean },
+  ) => Promise<FileSystemFileHandleLike>;
+};
+
+type FileSystemFileHandleLike = {
+  createWritable: () => Promise<FileSystemWritableFileStreamLike>;
+};
+
+type FileSystemWritableFileStreamLike = {
+  close: () => Promise<void>;
+  write: (data: Blob) => Promise<void>;
+};
+
+type WindowWithDirectoryPicker = Window &
+  typeof globalThis & {
+    showDirectoryPicker?: () => Promise<FileSystemDirectoryHandleLike>;
+  };
+
+async function renderPosterPagePngs({
+  onProgress,
+  renderRoot,
 }: {
-  footerText: string;
-  pages: PosterPage[];
-  showPageLabels: boolean;
-  template: PosterTemplate;
-}) {
-  pages.forEach((page, index) => {
-    const dataUrl = renderPosterPagePng({
-      footerText,
-      page,
-      pageLabel: showPageLabels
-        ? formatPageLabel(index + 1, pages.length)
-        : undefined,
-      template,
+  onProgress: (completedCount: number) => void;
+  renderRoot: HTMLDivElement | null;
+}): Promise<ExportedPosterPage[]> {
+  if (!renderRoot) {
+    throw new Error("Export renderer is unavailable.");
+  }
+
+  const renderNodes = Array.from(
+    renderRoot.querySelectorAll<HTMLElement>("[data-export-page-index]"),
+  );
+
+  if (renderNodes.length === 0) {
+    throw new Error("No poster pages are available to export.");
+  }
+
+  const exportedPages: ExportedPosterPage[] = [];
+
+  for (const [index, node] of renderNodes.entries()) {
+    const title = node.querySelector(".pm-template__title")?.textContent ?? "";
+    const dataUrl = await toPng(node, {
+      backgroundColor: getOpaqueBackgroundColor(node),
+      cacheBust: true,
+      canvasHeight: 1440,
+      canvasWidth: 1080,
+      height: 1440,
+      pixelRatio: 1,
+      width: 1080,
     });
+
+    exportedPages.push({
+      dataUrl,
+      filename: formatPosterPngFilename(index, title),
+    });
+    onProgress(exportedPages.length);
+  }
+
+  return exportedPages;
+}
+
+async function writePosterPngsToDirectory(
+  exportedPages: ExportedPosterPage[],
+): Promise<DirectoryWriteResult> {
+  const directoryPicker = (window as WindowWithDirectoryPicker)
+    .showDirectoryPicker;
+
+  if (!directoryPicker) {
+    return "unavailable";
+  }
+
+  try {
+    const directoryHandle = await directoryPicker();
+
+    for (const page of exportedPages) {
+      const fileHandle = await directoryHandle.getFileHandle(page.filename, {
+        create: true,
+      });
+      const writable = await fileHandle.createWritable();
+      await writable.write(dataUrlToBlob(page.dataUrl));
+      await writable.close();
+    }
+
+    return "written";
+  } catch {
+    return "unavailable";
+  }
+}
+
+function downloadPosterPngFallbacks(exportedPages: ExportedPosterPage[]) {
+  exportedPages.forEach((page) => {
     const anchor = document.createElement("a");
-    anchor.download = `poster-${String(index + 1).padStart(2, "0")}-${slugifyFilename(
-      page.title,
-    )}.png`;
-    anchor.href = dataUrl;
+    anchor.download = page.filename;
+    anchor.href = page.dataUrl;
     anchor.rel = "noopener";
     document.body.append(anchor);
     anchor.click();
     anchor.remove();
   });
-
-  return pages.length;
 }
 
-function renderPosterPagePng({
-  footerText,
-  page,
-  pageLabel,
-  template,
-}: {
-  footerText: string;
-  page: PosterPage;
-  pageLabel?: string;
-  template: PosterTemplate;
-}) {
-  const canvas = document.createElement("canvas");
-  canvas.width = 1080;
-  canvas.height = 1350;
-
-  const context = canvas.getContext("2d");
-  if (!context) {
-    return "";
-  }
-
-  const palette = getTemplateExportPalette(template.id);
-  context.fillStyle = palette.background;
-  context.fillRect(0, 0, canvas.width, canvas.height);
-
-  context.fillStyle = palette.accent;
-  context.fillRect(72, 72, 128, 16);
-  context.fillRect(canvas.width - 200, canvas.height - 88, 128, 16);
-
-  context.strokeStyle = palette.border;
-  context.lineWidth = 4;
-  context.strokeRect(72, 72, canvas.width - 144, canvas.height - 144);
-
-  context.fillStyle = palette.muted;
-  context.font = "500 34px Arial, sans-serif";
-  context.fillText(`${template.category} / ${template.name}`, 104, 164);
-
-  if (pageLabel) {
-    context.textAlign = "right";
-    context.fillText(pageLabel, canvas.width - 104, 164);
-    context.textAlign = "left";
-  }
-
-  context.fillStyle = palette.foreground;
-  context.font = "700 88px Arial, sans-serif";
-  drawWrappedText(context, page.title || "Untitled page", 104, 380, 872, 98, 4);
-
-  if (page.description) {
-    context.fillStyle = palette.body;
-    context.font = "400 40px Arial, sans-serif";
-    drawWrappedText(context, page.description, 104, 690, 872, 58, 9);
-  }
-
-  if (footerText) {
-    context.fillStyle = palette.muted;
-    context.font = "500 30px Arial, sans-serif";
-    drawWrappedText(context, footerText, 104, canvas.height - 158, 872, 40, 2);
-  }
-
-  return canvas.toDataURL("image/png");
-}
-
-function drawWrappedText(
-  context: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  maxWidth: number,
-  lineHeight: number,
-  maxLines: number,
-) {
-  const lines = text.split(/\r\n?|\n/);
-  let drawnLines = 0;
-
-  for (const sourceLine of lines) {
-    const words = sourceLine.split(/\s+/).filter(Boolean);
-    const lineWords = words.length > 0 ? words : [""];
-    let currentLine = "";
-
-    for (const word of lineWords) {
-      const nextLine = currentLine ? `${currentLine} ${word}` : word;
-      if (
-        currentLine &&
-        context.measureText(nextLine).width > maxWidth
-      ) {
-        context.fillText(currentLine, x, y + drawnLines * lineHeight);
-        drawnLines += 1;
-        currentLine = word;
-        if (drawnLines >= maxLines) {
-          return;
-        }
-        continue;
-      }
-
-      currentLine = nextLine;
-    }
-
-    context.fillText(currentLine, x, y + drawnLines * lineHeight);
-    drawnLines += 1;
-    if (drawnLines >= maxLines) {
-      return;
-    }
-  }
-}
-
-function getTemplateExportPalette(templateId: PosterTemplateId) {
-  switch (templateId) {
-    case "magazine":
-      return {
-        accent: "#d44f2f",
-        background: "#fbf7ef",
-        body: "#3d332b",
-        border: "#1f1b18",
-        foreground: "#191512",
-        muted: "#7b6656",
-      };
-    case "retro":
-      return {
-        accent: "#f0b429",
-        background: "#2f221b",
-        body: "#f7e4bd",
-        border: "#d58b3b",
-        foreground: "#fff3d0",
-        muted: "#d9b06f",
-      };
-    case "tech":
-      return {
-        accent: "#36d399",
-        background: "#101820",
-        body: "#d4e7ef",
-        border: "#2a9fd6",
-        foreground: "#f3fbff",
-        muted: "#8fb8c8",
-      };
-    case "minimalist":
-    default:
-      return {
-        accent: "#111111",
-        background: "#f8f8f5",
-        body: "#3f3f39",
-        border: "#d8d6ce",
-        foreground: "#111111",
-        muted: "#706f68",
-      };
-  }
+function formatPosterPngFilename(index: number, title: string) {
+  return `poster-${String(index + 1).padStart(2, "0")}-${slugifyFilename(
+    title,
+  )}.png`;
 }
 
 function slugifyFilename(value: string) {
@@ -969,6 +969,26 @@ function slugifyFilename(value: string) {
     .replace(/^-+|-+$/g, "");
 
   return slug || "untitled-page";
+}
+
+function getOpaqueBackgroundColor(node: HTMLElement) {
+  const templateNode = node.querySelector<HTMLElement>(".pm-template");
+  return templateNode
+    ? window.getComputedStyle(templateNode).backgroundColor
+    : window.getComputedStyle(document.body).backgroundColor;
+}
+
+function dataUrlToBlob(dataUrl: string) {
+  const [metadata, data] = dataUrl.split(",");
+  const mimeType = metadata.match(/^data:(.+);base64$/)?.[1] ?? "image/png";
+  const binary = window.atob(data);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return new Blob([bytes], { type: mimeType });
 }
 
 function TemplateCssLinks({ templates }: { templates: PosterTemplate[] }) {
