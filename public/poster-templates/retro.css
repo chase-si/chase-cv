@@ -1,0 +1,42 @@
+.pm-template--retro {
+  --pm-template-bg: color-mix(in srgb, var(--chart-2) 20%, var(--background));
+  --pm-template-fg: var(--foreground);
+  --pm-template-line: var(--foreground);
+  --pm-template-media: color-mix(in srgb, var(--primary) 35%, var(--background));
+  --pm-template-accent: var(--chart-2);
+  box-shadow: inset 0 0 0 0.45rem var(--pm-template-bg),
+    inset 0 0 0 0.6rem var(--pm-template-line);
+}
+
+.pm-template--retro .pm-template__media {
+  min-height: 5.5rem;
+  border-bottom-width: 2px;
+}
+
+.pm-template--retro .pm-template__media span {
+  height: 2.8rem;
+  width: 2.8rem;
+  border: 2px solid var(--pm-template-line);
+  border-radius: 999px;
+}
+
+.pm-template--retro .pm-template__eyebrow,
+.pm-template--retro .pm-template__tags span {
+  text-transform: uppercase;
+}
+
+.pm-template--retro .pm-template__title {
+  font-size: clamp(1.55rem, 8vw, 2.55rem);
+  text-transform: uppercase;
+}
+
+.pm-template--retro .pm-template__tags span {
+  background: var(--pm-template-accent);
+  color: rgb(0, 0, 0);
+}
+
+.dark .pm-template--retro {
+  --pm-template-bg: color-mix(in srgb, var(--chart-2) 16%, var(--background));
+  --pm-template-fg: var(--foreground);
+  --pm-template-line: var(--foreground);
+}
