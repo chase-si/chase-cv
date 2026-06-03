@@ -10,10 +10,14 @@ export type PosterPageContent = {
 export function TemplatePreview({
   className,
   content,
+  footerText,
+  pageLabel,
   template,
 }: {
   className?: string;
   content: PosterPageContent;
+  footerText?: string;
+  pageLabel?: string;
   template: PosterTemplate;
 }) {
   return (
@@ -25,6 +29,11 @@ export function TemplatePreview({
       <div className="pm-template__media" aria-hidden="true">
         <span />
       </div>
+      {pageLabel ? (
+        <p className="pm-template__page-label" aria-label="Page label">
+          {pageLabel}
+        </p>
+      ) : null}
       <div className="pm-template__body">
         <p className="pm-template__eyebrow">Poster page</p>
         <h3 className="pm-template__title">{content.title || "Untitled page"}</h3>
@@ -35,6 +44,9 @@ export function TemplatePreview({
         ) : null}
       </div>
       <div className="pm-template__footer">
+        {footerText ? (
+          <p className="pm-template__global-footer">{footerText}</p>
+        ) : null}
         <div className="pm-template__tags" aria-label="Template tags">
           {[template.category, template.name].map((tag) => (
             <span key={tag}>{tag}</span>
