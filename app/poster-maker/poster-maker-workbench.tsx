@@ -1,12 +1,17 @@
 "use client";
 
 import {
+  ArrowDown,
+  ArrowUp,
   CheckCircle2,
   Download,
   FileText,
   ImageIcon,
   LayoutTemplate,
   Palette,
+  Plus,
+  RotateCcw,
+  Trash2,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
@@ -17,25 +22,65 @@ import {
   posterTemplateCategories,
   posterTemplates,
   type PosterTemplate,
+  type PosterTemplateCategory,
+  type PosterTemplateId,
 } from "./templates";
 
-const firstPageContent: PosterPageContent = {
-  eyebrow: "模板图片工作台",
+type PosterPage = PosterPageContent & {
+  id: string;
+};
+
+type PosterDraftState = {
+  pages: PosterPage[];
+  selectedCategory: "All" | PosterTemplateCategory;
+  selectedPageId: string;
+  selectedTemplateId: PosterTemplateId;
+};
+
+const draftStorageKey = "poster-maker:draft:v1";
+
+const examplePages: PosterPage[] = [
+  {
+    id: "example-1",
+    title: "把复杂能力讲清楚",
+    description:
+      "模板预览会在这里同步排版\n支持后续接入导入、编辑与导出流程",
+  },
+];
+
+const emptyPage: PosterPage = {
+  id: "blank-1",
+  title: "",
+  description: "",
+};
+
+const defaultDraftState: PosterDraftState = {
+  pages: examplePages,
+  selectedCategory: "All",
+  selectedPageId: examplePages[0].id,
+  selectedTemplateId: posterTemplates[0].id,
+};
+
+const categoryFilters =
+  posterTemplateCategories as PosterDraftState["selectedCategory"][];
+const templateIds = new Set(posterTemplates.map((template) => template.id));
+const templateCategories = new Set(categoryFilters);
+
+const previewFallbackContent: PosterPageContent = {
   title: "把复杂能力讲清楚",
-  subtitle: "模板预览会在这里同步排版",
-  note: "支持后续接入导入、编辑与导出流程",
-  tags: ["技术", "简历", "分享"],
+  description: "模板预览会在这里同步排版",
 };
 
 export function PosterMakerWorkbench() {
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedTemplateId, setSelectedTemplateId] = useState(
-    posterTemplates[0].id,
-  );
+  const [draftState, setDraftState] = useState(readInitialDraftState);
+  const { pages, selectedCategory, selectedPageId, selectedTemplateId } =
+    draftState;
 
   const selectedTemplate =
     posterTemplates.find((template) => template.id === selectedTemplateId) ??
     posterTemplates[0];
+  const selectedPage =
+    pages.find((page) => page.id === selectedPageId) ?? pages[0] ?? emptyPage;
 
   const visibleTemplates = useMemo(
     () =>
@@ -46,6 +91,100 @@ export function PosterMakerWorkbench() {
           ),
     [selectedCategory],
   );
+
+  useEffect(() => {
+    window.localStorage.setItem(draftStorageKey, JSON.stringify(draftState));
+  }, [draftState]);
+
+  function addPage() {
+    const nextPage: PosterPage = {
+      id: createPageId(),
+      title: `Page ${pages.length + 1}`,
+      description: "",
+    };
+
+    setDraftState((currentDraft) => ({
+      ...currentDraft,
+      pages: [...currentDraft.pages, nextPage],
+      selectedPageId: nextPage.id,
+    }));
+  }
+
+  function updateSelectedPage(patch: Partial<PosterPageContent>) {
+    setDraftState((currentDraft) => ({
+      ...currentDraft,
+      pages: currentDraft.pages.map((page) =>
+        page.id === currentDraft.selectedPageId ? { ...page, ...patch } : page,
+      ),
+    }));
+  }
+
+  function deleteSelectedPage() {
+    if (pages.length <= 1) {
+      const nextPage = { ...emptyPage, id: createPageId() };
+      setDraftState((currentDraft) => ({
+        ...currentDraft,
+        pages: [nextPage],
+        selectedPageId: nextPage.id,
+      }));
+      return;
+    }
+
+    const selectedIndex = pages.findIndex((page) => page.id === selectedPage.id);
+    const nextPages = pages.filter((page) => page.id !== selectedPage.id);
+    const nextSelectedPage =
+      nextPages[Math.min(Math.max(selectedIndex, 0), nextPages.length - 1)];
+
+    setDraftState((currentDraft) => ({
+      ...currentDraft,
+      pages: nextPages,
+      selectedPageId: nextSelectedPage.id,
+    }));
+  }
+
+  function moveSelectedPage(direction: "up" | "down") {
+    const selectedIndex = pages.findIndex((page) => page.id === selectedPage.id);
+    const targetIndex = direction === "up" ? selectedIndex - 1 : selectedIndex + 1;
+
+    if (
+      selectedIndex < 0 ||
+      targetIndex < 0 ||
+      targetIndex >= pages.length
+    ) {
+      return;
+    }
+
+    const nextPages = [...pages];
+    const selected = nextPages[selectedIndex];
+    nextPages[selectedIndex] = nextPages[targetIndex];
+    nextPages[targetIndex] = selected;
+    setDraftState((currentDraft) => ({
+      ...currentDraft,
+      pages: nextPages,
+    }));
+  }
+
+  function clearAllContent() {
+    if (!window.confirm("Clear all poster content? This cannot be undone.")) {
+      return;
+    }
+
+    const nextPage = { ...emptyPage, id: createPageId() };
+    setDraftState((currentDraft) => ({
+      ...currentDraft,
+      pages: [nextPage],
+      selectedPageId: nextPage.id,
+    }));
+  }
+
+  function resetToExamples() {
+    const nextPages = examplePages.map((page) => ({ ...page }));
+    setDraftState((currentDraft) => ({
+      ...currentDraft,
+      pages: nextPages,
+      selectedPageId: nextPages[0].id,
+    }));
+  }
 
   return (
     <main className="min-h-0 flex-1 bg-background">
@@ -82,12 +221,17 @@ export function PosterMakerWorkbench() {
               ariaLabel="Template gallery"
             >
               <div className="flex flex-wrap gap-2">
-                {posterTemplateCategories.map((category) => (
+                {categoryFilters.map((category) => (
                   <button
                     key={category}
                     type="button"
                     aria-pressed={selectedCategory === category}
-                    onClick={() => setSelectedCategory(category)}
+                    onClick={() =>
+                      setDraftState((currentDraft) => ({
+                        ...currentDraft,
+                        selectedCategory: category,
+                      }))
+                    }
                     className={cn(
                       "h-8 rounded-[8px] border border-border px-3 text-xs font-medium transition",
                       selectedCategory === category
@@ -104,9 +248,14 @@ export function PosterMakerWorkbench() {
                 {visibleTemplates.map((template) => (
                   <TemplateCard
                     key={template.id}
-                    content={firstPageContent}
+                    content={selectedPage.title ? selectedPage : previewFallbackContent}
                     isSelected={template.id === selectedTemplateId}
-                    onSelect={() => setSelectedTemplateId(template.id)}
+                    onSelect={() =>
+                      setDraftState((currentDraft) => ({
+                        ...currentDraft,
+                        selectedTemplateId: template.id,
+                      }))
+                    }
                     template={template}
                   />
                 ))}
@@ -135,15 +284,16 @@ export function PosterMakerWorkbench() {
             title="预览"
             className="min-h-136"
           >
-            <div className="flex h-full min-h-120 items-center justify-center rounded-[8px] border border-border bg-muted p-4">
+            <div
+              aria-label="Current poster page preview"
+              data-testid="main-template-preview"
+              className="flex h-full min-h-120 items-center justify-center rounded-[8px] border border-border bg-muted p-4"
+            >
               <TemplatePreview
                 className="w-full max-w-sm shadow-lg"
-                content={firstPageContent}
+                content={selectedPage}
                 template={selectedTemplate}
               />
-              <span data-testid="main-template-preview" className="sr-only">
-                {selectedTemplate.name} {firstPageContent.title}
-              </span>
             </div>
           </WorkbenchPanel>
 
@@ -152,26 +302,126 @@ export function PosterMakerWorkbench() {
               icon={<FileText className="h-4 w-4" />}
               title="内容编辑"
             >
-              <div className="grid gap-3">
-                {[
-                  `主标题：${firstPageContent.title}`,
-                  `副标题：${firstPageContent.subtitle}`,
-                  `说明：${firstPageContent.note}`,
-                ].map((field) => (
-                  <div
-                    key={field}
-                    className="rounded-[8px] border border-border bg-background px-3 py-3 text-sm"
+              <div className="grid gap-4">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={addPage}
+                    className="inline-flex h-9 items-center gap-2 rounded-[8px] border border-border bg-background px-3 text-sm font-medium transition hover:bg-muted"
                   >
-                    {field}
-                  </div>
-                ))}
+                    <Plus className="h-4 w-4" />
+                    Add page
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetToExamples}
+                    className="inline-flex h-9 items-center gap-2 rounded-[8px] border border-border bg-background px-3 text-sm font-medium transition hover:bg-muted"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Reset to example content
+                  </button>
+                </div>
+
+                <ul aria-label="Poster pages" className="grid gap-2">
+                  {pages.map((page, index) => (
+                    <li key={page.id}>
+                      <button
+                        type="button"
+                        aria-pressed={page.id === selectedPage.id}
+                        onClick={() =>
+                          setDraftState((currentDraft) => ({
+                            ...currentDraft,
+                            selectedPageId: page.id,
+                          }))
+                        }
+                        className={cn(
+                          "w-full rounded-[8px] border px-3 py-2 text-left text-sm transition",
+                          page.id === selectedPage.id
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border bg-background hover:bg-muted",
+                        )}
+                      >
+                        <span className="block text-xs opacity-75">
+                          Page {index + 1}
+                        </span>
+                        <span className="block truncate font-medium">
+                          {page.title || "Untitled page"}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="grid gap-2">
+                  <label className="grid gap-1 text-sm font-medium">
+                    Page title
+                    <input
+                      required
+                      value={selectedPage.title}
+                      onChange={(event) =>
+                        updateSelectedPage({ title: event.target.value })
+                      }
+                      className="h-10 rounded-[8px] border border-border bg-background px-3 font-normal outline-none transition focus:border-foreground"
+                    />
+                  </label>
+
+                  <label className="grid gap-1 text-sm font-medium">
+                    Page description
+                    <textarea
+                      value={selectedPage.description}
+                      onChange={(event) =>
+                        updateSelectedPage({ description: event.target.value })
+                      }
+                      className="min-h-28 resize-y rounded-[8px] border border-border bg-background px-3 py-2 font-normal leading-6 outline-none transition focus:border-foreground"
+                    />
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => moveSelectedPage("up")}
+                    disabled={pages.findIndex((page) => page.id === selectedPage.id) <= 0}
+                    className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-border bg-background px-3 text-sm font-medium transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                    Move page up
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveSelectedPage("down")}
+                    disabled={
+                      pages.findIndex((page) => page.id === selectedPage.id) >=
+                      pages.length - 1
+                    }
+                    className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-border bg-background px-3 text-sm font-medium transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                    Move page down
+                  </button>
+                  <button
+                    type="button"
+                    onClick={deleteSelectedPage}
+                    className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-border bg-background px-3 text-sm font-medium transition hover:bg-muted"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete page
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearAllContent}
+                    className="inline-flex h-9 items-center justify-center rounded-[8px] border border-destructive/40 bg-background px-3 text-sm font-medium text-destructive transition hover:bg-destructive/10"
+                  >
+                    Clear all content
+                  </button>
+                </div>
               </div>
             </WorkbenchPanel>
 
             <WorkbenchPanel icon={<Download className="h-4 w-4" />} title="导出状态">
               <div className="grid gap-3 text-sm">
                 <StatusRow label="模板" value={selectedTemplate.name} />
-                <StatusRow label="内容" value="示例草稿" />
+                <StatusRow label="内容" value={`${pages.length} page draft`} />
                 <StatusRow label="导出" value="尚未生成" />
               </div>
             </WorkbenchPanel>
@@ -180,6 +430,74 @@ export function PosterMakerWorkbench() {
       </div>
     </main>
   );
+}
+
+function readInitialDraftState() {
+  if (typeof window === "undefined") {
+    return defaultDraftState;
+  }
+
+  return readDraftState() ?? defaultDraftState;
+}
+
+function readDraftState(): PosterDraftState | null {
+  const rawDraft = window.localStorage.getItem(draftStorageKey);
+
+  if (!rawDraft) {
+    return null;
+  }
+
+  try {
+    const parsedDraft = JSON.parse(rawDraft) as Partial<PosterDraftState>;
+    const pages = Array.isArray(parsedDraft.pages)
+      ? parsedDraft.pages.filter(isPosterPage)
+      : [];
+    const selectedTemplateId = parsedDraft.selectedTemplateId;
+    const selectedCategory = parsedDraft.selectedCategory;
+    const selectedPageId = parsedDraft.selectedPageId;
+
+    if (
+      pages.length === 0 ||
+      typeof selectedPageId !== "string" ||
+      !pages.some((page) => page.id === selectedPageId) ||
+      typeof selectedTemplateId !== "string" ||
+      !templateIds.has(selectedTemplateId as PosterTemplateId) ||
+      typeof selectedCategory !== "string" ||
+      !templateCategories.has(selectedCategory)
+    ) {
+      return null;
+    }
+
+    return {
+      pages,
+      selectedCategory: selectedCategory as PosterDraftState["selectedCategory"],
+      selectedPageId,
+      selectedTemplateId: selectedTemplateId as PosterTemplateId,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function isPosterPage(value: unknown): value is PosterPage {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const page = value as Partial<PosterPage>;
+  return (
+    typeof page.id === "string" &&
+    typeof page.title === "string" &&
+    typeof page.description === "string"
+  );
+}
+
+function createPageId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `page-${Date.now()}`;
 }
 
 function TemplateCssLinks({ templates }: { templates: PosterTemplate[] }) {
