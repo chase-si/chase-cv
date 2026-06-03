@@ -1,4 +1,5 @@
 .pm-template {
+  position: relative;
   display: flex;
   aspect-ratio: 4 / 5;
   min-height: 14rem;
@@ -9,6 +10,21 @@
   border-radius: 8px;
   background: var(--pm-template-bg, var(--card));
   color: var(--pm-template-fg, var(--card-foreground));
+}
+
+.pm-template__page-label {
+  position: absolute;
+  left: 1rem;
+  top: 0.85rem;
+  border: 1px solid var(--pm-template-line, var(--border));
+  border-radius: 999px;
+  background: var(--pm-template-bg, var(--card));
+  color: var(--pm-template-fg, var(--card-foreground));
+  padding: 0.18rem 0.42rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.2;
 }
 
 .pm-template__media {
@@ -53,6 +69,10 @@
   margin-top: 0.8rem;
   font-size: 0.78rem;
   line-height: 1.45;
+}
+
+.pm-template__global-footer {
+  text-align: right;
 }
 
 .pm-template__tags {

@@ -32,10 +32,12 @@ type PosterPage = PosterPageContent & {
 };
 
 type PosterDraftState = {
+  footerText: string;
   pages: PosterPage[];
   selectedCategory: "All" | PosterTemplateCategory;
   selectedPageId: string;
   selectedTemplateId: PosterTemplateId;
+  showPageLabels: boolean;
 };
 
 const draftStorageKey = "poster-maker:draft:v1";
@@ -56,10 +58,12 @@ const emptyPage: PosterPage = {
 };
 
 const defaultDraftState: PosterDraftState = {
+  footerText: "",
   pages: examplePages,
   selectedCategory: "All",
   selectedPageId: examplePages[0].id,
   selectedTemplateId: posterTemplates[0].id,
+  showPageLabels: false,
 };
 
 const categoryFilters =
@@ -78,14 +82,39 @@ export function PosterMakerWorkbench() {
   const [importFeedback, setImportFeedback] = useState(
     "Paste Markdown headings to import poster pages.",
   );
-  const { pages, selectedCategory, selectedPageId, selectedTemplateId } =
-    draftState;
+  const [exportFeedback, setExportFeedback] = useState("Ready to review.");
+  const [didAttemptExport, setDidAttemptExport] = useState(false);
+  const {
+    footerText,
+    pages,
+    selectedCategory,
+    selectedPageId,
+    selectedTemplateId,
+    showPageLabels,
+  } = draftState;
 
   const selectedTemplate =
     posterTemplates.find((template) => template.id === selectedTemplateId) ??
     posterTemplates[0];
   const selectedPage =
     pages.find((page) => page.id === selectedPageId) ?? pages[0] ?? emptyPage;
+  const selectedPageIndex = Math.max(
+    pages.findIndex((page) => page.id === selectedPage.id),
+    0,
+  );
+  const invalidTitleCount = pages.filter(
+    (page) => page.title.trim().length === 0,
+  ).length;
+  const hasSelectedPageInvalidTitle = selectedPage.title.trim().length === 0;
+  const overflowRiskCount = pages.filter(hasOverflowRisk).length;
+  const posterWarnings =
+    overflowRiskCount > 0
+      ? `${formatPageCount(overflowRiskCount)} may overflow the poster canvas.`
+      : "No overflow warnings.";
+  const pageLabel = showPageLabels
+    ? formatPageLabel(selectedPageIndex + 1, pages.length)
+    : undefined;
+  const footerTextForPreview = footerText.trim();
 
   const visibleTemplates = useMemo(
     () =>
@@ -223,6 +252,23 @@ export function PosterMakerWorkbench() {
     );
   }
 
+  function exportPosterPages() {
+    setDidAttemptExport(true);
+
+    if (invalidTitleCount > 0) {
+      setExportFeedback(
+        `${formatPageCount(invalidTitleCount)} needs a title before export.`,
+      );
+      return;
+    }
+
+    setExportFeedback(
+      `Export ready for ${formatPageCount(pages.length)}${
+        overflowRiskCount > 0 ? " with overflow warnings" : ""
+      }.`,
+    );
+  }
+
   return (
     <main className="min-h-0 flex-1 bg-background">
       <TemplateCssLinks templates={posterTemplates} />
@@ -329,6 +375,8 @@ export function PosterMakerWorkbench() {
               <TemplatePreview
                 className="w-full max-w-sm shadow-lg"
                 content={selectedPage}
+                footerText={footerTextForPreview}
+                pageLabel={pageLabel}
                 template={selectedTemplate}
               />
             </div>
@@ -394,6 +442,9 @@ export function PosterMakerWorkbench() {
                     Page title
                     <input
                       required
+                      aria-invalid={
+                        didAttemptExport && hasSelectedPageInvalidTitle
+                      }
                       value={selectedPage.title}
                       onChange={(event) =>
                         updateSelectedPage({ title: event.target.value })
@@ -410,6 +461,37 @@ export function PosterMakerWorkbench() {
                         updateSelectedPage({ description: event.target.value })
                       }
                       className="min-h-28 resize-y rounded-[8px] border border-border bg-background px-3 py-2 font-normal leading-6 outline-none transition focus:border-foreground"
+                    />
+                  </label>
+                </div>
+
+                <div className="grid gap-3 rounded-[8px] border border-border bg-background p-3">
+                  <label className="flex items-center justify-between gap-3 text-sm font-medium">
+                    <span>Show page labels</span>
+                    <input
+                      type="checkbox"
+                      checked={showPageLabels}
+                      onChange={(event) =>
+                        setDraftState((currentDraft) => ({
+                          ...currentDraft,
+                          showPageLabels: event.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 accent-foreground"
+                    />
+                  </label>
+
+                  <label className="grid gap-1 text-sm font-medium">
+                    Global footer
+                    <input
+                      value={footerText}
+                      onChange={(event) =>
+                        setDraftState((currentDraft) => ({
+                          ...currentDraft,
+                          footerText: event.target.value,
+                        }))
+                      }
+                      className="h-10 rounded-[8px] border border-border bg-card px-3 font-normal outline-none transition focus:border-foreground"
                     />
                   </label>
                 </div>
@@ -445,6 +527,7 @@ export function PosterMakerWorkbench() {
                     </button>
                   </div>
                   <p
+                    aria-label="Import feedback"
                     role="status"
                     className="min-h-5 text-xs leading-5 text-muted-foreground"
                   >
@@ -497,7 +580,41 @@ export function PosterMakerWorkbench() {
               <div className="grid gap-3 text-sm">
                 <StatusRow label="模板" value={selectedTemplate.name} />
                 <StatusRow label="内容" value={`${pages.length} page draft`} />
-                <StatusRow label="导出" value="尚未生成" />
+                <p
+                  aria-label="Poster warnings"
+                  role="status"
+                  className={cn(
+                    "rounded-[8px] border px-3 py-2 text-xs leading-5",
+                    overflowRiskCount > 0
+                      ? "border-chart-2 bg-chart-2/10"
+                      : "border-border bg-background text-muted-foreground",
+                  )}
+                >
+                  {posterWarnings}
+                </p>
+                {didAttemptExport && invalidTitleCount > 0 ? (
+                  <p
+                    role="alert"
+                    className="rounded-[8px] border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs leading-5 text-destructive"
+                  >
+                    Add a title before exporting every poster page.
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={exportPosterPages}
+                  className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-border bg-foreground px-3 text-sm font-medium text-background transition hover:opacity-85"
+                >
+                  <Download className="h-4 w-4" />
+                  Export poster pages
+                </button>
+                <p
+                  aria-label="Export status"
+                  role="status"
+                  className="min-h-5 text-xs leading-5 text-muted-foreground"
+                >
+                  {exportFeedback}
+                </p>
               </div>
             </WorkbenchPanel>
           </aside>
@@ -530,6 +647,12 @@ function readDraftState(): PosterDraftState | null {
     const selectedTemplateId = parsedDraft.selectedTemplateId;
     const selectedCategory = parsedDraft.selectedCategory;
     const selectedPageId = parsedDraft.selectedPageId;
+    const footerText =
+      typeof parsedDraft.footerText === "string" ? parsedDraft.footerText : "";
+    const showPageLabels =
+      typeof parsedDraft.showPageLabels === "boolean"
+        ? parsedDraft.showPageLabels
+        : false;
 
     if (
       pages.length === 0 ||
@@ -544,10 +667,12 @@ function readDraftState(): PosterDraftState | null {
     }
 
     return {
+      footerText,
       pages,
       selectedCategory: selectedCategory as PosterDraftState["selectedCategory"],
       selectedPageId,
       selectedTemplateId: selectedTemplateId as PosterTemplateId,
+      showPageLabels,
     };
   } catch {
     return null;
@@ -633,6 +758,18 @@ function trimBlankLines(lines: string[]) {
 
 function formatPageCount(count: number) {
   return `${count} ${count === 1 ? "page" : "pages"}`;
+}
+
+function formatPageLabel(pageNumber: number, pageCount: number) {
+  const labelWidth = Math.max(2, String(pageCount).length);
+  return `${String(pageNumber).padStart(labelWidth, "0")} / ${String(
+    pageCount,
+  ).padStart(labelWidth, "0")}`;
+}
+
+function hasOverflowRisk(page: PosterPageContent) {
+  const descriptionLines = page.description.split(/\r\n?|\n/);
+  return page.title.length > 46 || descriptionLines.length > 12;
 }
 
 function TemplateCssLinks({ templates }: { templates: PosterTemplate[] }) {

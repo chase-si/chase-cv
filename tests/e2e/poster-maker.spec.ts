@@ -68,6 +68,52 @@ test.describe("poster maker templates", () => {
 });
 
 test.describe("poster maker page editor", () => {
+  test("renders page labels and footer, blocks empty-title export, and warns on overflow risk", async ({
+    page,
+  }) => {
+    await page.goto("/poster-maker");
+
+    const mainPreview = page.getByLabel("Current poster page preview");
+
+    await page.getByRole("button", { name: "Add page" }).click();
+    await page.getByLabel("Page title").fill("Second Page");
+    await page.getByLabel("Page description").fill("Second page notes");
+
+    await page.getByLabel("Show page labels").check();
+    await page.getByLabel("Global footer").fill("chase-cv export proof");
+
+    await expect(mainPreview.getByText("02 / 02")).toBeVisible();
+    await expect(mainPreview.getByText("chase-cv export proof")).toBeVisible();
+
+    await page.getByRole("button", { name: /把复杂能力讲清楚/ }).click();
+    await expect(mainPreview.getByText("01 / 02")).toBeVisible();
+
+    await page.getByLabel("Page title").fill("");
+    await page.getByRole("button", { name: "Export poster pages" }).click();
+
+    await expect(page.getByLabel("Page title")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+    await expect(
+      page.getByText("Add a title before exporting every poster page."),
+    ).toBeVisible();
+
+    await page.getByLabel("Page title").fill("Long Content");
+    await page
+      .getByLabel("Page description")
+      .fill(`${"Overflow warning line\n".repeat(18)}Final line`);
+
+    await expect(page.getByRole("status", { name: "Poster warnings" })).toContainText(
+      "may overflow",
+    );
+
+    await page.getByRole("button", { name: "Export poster pages" }).click();
+    await expect(page.getByRole("status", { name: "Export status" })).toContainText(
+      "Export ready",
+    );
+  });
+
   test("imports Markdown pages by replacing and appending parsed headings", async ({
     page,
   }) => {
@@ -76,10 +122,13 @@ test.describe("poster maker page editor", () => {
     const pageList = page.getByRole("list", { name: "Poster pages" });
     const mainPreview = page.getByLabel("Current poster page preview");
     const markdownInput = page.getByLabel("Markdown import");
+    const importStatus = page.getByRole("status", {
+      name: "Import feedback",
+    });
 
     await markdownInput.fill("Intro without a heading");
     await page.getByRole("button", { name: "Replace pages" }).click();
-    await expect(page.getByRole("status")).toContainText(
+    await expect(importStatus).toContainText(
       "Add at least one Markdown heading",
     );
     await expect(page.getByLabel("Page title")).toHaveValue(
@@ -94,9 +143,7 @@ Second line
 Revenue up 18%`);
     await page.getByRole("button", { name: "Replace pages" }).click();
 
-    await expect(page.getByRole("status")).toContainText(
-      "Imported 2 pages",
-    );
+    await expect(importStatus).toContainText("Imported 2 pages");
     await expect(page.getByLabel("Page title")).toHaveValue("Launch Plan");
     await expect(mainPreview.getByText("Launch Plan")).toBeVisible();
     await expect(mainPreview.getByText("First line")).toBeVisible();
@@ -116,9 +163,7 @@ Line A
 Line B`);
     await page.getByRole("button", { name: "Append pages" }).click();
 
-    await expect(page.getByRole("status")).toContainText(
-      "Appended 1 page",
-    );
+    await expect(importStatus).toContainText("Appended 1 page");
     await expect(pageList.getByRole("listitem").nth(0)).toContainText(
       "Launch Plan",
     );
