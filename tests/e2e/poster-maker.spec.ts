@@ -1,4 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { readdir } from "node:fs/promises";
+
+import { ensureDownloadsDir } from "./fixtures/downloads";
 
 test.describe("poster maker navigation", () => {
   test("opens the poster maker workbench from the top navigation", async ({
@@ -68,6 +71,107 @@ test.describe("poster maker templates", () => {
 });
 
 test.describe("poster maker page editor", () => {
+  test("completes the full poster maker journey and downloads fallback PNGs", async ({
+    page,
+  }) => {
+    const downloadsDir = await ensureDownloadsDir();
+    const downloadEvents: string[] = [];
+
+    page.on("download", async (download) => {
+      const suggestedFilename = download.suggestedFilename();
+      await download.saveAs(`${downloadsDir}/${suggestedFilename}`);
+      downloadEvents.push(suggestedFilename);
+    });
+
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto("/");
+    await page.getByRole("button", { name: "模板图片" }).click();
+
+    await expect(page).toHaveURL(/\/poster-maker$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Poster Maker" }),
+    ).toBeVisible();
+
+    const templateGallery = page.getByRole("region", {
+      name: "Template gallery",
+    });
+    const pageList = page.getByRole("list", { name: "Poster pages" });
+    const mainPreview = page.getByLabel("Current poster page preview");
+    const markdownInput = page.getByLabel("Markdown import");
+
+    await page.getByRole("button", { exact: true, name: "Editorial" }).click();
+    await templateGallery.getByRole("button", { name: /Magazine/ }).click();
+    await expect(mainPreview).toContainText("Magazine");
+
+    await markdownInput.fill(`# Launch Plan
+First line
+Second line
+
+## Metrics Snapshot
+Revenue up 18%`);
+    await page.getByRole("button", { name: "Replace pages" }).click();
+
+    await expect(pageList.getByRole("listitem").first()).toContainText(
+      "Launch Plan",
+    );
+    await expect(pageList.getByRole("listitem").nth(1)).toContainText(
+      "Metrics Snapshot",
+    );
+
+    await markdownInput.fill(`# Risks
+Line A
+Line B`);
+    await page.getByRole("button", { name: "Append pages" }).click();
+
+    await expect(pageList.getByRole("listitem").nth(2)).toContainText("Risks");
+
+    await page.getByRole("button", { name: /Risks/ }).click();
+    await page.getByRole("button", { name: "Move page up" }).click();
+    await expect(pageList.getByRole("listitem").nth(1)).toContainText("Risks");
+    await expect(pageList.getByRole("listitem").nth(2)).toContainText(
+      "Metrics Snapshot",
+    );
+    await expect(mainPreview.getByText("Risks")).toBeVisible();
+    await expect(mainPreview.getByText("Line A")).toBeVisible();
+
+    await page.getByLabel("Show page labels").check();
+    await page.getByLabel("Global footer").fill("chase-cv journey proof");
+
+    await expect(mainPreview.getByText("02 / 03")).toBeVisible();
+    await expect(mainPreview.getByText("chase-cv journey proof")).toBeVisible();
+
+    await page.getByRole("button", { name: "Export poster pages" }).click();
+
+    await expect
+      .poll(() => downloadEvents.length, { message: "fallback PNG downloads" })
+      .toBe(3);
+    await expect(page.getByRole("status", { name: "Export status" })).toContainText(
+      "Downloaded 3 PNG files",
+    );
+    expect(downloadEvents.toSorted()).toEqual([
+      "poster-01-launch-plan.png",
+      "poster-02-risks.png",
+      "poster-03-metrics-snapshot.png",
+    ].toSorted());
+
+    const savedFiles = await readdir(downloadsDir);
+    for (const filename of downloadEvents) {
+      expect(savedFiles).toContain(filename);
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(
+      page.getByRole("region", { name: "Poster maker workbench" }),
+    ).toBeVisible();
+    await expect(mainPreview).toBeVisible();
+    await expect(page.getByRole("button", { name: "Export poster pages" })).toBeVisible();
+
+    const horizontalOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    );
+    expect(horizontalOverflow).toBe(false);
+  });
+
   test("renders page labels and footer, blocks empty-title export, and warns on overflow risk", async ({
     page,
   }) => {
@@ -110,7 +214,7 @@ test.describe("poster maker page editor", () => {
 
     await page.getByRole("button", { name: "Export poster pages" }).click();
     await expect(page.getByRole("status", { name: "Export status" })).toContainText(
-      "Export ready",
+      "Downloaded 2 PNG files",
     );
   });
 
