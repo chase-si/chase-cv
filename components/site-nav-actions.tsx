@@ -28,6 +28,25 @@ export function SiteNavActions() {
         作品
       </Button>
       <Button
+        variant="secondary"
+        size="sm"
+        nativeButton={false}
+        className="shadow-sm border-none"
+        render={
+          <Link
+            href="/poster-maker"
+            onClick={() =>
+              trackEvent("nav_click", {
+                target: "poster_maker",
+                href: "/poster-maker",
+              })
+            }
+          />
+        }
+      >
+        模板图片
+      </Button>
+      <Button
         variant="ghost"
         size="sm"
         nativeButton={false}

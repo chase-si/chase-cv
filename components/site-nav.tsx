@@ -18,6 +18,13 @@ export function SiteNav() {
           />
         </Link>
 
+        <Link
+          href="/poster-maker"
+          className="ml-auto inline-flex h-8 items-center rounded-[8px] border border-border bg-secondary px-3 text-xs font-medium text-secondary-foreground shadow-sm sm:hidden"
+        >
+          模板图片
+        </Link>
+
         <div className="hidden items-center gap-2 sm:flex">
           <SiteNavActions />
           <ThemeToggle />
