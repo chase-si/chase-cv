@@ -4,7 +4,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { ensureDownloadsDir } from "./fixtures/downloads";
 
 test.describe("poster maker navigation", () => {
-  test("opens the poster maker workbench from the top navigation", async ({
+  test("opens template selection from the top navigation", async ({
     page,
   }) => {
     await page.goto("/");
@@ -16,57 +16,66 @@ test.describe("poster maker navigation", () => {
       page.getByRole("heading", { level: 1, name: "Poster Maker" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("region", { name: "Poster maker workbench" }),
+      page.getByRole("region", { name: "Template selection" }),
     ).toBeVisible();
   });
 });
 
 test.describe("poster maker templates", () => {
-  test("filters templates, selects one, and keeps previews in sync with content and theme", async ({
+  test("selects templates in place and opens the editor for the selected style", async ({
     page,
   }) => {
     await page.goto("/poster-maker");
 
-    const templateGallery = page.getByRole("region", {
-      name: "Template gallery",
-    });
-    const mainPreview = page.getByTestId("main-template-preview");
-    const firstTemplatePreview = templateGallery
-      .getByTestId("template-preview")
-      .first();
+    const selection = page.getByRole("region", { name: "Template selection" });
+    const mainPreview = page.getByLabel("Selected template preview");
 
-    await expect(templateGallery.getByRole("button", { name: /Minimalist/ })).toBeVisible();
-    await expect(templateGallery.getByRole("button", { name: /Magazine/ })).toBeVisible();
-    await expect(templateGallery.getByRole("button", { name: /Retro/ })).toBeVisible();
-    await expect(templateGallery.getByRole("button", { name: /Tech/ })).toBeVisible();
-    await expect(firstTemplatePreview.getByText("把复杂能力讲清楚")).toBeVisible();
+    await expect(selection.getByRole("button", { name: /Minimalist/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(selection.getByRole("button", { name: /Magazine/ })).toBeVisible();
+    await expect(selection.getByRole("button", { name: /Retro/ })).toBeVisible();
+    await expect(selection.getByRole("button", { name: /Tech/ })).toBeVisible();
+    await expect(mainPreview).toContainText("Minimalist");
+    await expect(mainPreview).toContainText("把复杂能力讲清楚");
     await expect(
       page.locator('link[data-poster-template="minimalist"]'),
     ).toHaveAttribute("href", /\/poster-templates\/minimalist.css$/);
 
-    await page.getByRole("button", { exact: true, name: "Editorial" }).click();
+    await selection.getByRole("button", { name: /Magazine/ }).click();
 
-    await expect(templateGallery.getByRole("button", { name: /Magazine/ })).toBeVisible();
-    await expect(templateGallery.getByRole("button", { name: /Minimalist/ })).toBeHidden();
-    await expect(templateGallery.getByRole("button", { name: /Retro/ })).toBeHidden();
-
-    await templateGallery.getByRole("button", { name: /Magazine/ }).click();
-
+    await expect(selection.getByRole("button", { name: /Magazine/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
     await expect(mainPreview).toContainText("Magazine");
-    await expect(mainPreview.getByText("把复杂能力讲清楚")).toBeVisible();
+    await expect(page).toHaveURL(/\/poster-maker$/);
+
+    await page.getByRole("button", { name: "Use this template" }).click();
+
+    await expect(page).toHaveURL(/\/poster-maker\/magazine$/);
+    await expect(
+      page.getByRole("region", { name: "Poster maker workbench" }),
+    ).toBeVisible();
     await expect(page.getByText("模板Magazine")).toBeVisible();
+  });
 
-    const lightBackground = await firstTemplatePreview.evaluate(
-      (element) => getComputedStyle(element).backgroundColor,
+  test("preselects the last edited template when returning from the editor", async ({
+    page,
+  }) => {
+    await page.goto("/poster-maker/tech");
+
+    await expect(page.getByText("模板Tech")).toBeVisible();
+
+    await page.goto("/poster-maker");
+
+    const selection = page.getByRole("region", { name: "Template selection" });
+    await expect(selection.getByRole("button", { name: /Tech/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
     );
-
-    await page.getByRole("button", { name: "切换为深色" }).click();
-    await expect(page.getByRole("button", { name: "切换为浅色" })).toBeVisible();
-
-    const darkBackground = await firstTemplatePreview.evaluate(
-      (element) => getComputedStyle(element).backgroundColor,
-    );
-    expect(darkBackground).not.toBe(lightBackground);
+    await expect(page.getByLabel("Selected template preview")).toContainText("Tech");
   });
 });
 
@@ -97,6 +106,8 @@ test.describe("poster maker page editor", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Poster Maker" }),
     ).toBeVisible();
+    await page.getByRole("button", { name: "Use this template" }).click();
+    await expect(page).toHaveURL(/\/poster-maker\/minimalist$/);
 
     const templateGallery = page.getByRole("region", {
       name: "Template gallery",
@@ -196,7 +207,7 @@ Line B`);
     page.on("download", (download) => {
       downloadEvents.push(download.suggestedFilename());
     });
-    await page.goto("/poster-maker");
+    await page.goto("/poster-maker/minimalist");
 
     const mainPreview = page.getByLabel("Current poster page preview");
 
@@ -287,7 +298,7 @@ Line B`);
       downloadEvents.push(download.suggestedFilename());
     });
 
-    await page.goto("/poster-maker");
+    await page.goto("/poster-maker/minimalist");
     await page.getByLabel("Markdown import").fill(`# Launch Plan
 First line
 
@@ -317,7 +328,7 @@ Revenue up 18%`);
   test("imports Markdown pages by replacing and appending parsed headings", async ({
     page,
   }) => {
-    await page.goto("/poster-maker");
+    await page.goto("/poster-maker/minimalist");
 
     const pageList = page.getByRole("list", { name: "Poster pages" });
     const mainPreview = page.getByLabel("Current poster page preview");
@@ -383,7 +394,7 @@ Line B`);
   test("edits pages, follows the selected page, persists drafts, clears with confirmation, and resets examples", async ({
     page,
   }) => {
-    await page.goto("/poster-maker");
+    await page.goto("/poster-maker/minimalist");
 
     await page.getByLabel("Page title").fill("Launch Plan");
     await page

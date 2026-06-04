@@ -19,6 +19,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { TemplateCssLinks } from "./template-css-links";
 import { TemplatePreview, type PosterPageContent } from "./template-preview";
 import {
   posterTemplateCategories,
@@ -41,7 +42,7 @@ type PosterDraftState = {
   showPageLabels: boolean;
 };
 
-const draftStorageKey = "poster-maker:draft:v1";
+export const draftStorageKey = "poster-maker:draft:v1";
 
 const examplePages: PosterPage[] = [
   {
@@ -58,15 +59,6 @@ const emptyPage: PosterPage = {
   description: "",
 };
 
-const defaultDraftState: PosterDraftState = {
-  footerText: "",
-  pages: examplePages,
-  selectedCategory: "All",
-  selectedPageId: examplePages[0].id,
-  selectedTemplateId: posterTemplates[0].id,
-  showPageLabels: false,
-};
-
 const categoryFilters =
   posterTemplateCategories as PosterDraftState["selectedCategory"][];
 const templateIds = new Set(posterTemplates.map((template) => template.id));
@@ -77,8 +69,14 @@ const previewFallbackContent: PosterPageContent = {
   description: "模板预览会在这里同步排版",
 };
 
-export function PosterMakerWorkbench() {
-  const [draftState, setDraftState] = useState(defaultDraftState);
+export function PosterMakerWorkbench({
+  initialTemplateId = posterTemplates[0].id,
+}: {
+  initialTemplateId?: PosterTemplateId;
+}) {
+  const [draftState, setDraftState] = useState(() =>
+    createDefaultDraftState(initialTemplateId),
+  );
   const [hasLoadedStoredDraft, setHasLoadedStoredDraft] = useState(false);
   const [markdownImportValue, setMarkdownImportValue] = useState("");
   const [importFeedback, setImportFeedback] = useState(
@@ -135,21 +133,24 @@ export function PosterMakerWorkbench() {
       const storedDraft = readDraftState();
 
       if (storedDraft) {
-        setDraftState(storedDraft);
+        setDraftState({
+          ...storedDraft,
+          selectedTemplateId: initialTemplateId,
+        });
       }
 
       setHasLoadedStoredDraft(true);
     }, 0);
 
     return () => window.clearTimeout(loadStoredDraft);
-  }, []);
+  }, [initialTemplateId]);
 
   useEffect(() => {
     if (!hasLoadedStoredDraft) {
       return;
     }
 
-    window.localStorage.setItem(draftStorageKey, JSON.stringify(draftState));
+    writeDraftState(draftState);
   }, [draftState, hasLoadedStoredDraft]);
 
   function addPage() {
@@ -274,6 +275,19 @@ export function PosterMakerWorkbench() {
     );
   }
 
+  function selectTemplate(templateId: PosterTemplateId) {
+    const nextDraft = {
+      ...draftState,
+      selectedTemplateId: templateId,
+    };
+
+    setDraftState(nextDraft);
+    if (hasLoadedStoredDraft) {
+      writeDraftState(nextDraft);
+    }
+    window.history.replaceState(null, "", `/poster-maker/${templateId}`);
+  }
+
   async function exportPosterPages() {
     setDidAttemptExport(true);
 
@@ -387,12 +401,7 @@ export function PosterMakerWorkbench() {
                     key={template.id}
                     content={selectedPage.title ? selectedPage : previewFallbackContent}
                     isSelected={template.id === selectedTemplateId}
-                    onSelect={() =>
-                      setDraftState((currentDraft) => ({
-                        ...currentDraft,
-                        selectedTemplateId: template.id,
-                      }))
-                    }
+                    onSelect={() => selectTemplate(template.id)}
                     template={template}
                   />
                 ))}
@@ -704,6 +713,23 @@ export function PosterMakerWorkbench() {
   );
 }
 
+function createDefaultDraftState(
+  selectedTemplateId: PosterTemplateId,
+): PosterDraftState {
+  return {
+    footerText: "",
+    pages: examplePages,
+    selectedCategory: "All",
+    selectedPageId: examplePages[0].id,
+    selectedTemplateId,
+    showPageLabels: false,
+  };
+}
+
+function writeDraftState(draftState: PosterDraftState) {
+  window.localStorage.setItem(draftStorageKey, JSON.stringify(draftState));
+}
+
 function readDraftState(): PosterDraftState | null {
   const rawDraft = window.localStorage.getItem(draftStorageKey);
 
@@ -989,35 +1015,6 @@ function dataUrlToBlob(dataUrl: string) {
   }
 
   return new Blob([bytes], { type: mimeType });
-}
-
-function TemplateCssLinks({ templates }: { templates: PosterTemplate[] }) {
-  useEffect(() => {
-    const createdLinks: HTMLLinkElement[] = [];
-
-    for (const template of templates) {
-      const linkId = `poster-template-css-${template.id}`;
-      if (document.getElementById(linkId)) {
-        continue;
-      }
-
-      const link = document.createElement("link");
-      link.id = linkId;
-      link.rel = "stylesheet";
-      link.href = template.cssPath;
-      link.dataset.posterTemplate = template.id;
-      document.head.appendChild(link);
-      createdLinks.push(link);
-    }
-
-    return () => {
-      for (const link of createdLinks) {
-        link.remove();
-      }
-    };
-  }, [templates]);
-
-  return null;
 }
 
 function TemplateCard({
