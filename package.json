@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "generate:poster-templates": "node scripts/generate-poster-templates.mjs",
+    "dev": "node scripts/generate-poster-templates.mjs && next dev",
+    "build": "node scripts/generate-poster-templates.mjs && next build",
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "playwright test"

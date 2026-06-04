@@ -41,7 +41,10 @@ test.describe("poster maker templates", () => {
     await expect(mainPreview).toContainText("把复杂能力讲清楚");
     await expect(
       page.locator('link[data-poster-template="minimalist"]'),
-    ).toHaveAttribute("href", /\/poster-templates\/minimalist.css$/);
+    ).toHaveAttribute("href", /\/poster-templates\/generated\/minimalist.css$/);
+    await expect(
+      page.locator('link[data-poster-template="base"]'),
+    ).toHaveAttribute("href", /\/poster-templates\/generated\/base.css$/);
 
     await selection.getByRole("button", { name: /Magazine/ }).click();
 

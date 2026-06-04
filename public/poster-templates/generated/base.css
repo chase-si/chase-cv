@@ -1,0 +1,93 @@
+.pm-template {
+  position: relative;
+  display: flex;
+  aspect-ratio: 4 / 5;
+  min-height: 14rem;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  border: 2px solid var(--pm-template-line, var(--border));
+  border-radius: var(--pm-template-radius, 8px);
+  background: var(--pm-template-bg, var(--card));
+  box-shadow: var(--pm-template-shadow, none);
+  color: var(--pm-template-fg, var(--card-foreground));
+  font-family: var(--font-sans, inherit);
+}
+
+.pm-template__page-label {
+  position: absolute;
+  left: 1rem;
+  top: 0.85rem;
+  border: 1px solid var(--pm-template-line, var(--border));
+  border-radius: 999px;
+  background: var(--pm-template-bg, var(--card));
+  color: var(--pm-template-fg, var(--card-foreground));
+  padding: 0.18rem 0.42rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+.pm-template__media {
+  display: flex;
+  min-height: 4.75rem;
+  align-items: end;
+  border-bottom: 1px solid var(--pm-template-line, var(--border));
+  background: var(--pm-template-media, var(--muted));
+  padding: 1rem;
+}
+
+.pm-template__media span {
+  display: block;
+  height: 0.75rem;
+  width: 46%;
+  border-radius: 999px;
+  background: var(--pm-template-accent, var(--primary));
+}
+
+.pm-template__body,
+.pm-template__footer {
+  padding: 1rem;
+}
+
+.pm-template__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.pm-template__title {
+  margin-top: 0.65rem;
+  font-size: clamp(1.45rem, 8vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: var(--tracking-normal, 0);
+  line-height: 0.98;
+}
+
+.pm-template__subtitle,
+.pm-template__footer p {
+  margin-top: 0.8rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.pm-template__global-footer {
+  text-align: right;
+}
+
+.pm-template__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.8rem;
+}
+
+.pm-template__tags span {
+  border: 1px solid var(--pm-template-line, var(--border));
+  border-radius: 999px;
+  padding: 0.25rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
