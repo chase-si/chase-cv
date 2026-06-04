@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowDown,
   ArrowUp,
@@ -18,6 +20,14 @@ import { toPng } from "html-to-image";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 import { TemplateCssLinks } from "./template-css-links";
 import { TemplatePreview, type PosterPageContent } from "./template-preview";
@@ -74,6 +84,7 @@ export function PosterMakerWorkbench({
 }: {
   initialTemplateId?: PosterTemplateId;
 }) {
+  const router = useRouter();
   const [draftState, setDraftState] = useState(() =>
     createDefaultDraftState(initialTemplateId),
   );
@@ -285,7 +296,7 @@ export function PosterMakerWorkbench({
     if (hasLoadedStoredDraft) {
       writeDraftState(nextDraft);
     }
-    window.history.replaceState(null, "", `/poster-maker/${templateId}`);
+    router.replace(`/poster-maker/${templateId}`);
   }
 
   async function exportPosterPages() {
@@ -344,6 +355,19 @@ export function PosterMakerWorkbench({
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:py-8">
         <section className="flex flex-col gap-3 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-3xl">
+            <Breadcrumb className="mb-3 text-sm text-muted-foreground">
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link href="/poster-maker">Poster Maker</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator>/</BreadcrumbSeparator>
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{selectedTemplate.name}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
             <p className="text-sm font-medium text-muted-foreground">
               模板图片工作台
             </p>
