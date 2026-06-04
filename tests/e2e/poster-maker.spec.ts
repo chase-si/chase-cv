@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { readFile, readdir } from "node:fs/promises";
+import path from "node:path";
 
 import { ensureDownloadsDir } from "./fixtures/downloads";
 
@@ -53,8 +54,10 @@ test.describe("poster maker templates", () => {
     ).toBeVisible();
     await expect(page.getByText("模板Magazine")).toBeVisible();
     await expect(
-      page.getByLabel("Current poster page preview"),
-    ).toContainText("Magazine");
+      page.getByRole("region", { name: "Template gallery" }).getByRole("button", {
+        name: /Magazine/,
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
 
     const breadcrumb = page.getByRole("navigation", { name: "breadcrumb" });
     await expect(
@@ -110,7 +113,6 @@ test.describe("poster maker templates", () => {
     await expect(selection.getByRole("button", { name: /Magazine/ })).toBeVisible();
     await expect(selection.getByRole("button", { name: /Retro/ })).toBeVisible();
     await expect(selection.getByRole("button", { name: /Tech/ })).toBeVisible();
-    await expect(mainPreview).toContainText("Minimalist");
     await expect(mainPreview).toContainText("把复杂能力讲清楚");
     await expect(
       page.locator('link[data-poster-template="minimalist"]'),
@@ -125,7 +127,10 @@ test.describe("poster maker templates", () => {
       "aria-pressed",
       "true",
     );
-    await expect(mainPreview).toContainText("Magazine");
+    await expect(selection.getByRole("button", { name: /Magazine/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
     await expect(page).toHaveURL(/\/poster-maker$/);
 
     await page.getByRole("button", { name: "Use this template" }).click();
@@ -151,15 +156,148 @@ test.describe("poster maker templates", () => {
       "aria-pressed",
       "true",
     );
-    await expect(page.getByLabel("Selected template preview")).toContainText("Tech");
+    await expect(selection.getByRole("button", { name: /Tech/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 });
 
 test.describe("poster maker page editor", () => {
+  test("persists poster specs, updates preview ratio, exports matching PNG sizes, and hides template tags", async ({
+    page,
+  }) => {
+    const downloadsDir = await ensureDownloadsDir();
+    const downloadPrefix = createDownloadPrefix("spec");
+    const exportedFiles: Record<string, string> = {};
+    let selectedSpec = "4:5";
+
+    await page.addInitScript(() => {
+      Object.defineProperty(window, "showDirectoryPicker", {
+        configurable: true,
+        value: undefined,
+      });
+      if (window.localStorage.getItem("poster-maker:draft:v1")) {
+        return;
+      }
+      window.localStorage.setItem(
+        "poster-maker:draft:v1",
+        JSON.stringify({
+          footerText: "preserved footer",
+          pages: [
+            {
+              id: "page-1",
+              title: "Launch Plan",
+              description: "First line",
+            },
+            {
+              id: "page-2",
+              title: "Metrics Snapshot",
+              description: "Revenue up 18%",
+            },
+          ],
+          selectedCategory: "All",
+          selectedPageId: "page-2",
+          selectedTemplateId: "minimalist",
+          showPageLabels: true,
+        }),
+      );
+    });
+    page.on("download", async (download) => {
+      const filePath = path.join(
+        downloadsDir,
+        `${downloadPrefix}-${selectedSpec.replace(
+          ":",
+          "-",
+        )}-${download.suggestedFilename()}`,
+      );
+      await download.saveAs(filePath);
+      exportedFiles[selectedSpec] = filePath;
+    });
+
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto("/poster-maker/minimalist");
+
+    const mainPreview = page.getByLabel("Current poster page preview");
+    await expect(page.getByLabel("Page title")).toHaveValue("Metrics Snapshot");
+    await expect(mainPreview.getByText("02 / 02")).toBeVisible();
+    await expect(mainPreview.getByText("preserved footer")).toBeVisible();
+    await expect
+      .poll(() =>
+        mainPreview
+          .getByTestId("template-preview")
+          .evaluate((node) => node.textContent ?? ""),
+      )
+      .not.toContain("Minimalist");
+    await expect
+      .poll(() =>
+        mainPreview
+          .getByTestId("template-preview")
+          .evaluate((node) => node.textContent ?? ""),
+      )
+      .not.toContain("Clean");
+
+    const specs = [
+      { height: 1080, label: "1:1", ratio: 1, width: 1080 },
+      { height: 1350, label: "4:5", ratio: 4 / 5, width: 1080 },
+      { height: 1080, label: "16:9", ratio: 16 / 9, width: 1920 },
+    ];
+
+    for (const spec of specs) {
+      selectedSpec = spec.label;
+      await page.getByRole("radio", { name: spec.label }).check();
+      await expect(page.getByRole("radio", { name: spec.label })).toBeChecked();
+      await expect(page.getByLabel("Page title")).toHaveValue("Metrics Snapshot");
+      await expect(mainPreview.getByText("02 / 02")).toBeVisible();
+      await expect(mainPreview.getByText("preserved footer")).toBeVisible();
+      await expect
+        .poll(
+          async () =>
+            mainPreview.getByTestId("template-preview").evaluate((node) => {
+              const rect = node.getBoundingClientRect();
+
+              return Number((rect.width / rect.height).toFixed(2));
+            }),
+          { message: `${spec.label} preview ratio` },
+        )
+        .toBeCloseTo(Number(spec.ratio.toFixed(2)), 1);
+
+      await expect
+        .poll(() =>
+          page.evaluate(() => {
+            const draft = JSON.parse(
+              window.localStorage.getItem("poster-maker:draft:v1") ?? "{}",
+            ) as { selectedPosterSpecId?: unknown };
+
+            return draft.selectedPosterSpecId;
+          }),
+        )
+        .toBe(spec.label);
+
+      await page.getByRole("button", { name: "Export poster pages" }).click();
+      await expect
+        .poll(() => exportedFiles[spec.label], {
+          message: `${spec.label} PNG download`,
+        })
+        .toBeTruthy();
+      await expectPngDimensions(exportedFiles[spec.label], {
+        height: spec.height,
+        width: spec.width,
+      });
+    }
+
+    await page.reload();
+    await expect(page.getByRole("radio", { name: "16:9" })).toBeChecked();
+    await expect(page.getByLabel("Page title")).toHaveValue("Metrics Snapshot");
+    await expect(mainPreview.getByText("02 / 02")).toBeVisible();
+    await expect(mainPreview.getByText("preserved footer")).toBeVisible();
+  });
+
   test("completes the full poster maker journey and downloads fallback PNGs", async ({
     page,
   }) => {
     const downloadsDir = await ensureDownloadsDir();
+    const downloadPrefix = createDownloadPrefix("journey");
     const downloadEvents: string[] = [];
 
     await page.addInitScript(() => {
@@ -170,7 +308,9 @@ test.describe("poster maker page editor", () => {
     });
     page.on("download", async (download) => {
       const suggestedFilename = download.suggestedFilename();
-      await download.saveAs(`${downloadsDir}/${suggestedFilename}`);
+      await download.saveAs(
+        path.join(downloadsDir, `${downloadPrefix}-${suggestedFilename}`),
+      );
       downloadEvents.push(suggestedFilename);
     });
 
@@ -195,7 +335,7 @@ test.describe("poster maker page editor", () => {
     await page.getByRole("button", { exact: true, name: "Editorial" }).click();
     await templateGallery.getByRole("button", { name: /Magazine/ }).click();
     await expect(page).toHaveURL(/\/poster-maker\/magazine$/);
-    await expect(mainPreview).toContainText("Magazine");
+    await expect(page.getByText("模板Magazine")).toBeVisible();
 
     await markdownInput.fill(`# Launch Plan
 First line
@@ -250,9 +390,11 @@ Line B`);
 
     const savedFiles = await readdir(downloadsDir);
     for (const filename of downloadEvents) {
-      expect(savedFiles).toContain(filename);
-      await expectPngDimensions(`${downloadsDir}/${filename}`, {
-        height: 1440,
+      const savedFilename = `${downloadPrefix}-${filename}`;
+
+      expect(savedFiles).toContain(savedFilename);
+      await expectPngDimensions(path.join(downloadsDir, savedFilename), {
+        height: 1350,
         width: 1080,
       });
     }
@@ -532,6 +674,10 @@ Line B`);
     await expect(mainPreview.getByText("把复杂能力讲清楚")).toBeVisible();
   });
 });
+
+function createDownloadPrefix(label: string) {
+  return `${label}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 
 async function expectPngDimensions(
   filePath: string,

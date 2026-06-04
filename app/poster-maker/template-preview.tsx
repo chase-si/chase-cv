@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-import type { PosterTemplate } from "./templates";
+import { defaultPosterSpecId, posterSpecs, type PosterSpec, type PosterTemplate } from "./templates";
 
 export type PosterPageContent = {
   title: string;
@@ -12,19 +12,23 @@ export function TemplatePreview({
   content,
   footerText,
   pageLabel,
+  posterSpec = defaultPosterSpec,
   template,
 }: {
   className?: string;
   content: PosterPageContent;
   footerText?: string;
   pageLabel?: string;
+  posterSpec?: PosterSpec;
   template: PosterTemplate;
 }) {
   return (
     <article
       className={cn("pm-template", `pm-template--${template.id}`, className)}
+      data-poster-spec={posterSpec.id}
       data-template={template.id}
       data-testid="template-preview"
+      style={{ aspectRatio: `${posterSpec.width} / ${posterSpec.height}` }}
     >
       <div className="pm-template__media" aria-hidden="true">
         <span />
@@ -47,12 +51,10 @@ export function TemplatePreview({
         {footerText ? (
           <p className="pm-template__global-footer">{footerText}</p>
         ) : null}
-        <div className="pm-template__tags" aria-label="Template tags">
-          {[template.category, template.name].map((tag) => (
-            <span key={tag}>{tag}</span>
-          ))}
-        </div>
       </div>
     </article>
   );
 }
+
+const defaultPosterSpec =
+  posterSpecs.find((spec) => spec.id === defaultPosterSpecId) ?? posterSpecs[0];

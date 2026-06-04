@@ -9,7 +9,6 @@ import {
   Download,
   FileText,
   ImageIcon,
-  LayoutTemplate,
   Palette,
   Plus,
   RotateCcw,
@@ -32,8 +31,12 @@ import {
 import { TemplateCssLinks } from "./template-css-links";
 import { TemplatePreview, type PosterPageContent } from "./template-preview";
 import {
+  defaultPosterSpecId,
   posterTemplateCategories,
+  posterSpecs,
   posterTemplates,
+  type PosterSpec,
+  type PosterSpecId,
   type PosterTemplate,
   type PosterTemplateCategory,
   type PosterTemplateId,
@@ -48,6 +51,7 @@ type PosterDraftState = {
   pages: PosterPage[];
   selectedCategory: "All" | PosterTemplateCategory;
   selectedPageId: string;
+  selectedPosterSpecId: PosterSpecId;
   selectedTemplateId: PosterTemplateId;
   showPageLabels: boolean;
 };
@@ -71,6 +75,9 @@ const emptyPage: PosterPage = {
 
 const categoryFilters =
   posterTemplateCategories as PosterDraftState["selectedCategory"][];
+const defaultPosterSpec =
+  posterSpecs.find((spec) => spec.id === defaultPosterSpecId) ?? posterSpecs[0];
+const posterSpecIds = new Set(posterSpecs.map((spec) => spec.id));
 const templateIds = new Set(posterTemplates.map((template) => template.id));
 const templateCategories = new Set(categoryFilters);
 
@@ -102,10 +109,14 @@ export function PosterMakerWorkbench({
     pages,
     selectedCategory,
     selectedPageId,
+    selectedPosterSpecId,
     selectedTemplateId,
     showPageLabels,
   } = draftState;
 
+  const selectedPosterSpec =
+    posterSpecs.find((spec) => spec.id === selectedPosterSpecId) ??
+    defaultPosterSpec;
   const selectedTemplate =
     posterTemplates.find((template) => template.id === selectedTemplateId) ??
     posterTemplates[0];
@@ -318,6 +329,7 @@ export function PosterMakerWorkbench({
           setExportFeedback(
             `Rendered ${completedCount} of ${pages.length} PNG files.`,
           ),
+        posterSpec: selectedPosterSpec,
         renderRoot: exportRenderRootRef.current,
       });
       const directoryResult = await writePosterPngsToDirectory(exportedPages);
@@ -432,21 +444,6 @@ export function PosterMakerWorkbench({
               </div>
             </WorkbenchPanel>
 
-            <WorkbenchPanel
-              icon={<LayoutTemplate className="h-4 w-4" />}
-              title="模板规格"
-            >
-              <div className="grid grid-cols-3 gap-2">
-                {["1:1", "4:5", "16:9"].map((ratio) => (
-                  <div
-                    key={ratio}
-                    className="flex aspect-4/5 items-center justify-center rounded-[8px] border border-dashed border-border bg-muted text-xs font-medium"
-                  >
-                    {ratio}
-                  </div>
-                ))}
-              </div>
-            </WorkbenchPanel>
           </aside>
 
           <WorkbenchPanel
@@ -454,16 +451,56 @@ export function PosterMakerWorkbench({
             title="预览"
             className="min-h-136"
           >
+            <fieldset
+              aria-label="Poster spec"
+              className="grid gap-2 rounded-[8px] border border-border bg-background p-2"
+            >
+              <legend className="sr-only">Poster spec</legend>
+              <div className="grid grid-cols-3 gap-2">
+                {posterSpecs.map((spec) => (
+                  <label
+                    key={spec.id}
+                    className={cn(
+                      "flex min-h-12 cursor-pointer items-center gap-2 rounded-[8px] border px-3 text-xs transition",
+                      selectedPosterSpec.id === spec.id
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border bg-card hover:bg-muted",
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="poster-spec"
+                      value={spec.id}
+                      checked={selectedPosterSpec.id === spec.id}
+                      onChange={() =>
+                        setDraftState((currentDraft) => ({
+                          ...currentDraft,
+                          selectedPosterSpecId: spec.id,
+                        }))
+                      }
+                      className="h-3.5 w-3.5 accent-current"
+                    />
+                    <span>
+                      <span className="block font-semibold">{spec.id}</span>
+                      <span className="mt-0.5 block opacity-75">
+                        {spec.width}x{spec.height}
+                      </span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <div
               aria-label="Current poster page preview"
               data-testid="main-template-preview"
               className="flex h-full min-h-120 items-center justify-center rounded-[8px] border border-border bg-muted p-4"
             >
               <TemplatePreview
-                className="w-full max-w-sm shadow-lg"
+                className="w-full max-w-xl shadow-lg"
                 content={selectedPage}
                 footerText={footerTextForPreview}
                 pageLabel={pageLabel}
+                posterSpec={selectedPosterSpec}
                 template={selectedTemplate}
               />
             </div>
@@ -717,7 +754,10 @@ export function PosterMakerWorkbench({
           <div
             key={page.id}
             data-export-page-index={index}
-            style={{ height: 1440, width: 1080 }}
+            style={{
+              height: selectedPosterSpec.height,
+              width: selectedPosterSpec.width,
+            }}
           >
             <TemplatePreview
               className="h-full w-full"
@@ -728,6 +768,7 @@ export function PosterMakerWorkbench({
                   ? formatPageLabel(index + 1, pages.length)
                   : undefined
               }
+              posterSpec={selectedPosterSpec}
               template={selectedTemplate}
             />
           </div>
@@ -745,6 +786,7 @@ function createDefaultDraftState(
     pages: examplePages,
     selectedCategory: "All",
     selectedPageId: examplePages[0].id,
+    selectedPosterSpecId: defaultPosterSpecId,
     selectedTemplateId,
     showPageLabels: false,
   };
@@ -769,6 +811,7 @@ function readDraftState(): PosterDraftState | null {
     const selectedTemplateId = parsedDraft.selectedTemplateId;
     const selectedCategory = parsedDraft.selectedCategory;
     const selectedPageId = parsedDraft.selectedPageId;
+    const selectedPosterSpecId = parsedDraft.selectedPosterSpecId;
     const footerText =
       typeof parsedDraft.footerText === "string" ? parsedDraft.footerText : "";
     const showPageLabels =
@@ -793,6 +836,11 @@ function readDraftState(): PosterDraftState | null {
       pages,
       selectedCategory: selectedCategory as PosterDraftState["selectedCategory"],
       selectedPageId,
+      selectedPosterSpecId:
+        typeof selectedPosterSpecId === "string" &&
+        posterSpecIds.has(selectedPosterSpecId as PosterSpecId)
+          ? (selectedPosterSpecId as PosterSpecId)
+          : defaultPosterSpecId,
       selectedTemplateId: selectedTemplateId as PosterTemplateId,
       showPageLabels,
     };
@@ -924,9 +972,11 @@ type WindowWithDirectoryPicker = Window &
 
 async function renderPosterPagePngs({
   onProgress,
+  posterSpec,
   renderRoot,
 }: {
   onProgress: (completedCount: number) => void;
+  posterSpec: PosterSpec;
   renderRoot: HTMLDivElement | null;
 }): Promise<ExportedPosterPage[]> {
   if (!renderRoot) {
@@ -948,11 +998,11 @@ async function renderPosterPagePngs({
     const dataUrl = await toPng(node, {
       backgroundColor: getOpaqueBackgroundColor(node),
       cacheBust: true,
-      canvasHeight: 1440,
-      canvasWidth: 1080,
-      height: 1440,
+      canvasHeight: posterSpec.height,
+      canvasWidth: posterSpec.width,
+      height: posterSpec.height,
       pixelRatio: 1,
-      width: 1080,
+      width: posterSpec.width,
     });
 
     exportedPages.push({

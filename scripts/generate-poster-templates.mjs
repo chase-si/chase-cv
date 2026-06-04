@@ -19,7 +19,7 @@ const templateVariableMappings = [
 const baseCss = `.pm-template {
   position: relative;
   display: flex;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: var(--pm-template-aspect-ratio, 4 / 5);
   min-height: 14rem;
   flex-direction: column;
   justify-content: space-between;
@@ -93,21 +93,6 @@ const baseCss = `.pm-template {
 
 .pm-template__global-footer {
   text-align: right;
-}
-
-.pm-template__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.8rem;
-}
-
-.pm-template__tags span {
-  border: 1px solid var(--pm-template-line, var(--border));
-  border-radius: 999px;
-  padding: 0.25rem 0.45rem;
-  font-size: 0.68rem;
-  font-weight: 700;
 }
 `;
 
