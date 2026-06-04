@@ -46,7 +46,7 @@ export function MagicCursorEffectPage({ effect }: Props) {
             />
           </section>
 
-          <Card className="lg:col-span-8">
+          <Card className="border border-border lg:col-span-8">
             <CardHeader className="pb-2">
               <Breadcrumb>
                 <BreadcrumbList>

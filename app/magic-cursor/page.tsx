@@ -20,7 +20,7 @@ export default function Page() {
             <MagicCursorSidebar activeEffect={null} />
           </section>
 
-          <section className="lg:col-span-8 shadow-lg backdrop-blur-xl rounded-xl overflow-hidden">
+          <section className="border border-border/80 lg:col-span-8 shadow-lg backdrop-blur-xl rounded-xl overflow-hidden">
             <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
               {[...MAGIC_CURSOR_EFFECT_ORDER, MAGIC_CURSOR_EFFECTS.INVERT_RING.type].map((effect, index) => {
                 const enabled = active === effect;
