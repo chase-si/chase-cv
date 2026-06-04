@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 import { TemplateCssLinks } from "./template-css-links";
-import { TemplatePreview, type PosterPageContent } from "./template-preview";
+import type { PosterPageContent } from "./template-preview";
+import { WrappedTemplatePreview } from "./wrapped-template-preview";
 import {
   posterTemplateCategories,
   posterTemplates,
@@ -136,8 +137,8 @@ export function PosterMakerTemplateSelection() {
               data-testid="main-template-preview"
               className="flex h-full min-h-120 items-center justify-center rounded-[8px] border border-border bg-muted p-4"
             >
-              <TemplatePreview
-                className="w-full max-w-sm shadow-lg"
+              <WrappedTemplatePreview
+                slotClassName="w-full max-w-sm"
                 content={previewContent}
                 template={selectedTemplate}
               />
@@ -197,6 +198,11 @@ function TemplateSelectionCard({
         </span>
         <LayoutTemplate className="mt-0.5 h-4 w-4 text-muted-foreground" />
       </span>
+      <WrappedTemplatePreview
+        slotClassName="mt-3 w-full"
+        content={previewContent}
+        template={template}
+      />
       <span className="mt-3 block text-xs leading-5 text-muted-foreground">
         {template.description}
       </span>

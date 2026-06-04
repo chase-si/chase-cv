@@ -1,0 +1,2 @@
+export const POSTER_CANVAS_WIDTH = 1080;
+export const POSTER_CANVAS_HEIGHT = 1440;

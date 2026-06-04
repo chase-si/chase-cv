@@ -28,7 +28,7 @@
 }
 
 .pm-template--retro .pm-template__title {
-  font-size: clamp(1.55rem, 8vw, 2.55rem);
+  font-size: clamp(1.55rem, 8cqw, 2.55rem);
   text-transform: uppercase;
 }
 
