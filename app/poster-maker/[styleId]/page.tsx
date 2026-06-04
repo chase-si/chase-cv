@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { PosterMakerWorkbench } from "../poster-maker-workbench";
 import { posterTemplates } from "../templates";
@@ -18,7 +18,7 @@ export default async function PosterMakerStylePage({
   const template = posterTemplates.find((item) => item.id === styleId);
 
   if (!template) {
-    notFound();
+    redirect("/poster-maker");
   }
 
   return <PosterMakerWorkbench initialTemplateId={template.id} />;

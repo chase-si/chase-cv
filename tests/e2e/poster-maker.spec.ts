@@ -22,6 +22,79 @@ test.describe("poster maker navigation", () => {
 });
 
 test.describe("poster maker templates", () => {
+  test("uses the style route as the editor source of truth", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        "poster-maker:draft:v1",
+        JSON.stringify({
+          footerText: "",
+          pages: [
+            {
+              id: "stored-page",
+              title: "Stored draft",
+              description: "This draft was saved with a different template.",
+            },
+          ],
+          selectedCategory: "All",
+          selectedPageId: "stored-page",
+          selectedTemplateId: "tech",
+          showPageLabels: false,
+        }),
+      );
+    });
+
+    await page.goto("/poster-maker/magazine");
+
+    await expect(page).toHaveURL(/\/poster-maker\/magazine$/);
+    await expect(
+      page.getByRole("region", { name: "Poster maker workbench" }),
+    ).toBeVisible();
+    await expect(page.getByText("模板Magazine")).toBeVisible();
+    await expect(
+      page.getByLabel("Current poster page preview"),
+    ).toContainText("Magazine");
+
+    const breadcrumb = page.getByRole("navigation", { name: "breadcrumb" });
+    await expect(
+      breadcrumb.getByRole("link", { name: "Poster Maker" }),
+    ).toHaveAttribute("href", "/poster-maker");
+    await expect(breadcrumb.getByText("Magazine")).toBeVisible();
+
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const draft = JSON.parse(
+            window.localStorage.getItem("poster-maker:draft:v1") ?? "{}",
+          ) as { selectedTemplateId?: unknown };
+
+          return draft.selectedTemplateId;
+        }),
+      )
+      .toBe("magazine");
+
+    await breadcrumb.getByRole("link", { name: "Poster Maker" }).click();
+
+    await expect(page).toHaveURL(/\/poster-maker$/);
+    const selection = page.getByRole("region", { name: "Template selection" });
+    await expect(selection.getByRole("button", { name: /Magazine/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  test("redirects invalid style ids back to template selection", async ({
+    page,
+  }) => {
+    await page.goto("/poster-maker/not-a-template");
+
+    await expect(page).toHaveURL(/\/poster-maker$/);
+    await expect(
+      page.getByRole("region", { name: "Template selection" }),
+    ).toBeVisible();
+  });
+
   test("selects templates in place and opens the editor for the selected style", async ({
     page,
   }) => {
@@ -118,6 +191,7 @@ test.describe("poster maker page editor", () => {
 
     await page.getByRole("button", { exact: true, name: "Editorial" }).click();
     await templateGallery.getByRole("button", { name: /Magazine/ }).click();
+    await expect(page).toHaveURL(/\/poster-maker\/magazine$/);
     await expect(mainPreview).toContainText("Magazine");
 
     await markdownInput.fill(`# Launch Plan
@@ -427,6 +501,7 @@ Line B`);
     await expect(mainPreview.getByText("Launch Plan")).toBeVisible();
 
     await page.getByRole("button", { name: /Magazine/ }).click();
+    await expect(page).toHaveURL(/\/poster-maker\/magazine$/);
     await expect(page.getByText("模板Magazine")).toBeVisible();
 
     await page.reload();
