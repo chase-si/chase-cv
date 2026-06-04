@@ -29,8 +29,13 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
+import {
+  POSTER_CANVAS_HEIGHT,
+  POSTER_CANVAS_WIDTH,
+} from "./poster-canvas";
 import { TemplateCssLinks } from "./template-css-links";
-import { TemplatePreview, type PosterPageContent } from "./template-preview";
+import type { PosterPageContent } from "./template-preview";
+import { WrappedTemplatePreview } from "./wrapped-template-preview";
 import {
   posterTemplateCategories,
   posterTemplates,
@@ -437,12 +442,36 @@ export function PosterMakerWorkbench({
               title="模板规格"
             >
               <div className="grid grid-cols-3 gap-2">
-                {["1:1", "4:5", "16:9"].map((ratio) => (
+                {[
+                  {
+                    aspectClass: "aspect-square",
+                    label: "1:1",
+                    note: "占位，暂不可导出",
+                  },
+                  {
+                    aspectClass: "aspect-3/4",
+                    label: "3:4",
+                    note: "当前 · 1080×1440",
+                    isCurrent: true,
+                  },
+                  {
+                    aspectClass: "aspect-video",
+                    label: "16:9",
+                    note: "占位，暂不可导出",
+                  },
+                ].map((spec) => (
                   <div
-                    key={ratio}
-                    className="flex aspect-4/5 items-center justify-center rounded-[8px] border border-dashed border-border bg-muted text-xs font-medium"
+                    key={spec.label}
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-1 rounded-[8px] border border-dashed border-border bg-muted px-2 py-3 text-center text-xs font-medium",
+                      spec.aspectClass,
+                      spec.isCurrent && "border-foreground",
+                    )}
                   >
-                    {ratio}
+                    <span>{spec.label}</span>
+                    <span className="text-[0.65rem] font-normal text-muted-foreground">
+                      {spec.note}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -459,8 +488,8 @@ export function PosterMakerWorkbench({
               data-testid="main-template-preview"
               className="flex h-full min-h-120 items-center justify-center rounded-[8px] border border-border bg-muted p-4"
             >
-              <TemplatePreview
-                className="w-full max-w-sm shadow-lg"
+              <WrappedTemplatePreview
+                slotClassName="w-full max-w-sm"
                 content={selectedPage}
                 footerText={footerTextForPreview}
                 pageLabel={pageLabel}
@@ -717,10 +746,13 @@ export function PosterMakerWorkbench({
           <div
             key={page.id}
             data-export-page-index={index}
-            style={{ height: 1440, width: 1080 }}
+            style={{
+              height: POSTER_CANVAS_HEIGHT,
+              width: POSTER_CANVAS_WIDTH,
+            }}
           >
-            <TemplatePreview
-              className="h-full w-full"
+            <WrappedTemplatePreview
+              slotClassName="w-full"
               content={page}
               footerText={footerTextForPreview}
               pageLabel={
@@ -948,11 +980,11 @@ async function renderPosterPagePngs({
     const dataUrl = await toPng(node, {
       backgroundColor: getOpaqueBackgroundColor(node),
       cacheBust: true,
-      canvasHeight: 1440,
-      canvasWidth: 1080,
-      height: 1440,
+      canvasHeight: POSTER_CANVAS_HEIGHT,
+      canvasWidth: POSTER_CANVAS_WIDTH,
+      height: POSTER_CANVAS_HEIGHT,
       pixelRatio: 1,
-      width: 1080,
+      width: POSTER_CANVAS_WIDTH,
     });
 
     exportedPages.push({
@@ -1066,8 +1098,8 @@ function TemplateCard({
       <span className="mt-1 block text-xs font-medium text-muted-foreground">
         {template.category}
       </span>
-      <TemplatePreview
-        className="mt-3 scale-[0.96]"
+      <WrappedTemplatePreview
+        slotClassName="mt-3 w-full"
         content={content}
         template={template}
       />

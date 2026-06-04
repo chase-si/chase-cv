@@ -91,7 +91,7 @@ export function MagicCursorSidebar(props: Props) {
   const options = effect ? props.optionsByEffect[effect] : null;
 
   return (
-    <Card className="border-border/80 bg-card/80 shadow-lg backdrop-blur-xl">
+    <Card className="border border-border/80 bg-card/80 shadow-lg backdrop-blur-xl">
       <CardHeader className="pb-2">
         <CardTitle>Magic Cursor</CardTitle>
         <CardDescription>切换不同鼠标效果，并实时调参预览。</CardDescription>
