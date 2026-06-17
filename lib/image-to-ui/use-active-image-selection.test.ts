@@ -163,4 +163,28 @@ describe("useActiveImageSelection", () => {
     expect(result.current.paletteSelection.swatches).toEqual([]);
     expect(result.current.paletteSelection.extractionError).toBeNull();
   });
+
+  it("updates selected palette colors independently from extraction state", () => {
+    const { result } = renderHook(() => useActiveImageSelection());
+
+    act(() => {
+      result.current.updatePaletteSelection({
+        selectedColors: [],
+        extractionStatus: "ready",
+        swatches: [{ role: "Vibrant", hex: "#111111" }],
+        extractionError: null,
+      });
+    });
+
+    act(() => {
+      result.current.setSelectedPaletteColors(["#111111", "#222222", "#333333"]);
+    });
+
+    expect(result.current.paletteSelection.selectedColors).toEqual([
+      "#111111",
+      "#222222",
+      "#333333",
+    ]);
+    expect(result.current.paletteSelection.extractionStatus).toBe("ready");
+  });
 });

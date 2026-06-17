@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ImageToUiToolShell } from "@/components/image-to-ui/tool-shell";
@@ -75,5 +75,29 @@ describe("ImageToUiToolShell active image selection", () => {
     const sampleCard = getSampleCard("minimal-dashboard");
     const thumbnail = within(sampleCard).getByRole("presentation");
     expect(thumbnail.className).toMatch(/object-cover/);
+  });
+});
+
+describe("ImageToUiToolShell palette selection", () => {
+  it("enables render only after three ordered swatches are selected", async () => {
+    render(<ImageToUiToolShell />);
+
+    fireEvent.click(getSampleCard("minimal-dashboard"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("palette-swatch-Vibrant")).toBeInTheDocument();
+    });
+
+    const renderButton = screen.getByTestId("palette-render-button");
+    expect(renderButton).toBeDisabled();
+
+    fireEvent.click(screen.getByTestId("palette-swatch-Vibrant"));
+    fireEvent.click(screen.getByTestId("palette-swatch-Muted"));
+    expect(renderButton).toBeDisabled();
+
+    fireEvent.click(screen.getByTestId("palette-swatch-DarkVibrant"));
+    expect(renderButton).toBeEnabled();
+    expect(screen.getByTestId("palette-swatch-role-Vibrant")).toHaveTextContent("主色");
+    expect(screen.getByTestId("palette-swatch-role-DarkVibrant")).toHaveTextContent("强调色");
   });
 });
