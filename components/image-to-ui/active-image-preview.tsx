@@ -15,7 +15,7 @@ export function ActiveImagePreview({
     return (
       <div
         data-testid="active-image-preview"
-        className="flex aspect-video items-center justify-center rounded-2xl border border-border bg-muted/30 text-sm text-muted-foreground"
+        className="flex aspect-video items-center justify-center border border-border bg-muted/30 text-sm text-muted-foreground"
       >
         尚未选择图片
       </div>
@@ -31,7 +31,7 @@ export function ActiveImagePreview({
   return (
     <div
       data-testid="active-image-preview"
-      className="relative aspect-video overflow-hidden rounded-2xl border border-border bg-muted/30"
+      className="relative aspect-video overflow-hidden border border-border bg-muted/30"
     >
       {activeImage.type === "sample" ? (
         <Image

@@ -136,7 +136,7 @@ export function MagicCursorDemoTile({
           <div
             key={item.id}
             data-magnetic
-            className="absolute shadow-xs z-10 rounded-full bg-primary text-sm flex items-center justify-center"
+            className="absolute z-10 flex items-center justify-center bg-primary text-sm shadow-xs"
             style={{
               top: item.top,
               left: item.left,
@@ -172,4 +172,3 @@ export function MagicCursorDemoTile({
     </div>
   );
 }
-

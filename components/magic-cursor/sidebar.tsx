@@ -127,7 +127,7 @@ export function MagicCursorSidebar(props: Props) {
         </div>
 
         {effect !== null && (
-          <div className="rounded-3xl border border-border bg-muted/30 p-4">
+          <div className="border border-border bg-muted/30 p-4">
             <Label className="text-xs text-muted-foreground">参数</Label>
 
             {effect === "spotlight" && (
@@ -660,7 +660,7 @@ export function MagicCursorSidebar(props: Props) {
           <Button
             type="button"
             size="lg"
-            className="h-11 rounded-2xl"
+            className="h-11 rounded-none"
             onClick={() =>
               props.setOptionsByEffect((prev) => ({
                 ...prev,

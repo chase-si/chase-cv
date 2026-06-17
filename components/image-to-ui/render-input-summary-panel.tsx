@@ -54,11 +54,11 @@ export function RenderInputSummaryPanel({
             {renderInput.colorRoles.map((entry) => (
               <li
                 key={entry.role}
-                className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-3"
+                className="flex items-center gap-3 border border-border bg-card px-3 py-3"
                 data-testid={`render-input-color-${entry.role}`}
               >
                 <span
-                  className="size-10 shrink-0 rounded-md border border-border"
+                  className="size-10 shrink-0 border border-border"
                   style={{ backgroundColor: entry.hex }}
                   aria-hidden
                 />
@@ -79,7 +79,7 @@ export function RenderInputSummaryPanel({
         </CardHeader>
         <CardContent className="space-y-4">
           <p
-            className="rounded-lg border border-border bg-muted/40 px-4 py-6 text-center text-sm font-medium text-muted-foreground"
+            className="border border-border bg-muted/40 px-4 py-6 text-center text-sm font-medium text-muted-foreground"
             data-testid="render-placeholder-status"
           >
             待开发

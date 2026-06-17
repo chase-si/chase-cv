@@ -63,7 +63,7 @@ function create(effect: EffectName, root: HTMLDivElement, options: Props["option
 }
 
 const basicStyle =
-  "relative overflow-hidden rounded-xl border border-border bg-card min-h-[240px] flex items-center justify-center text-3xl bold uppercase";
+  "relative overflow-hidden border border-border bg-card min-h-[240px] flex items-center justify-center text-3xl bold uppercase";
 
 export function MagicCursorDemoDetail({
   effect,
@@ -127,7 +127,7 @@ export function MagicCursorDemoDetail({
           <div
             key={item.id}
             data-magnetic
-            className="absolute shadow-xs z-10 rounded-full bg-primary text-sm flex items-center justify-center"
+            className="absolute z-10 flex items-center justify-center bg-primary text-sm shadow-xs"
             style={{
               top: item.top,
               left: item.left,
@@ -165,4 +165,3 @@ export function MagicCursorDemoDetail({
     </div>
   );
 }
-

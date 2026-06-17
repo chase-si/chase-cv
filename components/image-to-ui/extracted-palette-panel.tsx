@@ -75,7 +75,7 @@ export function ExtractedPalettePanel({
                 <button
                   type="button"
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-lg border border-border bg-card px-3 py-2 text-left transition-colors",
+                    "flex w-full items-center gap-3 border border-border bg-card px-3 py-2 text-left transition-colors",
                     "hover:bg-muted/60 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:outline-none",
                     isSelected && "border-primary ring-2 ring-primary/30",
                   )}
@@ -84,13 +84,13 @@ export function ExtractedPalettePanel({
                   onClick={() => handleSwatchClick(swatch.hex)}
                 >
                   <span
-                    className="relative size-10 shrink-0 rounded-md border border-border"
+                    className="relative size-10 shrink-0 border border-border"
                     style={{ backgroundColor: swatch.hex }}
                     aria-hidden
                   >
                     {isSelected ? (
                       <span
-                        className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground"
+                        className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center bg-primary text-[10px] font-semibold text-primary-foreground"
                         data-testid={`palette-swatch-order-${swatch.role}`}
                       >
                         {selectionIndex + 1}

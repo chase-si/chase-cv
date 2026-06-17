@@ -99,7 +99,7 @@ export function ColorPicker({
     <div className={cn("grid gap-2", className)}>
       <div className="flex items-center gap-2">
         <div             
-          className="shrink-0 h-9 w-9 cursor-pointer rounded-full overflow-hidden p-0 relative"
+          className="relative h-9 w-9 shrink-0 cursor-pointer overflow-hidden p-0"
           style= {{ backgroundColor: hex }}
         >
           <input
@@ -150,4 +150,3 @@ export function ColorPicker({
     </div>
   );
 }
-

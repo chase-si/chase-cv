@@ -23,7 +23,7 @@ export function ImageToUiStepIndicator({ activeStep }: ImageToUiStepIndicatorPro
             ) : null}
             <div
               className={cn(
-                "flex items-center gap-2 rounded-full border px-3 py-1.5",
+                "flex items-center gap-2 border px-3 py-1.5",
                 isActive && "border-primary bg-primary/10 text-foreground",
                 isComplete && "border-border text-muted-foreground",
                 !isActive && !isComplete && "border-border text-muted-foreground",
@@ -31,7 +31,7 @@ export function ImageToUiStepIndicator({ activeStep }: ImageToUiStepIndicatorPro
             >
               <span
                 className={cn(
-                  "flex size-6 items-center justify-center rounded-full text-xs font-medium",
+                  "flex size-6 items-center justify-center text-xs font-medium",
                   isActive && "bg-primary text-primary-foreground",
                   !isActive && "bg-muted text-muted-foreground",
                 )}
