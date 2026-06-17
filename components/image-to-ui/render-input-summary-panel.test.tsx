@@ -87,7 +87,7 @@ describe("RenderInputSummaryPanel", () => {
     expect(onBackToEdit).toHaveBeenCalledTimes(1);
   });
 
-  it("renders themed status cards and settings form with reusable primitives", () => {
+  it("switches between overview and settings tabs inside preview", () => {
     render(
       <RenderInputSummaryPanel
         activeImage={{
@@ -102,11 +102,19 @@ describe("RenderInputSummaryPanel", () => {
     );
 
     const preview = screen.getByTestId("saas-preview-surface");
+    const tabs = within(preview).getByRole("tablist", { name: "Preview sections" });
+    const overviewTab = within(tabs).getByRole("tab", { name: "Overview" });
+    const settingsTab = within(tabs).getByRole("tab", { name: "Workspace settings" });
+
+    expect(overviewTab).toHaveAttribute("aria-selected", "true");
     expect(within(preview).getByTestId("saas-status-area")).toBeInTheDocument();
-    expect(within(preview).getByTestId("saas-metric-mrr")).toHaveTextContent("$84,200");
-    expect(within(preview).getByTestId("saas-metric-incidents")).toHaveTextContent("3");
+    expect(within(preview).queryByTestId("saas-settings-form")).not.toBeInTheDocument();
+
+    fireEvent.click(settingsTab);
+    expect(settingsTab).toHaveAttribute("aria-selected", "true");
 
     const settingsForm = within(preview).getByTestId("saas-settings-form");
+    expect(within(preview).queryByTestId("saas-status-area")).not.toBeInTheDocument();
     expect(within(settingsForm).getByLabelText("Workspace name")).toBeInTheDocument();
     expect(within(settingsForm).getByRole("combobox", { name: "Plan" })).toBeInTheDocument();
     expect(within(settingsForm).getByRole("group", { name: "Auto-scale threshold" })).toBeInTheDocument();
@@ -116,6 +124,29 @@ describe("RenderInputSummaryPanel", () => {
     ).toBeInTheDocument();
     expect(within(settingsForm).getByRole("switch", { name: "Allow public status page" })).toBeInTheDocument();
     expect(within(settingsForm).getByRole("button", { name: "Save changes" })).toBeInTheDocument();
+
+    fireEvent.click(overviewTab);
+    expect(within(preview).getByTestId("saas-metric-mrr")).toHaveTextContent("$84,200");
+    expect(within(preview).getByTestId("saas-metric-incidents")).toHaveTextContent("3");
+  });
+
+  it("shows alert and accent sections in preview overview", () => {
+    render(
+      <RenderInputSummaryPanel
+        activeImage={{
+          type: "sample",
+          sampleId: "mondrian",
+          src: "/imgs/image-to-ui/mondrian-1280.webp",
+        }}
+        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        selectedColors={["#FF0088", "#112233", "#445566"]}
+        onBackToEdit={() => {}}
+      />,
+    );
+
+    const preview = screen.getByTestId("saas-preview-surface");
+    expect(within(preview).getByTestId("saas-alert-notification")).toBeInTheDocument();
+    expect(within(preview).getByTestId("saas-accent-section")).toBeInTheDocument();
   });
 
   it("shows primary secondary and accent roles in the preview section", () => {
