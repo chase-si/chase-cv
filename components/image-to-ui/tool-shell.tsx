@@ -1,9 +1,21 @@
+"use client";
+
+import { ActiveImagePreview } from "@/components/image-to-ui/active-image-preview";
+import { ImageUploadZone } from "@/components/image-to-ui/image-upload-zone";
 import { ImageToUiSampleCard } from "@/components/image-to-ui/sample-image-card";
 import { ImageToUiStepIndicator } from "@/components/image-to-ui/step-indicator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { IMAGE_TO_UI_SAMPLE_IMAGES } from "@/lib/constants/image-to-ui-samples";
+import { useActiveImageSelection } from "@/lib/image-to-ui/use-active-image-selection";
+
+const sampleTitleById = Object.fromEntries(
+  IMAGE_TO_UI_SAMPLE_IMAGES.map((sample) => [sample.id, sample.title]),
+);
 
 export function ImageToUiToolShell() {
+  const { activeImage, paletteSelection, selectSample, selectUpload } =
+    useActiveImageSelection();
+
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
@@ -26,13 +38,11 @@ export function ImageToUiToolShell() {
               <CardHeader>
                 <CardTitle className="text-base">图片来源</CardTitle>
                 <CardDescription>
-                  从本地上传或使用下方示例图片。完整上传与选色交互将在后续迭代中接入。
+                  从本地上传或选择下方示例图片，当前仅保留一个活动图片。
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex min-h-[120px] items-center justify-center rounded-2xl border border-dashed border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
-                  上传入口（即将接入）
-                </div>
+                <ImageUploadZone onFileSelected={selectUpload} />
               </CardContent>
             </Card>
 
@@ -40,7 +50,7 @@ export function ImageToUiToolShell() {
               <div>
                 <h2 className="text-base font-medium text-foreground">示例图片</h2>
                 <p className="text-sm text-muted-foreground">
-                  点击示例卡片将在后续版本中选中图片；缺失资源会显示「待补充」。
+                  点击卡片选中示例；缺失资源会显示「待补充」，不影响本地上传。
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -51,6 +61,10 @@ export function ImageToUiToolShell() {
                     imagePath={sample.imagePath}
                     title={sample.title}
                     description={sample.description}
+                    selected={
+                      activeImage?.type === "sample" && activeImage.sampleId === sample.id
+                    }
+                    onSelect={() => selectSample(sample.id, sample.imagePath)}
                   />
                 ))}
               </div>
@@ -61,12 +75,13 @@ export function ImageToUiToolShell() {
             <Card className="shadow-md">
               <CardHeader>
                 <CardTitle className="text-base">当前图片预览</CardTitle>
-                <CardDescription>选中图片后将在此以 contain 方式展示完整画面。</CardDescription>
+                <CardDescription>选中图片后在此以 contain 方式展示完整画面。</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex aspect-video items-center justify-center rounded-2xl border border-border bg-muted/30 text-sm text-muted-foreground">
-                  尚未选择图片
-                </div>
+                <ActiveImagePreview
+                  activeImage={activeImage}
+                  sampleTitleById={sampleTitleById}
+                />
               </CardContent>
             </Card>
 
@@ -78,7 +93,19 @@ export function ImageToUiToolShell() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">选择图片后将显示色板与选色控件。</p>
+                <div
+                  data-testid="palette-selection"
+                  data-selected-count={paletteSelection.selectedColors.length}
+                  data-extraction-feedback={paletteSelection.extractionFeedback ?? ""}
+                >
+                  {activeImage ? (
+                    <p className="text-sm text-muted-foreground">
+                      已选择图片，色板提取将在下一步接入。
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">选择图片后将显示色板与选色控件。</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </section>
