@@ -3,16 +3,20 @@
 import type { CSSProperties } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarGroup, AvatarGroupCount } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
 
@@ -66,63 +70,100 @@ export function SaasThemePreviewSurface({ previewRootStyle, className }: SaasThe
       aria-label="SaaS status and settings preview"
       style={previewRootStyle}
     >
-      <Tabs defaultValue="overview">
-        <TabsList aria-label="Preview sections">
-          <TabsTrigger value="overview" className="aria-selected:bg-primary aria-selected:text-primary-foreground">
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="aria-selected:bg-primary aria-selected:text-primary-foreground">
-            Workspace settings
-          </TabsTrigger>
-        </TabsList>
+      <TooltipProvider>
+        <Tabs defaultValue="overview">
+          <TabsList aria-label="Preview sections">
+            <TabsTrigger value="overview" className="aria-selected:bg-primary aria-selected:text-primary-foreground">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="aria-selected:bg-primary aria-selected:text-primary-foreground">
+              Workspace settings
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
-          <div
-            data-testid="saas-status-area"
-            className="space-y-3 border border-primary/40 bg-primary/10 p-3"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold">Platform health</h3>
-              <Badge variant="accent" data-testid="saas-accent-badge">
-                Performance Watch
-              </Badge>
-            </div>
-            <div className="grid gap-3 md:grid-cols-3">
-              <article
-                data-testid="saas-primary-surface"
-                className="space-y-2 border border-primary/40 bg-primary/10 p-3"
-              >
-                <p className="text-xs text-muted-foreground">Monthly recurring revenue</p>
-                <p className="text-2xl font-semibold" data-testid="saas-metric-mrr">
-                  $84,200
-                </p>
-                <Badge variant="secondary" data-testid="saas-secondary-chip">
-                  +12.4% vs last month
+          <TabsContent value="overview" className="space-y-4">
+            <div
+              data-testid="saas-status-area"
+              className="space-y-3 border border-primary/40 bg-primary/10 p-3"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold">Platform health</h3>
+                <Badge variant="accent" data-testid="saas-accent-badge">
+                  Performance Watch
                 </Badge>
-              </article>
-              <article className="space-y-2 border border-border bg-card p-3">
-                <p className="text-xs text-muted-foreground">Open incidents</p>
-                <p className="text-2xl font-semibold" data-testid="saas-metric-incidents">
-                  3
-                </p>
-                <p className="text-xs text-muted-foreground">2 degraded regions, 1 api latency alert</p>
-              </article>
-              <article className="space-y-2 border border-border bg-card p-3">
-                <p className="text-xs text-muted-foreground">Enterprise renewals due</p>
-                <p className="text-2xl font-semibold">7</p>
-                <Button type="button" size="sm" data-testid="saas-primary-action">
-                  Review contracts
-                </Button>
-              </article>
+              </div>
+              <Progress value={82} data-testid="saas-health-progress">
+                <ProgressLabel>SLA attainment</ProgressLabel>
+                <ProgressValue />
+              </Progress>
+              <div className="grid gap-3 md:grid-cols-3">
+                <article
+                  data-testid="saas-primary-surface"
+                  className="space-y-2 border border-primary/40 bg-primary/10 p-3"
+                >
+                  <p className="text-xs text-muted-foreground">Monthly recurring revenue</p>
+                  <p className="text-2xl font-semibold" data-testid="saas-metric-mrr">
+                    $84,200
+                  </p>
+                  <Badge variant="secondary" data-testid="saas-secondary-chip">
+                    +12.4% vs last month
+                  </Badge>
+                </article>
+                <article className="space-y-2 border border-border bg-card p-3">
+                  <p className="text-xs text-muted-foreground">Open incidents</p>
+                  <p className="text-2xl font-semibold" data-testid="saas-metric-incidents">
+                    3
+                  </p>
+                  <p className="text-xs text-muted-foreground">2 degraded regions, 1 api latency alert</p>
+                </article>
+                <article className="space-y-2 border border-border bg-card p-3">
+                  <p className="text-xs text-muted-foreground">Enterprise renewals due</p>
+                  <p className="text-2xl font-semibold">7</p>
+                  <Button type="button" size="sm" data-testid="saas-primary-action">
+                    Review contracts
+                  </Button>
+                </article>
+              </div>
             </div>
-          </div>
 
-          <Alert variant="default" data-testid="saas-alert-notification">
-            <AlertTitle>Incident response notice</AlertTitle>
-            <AlertDescription>
-              API latency remains above SLO in APAC. Keep mitigation playbook v2 active until traffic normalizes.
-            </AlertDescription>
-          </Alert>
+            <Separator data-testid="saas-overview-separator" />
+
+            <Alert variant="default" data-testid="saas-alert-notification">
+              <AlertTitle>Incident response notice</AlertTitle>
+              <AlertDescription>
+                API latency remains above SLO in APAC. Keep mitigation playbook v2 active until traffic normalizes.
+              </AlertDescription>
+            </Alert>
+
+            <section className="flex flex-wrap items-center justify-between gap-3 border border-border bg-card p-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground">Response team</p>
+                <p className="text-xs text-muted-foreground">On-call engineers are actively watching APAC latency.</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <AvatarGroup data-testid="saas-response-team">
+                  <Avatar size="sm">
+                    <AvatarFallback>AL</AvatarFallback>
+                  </Avatar>
+                  <Avatar size="sm">
+                    <AvatarFallback>NW</AvatarFallback>
+                  </Avatar>
+                  <AvatarGroupCount>+2</AvatarGroupCount>
+                </AvatarGroup>
+                <Tooltip>
+                  <TooltipTrigger
+                    type="button"
+                    className="text-xs font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+                    aria-label="Show incident response details"
+                  >
+                    Details
+                  </TooltipTrigger>
+                  <TooltipContent side="left">
+                    Escalation owner, support lead, and infra SRE are assigned.
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </section>
 
           <section
             data-testid="saas-data-table-section"
@@ -176,9 +217,9 @@ export function SaasThemePreviewSurface({ previewRootStyle, className }: SaasThe
               </Button>
             </div>
           </section>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="settings">
+          <TabsContent value="settings">
           <form
             className="space-y-4 border border-border bg-card p-4"
             data-testid="saas-settings-form"
@@ -236,8 +277,9 @@ export function SaasThemePreviewSurface({ previewRootStyle, className }: SaasThe
               <Button type="submit">Save changes</Button>
             </div>
           </form>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
+      </TooltipProvider>
     </section>
   );
 }

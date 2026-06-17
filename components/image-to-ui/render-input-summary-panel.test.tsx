@@ -132,6 +132,28 @@ describe("RenderInputSummaryPanel", () => {
     expect(within(preview).getByTestId("saas-accent-section")).toBeInTheDocument();
   });
 
+  it("renders display feedback primitives in the preview overview", () => {
+    render(
+      <RenderInputSummaryPanel
+        activeImage={{
+          type: "sample",
+          sampleId: "mondrian",
+          src: "/imgs/image-to-ui/mondrian-1280.webp",
+        }}
+        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        selectedColors={["#FF0088", "#112233", "#445566"]}
+      />,
+    );
+
+    const preview = screen.getByTestId("saas-preview-surface");
+    expect(within(preview).getByTestId("saas-health-progress")).toBeInTheDocument();
+    expect(within(preview).getByTestId("saas-overview-separator")).toBeInTheDocument();
+    expect(within(preview).getByTestId("saas-response-team")).toHaveTextContent("+2");
+    expect(
+      within(preview).getByRole("button", { name: "Show incident response details" }),
+    ).toBeInTheDocument();
+  });
+
   it("renders a compact data table with status badges and accessible row actions", () => {
     render(
       <RenderInputSummaryPanel
