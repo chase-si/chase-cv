@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
+import { Check, PanelLeft } from "lucide-react";
 
 import { ActiveImagePreview } from "@/components/image-to-ui/active-image-preview";
 import { ExtractedPalettePanel } from "@/components/image-to-ui/extracted-palette-panel";
 import { ImageUploadZone } from "@/components/image-to-ui/image-upload-zone";
-import { ImageToUiSampleCard } from "@/components/image-to-ui/sample-image-card";
 import { ImageToUiStepIndicator } from "@/components/image-to-ui/step-indicator";
 import { RenderInputSummaryPanel } from "@/components/image-to-ui/render-input-summary-panel";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { IMAGE_TO_UI_SAMPLE_IMAGES } from "@/lib/constants/image-to-ui-samples";
+import type { ActiveImage } from "@/lib/image-to-ui/active-image-types";
 import { useActiveImageSelection } from "@/lib/image-to-ui/use-active-image-selection";
+import { cn } from "@/lib/utils";
 
 const sampleTitleById = Object.fromEntries(
   IMAGE_TO_UI_SAMPLE_IMAGES.map((sample) => [sample.id, sample.title]),
@@ -49,75 +52,45 @@ export function ImageToUiToolShell() {
         </header>
 
         {flowStep === 1 ? (
-          <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
-            <section className="space-y-6 lg:col-span-5" aria-label="图片来源">
+          <div className="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)] xl:items-start xl:gap-8">
+            <aside className="space-y-4 xl:sticky xl:top-24" aria-label="图片来源">
               <Card className="shadow-md">
-                <CardHeader>
-                  <CardTitle className="text-base">图片来源</CardTitle>
-                  <CardDescription>
-                    从本地上传或选择下方示例图片，当前仅保留一个活动图片。
-                  </CardDescription>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <PanelLeft className="size-4 text-primary" aria-hidden />
+                    <CardTitle className="text-base">来源</CardTitle>
+                  </div>
+                  <CardDescription>上传图片，或从紧凑列表选一个示例。</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <ImageUploadZone onFileSelected={selectUpload} />
+                  <div className="max-h-[28rem] space-y-2 overflow-y-auto pr-1">
+                    {IMAGE_TO_UI_SAMPLE_IMAGES.map((sample) => (
+                      <SampleListButton
+                        key={sample.id}
+                        id={sample.id}
+                        imagePath={sample.imagePath}
+                        title={sample.title}
+                        description={sample.description}
+                        selected={
+                          activeImage?.type === "sample" && activeImage.sampleId === sample.id
+                        }
+                        onSelect={() => selectSample(sample.id, sample.imagePath)}
+                      />
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
+            </aside>
 
-              <div className="space-y-3">
-                <div>
-                  <h2 className="text-base font-medium text-foreground">示例图片</h2>
-                  <p className="text-sm text-muted-foreground">
-                    点击卡片选中示例；缺失资源会显示「待补充」，不影响本地上传。
-                  </p>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {IMAGE_TO_UI_SAMPLE_IMAGES.map((sample) => (
-                    <ImageToUiSampleCard
-                      key={sample.id}
-                      id={sample.id}
-                      imagePath={sample.imagePath}
-                      title={sample.title}
-                      description={sample.description}
-                      selected={
-                        activeImage?.type === "sample" && activeImage.sampleId === sample.id
-                      }
-                      onSelect={() => selectSample(sample.id, sample.imagePath)}
-                    />
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            <section className="space-y-6 lg:col-span-7" aria-label="预览与色板">
-              <Card className="shadow-md">
-                <CardHeader>
-                  <CardTitle className="text-base">当前图片预览</CardTitle>
-                  <CardDescription>选中图片后在此以 contain 方式展示完整画面。</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ActiveImagePreview
-                    activeImage={activeImage}
-                    sampleTitleById={sampleTitleById}
-                  />
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-md">
-                <CardHeader>
-                  <CardTitle className="text-base">提取色板</CardTitle>
-                  <CardDescription>
-                    自动提取 Vibrant / Muted 等 swatch，并选择 3 个颜色后进入渲染步骤。
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ExtractedPalettePanel
-                    hasActiveImage={Boolean(activeImage)}
-                    paletteSelection={paletteSelection}
-                    onSelectedColorsChange={setSelectedPaletteColors}
-                    onRender={handleRender}
-                  />
-                </CardContent>
-              </Card>
+            <section className="space-y-6" aria-label="预览与色板">
+              <PreviewCard activeImage={activeImage} />
+              <PaletteCard
+                activeImage={activeImage}
+                paletteSelection={paletteSelection}
+                setSelectedPaletteColors={setSelectedPaletteColors}
+                onRender={handleRender}
+              />
             </section>
           </div>
         ) : activeImage ? (
@@ -130,5 +103,90 @@ export function ImageToUiToolShell() {
         ) : null}
       </main>
     </div>
+  );
+}
+
+function PreviewCard({ activeImage }: { activeImage: ActiveImage | null }) {
+  return (
+    <Card className="shadow-md">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">当前图片预览</CardTitle>
+        <CardDescription>选中图片后在此以 contain 方式展示完整画面。</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ActiveImagePreview activeImage={activeImage} sampleTitleById={sampleTitleById} />
+      </CardContent>
+    </Card>
+  );
+}
+
+function PaletteCard({
+  activeImage,
+  paletteSelection,
+  setSelectedPaletteColors,
+  onRender,
+}: {
+  activeImage: ActiveImage | null;
+  paletteSelection: ReturnType<typeof useActiveImageSelection>["paletteSelection"];
+  setSelectedPaletteColors: (colors: string[]) => void;
+  onRender: () => void;
+}) {
+  return (
+    <Card className="shadow-md">
+      <CardHeader>
+        <CardTitle className="text-base">提取色板</CardTitle>
+        <CardDescription>
+          自动提取 Vibrant / Muted 等 swatch，并选择 3 个颜色后进入渲染步骤。
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ExtractedPalettePanel
+          hasActiveImage={Boolean(activeImage)}
+          paletteSelection={paletteSelection}
+          onSelectedColorsChange={setSelectedPaletteColors}
+          onRender={onRender}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+function SampleListButton({
+  id,
+  imagePath,
+  title,
+  description,
+  selected,
+  onSelect,
+}: {
+  id: string;
+  imagePath: string;
+  title: string;
+  description: string;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      data-sample-id={id}
+      aria-pressed={selected}
+      aria-label={title}
+      className={cn(
+        "flex w-full items-center gap-3 border border-border bg-background p-2 text-left transition-colors",
+        "hover:bg-muted/60 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:outline-none",
+        selected && "border-primary bg-primary/10",
+      )}
+      onClick={onSelect}
+    >
+      <span className="relative size-14 shrink-0 overflow-hidden bg-muted">
+        <Image src={imagePath} alt="" fill sizes="56px" className="object-cover" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-medium text-foreground">{title}</span>
+        <span className="line-clamp-2 text-xs text-muted-foreground">{description}</span>
+      </span>
+      {selected ? <Check className="size-4 shrink-0 text-primary" aria-hidden /> : null}
+    </button>
   );
 }

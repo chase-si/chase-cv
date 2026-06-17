@@ -85,10 +85,15 @@ type DetailProps = {
 
 type Props = AllProps | DetailProps;
 
+function isDetailProps(props: Props): props is DetailProps {
+  return props.activeEffect !== null;
+}
+
 export function MagicCursorSidebar(props: Props) {
   const router = useRouter();
   const effect = props.activeEffect;
-  const options = effect ? props.optionsByEffect[effect] : null;
+  const detail = isDetailProps(props) ? props : null;
+  const options = detail ? detail.optionsByEffect[detail.activeEffect] : null;
 
   return (
     <Card className="border-border/80 bg-card/80 shadow-lg backdrop-blur-xl">
@@ -126,7 +131,7 @@ export function MagicCursorSidebar(props: Props) {
           </div>
         </div>
 
-        {effect !== null && (
+        {detail && (
           <div className="border border-border bg-muted/30 p-4">
             <Label className="text-xs text-muted-foreground">参数</Label>
 
@@ -139,7 +144,7 @@ export function MagicCursorSidebar(props: Props) {
                   step={1}
                   value={(options as SpotlightOptions).radius ?? 140}
                   onChange={(radius) =>
-                    props.setOptionsByEffect((prev) => ({
+                    detail.setOptionsByEffect((prev) => ({
                       ...prev,
                       spotlight: {
                         ...(prev.spotlight as SpotlightOptions),
@@ -156,7 +161,7 @@ export function MagicCursorSidebar(props: Props) {
                     value={(options as SpotlightOptions).dimColor ?? ""}
                     allowEmpty
                     onChange={(e) =>
-                      props.setOptionsByEffect((prev) => ({
+                      detail.setOptionsByEffect((prev) => ({
                         ...prev,
                         spotlight: {
                           ...(prev.spotlight as SpotlightOptions),
@@ -178,7 +183,7 @@ export function MagicCursorSidebar(props: Props) {
                   step={1}
                   value={(options as TrailOptions).maxDots ?? 24}
                   onChange={(maxDots) =>
-                    props.setOptionsByEffect((prev) => ({
+                    detail.setOptionsByEffect((prev) => ({
                       ...prev,
                       trail: {
                         ...(prev.trail as TrailOptions),
@@ -194,7 +199,7 @@ export function MagicCursorSidebar(props: Props) {
                   step={1}
                   value={(options as TrailOptions).size ?? 6}
                   onChange={(size) =>
-                    props.setOptionsByEffect((prev) => ({
+                    detail.setOptionsByEffect((prev) => ({
                       ...prev,
                       trail: {
                         ...(prev.trail as TrailOptions),
@@ -210,7 +215,7 @@ export function MagicCursorSidebar(props: Props) {
                   step={1}
                   value={(options as TrailOptions).throttleMs ?? 16}
                   onChange={(throttleMs) =>
-                    props.setOptionsByEffect((prev) => ({
+                    detail.setOptionsByEffect((prev) => ({
                       ...prev,
                       trail: {
                         ...(prev.trail as TrailOptions),
@@ -227,7 +232,7 @@ export function MagicCursorSidebar(props: Props) {
                     value={(options as TrailOptions).color ?? ""}
                     allowEmpty
                     onChange={(e) =>
-                      props.setOptionsByEffect((prev) => ({
+                      detail.setOptionsByEffect((prev) => ({
                         ...prev,
                         trail: {
                           ...(prev.trail as TrailOptions),
@@ -249,7 +254,7 @@ export function MagicCursorSidebar(props: Props) {
                   step={1}
                   value={(options as RingOptions).size ?? 36}
                   onChange={(size) =>
-                    props.setOptionsByEffect((prev) => ({
+                    detail.setOptionsByEffect((prev) => ({
                       ...prev,
                       [effect]: {
                         ...(prev[effect] as RingOptions),
@@ -265,7 +270,7 @@ export function MagicCursorSidebar(props: Props) {
                   step={1}
                   value={(options as RingOptions).borderWidth ?? 2}
                   onChange={(borderWidth) =>
-                    props.setOptionsByEffect((prev) => ({
+                    detail.setOptionsByEffect((prev) => ({
                       ...prev,
                       [effect]: {
                         ...(prev[effect] as RingOptions),
@@ -281,7 +286,7 @@ export function MagicCursorSidebar(props: Props) {
                   step={0.01}
                   value={(options as RingOptions).smoothing ?? 0.18}
                   onChange={(smoothing) =>
-                    props.setOptionsByEffect((prev) => ({
+                    detail.setOptionsByEffect((prev) => ({
                       ...prev,
                       [effect]: {
                         ...(prev[effect] as RingOptions),
@@ -298,7 +303,7 @@ export function MagicCursorSidebar(props: Props) {
                     value={(options as RingOptions).color ?? ""}
                     allowEmpty
                     onChange={(e) =>
-                      props.setOptionsByEffect((prev) => ({
+                      detail.setOptionsByEffect((prev) => ({
                         ...prev,
                         [effect]: {
                           ...(prev[effect] as RingOptions),
@@ -318,7 +323,7 @@ export function MagicCursorSidebar(props: Props) {
                       step={0.05}
                       value={(options as MagnifierOptions).zoom ?? 1.6}
                       onChange={(zoom) =>
-                        props.setOptionsByEffect((prev) => ({
+                        detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           magnifier: {
                             ...(prev.magnifier as MagnifierOptions),
@@ -334,7 +339,7 @@ export function MagicCursorSidebar(props: Props) {
                       step={1}
                       value={(options as MagnifierOptions).lensBlurPx ?? 6}
                       onChange={(lensBlurPx) =>
-                        props.setOptionsByEffect((prev) => ({
+                        detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           magnifier: {
                             ...(prev.magnifier as MagnifierOptions),
@@ -350,7 +355,7 @@ export function MagicCursorSidebar(props: Props) {
                       step={0.05}
                       value={(options as MagnifierOptions).lensBrightness ?? 1.15}
                       onChange={(lensBrightness) =>
-                        props.setOptionsByEffect((prev) => ({
+                        detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           magnifier: {
                             ...(prev.magnifier as MagnifierOptions),
@@ -366,7 +371,7 @@ export function MagicCursorSidebar(props: Props) {
                       step={0.05}
                       value={(options as MagnifierOptions).lensSaturate ?? 1.25}
                       onChange={(lensSaturate) =>
-                        props.setOptionsByEffect((prev) => ({
+                        detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           magnifier: {
                             ...(prev.magnifier as MagnifierOptions),
@@ -382,7 +387,7 @@ export function MagicCursorSidebar(props: Props) {
                       step={0.01}
                       value={(options as MagnifierOptions).lensFillOpacity ?? 0.06}
                       onChange={(lensFillOpacity) =>
-                        props.setOptionsByEffect((prev) => ({
+                        detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           magnifier: {
                             ...(prev.magnifier as MagnifierOptions),
@@ -403,7 +408,7 @@ export function MagicCursorSidebar(props: Props) {
                       <Select
                         value={invertRingBlendModeSelectValue(options as InvertRingOptions)}
                         onValueChange={(blendMode) =>
-                          props.setOptionsByEffect((prev) => ({
+                          detail.setOptionsByEffect((prev) => ({
                             ...prev,
                             invertRing: {
                               ...(prev.invertRing as InvertRingOptions),
@@ -433,7 +438,7 @@ export function MagicCursorSidebar(props: Props) {
                         allowEmpty
                         placeholder="例如 rgba(255, 255, 255, 0.9)"
                         onChange={(blendBackground) =>
-                          props.setOptionsByEffect((prev) => ({
+                          detail.setOptionsByEffect((prev) => ({
                             ...prev,
                             invertRing: {
                               ...(prev.invertRing as InvertRingOptions),
@@ -458,7 +463,7 @@ export function MagicCursorSidebar(props: Props) {
                   step={0.01}
                   value={(options as MagneticOptions).strength ?? 0.35}
                   onChange={(strength) =>
-                    props.setOptionsByEffect((prev) => ({
+                    detail.setOptionsByEffect((prev) => ({
                       ...prev,
                       magnetic: {
                         ...(prev.magnetic as MagneticOptions),
@@ -474,7 +479,7 @@ export function MagicCursorSidebar(props: Props) {
                   <Input
                     value={(options as MagneticOptions).selector ?? "[data-magnetic]"}
                     onChange={(e) =>
-                      props.setOptionsByEffect((prev) => ({
+                      detail.setOptionsByEffect((prev) => ({
                         ...prev,
                         magnetic: {
                           ...(prev.magnetic as MagneticOptions),
@@ -497,7 +502,7 @@ export function MagicCursorSidebar(props: Props) {
                     allowEmpty
                     placeholder="例如 rgba(99, 102, 241, 0.95)"
                     onChange={(itemColor) =>
-                      props.setOptionsByEffect((prev) => ({
+                      detail.setOptionsByEffect((prev) => ({
                         ...prev,
                         magnetic: {
                           ...(prev.magnetic as MagneticEffectOptions),
@@ -519,7 +524,7 @@ export function MagicCursorSidebar(props: Props) {
                   step={1}
                   value={(options as FlameOptions | SmokeOptions).emission ?? 2}
                   onChange={(emission) =>
-                    props.setOptionsByEffect((prev) => ({
+                    detail.setOptionsByEffect((prev) => ({
                       ...prev,
                       [effect]: {
                         ...(prev[effect] as FlameOptions | SmokeOptions),
@@ -535,7 +540,7 @@ export function MagicCursorSidebar(props: Props) {
                   step={1}
                   value={(options as FlameOptions | SmokeOptions).size ?? 10}
                   onChange={(size) =>
-                    props.setOptionsByEffect((prev) => ({
+                    detail.setOptionsByEffect((prev) => ({
                       ...prev,
                       [effect]: {
                         ...(prev[effect] as FlameOptions | SmokeOptions),
@@ -551,7 +556,7 @@ export function MagicCursorSidebar(props: Props) {
                   step={20}
                   value={(options as FlameOptions | SmokeOptions).lifeMs ?? 700}
                   onChange={(lifeMs) =>
-                    props.setOptionsByEffect((prev) => ({
+                    detail.setOptionsByEffect((prev) => ({
                       ...prev,
                       [effect]: {
                         ...(prev[effect] as FlameOptions | SmokeOptions),
@@ -570,7 +575,7 @@ export function MagicCursorSidebar(props: Props) {
                       step={0.05}
                       value={(options as FlameOptions).rise ?? 1.6}
                       onChange={(rise) =>
-                        props.setOptionsByEffect((prev) => ({
+                        detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           flame: {
                             ...(prev.flame as FlameOptions),
@@ -586,7 +591,7 @@ export function MagicCursorSidebar(props: Props) {
                       step={0.05}
                       value={(options as FlameOptions).jitter ?? 0.9}
                       onChange={(jitter) =>
-                        props.setOptionsByEffect((prev) => ({
+                        detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           flame: {
                             ...(prev.flame as FlameOptions),
@@ -602,7 +607,7 @@ export function MagicCursorSidebar(props: Props) {
                       step={0.5}
                       value={(options as FlameOptions).maxDpr ?? 2}
                       onChange={(maxDpr) =>
-                        props.setOptionsByEffect((prev) => ({
+                        detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           flame: {
                             ...(prev.flame as FlameOptions),
@@ -623,7 +628,7 @@ export function MagicCursorSidebar(props: Props) {
                       step={0.05}
                       value={(options as SmokeOptions).rise ?? 0.8}
                       onChange={(rise) =>
-                        props.setOptionsByEffect((prev) => ({
+                        detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           smoke: {
                             ...(prev.smoke as SmokeOptions),
@@ -639,7 +644,7 @@ export function MagicCursorSidebar(props: Props) {
                       step={0.05}
                       value={(options as SmokeOptions).drift ?? 0.7}
                       onChange={(drift) =>
-                        props.setOptionsByEffect((prev) => ({
+                        detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           smoke: {
                             ...(prev.smoke as SmokeOptions),
@@ -660,7 +665,7 @@ export function MagicCursorSidebar(props: Props) {
                       value={(options as SmokeOptions).color ?? ""}
                       allowEmpty
                       onChange={(e) =>
-                        props.setOptionsByEffect((prev) => ({
+                        detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           smoke: {
                             ...(prev.smoke as SmokeOptions),
@@ -676,15 +681,17 @@ export function MagicCursorSidebar(props: Props) {
           </div>
         )}
 
-        {effect !== null && (
+        {detail && (
           <Button
             type="button"
             size="lg"
             className="h-11 rounded-none"
             onClick={() =>
-              props.setOptionsByEffect((prev) => ({
+              detail.setOptionsByEffect((prev) => ({
                 ...prev,
-                [effect]: props.defaultOptionsByEffect[effect] as EffectOptions,
+                [detail.activeEffect]: detail.defaultOptionsByEffect[
+                  detail.activeEffect
+                ] as EffectOptions,
               }))
             }
           >
