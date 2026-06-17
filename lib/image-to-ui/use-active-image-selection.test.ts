@@ -3,6 +3,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useActiveImageSelection } from "@/lib/image-to-ui/use-active-image-selection";
 
+vi.mock("@/lib/image-to-ui/extract-palette-from-image-src", () => ({
+  extractPaletteFromImageSrc: vi.fn().mockResolvedValue([]),
+}));
+
 describe("useActiveImageSelection", () => {
   const createObjectURL = vi.fn();
   const revokeObjectURL = vi.fn();
@@ -129,7 +133,9 @@ describe("useActiveImageSelection", () => {
     act(() => {
       result.current.updatePaletteSelection({
         selectedColors: ["#112233", "#445566"],
-        extractionFeedback: "提取完成",
+        extractionStatus: "ready",
+        swatches: [{ role: "Vibrant", hex: "#112233" }],
+        extractionError: null,
       });
     });
 
@@ -137,24 +143,24 @@ describe("useActiveImageSelection", () => {
       result.current.selectSample("minimal-dashboard", "/samples/minimal.png");
     });
 
-    expect(result.current.paletteSelection).toEqual({
-      selectedColors: [],
-      extractionFeedback: null,
-    });
+    expect(result.current.paletteSelection.selectedColors).toEqual([]);
+    expect(result.current.paletteSelection.swatches).toEqual([]);
+    expect(result.current.paletteSelection.extractionError).toBeNull();
 
     act(() => {
       result.current.updatePaletteSelection({
         selectedColors: ["#ffffff"],
-        extractionFeedback: "加载中",
+        extractionStatus: "loading",
+        swatches: [],
+        extractionError: null,
       });
     });
     act(() => {
       result.current.selectUpload(file);
     });
 
-    expect(result.current.paletteSelection).toEqual({
-      selectedColors: [],
-      extractionFeedback: null,
-    });
+    expect(result.current.paletteSelection.selectedColors).toEqual([]);
+    expect(result.current.paletteSelection.swatches).toEqual([]);
+    expect(result.current.paletteSelection.extractionError).toBeNull();
   });
 });

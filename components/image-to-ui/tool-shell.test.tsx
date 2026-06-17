@@ -3,6 +3,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ImageToUiToolShell } from "@/components/image-to-ui/tool-shell";
 
+vi.mock("@/lib/image-to-ui/extract-palette-from-image-src", () => ({
+  extractPaletteFromImageSrc: vi.fn().mockResolvedValue([
+    { role: "Vibrant", hex: "#FF0088" },
+    { role: "Muted", hex: "#112233" },
+    { role: "DarkVibrant", hex: "#445566" },
+  ]),
+}));
+
 vi.mock("next/image", () => ({
   default: function MockNextImage({
     alt,
