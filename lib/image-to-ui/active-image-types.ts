@@ -16,7 +16,7 @@ export function getActiveImageSrc(image: ActiveImage): string {
   return image.type === "sample" ? image.src : image.objectUrl;
 }
 
-import type { PaletteSwatch } from "@/lib/image-to-ui/normalize-vibrant-palette";
+import type { PaletteSwatch } from "@/lib/image-to-ui/normalize-dominant-palette";
 
 export type PaletteExtractionStatus = "idle" | "loading" | "ready" | "error";
 

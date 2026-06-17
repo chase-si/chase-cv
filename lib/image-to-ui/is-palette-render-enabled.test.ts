@@ -12,9 +12,9 @@ describe("isPaletteRenderEnabled", () => {
       ...emptyPaletteSelection(),
       extractionStatus: "ready" as const,
       swatches: [
-        { role: "Vibrant" as const, hex: "#111111" },
-        { role: "Muted" as const, hex: "#222222" },
-        { role: "DarkVibrant" as const, hex: "#333333" },
+        { role: "Dominant1" as const, hex: "#111111" },
+        { role: "Dominant2" as const, hex: "#222222" },
+        { role: "Dominant3" as const, hex: "#333333" },
       ],
     };
 
@@ -38,7 +38,7 @@ describe("isPaletteRenderEnabled", () => {
       isPaletteRenderEnabled({
         ...emptyPaletteSelection(),
         extractionStatus: "ready",
-        swatches: [{ role: "Vibrant", hex: "#111111" }],
+        swatches: [{ role: "Dominant1", hex: "#111111" }],
         selectedColors: ["#111111", "#222222", "#333333"],
       }),
     ).toBe(false);

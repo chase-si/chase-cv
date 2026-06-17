@@ -33,7 +33,6 @@ describe("RenderInputSummaryPanel", () => {
         }}
         sampleTitleById={{ mondrian: "蒙德里安构成" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
-        onBackToEdit={() => {}}
       />,
     );
 
@@ -72,26 +71,6 @@ describe("RenderInputSummaryPanel", () => {
     expect(within(tokenSummary).getByTestId("preview-token-ring")).toBeInTheDocument();
   });
 
-  it("calls back to edit when the return action is used", () => {
-    const onBackToEdit = vi.fn();
-    render(
-      <RenderInputSummaryPanel
-        activeImage={{
-          type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
-        }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
-        selectedColors={["#FF0088", "#112233", "#445566"]}
-        onBackToEdit={onBackToEdit}
-      />,
-    );
-
-    const summary = screen.getByTestId("render-input-summary");
-    fireEvent.click(within(summary).getByTestId("render-back-to-edit"));
-    expect(onBackToEdit).toHaveBeenCalledTimes(1);
-  });
-
   it("switches between overview and settings tabs inside preview", () => {
     render(
       <RenderInputSummaryPanel
@@ -102,7 +81,6 @@ describe("RenderInputSummaryPanel", () => {
         }}
         sampleTitleById={{ mondrian: "蒙德里安构成" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
-        onBackToEdit={() => {}}
       />,
     );
 
@@ -145,7 +123,6 @@ describe("RenderInputSummaryPanel", () => {
         }}
         sampleTitleById={{ mondrian: "蒙德里安构成" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
-        onBackToEdit={() => {}}
       />,
     );
 
@@ -164,7 +141,6 @@ describe("RenderInputSummaryPanel", () => {
         }}
         sampleTitleById={{ mondrian: "蒙德里安构成" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
-        onBackToEdit={() => {}}
       />,
     );
 
@@ -195,7 +171,6 @@ describe("RenderInputSummaryPanel", () => {
         }}
         sampleTitleById={{ mondrian: "蒙德里安构成" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
-        onBackToEdit={() => {}}
       />,
     );
 

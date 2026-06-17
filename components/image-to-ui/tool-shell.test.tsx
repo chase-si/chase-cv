@@ -5,9 +5,9 @@ import { ImageToUiToolShell } from "@/components/image-to-ui/tool-shell";
 
 vi.mock("@/lib/image-to-ui/extract-palette-from-image-src", () => ({
   extractPaletteFromImageSrc: vi.fn().mockResolvedValue([
-    { role: "Vibrant", hex: "#FF0088" },
-    { role: "Muted", hex: "#112233" },
-    { role: "DarkVibrant", hex: "#445566" },
+    { role: "Dominant1", hex: "#FF0088" },
+    { role: "Dominant2", hex: "#112233" },
+    { role: "Dominant3", hex: "#445566" },
   ]),
 }));
 
@@ -82,12 +82,12 @@ async function selectThreePaletteSwatches() {
   fireEvent.click(getSampleCard("mondrian"));
 
   await waitFor(() => {
-    expect(screen.getByTestId("palette-swatch-Vibrant")).toBeInTheDocument();
+    expect(screen.getByTestId("palette-swatch-Dominant1")).toBeInTheDocument();
   });
 
-  fireEvent.click(screen.getByTestId("palette-swatch-Vibrant"));
-  fireEvent.click(screen.getByTestId("palette-swatch-Muted"));
-  fireEvent.click(screen.getByTestId("palette-swatch-DarkVibrant"));
+  fireEvent.click(screen.getByTestId("palette-swatch-Dominant1"));
+  fireEvent.click(screen.getByTestId("palette-swatch-Dominant2"));
+  fireEvent.click(screen.getByTestId("palette-swatch-Dominant3"));
 }
 
 describe("ImageToUiToolShell palette selection", () => {
@@ -97,20 +97,20 @@ describe("ImageToUiToolShell palette selection", () => {
     fireEvent.click(getSampleCard("mondrian"));
 
     await waitFor(() => {
-      expect(screen.getByTestId("palette-swatch-Vibrant")).toBeInTheDocument();
+      expect(screen.getByTestId("palette-swatch-Dominant1")).toBeInTheDocument();
     });
 
     const renderButton = screen.getByTestId("palette-render-button");
     expect(renderButton).toBeDisabled();
 
-    fireEvent.click(screen.getByTestId("palette-swatch-Vibrant"));
-    fireEvent.click(screen.getByTestId("palette-swatch-Muted"));
+    fireEvent.click(screen.getByTestId("palette-swatch-Dominant1"));
+    fireEvent.click(screen.getByTestId("palette-swatch-Dominant2"));
     expect(renderButton).toBeDisabled();
 
-    fireEvent.click(screen.getByTestId("palette-swatch-DarkVibrant"));
+    fireEvent.click(screen.getByTestId("palette-swatch-Dominant3"));
     expect(renderButton).toBeEnabled();
-    expect(screen.getByTestId("palette-swatch-role-Vibrant")).toHaveTextContent("主色");
-    expect(screen.getByTestId("palette-swatch-role-DarkVibrant")).toHaveTextContent("强调色");
+    expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("主色");
+    expect(screen.getByTestId("palette-swatch-role-Dominant3")).toHaveTextContent("强调色");
   });
 });
 
@@ -188,7 +188,7 @@ describe("ImageToUiToolShell render input summary", () => {
 
     expect(screen.getByTestId("palette-selection")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "蒙德里安构成" })).toBeInTheDocument();
-    expect(screen.getByTestId("palette-swatch-role-Vibrant")).toHaveTextContent("主色");
+    expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("主色");
     expect(screen.getByTestId("palette-render-button")).toBeEnabled();
   });
 });

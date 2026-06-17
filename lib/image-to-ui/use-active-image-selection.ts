@@ -9,7 +9,7 @@ import {
   type PaletteSelectionState,
 } from "@/lib/image-to-ui/active-image-types";
 import { extractPaletteFromImageSrc } from "@/lib/image-to-ui/extract-palette-from-image-src";
-import type { PaletteSwatch } from "@/lib/image-to-ui/normalize-vibrant-palette";
+import type { PaletteSwatch } from "@/lib/image-to-ui/normalize-dominant-palette";
 
 const EXTRACTION_ERROR_MESSAGE = "无法从当前图片提取色板，请换一张图片或重新上传。";
 

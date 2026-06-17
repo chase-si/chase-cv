@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { PaletteSwatch } from "@/lib/image-to-ui/normalize-vibrant-palette";
+import type { PaletteSwatch } from "@/lib/image-to-ui/normalize-dominant-palette";
 import { useActiveImageSelection } from "@/lib/image-to-ui/use-active-image-selection";
 
 describe("useActiveImageSelection palette extraction", () => {
@@ -11,9 +11,9 @@ describe("useActiveImageSelection palette extraction", () => {
 
   it("extracts palette when the active image changes", async () => {
     const swatches: PaletteSwatch[] = [
-      { role: "Vibrant", hex: "#FF0088" },
-      { role: "Muted", hex: "#112233" },
-      { role: "DarkVibrant", hex: "#445566" },
+      { role: "Dominant1", hex: "#FF0088" },
+      { role: "Dominant2", hex: "#112233" },
+      { role: "Dominant3", hex: "#445566" },
     ];
     const extractPalette = vi.fn().mockResolvedValue(swatches);
 
@@ -42,7 +42,7 @@ describe("useActiveImageSelection palette extraction", () => {
     const extractPalette = vi
       .fn()
       .mockImplementationOnce(() => slowPromise)
-      .mockResolvedValueOnce([{ role: "Vibrant", hex: "#AABBCC" }]);
+      .mockResolvedValueOnce([{ role: "Dominant1", hex: "#AABBCC" }]);
 
     const { result } = renderHook(() => useActiveImageSelection({ extractPalette }));
 
@@ -59,11 +59,11 @@ describe("useActiveImageSelection palette extraction", () => {
     });
 
     expect(result.current.paletteSelection.swatches).toEqual([
-      { role: "Vibrant", hex: "#AABBCC" },
+      { role: "Dominant1", hex: "#AABBCC" },
     ]);
 
     act(() => {
-      resolveSlow!([{ role: "Muted", hex: "#000000" }]);
+      resolveSlow!([{ role: "Dominant2", hex: "#000000" }]);
     });
 
     await act(async () => {
@@ -71,7 +71,7 @@ describe("useActiveImageSelection palette extraction", () => {
     });
 
     expect(result.current.paletteSelection.swatches).toEqual([
-      { role: "Vibrant", hex: "#AABBCC" },
+      { role: "Dominant1", hex: "#AABBCC" },
     ]);
   });
 
