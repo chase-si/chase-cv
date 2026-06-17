@@ -47,6 +47,14 @@ describe("classifyPaletteThemeRoles", () => {
     }
   });
 
+  it("scores complete role candidates instead of keeping the greedy action choice", () => {
+    expectClassification(["#F0E6D0", "#4A90A4", "#C45C26"], {
+      surfaceSeed: "#F0E6D0",
+      actionSeed: "#4A90A4",
+      supportSeed: "#C45C26",
+    });
+  });
+
   it("throws when fewer than three colors are provided", () => {
     expect(() => classifyPaletteThemeRoles(["#111111", "#222222"])).toThrow(
       /three selected colors/i,
