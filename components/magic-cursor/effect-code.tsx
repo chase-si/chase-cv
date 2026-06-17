@@ -5,8 +5,14 @@ import { toast } from "sonner";
 
 import type { EffectName } from "magic-cursor-effect";
 
+import { stripMagneticDemoOptions } from "@/lib/magic-cursor/magnetic-options";
+
 function formatCode(effect: EffectName, options: unknown) {
-  const optionsJson = JSON.stringify(options ?? {}, null, 2);
+  let payload = options ?? {};
+  if (effect === "magnetic" && payload && typeof payload === "object") {
+    payload = stripMagneticDemoOptions(payload as Record<string, unknown>);
+  }
+  const optionsJson = JSON.stringify(payload, null, 2);
   return `import { createEffect } from "magic-cursor-effect";
 
 const root = document.querySelector("#your-root") as HTMLElement;

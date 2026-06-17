@@ -1,3 +1,5 @@
+"use client";
+
 import { useId, useMemo } from "react";
 
 import { cn } from "@/lib/utils";
@@ -92,18 +94,25 @@ export function ColorPicker({
   allowEmpty,
 }: ColorPickerProps) {
   const id = useId();
+  const trimmed = (value ?? "").trim();
+  const isEmpty = Boolean(allowEmpty && trimmed === "");
   const derived = useMemo(() => deriveFromValue(value), [value]);
   const hex = rgbToHex(derived);
 
   return (
     <div className={cn("grid gap-2", className)}>
       <div className="flex items-center gap-2">
-        <div             
-          className="relative h-9 w-9 shrink-0 cursor-pointer overflow-hidden p-0"
-          style= {{ backgroundColor: hex }}
-        >
+        <div className="relative h-9 w-9 shrink-0 overflow-hidden border border-border bg-muted">
+          {!isEmpty ? (
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{ backgroundColor: hex }}
+              aria-hidden
+            />
+          ) : null}
           <input
-            className="opacity-0"
+            aria-label="选择颜色"
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
             type="color"
             value={hex}
             onChange={(e) => {

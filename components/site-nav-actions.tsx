@@ -15,7 +15,7 @@ export function SiteNavActions() {
       <Button
         size="sm"
         nativeButton={false}
-        className="shadow-sm border-none"
+        className="shadow-sm"
         render={
           <Link
             href="/magic-cursor"
@@ -51,7 +51,7 @@ export function SiteNavActions() {
         size="icon"
         nativeButton={false}
         aria-label="GitHub"
-        className="shadow-sm hover:shadow-md"
+        className="shadow-sm rounded-full hover:shadow-md"
         render={
           <a
             href={GITHUB_URL}

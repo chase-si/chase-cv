@@ -14,7 +14,7 @@ import type {
 } from "magic-cursor-effect";
 import { useRouter } from "next/navigation";
 
-import type { EffectOptions, OptionsByEffect } from "@/components/magic-cursor/types";
+import type { EffectOptions, MagneticEffectOptions, OptionsByEffect } from "@/components/magic-cursor/types";
 import {
   INVERT_RING_BLEND_MODE_OPTIONS,
   MAGIC_CURSOR_EFFECT_ORDER,
@@ -428,19 +428,20 @@ export function MagicCursorSidebar(props: Props) {
                       <Label className="text-xs font-normal text-muted-foreground">
                         blendBackground（可选，rgba / 留空用库默认）
                       </Label>
-                      <Input
+                      <ColorPicker
                         value={(options as InvertRingOptions).blendBackground ?? ""}
-                        placeholder="例如 rgba(255,255,255,0.9)"
-                        onChange={(e) => {
-                          const v = e.target.value.trim();
+                        allowEmpty
+                        placeholder="例如 rgba(255, 255, 255, 0.9)"
+                        onChange={(blendBackground) =>
                           props.setOptionsByEffect((prev) => ({
                             ...prev,
                             invertRing: {
                               ...(prev.invertRing as InvertRingOptions),
-                              blendBackground: v === "" ? undefined : e.target.value,
+                              blendBackground:
+                                blendBackground.trim() === "" ? undefined : blendBackground,
                             },
-                          }));
-                        }}
+                          }))
+                        }
                       />
                     </div>
                   </div>
@@ -487,6 +488,25 @@ export function MagicCursorSidebar(props: Props) {
                   预览区域里匹配该选择器的元素会被吸引；默认{" "}
                   <code className="font-mono text-foreground">[data-magnetic]</code>。
                 </p>
+                <div className="grid gap-2">
+                  <Label className="text-xs font-normal text-muted-foreground">
+                    itemColor（预览磁吸块，留空用主题 primary）
+                  </Label>
+                  <ColorPicker
+                    value={(options as MagneticEffectOptions).itemColor ?? ""}
+                    allowEmpty
+                    placeholder="例如 rgba(99, 102, 241, 0.95)"
+                    onChange={(itemColor) =>
+                      props.setOptionsByEffect((prev) => ({
+                        ...prev,
+                        magnetic: {
+                          ...(prev.magnetic as MagneticEffectOptions),
+                          itemColor,
+                        },
+                      }))
+                    }
+                  />
+                </div>
               </div>
             )}
 
