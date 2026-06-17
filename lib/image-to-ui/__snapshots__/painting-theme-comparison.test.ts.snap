@@ -1,0 +1,74 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`painting theme comparison fixtures > formats stable comparison lines for reviewing painting-like output 1`] = `
+"fixture=new-colors-cream-blue-neutral mode=light
+selected=#faf8f0, #09568c, #9e9982
+roles surface=#FAF8F0 action=#09568C support=#9E9982
+background=rgb(251, 249, 242)
+foreground=rgb(3, 24, 39)
+card=rgb(250, 248, 241)
+muted=rgb(247, 246, 244)
+border=rgb(214, 212, 203)
+input=rgb(240, 239, 234)
+primary=rgb(9, 86, 140)
+secondary=rgb(158, 153, 130)
+accent=rgb(212, 209, 195)
+ring=rgb(9, 86, 140)"
+`;
+
+exports[`painting theme comparison fixtures > snapshots representative fixtures across light, dark, and mixed palettes 1`] = `
+[
+  "fixture=new-colors-gray-blue-mist mode=light
+selected=#a1a8ae, #09568c, #eaebef
+roles surface=#EAEBEF action=#09568C support=#A1A8AE
+background=rgb(237, 237, 241)
+foreground=rgb(3, 24, 39)
+card=rgb(235, 236, 240)
+muted=rgb(246, 246, 247)
+border=rgb(216, 218, 221)
+input=rgb(236, 238, 239)
+primary=rgb(9, 86, 140)
+secondary=rgb(161, 168, 174)
+accent=rgb(205, 208, 213)
+ring=rgb(9, 86, 140)",
+  "fixture=primary-not-first-neutral-lead mode=light
+selected=#9e9982, #faf8f0, #09568c
+roles surface=#FAF8F0 action=#09568C support=#9E9982
+background=rgb(251, 249, 242)
+foreground=rgb(3, 24, 39)
+card=rgb(250, 248, 241)
+muted=rgb(247, 246, 244)
+border=rgb(214, 212, 203)
+input=rgb(240, 239, 234)
+primary=rgb(9, 86, 140)
+secondary=rgb(158, 153, 130)
+accent=rgb(212, 209, 195)
+ring=rgb(9, 86, 140)",
+  "fixture=low-contrast-warm-surfaces mode=light
+selected=#d8d4cc, #cfc9bf, #2a5f8f
+roles surface=#D8D4CC action=#2A5F8F support=#CFC9BF
+background=rgb(221, 217, 210)
+foreground=rgb(22, 21, 20)
+card=rgb(218, 215, 207)
+muted=rgb(248, 247, 246)
+border=rgb(235, 232, 228)
+input=rgb(238, 236, 232)
+primary=rgb(42, 95, 143)
+secondary=rgb(207, 201, 191)
+accent=rgb(215, 210, 202)
+ring=rgb(42, 95, 143)",
+  "fixture=warm-cool-mixed-dark mode=dark
+selected=#faf8f0, #4a90a4, #c45c26
+roles surface=#FAF8F0 action=#C45C26 support=#4A90A4
+background=rgb(45, 45, 43)
+foreground=rgb(255, 255, 255)
+card=rgb(95, 94, 91)
+muted=rgb(45, 55, 57)
+border=rgb(37, 72, 82)
+input=rgb(75, 86, 88)
+primary=rgb(220, 157, 125)
+secondary=rgb(37, 58, 63)
+accent=rgb(53, 104, 118)
+ring=rgb(220, 157, 125)",
+]
+`;
