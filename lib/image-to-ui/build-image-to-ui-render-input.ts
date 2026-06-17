@@ -2,6 +2,7 @@ import type { ActiveImage } from "@/lib/image-to-ui/active-image-types";
 import { getActiveImageSrc } from "@/lib/image-to-ui/active-image-types";
 import {
   assignedRoleLabelForHex,
+  assignedRoleRationaleForHex,
   classifyPaletteThemeRoles,
   type ThemePaletteAssignedRoleLabel,
 } from "@/lib/image-to-ui/classify-palette-theme-roles";
@@ -9,6 +10,7 @@ import {
 export type ImageToUiRenderColorRole = {
   role: ThemePaletteAssignedRoleLabel;
   hex: string;
+  rationale: string;
 };
 
 export type ImageToUiRenderInput = {
@@ -25,6 +27,7 @@ export function buildImageToUiRenderInput(
   const colorRoles = selectedColors.map((hex) => ({
     role: assignedRoleLabelForHex(hex, classification),
     hex,
+    rationale: assignedRoleRationaleForHex(hex, selectedColors),
   }));
 
   return {
