@@ -76,6 +76,9 @@ describe("RenderInputSummaryPanel", () => {
     expect(preview.style.getPropertyValue("--primary")).toBe(lightTokens.primary);
     expect(preview.style.getPropertyValue("--secondary")).toBe(lightTokens.secondary);
     expect(preview.style.getPropertyValue("--accent")).toBe(lightTokens.accent);
+    expect(preview.style.getPropertyValue("--popover")).toBe(lightTokens.popover);
+    expect(preview.style.getPropertyValue("--radius")).toBe(lightTokens.radius);
+    expect(preview.style.getPropertyValue("--shadow-sm")).toBe(lightTokens["shadow-sm"]);
     expect(preview.className).toMatch(/tracking-normal/);
 
     const tokenSummary = screen.getByTestId("render-preview-token-summary");

@@ -17,7 +17,7 @@ describe("derivePreviewThemeTokens", () => {
     expect(tokens.ring).toBe("rgb(255, 0, 136)");
   });
 
-  it("includes all required preview tokens", () => {
+  it("includes globals.css-level preview tokens for surfaces, charts, sidebar, radius, and shadow", () => {
     const tokens = derivePreviewThemeTokens({
       selectedColors: ["#9C27B0", "#2563EB", "#14B8A6"],
       mode: "dark",
@@ -28,6 +28,8 @@ describe("derivePreviewThemeTokens", () => {
       foreground: expect.any(String),
       card: expect.any(String),
       "card-foreground": expect.any(String),
+      popover: expect.any(String),
+      "popover-foreground": expect.any(String),
       muted: expect.any(String),
       "muted-foreground": expect.any(String),
       border: expect.any(String),
@@ -39,7 +41,72 @@ describe("derivePreviewThemeTokens", () => {
       "secondary-foreground": expect.any(String),
       accent: expect.any(String),
       "accent-foreground": expect.any(String),
+      destructive: expect.any(String),
+      "destructive-foreground": expect.any(String),
+      "chart-1": expect.any(String),
+      "chart-2": expect.any(String),
+      "chart-3": expect.any(String),
+      "chart-4": expect.any(String),
+      "chart-5": expect.any(String),
+      sidebar: expect.any(String),
+      "sidebar-foreground": expect.any(String),
+      "sidebar-primary": expect.any(String),
+      "sidebar-primary-foreground": expect.any(String),
+      "sidebar-accent": expect.any(String),
+      "sidebar-accent-foreground": expect.any(String),
+      "sidebar-border": expect.any(String),
+      "sidebar-ring": expect.any(String),
+      radius: expect.any(String),
+      "shadow-color": expect.any(String),
+      "shadow-sm": expect.any(String),
     });
+  });
+
+  it("keeps surface hierarchy independent from primary", () => {
+    const tokens = derivePreviewThemeTokens({
+      selectedColors: ["#faf8f0", "#09568c", "#9e9982"],
+      mode: "light",
+    });
+
+    const surfaceValues = [
+      tokens.background,
+      tokens.card,
+      tokens.popover,
+      tokens.muted,
+      tokens.border,
+      tokens.input,
+    ];
+    expect(new Set(surfaceValues).size).toBeGreaterThan(2);
+    expect(surfaceValues.every((value) => value === tokens.primary)).toBe(false);
+    expect(tokens.primary).toBe("rgb(9, 86, 140)");
+  });
+
+  it("derives dark mode from the same palette relationships instead of inverting light output", () => {
+    const selectedColors = ["#faf8f0", "#09568c", "#9e9982"];
+    const light = derivePreviewThemeTokens({ selectedColors, mode: "light" });
+    const dark = derivePreviewThemeTokens({ selectedColors, mode: "dark" });
+
+    expect(dark.background).not.toBe(light.foreground);
+    expect(dark.primary).not.toBe(light.primary);
+    expect(dark.primary).toBe("rgb(107, 154, 186)");
+    expect(hasReadableContrast(dark.background, dark.foreground)).toBe(true);
+  });
+
+  it("generates radius and shadow defaults tied to the palette character", () => {
+    const calm = derivePreviewThemeTokens({
+      selectedColors: ["#faf8f0", "#09568c", "#9e9982"],
+      mode: "light",
+    });
+    const vivid = derivePreviewThemeTokens({
+      selectedColors: ["#FF0088", "#00FF88", "#8800FF"],
+      mode: "light",
+    });
+
+    expect(calm.radius).toMatch(/rem$/);
+    expect(vivid.radius).toMatch(/rem$/);
+    expect(Number.parseFloat(calm.radius)).toBeGreaterThan(Number.parseFloat(vivid.radius));
+    expect(calm["shadow-color"]).toMatch(/^#/);
+    expect(calm["shadow-sm"]).toContain("4px 4px");
   });
 
   it("selects readable foreground tokens on colored surfaces", () => {
@@ -99,6 +166,8 @@ describe("buildScopedPreviewThemeCssVariables", () => {
       "--foreground": expect.any(String),
       "--card": expect.any(String),
       "--card-foreground": expect.any(String),
+      "--popover": expect.any(String),
+      "--popover-foreground": expect.any(String),
       "--muted": expect.any(String),
       "--muted-foreground": expect.any(String),
       "--border": expect.any(String),
@@ -110,6 +179,10 @@ describe("buildScopedPreviewThemeCssVariables", () => {
       "--secondary-foreground": expect.any(String),
       "--accent": expect.any(String),
       "--accent-foreground": expect.any(String),
+      "--chart-1": "rgb(9, 86, 140)",
+      "--sidebar": expect.any(String),
+      "--radius": expect.any(String),
+      "--shadow-sm": expect.any(String),
     });
   });
 });

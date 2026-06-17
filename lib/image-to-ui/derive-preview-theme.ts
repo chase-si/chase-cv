@@ -3,6 +3,7 @@ type ThemeMode = "light" | "dark";
 import { classifyPaletteThemeRoles } from "@/lib/image-to-ui/classify-palette-theme-roles";
 import {
   getContrastRatio,
+  getSaturation,
   parseHexToRgb,
   toRelativeLuminance,
   type RgbColor,
@@ -13,21 +14,54 @@ const PREVIEW_THEME_TOKEN_KEYS = [
   "foreground",
   "card",
   "card-foreground",
-  "muted",
-  "muted-foreground",
-  "border",
-  "input",
-  "ring",
+  "popover",
+  "popover-foreground",
   "primary",
   "primary-foreground",
   "secondary",
   "secondary-foreground",
+  "muted",
+  "muted-foreground",
   "accent",
   "accent-foreground",
+  "destructive",
+  "destructive-foreground",
+  "border",
+  "input",
+  "ring",
+  "chart-1",
+  "chart-2",
+  "chart-3",
+  "chart-4",
+  "chart-5",
+  "sidebar",
+  "sidebar-foreground",
+  "sidebar-primary",
+  "sidebar-primary-foreground",
+  "sidebar-accent",
+  "sidebar-accent-foreground",
+  "sidebar-border",
+  "sidebar-ring",
+  "radius",
+  "shadow-x",
+  "shadow-y",
+  "shadow-blur",
+  "shadow-spread",
+  "shadow-opacity",
+  "shadow-color",
+  "shadow-2xs",
+  "shadow-xs",
+  "shadow-sm",
+  "shadow",
+  "shadow-md",
+  "shadow-lg",
+  "shadow-xl",
+  "shadow-2xl",
 ] as const;
 
 const BLACK: RgbColor = { r: 0, g: 0, b: 0 };
 const WHITE: RgbColor = { r: 255, g: 255, b: 255 };
+const DESTRUCTIVE_SEED: RgbColor = { r: 255, g: 77, b: 77 };
 
 export type PreviewThemeTokenKey = (typeof PREVIEW_THEME_TOKEN_KEYS)[number];
 
@@ -44,6 +78,11 @@ function clampColorChannel(value: number): number {
 
 function toRgbCss(color: RgbColor): string {
   return `rgb(${clampColorChannel(color.r)}, ${clampColorChannel(color.g)}, ${clampColorChannel(color.b)})`;
+}
+
+function toHexColor(color: RgbColor): string {
+  const channel = (value: number) => clampColorChannel(value).toString(16).padStart(2, "0");
+  return `#${channel(color.r)}${channel(color.g)}${channel(color.b)}`;
 }
 
 function mixColor(a: RgbColor, b: RgbColor, weightToB: number): RgbColor {
@@ -87,6 +126,65 @@ function ensureReadableAgainstBackground(candidate: RgbColor, background: RgbCol
   return pickReadableForeground(background);
 }
 
+function pickMutedForeground(foregroundSeed: RgbColor, support: RgbColor, muted: RgbColor): RgbColor {
+  const softened = mixColor(darkenColor(support, 0.35), foregroundSeed, 0.45);
+  return ensureReadableAgainstBackground(softened, muted);
+}
+
+function deriveDestructive(action: RgbColor): RgbColor {
+  return mixColor(action, DESTRUCTIVE_SEED, 0.42);
+}
+
+function deriveRadiusRem(surface: RgbColor): string {
+  const calmness = 1 - getSaturation(surface);
+  const radiusRem = 1 + calmness * 1;
+  return `${radiusRem.toFixed(2)}rem`;
+}
+
+function deriveShadowLayers(shadowColorHex: string, opacity: number): {
+  "shadow-x": string;
+  "shadow-y": string;
+  "shadow-blur": string;
+  "shadow-spread": string;
+  "shadow-opacity": string;
+  "shadow-color": string;
+  "shadow-2xs": string;
+  "shadow-xs": string;
+  "shadow-sm": string;
+  shadow: string;
+  "shadow-md": string;
+  "shadow-lg": string;
+  "shadow-xl": string;
+  "shadow-2xl": string;
+} {
+  const shadowX = "4px";
+  const shadowY = "4px";
+  const shadowBlur = "0px";
+  const shadowSpread = "0px";
+  const shadowOpacity = opacity.toFixed(2);
+  const hslShadow = `hsl(0 0% 0% / ${shadowOpacity})`;
+  const baseLayer = `${shadowX} ${shadowY} ${shadowBlur} ${shadowSpread} ${hslShadow}`;
+  const layered = (secondYOffset: string, secondBlur: string) =>
+    `${baseLayer}, ${shadowX} ${secondYOffset} ${secondBlur} -1px ${hslShadow}`;
+
+  return {
+    "shadow-x": shadowX,
+    "shadow-y": shadowY,
+    "shadow-blur": shadowBlur,
+    "shadow-spread": shadowSpread,
+    "shadow-opacity": shadowOpacity,
+    "shadow-color": shadowColorHex,
+    "shadow-2xs": `${shadowX} ${shadowY} ${shadowBlur} ${shadowSpread} hsl(0 0% 0% / ${(opacity * 0.5).toFixed(2)})`,
+    "shadow-xs": `${shadowX} ${shadowY} ${shadowBlur} ${shadowSpread} hsl(0 0% 0% / ${(opacity * 0.5).toFixed(2)})`,
+    "shadow-sm": layered("1px", "2px"),
+    shadow: layered("1px", "2px"),
+    "shadow-md": layered("2px", "4px"),
+    "shadow-lg": layered("4px", "6px"),
+    "shadow-xl": layered("8px", "10px"),
+    "shadow-2xl": `${shadowX} ${shadowY} ${shadowBlur} ${shadowSpread} hsl(0 0% 0% / ${(opacity * 2.5).toFixed(2)})`,
+  };
+}
+
 export function derivePreviewThemeTokens({
   selectedColors,
   mode,
@@ -107,28 +205,65 @@ export function derivePreviewThemeTokens({
   const foreground = ensureReadableAgainstBackground(foregroundSeed, background);
   const primaryRole = mode === "dark" ? lightenColor(action, 0.4) : action;
   const card = mode === "dark" ? darkenColor(surface, 0.62) : lightenColor(surface, 0.06);
+  const popover =
+    mode === "dark" ? lightenColor(card, 0.08) : lightenColor(card, 0.42);
   const muted = mode === "dark" ? darkenColor(neutralSeed, 0.72) : lightenColor(neutralSeed, 0.84);
   const border = mode === "dark" ? darkenColor(support, 0.5) : lightenColor(support, 0.58);
+  const input =
+    mode === "dark"
+      ? mixColor(card, border, 0.35)
+      : mixColor(lightenColor(card, 0.35), lightenColor(support, 0.75), 0.55);
   const accentRole =
     mode === "dark" ? darkenColor(support, 0.28) : mixColor(support, background, 0.58);
+  const secondaryRole =
+    mode === "dark" ? mixColor(darkenColor(support, 0.55), background, 0.35) : support;
   const ring = primaryRole;
+  const destructive = deriveDestructive(action);
+  const shadowColor = toHexColor(darkenColor(foregroundSeed, 0.15));
+  const shadowOpacity = mode === "dark" ? 0.65 : 1;
+  const shadows = deriveShadowLayers(shadowColor, shadowOpacity);
+  const sidebarSurface =
+    mode === "dark" ? darkenColor(surface, 0.92) : darkenColor(surface, 0.88);
+  const sidebarAccent = mode === "dark" ? darkenColor(surface, 0.72) : darkenColor(surface, 0.78);
+  const sidebarBorder = mode === "dark" ? mixColor(border, BLACK, 0.25) : darkenColor(support, 0.62);
+  const chartForeground = mode === "dark" ? WHITE : darkenColor(foregroundSeed, 0.2);
+  const chartMuted = mixColor(support, foregroundSeed, 0.5);
 
   return {
     background: toRgbCss(background),
     foreground: toRgbCss(foreground),
     card: toRgbCss(card),
     "card-foreground": toRgbCss(ensureReadableAgainstBackground(foreground, card)),
+    popover: toRgbCss(popover),
+    "popover-foreground": toRgbCss(ensureReadableAgainstBackground(foreground, popover)),
     muted: toRgbCss(muted),
-    "muted-foreground": toRgbCss(ensureReadableAgainstBackground(foreground, muted)),
+    "muted-foreground": toRgbCss(pickMutedForeground(foregroundSeed, support, muted)),
     border: toRgbCss(border),
-    input: toRgbCss(card),
+    input: toRgbCss(input),
     ring: toRgbCss(ring),
     primary: toRgbCss(primaryRole),
     "primary-foreground": toRgbCss(pickReadableForeground(primaryRole)),
-    secondary: toRgbCss(support),
-    "secondary-foreground": toRgbCss(pickReadableForeground(support)),
+    secondary: toRgbCss(secondaryRole),
+    "secondary-foreground": toRgbCss(pickReadableForeground(secondaryRole)),
     accent: toRgbCss(accentRole),
     "accent-foreground": toRgbCss(pickReadableForeground(accentRole)),
+    destructive: toRgbCss(destructive),
+    "destructive-foreground": toRgbCss(pickReadableForeground(destructive)),
+    "chart-1": toRgbCss(primaryRole),
+    "chart-2": toRgbCss(accentRole),
+    "chart-3": toRgbCss(chartForeground),
+    "chart-4": toRgbCss(chartMuted),
+    "chart-5": toRgbCss(mode === "dark" ? background : darkenColor(surface, 0.25)),
+    sidebar: toRgbCss(sidebarSurface),
+    "sidebar-foreground": toRgbCss(pickReadableForeground(sidebarSurface)),
+    "sidebar-primary": toRgbCss(primaryRole),
+    "sidebar-primary-foreground": toRgbCss(pickReadableForeground(primaryRole)),
+    "sidebar-accent": toRgbCss(sidebarAccent),
+    "sidebar-accent-foreground": toRgbCss(pickReadableForeground(sidebarAccent)),
+    "sidebar-border": toRgbCss(sidebarBorder),
+    "sidebar-ring": toRgbCss(ring),
+    radius: deriveRadiusRem(surface),
+    ...shadows,
   };
 }
 
