@@ -66,6 +66,14 @@ function mixColor(a: RgbColor, b: RgbColor, weightToB: number): RgbColor {
   };
 }
 
+function lightenColor(color: RgbColor, amount: number): RgbColor {
+  return mixColor(color, WHITE, amount);
+}
+
+function darkenColor(color: RgbColor, amount: number): RgbColor {
+  return mixColor(color, BLACK, amount);
+}
+
 function toRelativeLuminance(color: RgbColor): number {
   const normalized = [color.r, color.g, color.b].map((channel) => {
     const value = channel / 255;
@@ -87,6 +95,13 @@ function pickReadableForeground(background: RgbColor): RgbColor {
   return whiteContrast >= blackContrast ? WHITE : BLACK;
 }
 
+function ensureReadableAgainstBackground(candidate: RgbColor, background: RgbColor): RgbColor {
+  if (getContrastRatio(background, candidate) >= 4.5) {
+    return candidate;
+  }
+  return pickReadableForeground(background);
+}
+
 function ensureThreeSelectedColors(
   selectedColors: DerivePreviewThemeTokensInput["selectedColors"],
 ): [string, string, string] {
@@ -106,33 +121,31 @@ export function derivePreviewThemeTokens({
   const secondary = parseHexToRgb(secondaryHex);
   const accent = parseHexToRgb(accentHex);
   const neutralSeed = mixColor(primary, secondary, 0.5);
-  const primarySurface =
-    mode === "dark" ? mixColor(primary, BLACK, 0.72) : mixColor(primary, WHITE, 0.85);
-
-  const background =
-    mode === "dark" ? mixColor(neutralSeed, BLACK, 0.86) : mixColor(neutralSeed, WHITE, 0.94);
-  const card = primarySurface;
-  const muted = mode === "dark" ? mixColor(neutralSeed, BLACK, 0.72) : mixColor(neutralSeed, WHITE, 0.84);
-  const border =
-    mode === "dark" ? mixColor(primary, BLACK, 0.58) : mixColor(primary, WHITE, 0.6);
-  const ring = primary;
+  const background = mode === "dark" ? darkenColor(primary, 0.86) : lightenColor(neutralSeed, 0.94);
+  const foreground = ensureReadableAgainstBackground(darkenColor(primary, 0.7), background);
+  const primaryRole = mode === "dark" ? lightenColor(primary, 0.4) : primary;
+  const card = mode === "dark" ? darkenColor(primary, 0.72) : lightenColor(primary, 0.85);
+  const muted = mode === "dark" ? darkenColor(neutralSeed, 0.72) : lightenColor(neutralSeed, 0.84);
+  const border = mode === "dark" ? darkenColor(secondary, 0.5) : lightenColor(secondary, 0.58);
+  const accentRole = mode === "dark" ? darkenColor(accent, 0.28) : mixColor(accent, background, 0.58);
+  const ring = primaryRole;
 
   return {
     background: toRgbCss(background),
-    foreground: toRgbCss(pickReadableForeground(background)),
+    foreground: toRgbCss(foreground),
     card: toRgbCss(card),
-    "card-foreground": toRgbCss(pickReadableForeground(card)),
+    "card-foreground": toRgbCss(ensureReadableAgainstBackground(foreground, card)),
     muted: toRgbCss(muted),
-    "muted-foreground": toRgbCss(pickReadableForeground(muted)),
+    "muted-foreground": toRgbCss(ensureReadableAgainstBackground(foreground, muted)),
     border: toRgbCss(border),
     input: toRgbCss(card),
     ring: toRgbCss(ring),
-    primary: toRgbCss(primary),
-    "primary-foreground": toRgbCss(pickReadableForeground(primary)),
+    primary: toRgbCss(primaryRole),
+    "primary-foreground": toRgbCss(pickReadableForeground(primaryRole)),
     secondary: toRgbCss(secondary),
     "secondary-foreground": toRgbCss(pickReadableForeground(secondary)),
-    accent: toRgbCss(accent),
-    "accent-foreground": toRgbCss(pickReadableForeground(accent)),
+    accent: toRgbCss(accentRole),
+    "accent-foreground": toRgbCss(pickReadableForeground(accentRole)),
   };
 }
 
