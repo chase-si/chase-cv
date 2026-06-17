@@ -143,6 +143,21 @@ describe("ImageToUiToolShell render input summary", () => {
     expect(screen.getByTestId("render-input-color-强调色")).toHaveTextContent("#445566");
   });
 
+  it("applies derived css variables only on the preview root", async () => {
+    render(<ImageToUiToolShell />);
+
+    await selectThreePaletteSwatches();
+    fireEvent.click(screen.getByTestId("palette-render-button"));
+
+    const summaryRoot = screen.getByTestId("render-input-summary");
+    expect(summaryRoot.style.getPropertyValue("--primary")).toBe("rgb(255, 0, 136)");
+    expect(summaryRoot.style.getPropertyValue("--ring")).toBe("rgb(68, 85, 102)");
+
+    const pageMain = screen.getByRole("main");
+    expect(pageMain.style.getPropertyValue("--primary")).toBe("");
+    expect(pageMain.style.getPropertyValue("--ring")).toBe("");
+  });
+
   it("returns to edit and preserves image and color choices", async () => {
     render(<ImageToUiToolShell />);
 
