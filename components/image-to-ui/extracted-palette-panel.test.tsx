@@ -6,10 +6,10 @@ import { ExtractedPalettePanel } from "@/components/image-to-ui/extracted-palett
 import { emptyPaletteSelection, type PaletteSelectionState } from "@/lib/image-to-ui/active-image-types";
 
 const readySwatches = [
-  { role: "Vibrant" as const, hex: "#FF0088" },
-  { role: "Muted" as const, hex: "#112233" },
-  { role: "DarkVibrant" as const, hex: "#445566" },
-  { role: "DarkMuted" as const, hex: "#AABBCC" },
+  { role: "Dominant1" as const, hex: "#FF0088" },
+  { role: "Dominant2" as const, hex: "#112233" },
+  { role: "Dominant3" as const, hex: "#445566" },
+  { role: "Dominant4" as const, hex: "#AABBCC" },
 ];
 
 function renderPanel(
@@ -70,8 +70,8 @@ describe("ExtractedPalettePanel", () => {
       />,
     );
 
-    expect(screen.getByTestId("palette-swatch-Vibrant")).toHaveTextContent("Vibrant");
-    expect(screen.getByTestId("palette-swatch-Vibrant")).toHaveTextContent("#FF0088");
+    expect(screen.getByTestId("palette-swatch-Dominant1")).toHaveTextContent("主导色 1");
+    expect(screen.getByTestId("palette-swatch-Dominant1")).toHaveTextContent("#FF0088");
   });
 
   it("shows inline error and insufficient swatch guidance", () => {
@@ -86,7 +86,7 @@ describe("ExtractedPalettePanel", () => {
     renderPanel({
       ...emptyPaletteSelection(),
       extractionStatus: "ready",
-      swatches: [{ role: "Vibrant", hex: "#FF0088" }],
+      swatches: [{ role: "Dominant1", hex: "#FF0088" }],
     });
 
     expect(screen.getByTestId("palette-insufficient-swatches")).toHaveTextContent("不足 3 个");
@@ -100,10 +100,10 @@ describe("ExtractedPalettePanel", () => {
       selectedColors: ["#FF0088", "#112233", "#445566"],
     });
 
-    expect(screen.getByTestId("palette-swatch-order-Vibrant")).toHaveTextContent("1");
-    expect(screen.getByTestId("palette-swatch-role-Vibrant")).toHaveTextContent("主色");
-    expect(screen.getByTestId("palette-swatch-role-Muted")).toHaveTextContent("辅色");
-    expect(screen.getByTestId("palette-swatch-role-DarkVibrant")).toHaveTextContent("强调色");
+    expect(screen.getByTestId("palette-swatch-order-Dominant1")).toHaveTextContent("1");
+    expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("主色");
+    expect(screen.getByTestId("palette-swatch-role-Dominant2")).toHaveTextContent("辅色");
+    expect(screen.getByTestId("palette-swatch-role-Dominant3")).toHaveTextContent("强调色");
     expect(screen.getByTestId("palette-render-button")).toBeEnabled();
   });
 
@@ -119,16 +119,16 @@ describe("ExtractedPalettePanel", () => {
       />,
     );
 
-    fireEvent.click(screen.getByTestId("palette-swatch-Vibrant"));
-    fireEvent.click(screen.getByTestId("palette-swatch-Muted"));
-    fireEvent.click(screen.getByTestId("palette-swatch-DarkVibrant"));
-    fireEvent.click(screen.getByTestId("palette-swatch-DarkMuted"));
+    fireEvent.click(screen.getByTestId("palette-swatch-Dominant1"));
+    fireEvent.click(screen.getByTestId("palette-swatch-Dominant2"));
+    fireEvent.click(screen.getByTestId("palette-swatch-Dominant3"));
+    fireEvent.click(screen.getByTestId("palette-swatch-Dominant4"));
 
     expect(screen.getByTestId("palette-selection-limit")).toHaveTextContent("最多只能选择 3 个颜色");
-    expect(screen.getByTestId("palette-swatch-role-Vibrant")).toHaveTextContent("主色");
+    expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("主色");
 
-    fireEvent.click(screen.getByTestId("palette-swatch-Muted"));
-    expect(screen.queryByTestId("palette-swatch-role-Muted")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("palette-swatch-Dominant2"));
+    expect(screen.queryByTestId("palette-swatch-role-Dominant2")).not.toBeInTheDocument();
   });
 
   it("keeps render disabled when fewer than three colors are selected", () => {
@@ -146,7 +146,7 @@ describe("ExtractedPalettePanel", () => {
     renderPanel({
       ...emptyPaletteSelection(),
       extractionStatus: "ready",
-      swatches: [{ role: "Vibrant", hex: "#FF0088" }],
+      swatches: [{ role: "Dominant1", hex: "#FF0088" }],
       selectedColors: ["#FF0088", "#112233", "#445566"],
     });
 

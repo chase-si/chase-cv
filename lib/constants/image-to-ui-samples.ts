@@ -17,7 +17,7 @@ export const IMAGE_TO_UI_SAMPLE_IMAGES: readonly ImageToUiSampleImage[] = [
     id: "great-wave",
     imagePath: "/imgs/image-to-ui/great-wave-1280.webp",
     title: "神奈川冲浪里",
-    description: "蓝白对比与细腻渐变，便于观察 Vibrant 与 Muted 色板。",
+    description: "蓝白对比与细腻渐变，便于观察白/近白主导色是否进入色板。",
   },
   {
     id: "starry-night",

@@ -65,10 +65,11 @@ export function ExtractedPalettePanel({
 
       {extractionStatus === "ready" && swatches.length > 0 ? (
         <ul className="grid gap-2 sm:grid-cols-2" aria-label="提取的色板">
-          {swatches.map((swatch) => {
+          {swatches.map((swatch, swatchIndex) => {
             const selectionIndex = selectedColors.indexOf(swatch.hex);
             const isSelected = selectionIndex >= 0;
             const roleLabel = isSelected ? getOrderedPaletteRoleLabel(selectionIndex) : null;
+            const dominanceLabel = `主导色 ${swatchIndex + 1}`;
 
             return (
               <li key={swatch.role}>
@@ -98,7 +99,7 @@ export function ExtractedPalettePanel({
                     ) : null}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground">{swatch.role}</p>
+                    <p className="text-sm font-medium text-foreground">{dominanceLabel}</p>
                     <p className="font-mono text-xs text-muted-foreground">{swatch.hex}</p>
                     {roleLabel ? (
                       <p

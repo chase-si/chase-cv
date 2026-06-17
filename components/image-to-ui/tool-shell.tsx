@@ -149,7 +149,7 @@ function PaletteCard({
       <CardHeader>
         <CardTitle className="text-base">提取色板</CardTitle>
         <CardDescription>
-          自动提取 Vibrant / Muted 等 swatch，并选择 3 个颜色后进入渲染步骤。
+          按像素占比提取主导色，并选择 3 个颜色后进入渲染步骤。
         </CardDescription>
       </CardHeader>
       <CardContent>
