@@ -105,7 +105,6 @@ export function RenderInputSummaryPanel({
       className="space-y-6"
       aria-label="渲染输入摘要"
       data-testid="render-input-summary"
-      style={previewRootStyle}
       data-render-input={JSON.stringify({
         imageSrc: renderInput.imageSrc,
         colorRoles: renderInput.colorRoles,
@@ -205,6 +204,7 @@ export function RenderInputSummaryPanel({
             data-testid="saas-preview-surface"
             className="space-y-4 border border-border bg-background p-4 text-foreground"
             aria-label="SaaS status and settings preview"
+            style={previewRootStyle}
           >
             <Tabs defaultValue="overview">
               <TabsList aria-label="Preview sections">

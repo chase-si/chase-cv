@@ -45,7 +45,7 @@ export function ImageToUiToolShell() {
             <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
               {flowStep === 1
                 ? "上传或选择示例图片，提取主色调并挑选 3 个颜色，为后续界面渲染步骤做准备。"
-                : "确认当前图片与三色角色；界面生成功能即将接入。"}
+                : "确认当前图片与三色角色；查看完整预览并可返回继续编辑。"}
             </p>
           </div>
           <ImageToUiStepIndicator activeStep={flowStep} />

@@ -52,9 +52,14 @@ describe("RenderInputSummaryPanel", () => {
     expect(screen.getByTestId("render-input-image-summary")).toBeInTheDocument();
     expect(screen.getByTestId("render-input-image-thumbnail")).toBeInTheDocument();
     expect(screen.queryByTestId("active-image-preview")).not.toBeInTheDocument();
-    expect(summary.style.getPropertyValue("--primary")).toBe("rgb(255, 0, 136)");
-    expect(summary.style.getPropertyValue("--secondary")).toBe("rgb(17, 34, 51)");
-    expect(summary.style.getPropertyValue("--accent")).toBe("rgb(68, 85, 102)");
+    expect(summary.style.getPropertyValue("--primary")).toBe("");
+    expect(summary.style.getPropertyValue("--secondary")).toBe("");
+    expect(summary.style.getPropertyValue("--accent")).toBe("");
+
+    const preview = screen.getByTestId("saas-preview-surface");
+    expect(preview.style.getPropertyValue("--primary")).toBe("rgb(255, 0, 136)");
+    expect(preview.style.getPropertyValue("--secondary")).toBe("rgb(17, 34, 51)");
+    expect(preview.style.getPropertyValue("--accent")).toBe("rgb(68, 85, 102)");
 
     const tokenSummary = screen.getByTestId("render-preview-token-summary");
     expect(within(tokenSummary).getByTestId("preview-token-primary")).toHaveTextContent(
