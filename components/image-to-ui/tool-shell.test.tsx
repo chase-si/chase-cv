@@ -125,6 +125,7 @@ describe("ImageToUiToolShell render input summary", () => {
     expect(screen.getByTestId("saas-preview-surface")).toBeInTheDocument();
     expect(screen.queryByTestId("palette-selection")).not.toBeInTheDocument();
     expect(screen.getByText("渲染界面")).toBeInTheDocument();
+    expect(screen.queryByText("界面生成功能即将接入。")).not.toBeInTheDocument();
   });
 
   it("shows the active image and three color roles on the summary step", async () => {
@@ -150,12 +151,32 @@ describe("ImageToUiToolShell render input summary", () => {
     fireEvent.click(screen.getByTestId("palette-render-button"));
 
     const summaryRoot = screen.getByTestId("render-input-summary");
-    expect(summaryRoot.style.getPropertyValue("--primary")).toBe("rgb(255, 0, 136)");
-    expect(summaryRoot.style.getPropertyValue("--ring")).toBe("rgb(68, 85, 102)");
+    expect(summaryRoot.style.getPropertyValue("--primary")).toBe("");
+    expect(summaryRoot.style.getPropertyValue("--ring")).toBe("");
+
+    const previewRoot = screen.getByTestId("saas-preview-surface");
+    expect(previewRoot.style.getPropertyValue("--primary")).toBe("rgb(255, 0, 136)");
+    expect(previewRoot.style.getPropertyValue("--ring")).toBe("rgb(68, 85, 102)");
 
     const pageMain = screen.getByRole("main");
     expect(pageMain.style.getPropertyValue("--primary")).toBe("");
     expect(pageMain.style.getPropertyValue("--ring")).toBe("");
+  });
+
+  it("keeps Chinese workflow labels while preview content stays in English", async () => {
+    render(<ImageToUiToolShell />);
+
+    await selectThreePaletteSwatches();
+    fireEvent.click(screen.getByTestId("palette-render-button"));
+
+    expect(screen.getByText("实验工具")).toBeInTheDocument();
+    expect(screen.getByText("图片转界面")).toBeInTheDocument();
+    expect(screen.getByText("确认当前图片与三色角色；查看完整预览并可返回继续编辑。")).toBeInTheDocument();
+
+    const preview = screen.getByTestId("saas-preview-surface");
+    expect(within(preview).getByRole("tab", { name: "Overview" })).toBeInTheDocument();
+    expect(within(preview).getByRole("tab", { name: "Workspace settings" })).toBeInTheDocument();
+    expect(within(preview).getByText("Platform health")).toBeInTheDocument();
   });
 
   it("returns to edit and preserves image and color choices", async () => {
