@@ -137,11 +137,22 @@ function deriveDestructive(action: RgbColor): RgbColor {
 
 function deriveRadiusRem(surface: RgbColor): string {
   const calmness = 1 - getSaturation(surface);
-  const radiusRem = 1 + calmness * 1;
+  const radiusRem = 0.72 + calmness * 0.5;
   return `${radiusRem.toFixed(2)}rem`;
 }
 
-function deriveShadowLayers(shadowColorHex: string, opacity: number): {
+function deriveShadowLayers(
+  shadowColorHex: string,
+  {
+    opacity,
+    y,
+    blur,
+  }: {
+    opacity: number;
+    y: number;
+    blur: number;
+  },
+): {
   "shadow-x": string;
   "shadow-y": string;
   "shadow-blur": string;
@@ -157,15 +168,22 @@ function deriveShadowLayers(shadowColorHex: string, opacity: number): {
   "shadow-xl": string;
   "shadow-2xl": string;
 } {
-  const shadowX = "4px";
-  const shadowY = "4px";
-  const shadowBlur = "0px";
+  const shadowX = "0px";
+  const shadowY = `${y}px`;
+  const shadowBlur = `${blur}px`;
   const shadowSpread = "0px";
   const shadowOpacity = opacity.toFixed(2);
   const hslShadow = `hsl(0 0% 0% / ${shadowOpacity})`;
   const baseLayer = `${shadowX} ${shadowY} ${shadowBlur} ${shadowSpread} ${hslShadow}`;
-  const layered = (secondYOffset: string, secondBlur: string) =>
-    `${baseLayer}, ${shadowX} ${secondYOffset} ${secondBlur} -1px ${hslShadow}`;
+  const layer = (layerY: number, layerBlur: number, layerSpread: number, layerOpacity: number) =>
+    `${shadowX} ${layerY}px ${layerBlur}px ${layerSpread}px hsl(0 0% 0% / ${layerOpacity.toFixed(2)})`;
+  const layered = (scale: number) =>
+    `${layer(Math.max(1, Math.round(y * 0.2)), Math.max(2, Math.round(blur * 0.22)), -1, opacity * 0.45)}, ${layer(
+      Math.round(y * scale),
+      Math.round(blur * scale),
+      Math.round(-blur * 0.25),
+      opacity,
+    )}`;
 
   return {
     "shadow-x": shadowX,
@@ -174,14 +192,14 @@ function deriveShadowLayers(shadowColorHex: string, opacity: number): {
     "shadow-spread": shadowSpread,
     "shadow-opacity": shadowOpacity,
     "shadow-color": shadowColorHex,
-    "shadow-2xs": `${shadowX} ${shadowY} ${shadowBlur} ${shadowSpread} hsl(0 0% 0% / ${(opacity * 0.5).toFixed(2)})`,
-    "shadow-xs": `${shadowX} ${shadowY} ${shadowBlur} ${shadowSpread} hsl(0 0% 0% / ${(opacity * 0.5).toFixed(2)})`,
-    "shadow-sm": layered("1px", "2px"),
-    shadow: layered("1px", "2px"),
-    "shadow-md": layered("2px", "4px"),
-    "shadow-lg": layered("4px", "6px"),
-    "shadow-xl": layered("8px", "10px"),
-    "shadow-2xl": `${shadowX} ${shadowY} ${shadowBlur} ${shadowSpread} hsl(0 0% 0% / ${(opacity * 2.5).toFixed(2)})`,
+    "shadow-2xs": layer(1, 2, 0, opacity * 0.35),
+    "shadow-xs": layer(1, 3, 0, opacity * 0.4),
+    "shadow-sm": layered(0.55),
+    shadow: layered(0.7),
+    "shadow-md": layered(0.9),
+    "shadow-lg": layered(1.1),
+    "shadow-xl": layered(1.35),
+    "shadow-2xl": layer(Math.round(y * 1.6), Math.round(blur * 1.7), Math.round(-blur * 0.2), opacity * 1.15),
   };
 }
 
@@ -220,8 +238,10 @@ export function derivePreviewThemeTokens({
   const ring = primaryRole;
   const destructive = deriveDestructive(action);
   const shadowColor = toHexColor(darkenColor(foregroundSeed, 0.15));
-  const shadowOpacity = mode === "dark" ? 0.65 : 1;
-  const shadows = deriveShadowLayers(shadowColor, shadowOpacity);
+  const shadows = deriveShadowLayers(
+    shadowColor,
+    mode === "dark" ? { opacity: 0.3, y: 8, blur: 16 } : { opacity: 0.18, y: 10, blur: 24 },
+  );
   const sidebarSurface =
     mode === "dark" ? darkenColor(surface, 0.92) : darkenColor(surface, 0.88);
   const sidebarAccent = mode === "dark" ? darkenColor(surface, 0.72) : darkenColor(surface, 0.78);

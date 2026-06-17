@@ -102,7 +102,7 @@ export function SaasThemePreviewSurface({ previewRootStyle, className }: SaasThe
           <TabsContent value="overview" className="space-y-4">
             <div
               data-testid="saas-status-area"
-              className="space-y-3 border border-primary/40 bg-primary/10 p-3"
+              className="space-y-3 border border-border bg-muted/30 p-3"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-sm font-semibold">Platform health</h3>
@@ -117,7 +117,7 @@ export function SaasThemePreviewSurface({ previewRootStyle, className }: SaasThe
               <div className="grid gap-3 md:grid-cols-3">
                 <article
                   data-testid="saas-primary-surface"
-                  className="space-y-2 border border-primary/40 bg-primary/10 p-3"
+                  className="space-y-2 border border-secondary/50 bg-secondary/10 p-3"
                 >
                   <p className="text-xs text-muted-foreground">Monthly recurring revenue</p>
                   <p className="text-2xl font-semibold" data-testid="saas-metric-mrr">
@@ -305,7 +305,7 @@ export function SaasThemePreviewSurface({ previewRootStyle, className }: SaasThe
             >
               <div
                 data-testid="landing-hero"
-                className="space-y-4 border border-primary/50 bg-primary/10 p-4"
+                className="space-y-4 border border-border bg-muted/30 p-4"
               >
                 <Badge variant="accent">Customer success OS</Badge>
                 <div className="max-w-2xl space-y-2">

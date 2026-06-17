@@ -87,6 +87,9 @@ describe("RenderInputSummaryPanel", () => {
     );
     expect(within(tokenSummary).getByTestId("preview-token-background")).toBeInTheDocument();
     expect(within(tokenSummary).getByTestId("preview-token-card")).toBeInTheDocument();
+    expect(within(tokenSummary).getByTestId("preview-token-popover")).toBeInTheDocument();
+    expect(within(tokenSummary).getByTestId("preview-token-muted")).toBeInTheDocument();
+    expect(within(tokenSummary).getByTestId("preview-token-input")).toBeInTheDocument();
     expect(within(tokenSummary).getByTestId("preview-token-foreground")).toBeInTheDocument();
     expect(within(tokenSummary).getByTestId("preview-token-border")).toBeInTheDocument();
     expect(within(tokenSummary).getByTestId("preview-token-ring")).toBeInTheDocument();
@@ -267,7 +270,38 @@ describe("RenderInputSummaryPanel", () => {
 
     const tabs = within(preview).getByRole("tablist", { name: "Preview sections" });
     expect(within(tabs).getByRole("tab", { name: "Overview" }).className).toMatch(/aria-selected:bg-primary/);
-    expect(within(preview).getByTestId("saas-primary-surface").className).toMatch(/bg-primary\/10/);
+    expect(within(preview).getByTestId("saas-primary-surface").className).toMatch(/bg-secondary\/10/);
+  });
+
+  it("reserves primary for actions and high-emphasis states instead of large preview surfaces", () => {
+    render(
+      <RenderInputSummaryPanel
+        activeImage={{
+          type: "sample",
+          sampleId: "mondrian",
+          src: "/imgs/image-to-ui/mondrian-1280.webp",
+        }}
+        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        selectedColors={["#faf8f0", "#09568c", "#9e9982"]}
+      />,
+    );
+
+    const preview = screen.getByTestId("saas-preview-surface");
+    const overviewLargeSurfaceTestIds = ["saas-status-area", "saas-primary-surface"];
+
+    for (const testId of overviewLargeSurfaceTestIds) {
+      const className = within(preview).getByTestId(testId).className;
+      expect(className).not.toMatch(/(?:bg|border)-primary/);
+    }
+
+    expect(within(preview).getByTestId("saas-primary-action").className).toMatch(/bg-primary/);
+
+    fireEvent.click(within(preview).getByRole("tab", { name: "Landing page" }));
+
+    expect(within(preview).getByTestId("landing-hero").className).not.toMatch(
+      /(?:bg|border)-primary/,
+    );
+    expect(within(preview).getByTestId("landing-primary-cta").className).toMatch(/bg-primary/);
   });
 
   it("shows classified role labels and short rationales for each selected color", () => {
