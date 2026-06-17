@@ -86,4 +86,55 @@ describe("RenderInputSummaryPanel", () => {
     fireEvent.click(within(summary).getByTestId("render-back-to-edit"));
     expect(onBackToEdit).toHaveBeenCalledTimes(1);
   });
+
+  it("renders themed status cards and settings form with reusable primitives", () => {
+    render(
+      <RenderInputSummaryPanel
+        activeImage={{
+          type: "sample",
+          sampleId: "mondrian",
+          src: "/imgs/image-to-ui/mondrian-1280.webp",
+        }}
+        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        selectedColors={["#FF0088", "#112233", "#445566"]}
+        onBackToEdit={() => {}}
+      />,
+    );
+
+    const preview = screen.getByTestId("saas-preview-surface");
+    expect(within(preview).getByTestId("saas-status-area")).toBeInTheDocument();
+    expect(within(preview).getByTestId("saas-metric-mrr")).toHaveTextContent("$84,200");
+    expect(within(preview).getByTestId("saas-metric-incidents")).toHaveTextContent("3");
+
+    const settingsForm = within(preview).getByTestId("saas-settings-form");
+    expect(within(settingsForm).getByLabelText("Workspace name")).toBeInTheDocument();
+    expect(within(settingsForm).getByRole("combobox", { name: "Plan" })).toBeInTheDocument();
+    expect(within(settingsForm).getByRole("group", { name: "Auto-scale threshold" })).toBeInTheDocument();
+    expect(within(settingsForm).getByRole("button", { name: "Enable maintenance mode" })).toBeInTheDocument();
+    expect(
+      within(settingsForm).getByRole("checkbox", { name: /Notify on-call via SMS/ }),
+    ).toBeInTheDocument();
+    expect(within(settingsForm).getByRole("switch", { name: "Allow public status page" })).toBeInTheDocument();
+    expect(within(settingsForm).getByRole("button", { name: "Save changes" })).toBeInTheDocument();
+  });
+
+  it("shows primary secondary and accent roles in the preview section", () => {
+    render(
+      <RenderInputSummaryPanel
+        activeImage={{
+          type: "sample",
+          sampleId: "mondrian",
+          src: "/imgs/image-to-ui/mondrian-1280.webp",
+        }}
+        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        selectedColors={["#FF0088", "#112233", "#445566"]}
+        onBackToEdit={() => {}}
+      />,
+    );
+
+    const preview = screen.getByTestId("saas-preview-surface");
+    expect(within(preview).getByTestId("saas-primary-action").className).toMatch(/bg-primary/);
+    expect(within(preview).getByTestId("saas-secondary-chip").className).toMatch(/bg-secondary/);
+    expect(within(preview).getByTestId("saas-accent-badge").className).toMatch(/bg-accent/);
+  });
 });
