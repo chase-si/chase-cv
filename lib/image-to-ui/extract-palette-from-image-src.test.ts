@@ -23,7 +23,7 @@ describe("extractPaletteFromImageSrc", () => {
       LightMuted: null,
     });
 
-    const swatches = await extractPaletteFromImageSrc("/image-to-ui/samples/minimal-dashboard.png");
+    const swatches = await extractPaletteFromImageSrc("/imgs/image-to-ui/mondrian-1280.webp");
 
     expect(swatches).toEqual([
       { role: "Vibrant", hex: "#FF0088" },

@@ -26,13 +26,13 @@ describe("useActiveImageSelection", () => {
     const { result } = renderHook(() => useActiveImageSelection());
 
     act(() => {
-      result.current.selectSample("minimal-dashboard", "/image-to-ui/samples/minimal-dashboard.png");
+      result.current.selectSample("mondrian", "/imgs/image-to-ui/mondrian-1280.webp");
     });
 
     expect(result.current.activeImage).toEqual({
       type: "sample",
-      sampleId: "minimal-dashboard",
-      src: "/image-to-ui/samples/minimal-dashboard.png",
+      sampleId: "mondrian",
+      src: "/imgs/image-to-ui/mondrian-1280.webp",
     });
   });
 

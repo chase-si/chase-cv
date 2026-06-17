@@ -42,11 +42,11 @@ describe("ImageToUiToolShell active image selection", () => {
   it("shows the selected sample in the main preview with contain fitting", () => {
     render(<ImageToUiToolShell />);
 
-    fireEvent.click(getSampleCard("minimal-dashboard"));
+    fireEvent.click(getSampleCard("mondrian"));
 
     const preview = screen.getByTestId("active-image-preview");
-    const img = within(preview).getByRole("img", { name: "极简仪表盘" });
-    expect(img).toHaveAttribute("src", "/image-to-ui/samples/minimal-dashboard.png");
+    const img = within(preview).getByRole("img", { name: "蒙德里安构成" });
+    expect(img).toHaveAttribute("src", "/imgs/image-to-ui/mondrian-1280.webp");
     expect(img.className).toMatch(/object-contain/);
   });
 
@@ -59,7 +59,7 @@ describe("ImageToUiToolShell active image selection", () => {
 
     render(<ImageToUiToolShell />);
 
-    fireEvent.click(getSampleCard("minimal-dashboard"));
+    fireEvent.click(getSampleCard("mondrian"));
     const fileInput = screen.getByLabelText("从本地上传图片");
     const file = new File(["pixels"], "local.png", { type: "image/png" });
     fireEvent.change(fileInput, { target: { files: [file] } });
@@ -72,14 +72,14 @@ describe("ImageToUiToolShell active image selection", () => {
   it("keeps sample thumbnails compact with cover cropping", () => {
     render(<ImageToUiToolShell />);
 
-    const sampleCard = getSampleCard("minimal-dashboard");
+    const sampleCard = getSampleCard("mondrian");
     const thumbnail = within(sampleCard).getByRole("presentation");
     expect(thumbnail.className).toMatch(/object-cover/);
   });
 });
 
 async function selectThreePaletteSwatches() {
-  fireEvent.click(getSampleCard("minimal-dashboard"));
+  fireEvent.click(getSampleCard("mondrian"));
 
   await waitFor(() => {
     expect(screen.getByTestId("palette-swatch-Vibrant")).toBeInTheDocument();
@@ -94,7 +94,7 @@ describe("ImageToUiToolShell palette selection", () => {
   it("enables render only after three ordered swatches are selected", async () => {
     render(<ImageToUiToolShell />);
 
-    fireEvent.click(getSampleCard("minimal-dashboard"));
+    fireEvent.click(getSampleCard("mondrian"));
 
     await waitFor(() => {
       expect(screen.getByTestId("palette-swatch-Vibrant")).toBeInTheDocument();
@@ -135,7 +135,7 @@ describe("ImageToUiToolShell render input summary", () => {
 
     const summary = screen.getByTestId("render-input-summary");
     const preview = within(summary).getByTestId("active-image-preview");
-    expect(within(preview).getByRole("img", { name: "极简仪表盘" })).toBeInTheDocument();
+    expect(within(preview).getByRole("img", { name: "蒙德里安构成" })).toBeInTheDocument();
 
     expect(screen.getByTestId("render-input-color-主色")).toHaveTextContent("#FF0088");
     expect(screen.getByTestId("render-input-color-辅色")).toHaveTextContent("#112233");
@@ -150,7 +150,7 @@ describe("ImageToUiToolShell render input summary", () => {
     fireEvent.click(screen.getByTestId("render-back-to-edit"));
 
     expect(screen.getByTestId("palette-selection")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "极简仪表盘" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "蒙德里安构成" })).toBeInTheDocument();
     expect(screen.getByTestId("palette-swatch-role-Vibrant")).toHaveTextContent("主色");
     expect(screen.getByTestId("palette-render-button")).toBeEnabled();
   });

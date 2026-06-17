@@ -28,10 +28,10 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "minimal-dashboard",
-          src: "/image-to-ui/samples/minimal-dashboard.png",
+          sampleId: "mondrian",
+          src: "/imgs/image-to-ui/mondrian-1280.webp",
         }}
-        sampleTitleById={{ "minimal-dashboard": "极简仪表盘" }}
+        sampleTitleById={{ mondrian: "蒙德里安构成" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
         onBackToEdit={() => {}}
       />,
@@ -41,7 +41,7 @@ describe("RenderInputSummaryPanel", () => {
     expect(summary).toHaveAttribute(
       "data-render-input",
       JSON.stringify({
-        imageSrc: "/image-to-ui/samples/minimal-dashboard.png",
+        imageSrc: "/imgs/image-to-ui/mondrian-1280.webp",
         colorRoles: [
           { role: "主色", hex: "#FF0088" },
           { role: "辅色", hex: "#112233" },
@@ -57,10 +57,10 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "minimal-dashboard",
-          src: "/image-to-ui/samples/minimal-dashboard.png",
+          sampleId: "mondrian",
+          src: "/imgs/image-to-ui/mondrian-1280.webp",
         }}
-        sampleTitleById={{ "minimal-dashboard": "极简仪表盘" }}
+        sampleTitleById={{ mondrian: "蒙德里安构成" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
         onBackToEdit={onBackToEdit}
       />,
