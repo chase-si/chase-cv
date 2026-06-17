@@ -49,6 +49,9 @@ describe("RenderInputSummaryPanel", () => {
         ],
       }),
     );
+    expect(screen.getByTestId("render-input-image-summary")).toBeInTheDocument();
+    expect(screen.getByTestId("render-input-image-thumbnail")).toBeInTheDocument();
+    expect(screen.queryByTestId("active-image-preview")).not.toBeInTheDocument();
   });
 
   it("calls back to edit when the return action is used", () => {

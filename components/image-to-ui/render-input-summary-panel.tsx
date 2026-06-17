@@ -1,9 +1,9 @@
 "use client";
 
-import { ActiveImagePreview } from "@/components/image-to-ui/active-image-preview";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { ActiveImage } from "@/lib/image-to-ui/active-image-types";
+import { getActiveImageSrc, type ActiveImage } from "@/lib/image-to-ui/active-image-types";
 import {
   buildImageToUiRenderInput,
   type ImageToUiRenderInput,
@@ -23,6 +23,11 @@ export function RenderInputSummaryPanel({
   onBackToEdit,
 }: RenderInputSummaryPanelProps) {
   const renderInput: ImageToUiRenderInput = buildImageToUiRenderInput(activeImage, selectedColors);
+  const imageSrc = getActiveImageSrc(activeImage);
+  const imageAlt =
+    activeImage.type === "sample"
+      ? sampleTitleById[activeImage.sampleId] ?? "示例图片"
+      : "本地上传的图片";
 
   return (
     <section
@@ -36,11 +41,30 @@ export function RenderInputSummaryPanel({
     >
       <Card className="shadow-md">
         <CardHeader>
-          <CardTitle className="text-base">当前图片</CardTitle>
-          <CardDescription>以下图片与三色角色将用于后续界面生成。</CardDescription>
+          <CardTitle className="text-base">当前图片摘要</CardTitle>
+          <CardDescription>将当前激活图片与三色角色一起作为渲染输入。</CardDescription>
         </CardHeader>
         <CardContent>
-          <ActiveImagePreview activeImage={activeImage} sampleTitleById={sampleTitleById} />
+          <div
+            data-testid="render-input-image-summary"
+            className="flex items-center gap-3 border border-border bg-muted/20 p-3"
+          >
+            <div
+              data-testid="render-input-image-thumbnail"
+              className="relative h-16 w-24 shrink-0 overflow-hidden border border-border bg-muted/40"
+            >
+              {activeImage.type === "sample" ? (
+                <Image src={imageSrc} alt={imageAlt} fill sizes="96px" className="object-cover" />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element -- blob object URLs are browser-local only
+                <img src={imageSrc} alt={imageAlt} className="size-full object-cover" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">已选图片</p>
+              <p className="truncate text-xs text-muted-foreground">{imageAlt}</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

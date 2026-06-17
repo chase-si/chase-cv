@@ -134,8 +134,9 @@ describe("ImageToUiToolShell render input summary", () => {
     fireEvent.click(screen.getByTestId("palette-render-button"));
 
     const summary = screen.getByTestId("render-input-summary");
-    const preview = within(summary).getByTestId("active-image-preview");
-    expect(within(preview).getByRole("img", { name: "蒙德里安构成" })).toBeInTheDocument();
+    const imageSummary = within(summary).getByTestId("render-input-image-summary");
+    expect(within(imageSummary).getByRole("img", { name: "蒙德里安构成" })).toBeInTheDocument();
+    expect(screen.queryByTestId("active-image-preview")).not.toBeInTheDocument();
 
     expect(screen.getByTestId("render-input-color-主色")).toHaveTextContent("#FF0088");
     expect(screen.getByTestId("render-input-color-辅色")).toHaveTextContent("#112233");
