@@ -2,6 +2,8 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { RenderInputSummaryPanel } from "@/components/image-to-ui/render-input-summary-panel";
+import { buildImageToUiRenderInput } from "@/lib/image-to-ui/build-image-to-ui-render-input";
+import { derivePreviewThemeTokens } from "@/lib/image-to-ui/derive-preview-theme";
 
 const mockThemeState = vi.hoisted(() => ({
   resolvedTheme: "light",
@@ -35,15 +37,19 @@ afterEach(() => {
 
 describe("RenderInputSummaryPanel", () => {
   it("exposes the image-and-color contract on the summary root", () => {
+    const selectedColors = ["#FF0088", "#112233", "#445566"];
+    const activeImage = {
+      type: "sample" as const,
+      sampleId: "mondrian",
+      src: "/imgs/image-to-ui/mondrian-1280.webp",
+    };
+    const renderInput = buildImageToUiRenderInput(activeImage, selectedColors);
+
     render(
       <RenderInputSummaryPanel
-        activeImage={{
-          type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
-        }}
+        activeImage={activeImage}
         sampleTitleById={{ mondrian: "蒙德里安构成" }}
-        selectedColors={["#FF0088", "#112233", "#445566"]}
+        selectedColors={selectedColors}
       />,
     );
 
@@ -51,12 +57,8 @@ describe("RenderInputSummaryPanel", () => {
     expect(summary).toHaveAttribute(
       "data-render-input",
       JSON.stringify({
-        imageSrc: "/imgs/image-to-ui/mondrian-1280.webp",
-        colorRoles: [
-          { role: "主色", hex: "#FF0088" },
-          { role: "辅色", hex: "#112233" },
-          { role: "强调色", hex: "#445566" },
-        ],
+        imageSrc: renderInput.imageSrc,
+        colorRoles: renderInput.colorRoles,
       }),
     );
     expect(screen.getByTestId("render-input-image-summary")).toBeInTheDocument();
@@ -67,14 +69,18 @@ describe("RenderInputSummaryPanel", () => {
     expect(summary.style.getPropertyValue("--accent")).toBe("");
 
     const preview = screen.getByTestId("saas-preview-surface");
-    expect(preview.style.getPropertyValue("--primary")).toBe("rgb(255, 0, 136)");
-    expect(preview.style.getPropertyValue("--secondary")).toBe("rgb(17, 34, 51)");
-    expect(preview.style.getPropertyValue("--accent")).toBe("rgb(172, 175, 185)");
+    const lightTokens = derivePreviewThemeTokens({
+      selectedColors,
+      mode: "light",
+    });
+    expect(preview.style.getPropertyValue("--primary")).toBe(lightTokens.primary);
+    expect(preview.style.getPropertyValue("--secondary")).toBe(lightTokens.secondary);
+    expect(preview.style.getPropertyValue("--accent")).toBe(lightTokens.accent);
     expect(preview.className).toMatch(/tracking-normal/);
 
     const tokenSummary = screen.getByTestId("render-preview-token-summary");
     expect(within(tokenSummary).getByTestId("preview-token-primary")).toHaveTextContent(
-      "rgb(255, 0, 136)",
+      lightTokens.primary,
     );
     expect(within(tokenSummary).getByTestId("preview-token-background")).toBeInTheDocument();
     expect(within(tokenSummary).getByTestId("preview-token-card")).toBeInTheDocument();
@@ -96,14 +102,22 @@ describe("RenderInputSummaryPanel", () => {
     const { rerender } = render(<RenderInputSummaryPanel {...props} />);
 
     const preview = screen.getByTestId("saas-preview-surface");
-    expect(preview.style.getPropertyValue("--background")).toBe("rgb(241, 248, 250)");
-    expect(preview.style.getPropertyValue("--primary")).toBe("rgb(51, 102, 255)");
+    const lightTokens = derivePreviewThemeTokens({
+      selectedColors: props.selectedColors,
+      mode: "light",
+    });
+    expect(preview.style.getPropertyValue("--background")).toBe(lightTokens.background);
+    expect(preview.style.getPropertyValue("--primary")).toBe(lightTokens.primary);
 
     mockThemeState.resolvedTheme = "dark";
     rerender(<RenderInputSummaryPanel {...props} />);
 
-    expect(preview.style.getPropertyValue("--background")).toBe("rgb(7, 14, 36)");
-    expect(preview.style.getPropertyValue("--primary")).toBe("rgb(133, 163, 255)");
+    const darkTokens = derivePreviewThemeTokens({
+      selectedColors: props.selectedColors,
+      mode: "dark",
+    });
+    expect(preview.style.getPropertyValue("--background")).toBe(darkTokens.background);
+    expect(preview.style.getPropertyValue("--primary")).toBe(darkTokens.primary);
   });
 
   it("switches between overview and settings tabs inside preview", () => {

@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const SAMPLE_IMAGE_TITLE = "蒙德里安构成";
-const ORDERED_COLOR_ROLES = ["主色", "辅色", "强调色"] as const;
+const CLASSIFIED_THEME_ROLE_LABELS = ["表面基底", "动作色", "辅助色"] as const;
 
 type SelectedSwatch = {
   swatchTestId: string;
@@ -56,7 +56,9 @@ test.describe("image-to-ui themed preview e2e", () => {
     const parsed = JSON.parse(renderInputData ?? "{}") as { colorRoles: Array<{ role: string; hex: string }> };
 
     expect(parsed.colorRoles).toHaveLength(3);
-    expect(parsed.colorRoles.map((entry) => entry.role)).toEqual(ORDERED_COLOR_ROLES);
+    expect(parsed.colorRoles.map((entry) => entry.role).sort()).toEqual(
+      [...CLASSIFIED_THEME_ROLE_LABELS].sort(),
+    );
     expect(parsed.colorRoles.map((entry) => entry.hex)).toEqual(selectedSwatches.map((entry) => entry.hex));
   });
 

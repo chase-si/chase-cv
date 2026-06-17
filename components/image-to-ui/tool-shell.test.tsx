@@ -109,8 +109,8 @@ describe("ImageToUiToolShell palette selection", () => {
 
     fireEvent.click(screen.getByTestId("palette-swatch-Dominant3"));
     expect(renderButton).toBeEnabled();
-    expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("主色");
-    expect(screen.getByTestId("palette-swatch-role-Dominant3")).toHaveTextContent("强调色");
+    expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("已选色 1");
+    expect(screen.getByTestId("palette-swatch-role-Dominant3")).toHaveTextContent("已选色 3");
   });
 });
 
@@ -139,9 +139,9 @@ describe("ImageToUiToolShell render input summary", () => {
     expect(within(imageSummary).getByRole("img", { name: "蒙德里安构成" })).toBeInTheDocument();
     expect(screen.queryByTestId("active-image-preview")).not.toBeInTheDocument();
 
-    expect(screen.getByTestId("render-input-color-主色")).toHaveTextContent("#FF0088");
-    expect(screen.getByTestId("render-input-color-辅色")).toHaveTextContent("#112233");
-    expect(screen.getByTestId("render-input-color-强调色")).toHaveTextContent("#445566");
+    expect(screen.getByTestId("render-input-color-动作色")).toHaveTextContent("#FF0088");
+    expect(screen.getByTestId("render-input-color-表面基底")).toHaveTextContent("#445566");
+    expect(screen.getByTestId("render-input-color-辅助色")).toHaveTextContent("#112233");
   });
 
   it("applies derived css variables only on the preview root", async () => {
@@ -188,7 +188,7 @@ describe("ImageToUiToolShell render input summary", () => {
 
     expect(screen.getByTestId("palette-selection")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "蒙德里安构成" })).toBeInTheDocument();
-    expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("主色");
+    expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("已选色 1");
     expect(screen.getByTestId("palette-render-button")).toBeEnabled();
   });
 });

@@ -7,7 +7,7 @@ import type { PaletteSelectionState } from "@/lib/image-to-ui/active-image-types
 import { MIN_SELECTABLE_PALETTE_SWATCHES } from "@/lib/image-to-ui/active-image-types";
 import { isPaletteRenderEnabled } from "@/lib/image-to-ui/is-palette-render-enabled";
 import {
-  getOrderedPaletteRoleLabel,
+  getPaletteSelectionOrderLabel,
   toggleOrderedPaletteSwatch,
 } from "@/lib/image-to-ui/toggle-ordered-palette-selection";
 import { cn } from "@/lib/utils";
@@ -68,7 +68,7 @@ export function ExtractedPalettePanel({
           {swatches.map((swatch, swatchIndex) => {
             const selectionIndex = selectedColors.indexOf(swatch.hex);
             const isSelected = selectionIndex >= 0;
-            const roleLabel = isSelected ? getOrderedPaletteRoleLabel(selectionIndex) : null;
+            const orderLabel = isSelected ? getPaletteSelectionOrderLabel(selectionIndex) : null;
             const dominanceLabel = `主导色 ${swatchIndex + 1}`;
 
             return (
@@ -101,12 +101,12 @@ export function ExtractedPalettePanel({
                   <div className="min-w-0 flex-1">
                     <div className="flex min-h-5 flex-wrap items-center gap-2">
                       <p className="text-sm font-medium text-foreground">{dominanceLabel}</p>
-                      {roleLabel ? (
+                      {orderLabel ? (
                         <span
                           className="inline-flex shrink-0 items-center rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary"
                           data-testid={`palette-swatch-role-${swatch.role}`}
                         >
-                          {roleLabel}
+                          {orderLabel}
                         </span>
                       ) : null}
                     </div>

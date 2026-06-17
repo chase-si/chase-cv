@@ -101,9 +101,9 @@ describe("ExtractedPalettePanel", () => {
     });
 
     expect(screen.getByTestId("palette-swatch-order-Dominant1")).toHaveTextContent("1");
-    expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("主色");
-    expect(screen.getByTestId("palette-swatch-role-Dominant2")).toHaveTextContent("辅色");
-    expect(screen.getByTestId("palette-swatch-role-Dominant3")).toHaveTextContent("强调色");
+    expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("已选色 1");
+    expect(screen.getByTestId("palette-swatch-role-Dominant2")).toHaveTextContent("已选色 2");
+    expect(screen.getByTestId("palette-swatch-role-Dominant3")).toHaveTextContent("已选色 3");
     const dominant1Button = screen.getByTestId("palette-swatch-Dominant1");
     expect(within(dominant1Button).queryByTestId("palette-swatch-role-Dominant1")).toBeInTheDocument();
     expect(screen.getByTestId("palette-render-button")).toBeEnabled();
@@ -127,7 +127,7 @@ describe("ExtractedPalettePanel", () => {
     fireEvent.click(screen.getByTestId("palette-swatch-Dominant4"));
 
     expect(screen.getByTestId("palette-selection-limit")).toHaveTextContent("最多只能选择 3 个颜色");
-    expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("主色");
+    expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("已选色 1");
 
     fireEvent.click(screen.getByTestId("palette-swatch-Dominant2"));
     expect(screen.queryByTestId("palette-swatch-role-Dominant2")).not.toBeInTheDocument();
