@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toggle } from "@/components/ui/toggle";
 import { getActiveImageSrc, type ActiveImage } from "@/lib/image-to-ui/active-image-types";
@@ -41,6 +42,40 @@ const PREVIEW_TOKEN_SUMMARY_KEYS: PreviewThemeTokenKey[] = [
   "foreground",
   "border",
   "ring",
+];
+
+const PREVIEW_CUSTOMER_PIPELINE_ROWS: Array<{
+  customer: string;
+  arr: string;
+  status: string;
+  statusVariant: "secondary" | "accent" | "outline";
+  actionLabel: string;
+  actionText: string;
+}> = [
+  {
+    customer: "Acme Robotics",
+    arr: "$124k",
+    status: "At risk",
+    statusVariant: "accent",
+    actionLabel: "Open Acme Robotics account",
+    actionText: "Open account",
+  },
+  {
+    customer: "Northwind Labs",
+    arr: "$88k",
+    status: "Healthy",
+    statusVariant: "secondary",
+    actionLabel: "Schedule QBR for Northwind Labs",
+    actionText: "Schedule QBR",
+  },
+  {
+    customer: "Zephyr Mobility",
+    arr: "$63k",
+    status: "Renewal due",
+    statusVariant: "outline",
+    actionLabel: "Review Zephyr Mobility renewal",
+    actionText: "Review renewal",
+  },
 ];
 
 export function RenderInputSummaryPanel({
@@ -218,6 +253,43 @@ export function RenderInputSummaryPanel({
                     API latency remains above SLO in APAC. Keep mitigation playbook v2 active until traffic normalizes.
                   </AlertDescription>
                 </Alert>
+
+                <section
+                  data-testid="saas-data-table-section"
+                  className="space-y-2 border border-border bg-card p-3"
+                  aria-label="Customer pipeline table section"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h4 className="text-sm font-semibold text-foreground">Customer pipeline</h4>
+                    <Badge variant="secondary">Revenue focus</Badge>
+                  </div>
+                  <Table aria-label="Customer pipeline health">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>ARR</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {PREVIEW_CUSTOMER_PIPELINE_ROWS.map((row) => (
+                        <TableRow key={row.customer}>
+                          <TableCell className="font-medium">{row.customer}</TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground">{row.arr}</TableCell>
+                          <TableCell>
+                            <Badge variant={row.statusVariant}>{row.status}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button type="button" size="sm" variant="ghost" aria-label={row.actionLabel}>
+                              {row.actionText}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </section>
 
                 <section
                   data-testid="saas-accent-section"
