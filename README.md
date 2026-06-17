@@ -12,6 +12,12 @@ My personal website to show my skills
 - Frontend: NextJS, TailwindCSS, Shadcn
 - Backend: Supabase
 
+## E2E Tests (Playwright)
+
+- Install browser once: `npx playwright install chromium`
+- Run image-to-ui E2E suite: `npm run test:e2e`
+- Traces are enabled in Playwright config with `trace: "on-first-retry"`
+
 ## Features
 - [X] Light/Dark mode
 - [ ] En/Chinese
