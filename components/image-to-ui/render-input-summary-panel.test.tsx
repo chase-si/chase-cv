@@ -59,6 +59,7 @@ describe("RenderInputSummaryPanel", () => {
     expect(preview.style.getPropertyValue("--primary")).toBe("rgb(255, 0, 136)");
     expect(preview.style.getPropertyValue("--secondary")).toBe("rgb(17, 34, 51)");
     expect(preview.style.getPropertyValue("--accent")).toBe("rgb(68, 85, 102)");
+    expect(preview.className).toMatch(/tracking-normal/);
 
     const tokenSummary = screen.getByTestId("render-preview-token-summary");
     expect(within(tokenSummary).getByTestId("preview-token-primary")).toHaveTextContent(
@@ -178,5 +179,9 @@ describe("RenderInputSummaryPanel", () => {
     expect(within(preview).getByTestId("saas-primary-action").className).toMatch(/bg-primary/);
     expect(within(preview).getByTestId("saas-secondary-chip").className).toMatch(/bg-secondary/);
     expect(within(preview).getByTestId("saas-accent-badge").className).toMatch(/bg-accent/);
+
+    const tabs = within(preview).getByRole("tablist", { name: "Preview sections" });
+    expect(within(tabs).getByRole("tab", { name: "Overview" }).className).toMatch(/aria-selected:bg-primary/);
+    expect(within(preview).getByTestId("saas-primary-surface").className).toMatch(/bg-primary\/10/);
   });
 });
