@@ -65,7 +65,7 @@ export function RenderInputColorRoles({
     >
       {colorRoles.map((entry) => (
         <li
-          key={entry.role}
+          key={`${entry.role}-${entry.hex}`}
           className="flex items-center gap-3 border border-border bg-card px-3 py-2.5"
           data-testid={`render-input-color-${entry.role}`}
         >

@@ -1,6 +1,13 @@
-export const ORDERED_PALETTE_ROLE_LABELS = ["主色", "辅色", "强调色"] as const;
+export const MAX_PALETTE_SELECTION_COUNT = 3;
 
-export type OrderedPaletteRoleLabel = (typeof ORDERED_PALETTE_ROLE_LABELS)[number];
+export const PALETTE_SELECTION_ORDER_LABELS = [
+  "已选色 1",
+  "已选色 2",
+  "已选色 3",
+] as const;
+
+export type PaletteSelectionOrderLabel =
+  (typeof PALETTE_SELECTION_ORDER_LABELS)[number];
 
 export type ToggleOrderedPaletteSwatchResult =
   | { type: "updated"; selectedColors: string[] }
@@ -18,7 +25,7 @@ export function toggleOrderedPaletteSwatch(
     };
   }
 
-  if (selectedColors.length >= ORDERED_PALETTE_ROLE_LABELS.length) {
+  if (selectedColors.length >= MAX_PALETTE_SELECTION_COUNT) {
     return {
       type: "limit",
       selectedColors,
@@ -31,8 +38,8 @@ export function toggleOrderedPaletteSwatch(
   };
 }
 
-export function getOrderedPaletteRoleLabel(
+export function getPaletteSelectionOrderLabel(
   selectionIndex: number,
-): OrderedPaletteRoleLabel | null {
-  return ORDERED_PALETTE_ROLE_LABELS[selectionIndex] ?? null;
+): PaletteSelectionOrderLabel | null {
+  return PALETTE_SELECTION_ORDER_LABELS[selectionIndex] ?? null;
 }

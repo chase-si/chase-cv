@@ -7,15 +7,14 @@ import {
 } from "@/lib/image-to-ui/derive-preview-theme";
 
 describe("derivePreviewThemeTokens", () => {
-  it("preserves selected color order for primary secondary and accent source roles", () => {
+  it("uses classified action color for primary and ring instead of first selection", () => {
     const tokens = derivePreviewThemeTokens({
-      selectedColors: ["#FF0088", "#112233", "#445566"],
+      selectedColors: ["#445566", "#FF0088", "#112233"],
       mode: "light",
     });
 
     expect(tokens.primary).toBe("rgb(255, 0, 136)");
-    expect(tokens.secondary).toBe("rgb(17, 34, 51)");
-    expect(tokens.accent).toBe("rgb(172, 175, 185)");
+    expect(tokens.ring).toBe("rgb(255, 0, 136)");
   });
 
   it("includes all required preview tokens", () => {
@@ -54,47 +53,44 @@ describe("derivePreviewThemeTokens", () => {
     expect(hasReadableContrast(tokens.accent, tokens["accent-foreground"])).toBe(true);
   });
 
-  it("uses the primary color to drive brand focus and key surfaces", () => {
+  it("derives rubric-aligned light theme from painting palette order", () => {
     const tokens = derivePreviewThemeTokens({
-      selectedColors: ["#3366FF", "#00AA55", "#FFAA00"],
+      selectedColors: ["#faf8f0", "#09568c", "#9e9982"],
       mode: "light",
     });
 
-    expect(tokens.ring).toBe("rgb(51, 102, 255)");
-    expect(tokens.card).toBe("rgb(224, 232, 255)");
-    expect(tokens.border).toBe("rgb(148, 219, 184)");
-  });
-
-  it("derives light foreground and softened accent from the selected brand colors", () => {
-    const tokens = derivePreviewThemeTokens({
-      selectedColors: ["#3366FF", "#00AA55", "#FFAA00"],
-      mode: "light",
-    });
-
-    expect(tokens.primary).toBe("rgb(51, 102, 255)");
-    expect(tokens.secondary).toBe("rgb(0, 170, 85)");
-    expect(tokens.accent).toBe("rgb(247, 215, 145)");
-    expect(tokens.foreground).toBe("rgb(15, 31, 77)");
+    expect(tokens.primary).toBe("rgb(9, 86, 140)");
+    expect(tokens.ring).toBe("rgb(9, 86, 140)");
+    expect(tokens.foreground).not.toBe("rgb(0, 0, 0)");
+    expect(tokens.foreground).not.toBe("rgb(255, 255, 255)");
     expect(hasReadableContrast(tokens.background, tokens.foreground)).toBe(true);
   });
 
-  it("derives dark background and bright primary from the selected primary color", () => {
+  it("derives dark background from classified surface seed", () => {
     const tokens = derivePreviewThemeTokens({
       selectedColors: ["#3366FF", "#00AA55", "#FFAA00"],
       mode: "dark",
     });
 
-    expect(tokens.background).toBe("rgb(7, 14, 36)");
     expect(tokens.primary).toBe("rgb(133, 163, 255)");
     expect(hasReadableContrast(tokens.background, tokens.foreground)).toBe(true);
     expect(hasReadableContrast(tokens.primary, tokens["primary-foreground"])).toBe(true);
+  });
+
+  it("throws when fewer than three colors are provided", () => {
+    expect(() =>
+      derivePreviewThemeTokens({
+        selectedColors: ["#111111", "#222222"],
+        mode: "light",
+      }),
+    ).toThrow(/three selected colors/i);
   });
 });
 
 describe("buildScopedPreviewThemeCssVariables", () => {
   it("returns local css variables for preview root", () => {
     const tokens = derivePreviewThemeTokens({
-      selectedColors: ["#FF0088", "#112233", "#445566"],
+      selectedColors: ["#faf8f0", "#09568c", "#9e9982"],
       mode: "light",
     });
 
@@ -108,9 +104,9 @@ describe("buildScopedPreviewThemeCssVariables", () => {
       "--border": expect.any(String),
       "--input": expect.any(String),
       "--ring": expect.any(String),
-      "--primary": "rgb(255, 0, 136)",
+      "--primary": "rgb(9, 86, 140)",
       "--primary-foreground": expect.any(String),
-      "--secondary": "rgb(17, 34, 51)",
+      "--secondary": expect.any(String),
       "--secondary-foreground": expect.any(String),
       "--accent": expect.any(String),
       "--accent-foreground": expect.any(String),

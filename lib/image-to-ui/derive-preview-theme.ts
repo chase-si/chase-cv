@@ -1,13 +1,12 @@
 type ThemeMode = "light" | "dark";
 
-type RgbColor = {
-  r: number;
-  g: number;
-  b: number;
-};
-
-const BLACK: RgbColor = { r: 0, g: 0, b: 0 };
-const WHITE: RgbColor = { r: 255, g: 255, b: 255 };
+import { classifyPaletteThemeRoles } from "@/lib/image-to-ui/classify-palette-theme-roles";
+import {
+  getContrastRatio,
+  parseHexToRgb,
+  toRelativeLuminance,
+  type RgbColor,
+} from "@/lib/image-to-ui/palette-color-math";
 
 const PREVIEW_THEME_TOKEN_KEYS = [
   "background",
@@ -27,6 +26,9 @@ const PREVIEW_THEME_TOKEN_KEYS = [
   "accent-foreground",
 ] as const;
 
+const BLACK: RgbColor = { r: 0, g: 0, b: 0 };
+const WHITE: RgbColor = { r: 255, g: 255, b: 255 };
+
 export type PreviewThemeTokenKey = (typeof PREVIEW_THEME_TOKEN_KEYS)[number];
 
 export type PreviewThemeTokens = Record<PreviewThemeTokenKey, string>;
@@ -38,19 +40,6 @@ export type DerivePreviewThemeTokensInput = {
 
 function clampColorChannel(value: number): number {
   return Math.max(0, Math.min(255, Math.round(value)));
-}
-
-function parseHexToRgb(hex: string): RgbColor {
-  const normalizedHex = hex.trim().replace("#", "");
-  if (!/^[\da-fA-F]{6}$/.test(normalizedHex)) {
-    throw new Error(`Unsupported color format: ${hex}`);
-  }
-
-  return {
-    r: parseInt(normalizedHex.slice(0, 2), 16),
-    g: parseInt(normalizedHex.slice(2, 4), 16),
-    b: parseInt(normalizedHex.slice(4, 6), 16),
-  };
 }
 
 function toRgbCss(color: RgbColor): string {
@@ -74,19 +63,15 @@ function darkenColor(color: RgbColor, amount: number): RgbColor {
   return mixColor(color, BLACK, amount);
 }
 
-function toRelativeLuminance(color: RgbColor): number {
-  const normalized = [color.r, color.g, color.b].map((channel) => {
-    const value = channel / 255;
-    return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
-  });
-
-  return 0.2126 * normalized[0] + 0.7152 * normalized[1] + 0.0722 * normalized[2];
-}
-
-function getContrastRatio(a: RgbColor, b: RgbColor): number {
-  const lighter = Math.max(toRelativeLuminance(a), toRelativeLuminance(b));
-  const darker = Math.min(toRelativeLuminance(a), toRelativeLuminance(b));
-  return (lighter + 0.05) / (darker + 0.05);
+function pickPaletteForegroundSeed(
+  action: RgbColor,
+  support: RgbColor,
+  surface: RgbColor,
+): RgbColor {
+  const candidates = [darkenColor(action, 0.72), darkenColor(support, 0.78), darkenColor(surface, 0.9)];
+  return candidates.reduce((darkest, candidate) =>
+    toRelativeLuminance(candidate) < toRelativeLuminance(darkest) ? candidate : darkest,
+  );
 }
 
 function pickReadableForeground(background: RgbColor): RgbColor {
@@ -102,32 +87,30 @@ function ensureReadableAgainstBackground(candidate: RgbColor, background: RgbCol
   return pickReadableForeground(background);
 }
 
-function ensureThreeSelectedColors(
-  selectedColors: DerivePreviewThemeTokensInput["selectedColors"],
-): [string, string, string] {
-  if (selectedColors.length < 3) {
-    throw new Error("Three selected colors are required to derive preview theme tokens");
-  }
-  return [selectedColors[0], selectedColors[1], selectedColors[2]];
-}
-
 export function derivePreviewThemeTokens({
   selectedColors,
   mode,
 }: DerivePreviewThemeTokensInput): PreviewThemeTokens {
-  const [primaryHex, secondaryHex, accentHex] = ensureThreeSelectedColors(selectedColors);
+  if (selectedColors.length < 3) {
+    throw new Error("Three selected colors are required to derive preview theme tokens");
+  }
 
-  const primary = parseHexToRgb(primaryHex);
-  const secondary = parseHexToRgb(secondaryHex);
-  const accent = parseHexToRgb(accentHex);
-  const neutralSeed = mixColor(primary, secondary, 0.5);
-  const background = mode === "dark" ? darkenColor(primary, 0.86) : lightenColor(neutralSeed, 0.94);
-  const foreground = ensureReadableAgainstBackground(darkenColor(primary, 0.7), background);
-  const primaryRole = mode === "dark" ? lightenColor(primary, 0.4) : primary;
-  const card = mode === "dark" ? darkenColor(primary, 0.72) : lightenColor(primary, 0.85);
+  const { surfaceSeed, actionSeed, supportSeed } = classifyPaletteThemeRoles(selectedColors);
+
+  const surface = parseHexToRgb(surfaceSeed);
+  const action = parseHexToRgb(actionSeed);
+  const support = parseHexToRgb(supportSeed);
+  const neutralSeed = mixColor(surface, support, 0.5);
+  const background =
+    mode === "dark" ? darkenColor(surface, 0.82) : lightenColor(surface, 0.12);
+  const foregroundSeed = pickPaletteForegroundSeed(action, support, surface);
+  const foreground = ensureReadableAgainstBackground(foregroundSeed, background);
+  const primaryRole = mode === "dark" ? lightenColor(action, 0.4) : action;
+  const card = mode === "dark" ? darkenColor(surface, 0.62) : lightenColor(surface, 0.06);
   const muted = mode === "dark" ? darkenColor(neutralSeed, 0.72) : lightenColor(neutralSeed, 0.84);
-  const border = mode === "dark" ? darkenColor(secondary, 0.5) : lightenColor(secondary, 0.58);
-  const accentRole = mode === "dark" ? darkenColor(accent, 0.28) : mixColor(accent, background, 0.58);
+  const border = mode === "dark" ? darkenColor(support, 0.5) : lightenColor(support, 0.58);
+  const accentRole =
+    mode === "dark" ? darkenColor(support, 0.28) : mixColor(support, background, 0.58);
   const ring = primaryRole;
 
   return {
@@ -142,8 +125,8 @@ export function derivePreviewThemeTokens({
     ring: toRgbCss(ring),
     primary: toRgbCss(primaryRole),
     "primary-foreground": toRgbCss(pickReadableForeground(primaryRole)),
-    secondary: toRgbCss(secondary),
-    "secondary-foreground": toRgbCss(pickReadableForeground(secondary)),
+    secondary: toRgbCss(support),
+    "secondary-foreground": toRgbCss(pickReadableForeground(support)),
     accent: toRgbCss(accentRole),
     "accent-foreground": toRgbCss(pickReadableForeground(accentRole)),
   };

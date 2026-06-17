@@ -1,12 +1,13 @@
 import type { ActiveImage } from "@/lib/image-to-ui/active-image-types";
 import { getActiveImageSrc } from "@/lib/image-to-ui/active-image-types";
 import {
-  getOrderedPaletteRoleLabel,
-  ORDERED_PALETTE_ROLE_LABELS,
-} from "@/lib/image-to-ui/toggle-ordered-palette-selection";
+  assignedRoleLabelForHex,
+  classifyPaletteThemeRoles,
+  type ThemePaletteAssignedRoleLabel,
+} from "@/lib/image-to-ui/classify-palette-theme-roles";
 
 export type ImageToUiRenderColorRole = {
-  role: (typeof ORDERED_PALETTE_ROLE_LABELS)[number];
+  role: ThemePaletteAssignedRoleLabel;
   hex: string;
 };
 
@@ -20,13 +21,11 @@ export function buildImageToUiRenderInput(
   image: ActiveImage,
   selectedColors: string[],
 ): ImageToUiRenderInput {
-  const colorRoles = selectedColors.map((hex, index) => {
-    const role = getOrderedPaletteRoleLabel(index);
-    if (!role) {
-      throw new Error(`Missing palette role for selection index ${index}`);
-    }
-    return { role, hex };
-  });
+  const classification = classifyPaletteThemeRoles(selectedColors);
+  const colorRoles = selectedColors.map((hex) => ({
+    role: assignedRoleLabelForHex(hex, classification),
+    hex,
+  }));
 
   return {
     image,
