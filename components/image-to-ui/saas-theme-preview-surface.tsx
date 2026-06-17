@@ -54,6 +54,21 @@ const PREVIEW_CUSTOMER_PIPELINE_ROWS: Array<{
   },
 ];
 
+const LANDING_FEATURE_CARDS = [
+  {
+    title: "Pipeline intelligence",
+    description: "Spot expansion risk and revenue signals before they become escalations.",
+  },
+  {
+    title: "Guided playbooks",
+    description: "Turn best practices into repeatable motions for every customer segment.",
+  },
+  {
+    title: "Executive visibility",
+    description: "Share progress, blockers, and proof points in one branded command center.",
+  },
+];
+
 type SaasThemePreviewSurfaceProps = {
   previewRootStyle: CSSProperties;
   className?: string;
@@ -78,6 +93,9 @@ export function SaasThemePreviewSurface({ previewRootStyle, className }: SaasThe
             </TabsTrigger>
             <TabsTrigger value="settings" className="aria-selected:bg-primary aria-selected:text-primary-foreground">
               Workspace settings
+            </TabsTrigger>
+            <TabsTrigger value="landing" className="aria-selected:bg-primary aria-selected:text-primary-foreground">
+              Landing page
             </TabsTrigger>
           </TabsList>
 
@@ -277,6 +295,97 @@ export function SaasThemePreviewSurface({ previewRootStyle, className }: SaasThe
               <Button type="submit">Save changes</Button>
             </div>
           </form>
+          </TabsContent>
+
+          <TabsContent value="landing" className="space-y-4">
+            <section
+              data-testid="landing-page-preview"
+              className="space-y-4 border border-border bg-card p-4"
+              aria-label="Branded landing page preview"
+            >
+              <div
+                data-testid="landing-hero"
+                className="space-y-4 border border-primary/50 bg-primary/10 p-4"
+              >
+                <Badge variant="accent">Customer success OS</Badge>
+                <div className="max-w-2xl space-y-2">
+                  <h3 className="text-2xl font-semibold tracking-tight text-foreground">
+                    Launch customer success faster
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Turn extracted brand colors into a polished SaaS landing page with clear proof,
+                    conversion paths, and operational momentum.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" data-testid="landing-primary-cta">
+                    Start free trial
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-primary text-primary hover:bg-primary/10"
+                  >
+                    View demo
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-3">
+                {LANDING_FEATURE_CARDS.map((feature) => (
+                  <article
+                    key={feature.title}
+                    data-testid="landing-feature-card"
+                    className="space-y-2 border border-border bg-background p-3"
+                  >
+                    <h4 className="text-sm font-semibold text-foreground">{feature.title}</h4>
+                    <p className="text-xs text-muted-foreground">{feature.description}</p>
+                  </article>
+                ))}
+              </div>
+
+              <Separator />
+
+              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,16rem)]">
+                <section
+                  data-testid="landing-social-proof"
+                  className="flex flex-wrap items-center justify-between gap-3 border border-secondary/50 bg-secondary/10 p-3"
+                >
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground">Trusted by growth teams</p>
+                    <p className="text-xs text-muted-foreground">
+                      2,400+ workspaces coordinate renewals and expansion launches here.
+                    </p>
+                  </div>
+                  <AvatarGroup>
+                    <Avatar size="sm">
+                      <AvatarFallback>AK</AvatarFallback>
+                    </Avatar>
+                    <Avatar size="sm">
+                      <AvatarFallback>MS</AvatarFallback>
+                    </Avatar>
+                    <Avatar size="sm">
+                      <AvatarFallback>JP</AvatarFallback>
+                    </Avatar>
+                    <AvatarGroupCount>+8</AvatarGroupCount>
+                  </AvatarGroup>
+                </section>
+
+                <section
+                  data-testid="landing-progress-strip"
+                  className="space-y-2 border border-accent/50 bg-accent/10 p-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-foreground">Activation target</p>
+                    <Badge variant="accent">Q3 launch</Badge>
+                  </div>
+                  <Progress value={74}>
+                    <ProgressLabel>Launch readiness</ProgressLabel>
+                    <ProgressValue />
+                  </Progress>
+                </section>
+              </div>
+            </section>
           </TabsContent>
         </Tabs>
       </TooltipProvider>

@@ -89,6 +89,7 @@ describe("RenderInputSummaryPanel", () => {
     const tabs = within(preview).getByRole("tablist", { name: "Preview sections" });
     const overviewTab = within(tabs).getByRole("tab", { name: "Overview" });
     const settingsTab = within(tabs).getByRole("tab", { name: "Workspace settings" });
+    const landingTab = within(tabs).getByRole("tab", { name: "Landing page" });
 
     expect(overviewTab).toHaveAttribute("aria-selected", "true");
     expect(within(preview).getByTestId("saas-status-area")).toBeInTheDocument();
@@ -112,6 +113,17 @@ describe("RenderInputSummaryPanel", () => {
     fireEvent.click(overviewTab);
     expect(within(preview).getByTestId("saas-metric-mrr")).toHaveTextContent("$84,200");
     expect(within(preview).getByTestId("saas-metric-incidents")).toHaveTextContent("3");
+
+    fireEvent.click(landingTab);
+    expect(landingTab).toHaveAttribute("aria-selected", "true");
+    expect(within(preview).queryByTestId("saas-status-area")).not.toBeInTheDocument();
+    expect(within(preview).getByTestId("landing-page-preview")).toBeInTheDocument();
+    expect(within(preview).getByTestId("landing-hero")).toHaveTextContent("Launch customer success faster");
+    expect(within(preview).getByRole("button", { name: "Start free trial" }).className).toMatch(/bg-primary/);
+    expect(within(preview).getByRole("button", { name: "View demo" }).className).toMatch(/border-primary/);
+    expect(within(preview).getAllByTestId("landing-feature-card")).toHaveLength(3);
+    expect(within(preview).getByTestId("landing-social-proof")).toHaveTextContent("+8");
+    expect(within(preview).getByTestId("landing-progress-strip")).toBeInTheDocument();
   });
 
   it("shows alert and accent sections in preview overview", () => {
