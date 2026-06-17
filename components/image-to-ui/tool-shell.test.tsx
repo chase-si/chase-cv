@@ -78,6 +78,18 @@ describe("ImageToUiToolShell active image selection", () => {
   });
 });
 
+async function selectThreePaletteSwatches() {
+  fireEvent.click(getSampleCard("minimal-dashboard"));
+
+  await waitFor(() => {
+    expect(screen.getByTestId("palette-swatch-Vibrant")).toBeInTheDocument();
+  });
+
+  fireEvent.click(screen.getByTestId("palette-swatch-Vibrant"));
+  fireEvent.click(screen.getByTestId("palette-swatch-Muted"));
+  fireEvent.click(screen.getByTestId("palette-swatch-DarkVibrant"));
+}
+
 describe("ImageToUiToolShell palette selection", () => {
   it("enables render only after three ordered swatches are selected", async () => {
     render(<ImageToUiToolShell />);
@@ -99,5 +111,47 @@ describe("ImageToUiToolShell palette selection", () => {
     expect(renderButton).toBeEnabled();
     expect(screen.getByTestId("palette-swatch-role-Vibrant")).toHaveTextContent("主色");
     expect(screen.getByTestId("palette-swatch-role-DarkVibrant")).toHaveTextContent("强调色");
+  });
+});
+
+describe("ImageToUiToolShell render input summary", () => {
+  it("switches to the summary step without leaving the page when Render is clicked", async () => {
+    render(<ImageToUiToolShell />);
+
+    await selectThreePaletteSwatches();
+    fireEvent.click(screen.getByTestId("palette-render-button"));
+
+    expect(screen.getByTestId("render-input-summary")).toBeInTheDocument();
+    expect(screen.getByTestId("render-placeholder-status")).toHaveTextContent("待开发");
+    expect(screen.queryByTestId("palette-selection")).not.toBeInTheDocument();
+    expect(screen.getByText("渲染界面")).toBeInTheDocument();
+  });
+
+  it("shows the active image and three color roles on the summary step", async () => {
+    render(<ImageToUiToolShell />);
+
+    await selectThreePaletteSwatches();
+    fireEvent.click(screen.getByTestId("palette-render-button"));
+
+    const summary = screen.getByTestId("render-input-summary");
+    const preview = within(summary).getByTestId("active-image-preview");
+    expect(within(preview).getByRole("img", { name: "极简仪表盘" })).toBeInTheDocument();
+
+    expect(screen.getByTestId("render-input-color-主色")).toHaveTextContent("#FF0088");
+    expect(screen.getByTestId("render-input-color-辅色")).toHaveTextContent("#112233");
+    expect(screen.getByTestId("render-input-color-强调色")).toHaveTextContent("#445566");
+  });
+
+  it("returns to edit and preserves image and color choices", async () => {
+    render(<ImageToUiToolShell />);
+
+    await selectThreePaletteSwatches();
+    fireEvent.click(screen.getByTestId("palette-render-button"));
+    fireEvent.click(screen.getByTestId("render-back-to-edit"));
+
+    expect(screen.getByTestId("palette-selection")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "极简仪表盘" })).toBeInTheDocument();
+    expect(screen.getByTestId("palette-swatch-role-Vibrant")).toHaveTextContent("主色");
+    expect(screen.getByTestId("palette-render-button")).toBeEnabled();
   });
 });
