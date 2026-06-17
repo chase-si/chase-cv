@@ -122,7 +122,7 @@ describe("ImageToUiToolShell render input summary", () => {
     fireEvent.click(screen.getByTestId("palette-render-button"));
 
     expect(screen.getByTestId("render-input-summary")).toBeInTheDocument();
-    expect(screen.getByTestId("render-placeholder-status")).toHaveTextContent("待开发");
+    expect(screen.getByTestId("saas-preview-surface")).toBeInTheDocument();
     expect(screen.queryByTestId("palette-selection")).not.toBeInTheDocument();
     expect(screen.getByText("渲染界面")).toBeInTheDocument();
   });

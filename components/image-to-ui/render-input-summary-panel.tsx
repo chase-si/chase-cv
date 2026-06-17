@@ -2,8 +2,16 @@
 
 import Image from "next/image";
 import type { CSSProperties } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/ui/toggle";
 import { getActiveImageSrc, type ActiveImage } from "@/lib/image-to-ui/active-image-types";
 import {
   buildImageToUiRenderInput,
@@ -153,15 +161,106 @@ export function RenderInputSummaryPanel({
       <Card className="border-dashed shadow-md">
         <CardHeader>
           <CardTitle className="text-base">界面渲染</CardTitle>
-          <CardDescription>生成式 UI 能力尚未接入。</CardDescription>
+          <CardDescription>以下是使用 scoped theme token 的 SaaS 预览切片。</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p
-            className="border border-border bg-muted/40 px-4 py-6 text-center text-sm font-medium text-muted-foreground"
-            data-testid="render-placeholder-status"
+          <section
+            data-testid="saas-preview-surface"
+            className="space-y-4 border border-border bg-background p-4 text-foreground"
+            aria-label="SaaS status and settings preview"
           >
-            待开发
-          </p>
+            <div data-testid="saas-status-area" className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold">Platform health</h3>
+                <Badge variant="accent" data-testid="saas-accent-badge">
+                  Performance Watch
+                </Badge>
+              </div>
+              <div className="grid gap-3 md:grid-cols-3">
+                <article className="space-y-2 border border-border bg-card p-3">
+                  <p className="text-xs text-muted-foreground">Monthly recurring revenue</p>
+                  <p className="text-2xl font-semibold" data-testid="saas-metric-mrr">
+                    $84,200
+                  </p>
+                  <Badge variant="secondary" data-testid="saas-secondary-chip">
+                    +12.4% vs last month
+                  </Badge>
+                </article>
+                <article className="space-y-2 border border-border bg-card p-3">
+                  <p className="text-xs text-muted-foreground">Open incidents</p>
+                  <p className="text-2xl font-semibold" data-testid="saas-metric-incidents">
+                    3
+                  </p>
+                  <p className="text-xs text-muted-foreground">2 degraded regions, 1 api latency alert</p>
+                </article>
+                <article className="space-y-2 border border-border bg-card p-3">
+                  <p className="text-xs text-muted-foreground">Enterprise renewals due</p>
+                  <p className="text-2xl font-semibold">7</p>
+                  <Button type="button" size="sm" data-testid="saas-primary-action">
+                    Review contracts
+                  </Button>
+                </article>
+              </div>
+            </div>
+
+            <form
+              className="space-y-4 border border-border bg-card p-4"
+              data-testid="saas-settings-form"
+              onSubmit={(event) => event.preventDefault()}
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="workspace-name">Workspace name</Label>
+                  <Input id="workspace-name" defaultValue="Atlas Control Room" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="workspace-plan">Plan</Label>
+                  <Select defaultValue="scale">
+                    <SelectTrigger id="workspace-plan" aria-label="Plan" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="starter">Starter</SelectItem>
+                      <SelectItem value="scale">Scale</SelectItem>
+                      <SelectItem value="enterprise">Enterprise</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="autoscale-threshold">Auto-scale threshold</Label>
+                <Slider
+                  aria-label="Auto-scale threshold"
+                  id="autoscale-threshold"
+                  min={20}
+                  max={95}
+                  defaultValue={[65]}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <Toggle type="button" variant="outline" defaultPressed>
+                  Enable maintenance mode
+                </Toggle>
+                <label className="flex items-center gap-2 text-sm text-foreground">
+                  <Checkbox defaultChecked aria-label="Notify on-call via SMS" />
+                  <span>Notify on-call via SMS</span>
+                </label>
+                <label className="flex items-center gap-2 text-sm text-foreground">
+                  <Switch defaultChecked aria-label="Allow public status page" />
+                  <span>Allow public status page</span>
+                </label>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <Button type="button" variant="secondary">
+                  Reset
+                </Button>
+                <Button type="submit">Save changes</Button>
+              </div>
+            </form>
+          </section>
           <Button type="button" variant="outline" data-testid="render-back-to-edit" onClick={onBackToEdit}>
             返回编辑
           </Button>
