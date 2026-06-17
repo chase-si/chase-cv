@@ -9,6 +9,7 @@ import { ExtractedPalettePanel } from "@/components/image-to-ui/extracted-palett
 import { ImageUploadZone } from "@/components/image-to-ui/image-upload-zone";
 import { ImageToUiStepIndicator } from "@/components/image-to-ui/step-indicator";
 import { RenderInputSummaryPanel } from "@/components/image-to-ui/render-input-summary-panel";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { IMAGE_TO_UI_SAMPLE_IMAGES } from "@/lib/constants/image-to-ui-samples";
 import type { ActiveImage } from "@/lib/image-to-ui/active-image-types";
@@ -48,7 +49,20 @@ export function ImageToUiToolShell() {
                 : "确认当前图片与三色角色；查看完整预览并可返回继续编辑。"}
             </p>
           </div>
-          <ImageToUiStepIndicator activeStep={flowStep} />
+          <div className="flex flex-wrap items-center gap-3">
+            <ImageToUiStepIndicator activeStep={flowStep} />
+            {flowStep === 2 ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                data-testid="render-back-to-edit"
+                onClick={() => setFlowStep(1)}
+              >
+                返回编辑
+              </Button>
+            ) : null}
+          </div>
         </header>
 
         {flowStep === 1 ? (
@@ -98,7 +112,6 @@ export function ImageToUiToolShell() {
             activeImage={activeImage}
             sampleTitleById={sampleTitleById}
             selectedColors={paletteSelection.selectedColors}
-            onBackToEdit={() => setFlowStep(1)}
           />
         ) : null}
       </main>
