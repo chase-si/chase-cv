@@ -99,16 +99,18 @@ export function ExtractedPalettePanel({
                     ) : null}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground">{dominanceLabel}</p>
+                    <div className="flex min-h-5 flex-wrap items-center gap-2">
+                      <p className="text-sm font-medium text-foreground">{dominanceLabel}</p>
+                      {roleLabel ? (
+                        <span
+                          className="inline-flex shrink-0 items-center rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary"
+                          data-testid={`palette-swatch-role-${swatch.role}`}
+                        >
+                          {roleLabel}
+                        </span>
+                      ) : null}
+                    </div>
                     <p className="font-mono text-xs text-muted-foreground">{swatch.hex}</p>
-                    {roleLabel ? (
-                      <p
-                        className="text-xs font-medium text-primary"
-                        data-testid={`palette-swatch-role-${swatch.role}`}
-                      >
-                        {roleLabel}
-                      </p>
-                    ) : null}
                   </div>
                 </button>
               </li>
