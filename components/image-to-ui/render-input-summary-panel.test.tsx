@@ -149,6 +149,37 @@ describe("RenderInputSummaryPanel", () => {
     expect(within(preview).getByTestId("saas-accent-section")).toBeInTheDocument();
   });
 
+  it("renders a compact data table with status badges and accessible row actions", () => {
+    render(
+      <RenderInputSummaryPanel
+        activeImage={{
+          type: "sample",
+          sampleId: "mondrian",
+          src: "/imgs/image-to-ui/mondrian-1280.webp",
+        }}
+        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        selectedColors={["#FF0088", "#112233", "#445566"]}
+        onBackToEdit={() => {}}
+      />,
+    );
+
+    const preview = screen.getByTestId("saas-preview-surface");
+    const tableSection = within(preview).getByTestId("saas-data-table-section");
+    const table = within(tableSection).getByRole("table", { name: "Customer pipeline health" });
+    expect(within(table).getByRole("columnheader", { name: "Customer" })).toBeInTheDocument();
+    expect(within(table).getByRole("columnheader", { name: "ARR" })).toBeInTheDocument();
+    expect(within(table).getByRole("columnheader", { name: "Status" })).toBeInTheDocument();
+    expect(within(table).getByRole("columnheader", { name: "Actions" })).toBeInTheDocument();
+    expect(within(table).getByText("Acme Robotics")).toBeInTheDocument();
+    expect(within(table).getByText("At risk")).toBeInTheDocument();
+    expect(within(table).getByText("Healthy")).toBeInTheDocument();
+    expect(within(table).getByRole("button", { name: "Open Acme Robotics account" })).toBeInTheDocument();
+    expect(
+      within(table).getByRole("button", { name: "Schedule QBR for Northwind Labs" }),
+    ).toBeInTheDocument();
+    expect(within(table).getByRole("button", { name: "Review Zephyr Mobility renewal" })).toBeInTheDocument();
+  });
+
   it("shows primary secondary and accent roles in the preview section", () => {
     render(
       <RenderInputSummaryPanel
