@@ -20,6 +20,8 @@ import { createEffect } from "magic-cursor-effect";
 import { MAGIC_CURSOR_EFFECTS } from "@/lib/constants/magic-cursor";
 
 import { cn } from "@/lib/utils";
+import type { MagneticEffectOptions } from "@/components/magic-cursor/types";
+import { toMagneticLibraryOptions } from "@/lib/magic-cursor/magnetic-options";
 
 type Props = {
   effect: EffectName;
@@ -44,7 +46,11 @@ function create(effect: EffectName, root: HTMLDivElement, options: Props["option
     case MAGIC_CURSOR_EFFECTS.TRAIL.type:
       return createEffect(MAGIC_CURSOR_EFFECTS.TRAIL.type, root, options as TrailOptions);
     case MAGIC_CURSOR_EFFECTS.MAGNETIC.type:
-      return createEffect(MAGIC_CURSOR_EFFECTS.MAGNETIC.type, root, options as MagneticOptions);
+      return createEffect(
+        MAGIC_CURSOR_EFFECTS.MAGNETIC.type,
+        root,
+        toMagneticLibraryOptions(options as MagneticEffectOptions),
+      );
     case MAGIC_CURSOR_EFFECTS.RING.type:
       return createEffect(MAGIC_CURSOR_EFFECTS.RING.type, root, options as RingOptions);
     case MAGIC_CURSOR_EFFECTS.MAGNIFIER.type:
@@ -63,7 +69,7 @@ function create(effect: EffectName, root: HTMLDivElement, options: Props["option
 }
 
 const basicStyle =
-  "relative overflow-hidden rounded-xl border border-border bg-card min-h-[240px] flex items-center justify-center text-3xl bold uppercase";
+  "relative overflow-hidden border border-border bg-card min-h-[240px] flex items-center justify-center text-3xl bold uppercase";
 
 export function MagicCursorDemoDetail({
   effect,
@@ -119,6 +125,7 @@ export function MagicCursorDemoDetail({
   }, [enabled, effect, isLight, optionsKey]);
 
   if (effect === MAGIC_CURSOR_EFFECTS.MAGNETIC.type) {
+    const itemColor = (options as MagneticEffectOptions).itemColor?.trim();
     return (
       <div ref={rootRef} className={cn(basicStyle, "flex items-center justify-center")}>
         <div>{effect}</div>
@@ -127,13 +134,17 @@ export function MagicCursorDemoDetail({
           <div
             key={item.id}
             data-magnetic
-            className="absolute shadow-xs z-10 rounded-full bg-primary text-sm flex items-center justify-center"
+            className={cn(
+              "absolute z-10 flex items-center justify-center text-sm shadow-xs",
+              !itemColor && "bg-primary",
+            )}
             style={{
               top: item.top,
               left: item.left,
               width: item.size,
               height: item.size,
               transform: "translate(-50%, -50%)",
+              ...(itemColor ? { backgroundColor: itemColor } : {}),
             }}
           >
             {item.id}
@@ -165,4 +176,3 @@ export function MagicCursorDemoDetail({
     </div>
   );
 }
-

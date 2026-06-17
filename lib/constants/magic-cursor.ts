@@ -2,7 +2,6 @@ import type {
   EffectName,
   FlameOptions,
   InvertRingOptions,
-  MagneticOptions,
   MagnifierOptions,
   RingOptions,
   SmokeOptions,
@@ -10,7 +9,7 @@ import type {
   TrailOptions,
 } from "magic-cursor-effect";
 
-import type { OptionsByEffect } from "@/components/magic-cursor/types";
+import type { MagneticEffectOptions, OptionsByEffect } from "@/components/magic-cursor/types";
 
 export const MAGIC_CURSOR_EFFECTS = {
   RING: {
@@ -57,7 +56,8 @@ export const MAGIC_CURSOR_EFFECTS = {
     options: {
       strength: 0.35,
       selector: "[data-magnetic]",
-    } satisfies MagneticOptions,
+      itemColor: "",
+    } satisfies MagneticEffectOptions,
   },
   FLAME: {
     type: "flame" as const,

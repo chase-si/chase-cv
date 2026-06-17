@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import type { EffectName } from "magic-cursor-effect";
 
+import { Card } from '@/components/ui/card'
 import { MagicCursorDemoTile } from "@/components/magic-cursor/demo-tile";
 import { MagicCursorSidebar } from "@/components/magic-cursor/sidebar";
 import { MAGIC_CURSOR_EFFECTS, MAGIC_CURSOR_EFFECT_ORDER, defaultOptionsByEffect } from "@/lib/constants/magic-cursor";
@@ -20,7 +21,7 @@ export default function Page() {
             <MagicCursorSidebar activeEffect={null} />
           </section>
 
-          <section className="lg:col-span-8 shadow-lg backdrop-blur-xl rounded-xl overflow-hidden">
+          <Card className="lg:col-span-8 shadow-lg backdrop-blur-xl p-0 overflow-hidden">
             <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
               {[...MAGIC_CURSOR_EFFECT_ORDER, MAGIC_CURSOR_EFFECTS.INVERT_RING.type].map((effect, index) => {
                 const enabled = active === effect;
@@ -42,7 +43,7 @@ export default function Page() {
                 );
               })}
             </div>
-          </section>
+          </Card>
         </div>
       </main>
     </div>
