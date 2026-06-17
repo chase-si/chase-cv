@@ -78,6 +78,13 @@ export function useActiveImageSelection(options: UseActiveImageSelectionOptions 
     setPaletteSelection(next);
   }, []);
 
+  const setSelectedPaletteColors = useCallback((selectedColors: string[]) => {
+    setPaletteSelection((prev) => ({
+      ...prev,
+      selectedColors,
+    }));
+  }, []);
+
   useEffect(() => {
     return () => {
       revokeUploadUrl();
@@ -123,5 +130,6 @@ export function useActiveImageSelection(options: UseActiveImageSelectionOptions 
     selectSample,
     selectUpload,
     updatePaletteSelection,
+    setSelectedPaletteColors,
   };
 }

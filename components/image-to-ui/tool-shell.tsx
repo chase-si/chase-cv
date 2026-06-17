@@ -14,7 +14,7 @@ const sampleTitleById = Object.fromEntries(
 );
 
 export function ImageToUiToolShell() {
-  const { activeImage, paletteSelection, selectSample, selectUpload } =
+  const { activeImage, paletteSelection, selectSample, selectUpload, setSelectedPaletteColors } =
     useActiveImageSelection();
 
   return (
@@ -97,6 +97,7 @@ export function ImageToUiToolShell() {
                 <ExtractedPalettePanel
                   hasActiveImage={Boolean(activeImage)}
                   paletteSelection={paletteSelection}
+                  onSelectedColorsChange={setSelectedPaletteColors}
                 />
               </CardContent>
             </Card>
