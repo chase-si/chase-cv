@@ -59,16 +59,16 @@ accent=rgb(215, 210, 202)
 ring=rgb(42, 95, 143)",
   "fixture=warm-cool-mixed-dark mode=dark
 selected=#faf8f0, #4a90a4, #c45c26
-roles surface=#FAF8F0 action=#C45C26 support=#4A90A4
+roles surface=#FAF8F0 action=#4A90A4 support=#C45C26
 background=rgb(45, 45, 43)
 foreground=rgb(255, 255, 255)
 card=rgb(95, 94, 91)
-muted=rgb(45, 55, 57)
-border=rgb(37, 72, 82)
-input=rgb(75, 86, 88)
-primary=rgb(220, 157, 125)
-secondary=rgb(37, 58, 63)
-accent=rgb(53, 104, 118)
-ring=rgb(220, 157, 125)",
+muted=rgb(62, 48, 39)
+border=rgb(98, 46, 19)
+input=rgb(96, 77, 66)
+primary=rgb(146, 188, 200)
+secondary=rgb(73, 43, 26)
+accent=rgb(141, 66, 27)
+ring=rgb(146, 188, 200)",
 ]
 `;
