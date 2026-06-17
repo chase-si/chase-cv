@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 import Image from "next/image";
 
 import {
@@ -17,6 +17,8 @@ type ImageToUiSampleCardProps = {
   imagePath: string;
   title: string;
   description: string;
+  selected?: boolean;
+  onSelect?: () => void;
   className?: string;
 };
 
@@ -25,15 +27,39 @@ export function ImageToUiSampleCard({
   imagePath,
   title,
   description,
+  selected = false,
+  onSelect,
   className,
 }: ImageToUiSampleCardProps) {
   const [missingAsset, setMissingAsset] = useState(false);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!onSelect) {
+      return;
+    }
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onSelect();
+    }
+  };
 
   return (
     <Card
       size="sm"
       data-sample-id={id}
-      className={cn("gap-0 overflow-hidden py-0", className)}
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      aria-pressed={onSelect ? selected : undefined}
+      aria-label={onSelect ? title : undefined}
+      onClick={onSelect}
+      onKeyDown={handleKeyDown}
+      className={cn(
+        "gap-0 overflow-hidden py-0",
+        onSelect &&
+          "cursor-pointer text-left transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30",
+        selected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+        className,
+      )}
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
         {missingAsset ? (
@@ -44,7 +70,8 @@ export function ImageToUiSampleCard({
         ) : (
           <Image
             src={imagePath}
-            alt={title}
+            alt={onSelect ? "" : title}
+            aria-hidden={onSelect ? true : undefined}
             fill
             sizes="(max-width: 640px) 100vw, 240px"
             className="object-cover"
