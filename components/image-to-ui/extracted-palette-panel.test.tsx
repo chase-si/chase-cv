@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useState } from "react";
 
@@ -92,7 +92,7 @@ describe("ExtractedPalettePanel", () => {
     expect(screen.getByTestId("palette-insufficient-swatches")).toHaveTextContent("不足 3 个");
   });
 
-  it("shows selection order, role labels, and keeps render disabled until three colors", () => {
+  it("shows selection order, role labels inline, and keeps render disabled until three colors", () => {
     renderPanel({
       ...emptyPaletteSelection(),
       extractionStatus: "ready",
@@ -104,6 +104,8 @@ describe("ExtractedPalettePanel", () => {
     expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("主色");
     expect(screen.getByTestId("palette-swatch-role-Dominant2")).toHaveTextContent("辅色");
     expect(screen.getByTestId("palette-swatch-role-Dominant3")).toHaveTextContent("强调色");
+    const dominant1Button = screen.getByTestId("palette-swatch-Dominant1");
+    expect(within(dominant1Button).queryByTestId("palette-swatch-role-Dominant1")).toBeInTheDocument();
     expect(screen.getByTestId("palette-render-button")).toBeEnabled();
   });
 
