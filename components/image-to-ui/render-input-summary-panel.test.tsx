@@ -52,6 +52,19 @@ describe("RenderInputSummaryPanel", () => {
     expect(screen.getByTestId("render-input-image-summary")).toBeInTheDocument();
     expect(screen.getByTestId("render-input-image-thumbnail")).toBeInTheDocument();
     expect(screen.queryByTestId("active-image-preview")).not.toBeInTheDocument();
+    expect(summary.style.getPropertyValue("--primary")).toBe("rgb(255, 0, 136)");
+    expect(summary.style.getPropertyValue("--secondary")).toBe("rgb(17, 34, 51)");
+    expect(summary.style.getPropertyValue("--accent")).toBe("rgb(68, 85, 102)");
+
+    const tokenSummary = screen.getByTestId("render-preview-token-summary");
+    expect(within(tokenSummary).getByTestId("preview-token-primary")).toHaveTextContent(
+      "rgb(255, 0, 136)",
+    );
+    expect(within(tokenSummary).getByTestId("preview-token-background")).toBeInTheDocument();
+    expect(within(tokenSummary).getByTestId("preview-token-card")).toBeInTheDocument();
+    expect(within(tokenSummary).getByTestId("preview-token-foreground")).toBeInTheDocument();
+    expect(within(tokenSummary).getByTestId("preview-token-border")).toBeInTheDocument();
+    expect(within(tokenSummary).getByTestId("preview-token-ring")).toBeInTheDocument();
   });
 
   it("calls back to edit when the return action is used", () => {

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import type { CSSProperties } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getActiveImageSrc, type ActiveImage } from "@/lib/image-to-ui/active-image-types";
@@ -8,6 +9,11 @@ import {
   buildImageToUiRenderInput,
   type ImageToUiRenderInput,
 } from "@/lib/image-to-ui/build-image-to-ui-render-input";
+import {
+  buildScopedPreviewThemeCssVariables,
+  derivePreviewThemeTokens,
+  type PreviewThemeTokenKey,
+} from "@/lib/image-to-ui/derive-preview-theme";
 
 type RenderInputSummaryPanelProps = {
   activeImage: ActiveImage;
@@ -15,6 +21,17 @@ type RenderInputSummaryPanelProps = {
   selectedColors: string[];
   onBackToEdit: () => void;
 };
+
+const PREVIEW_TOKEN_SUMMARY_KEYS: PreviewThemeTokenKey[] = [
+  "primary",
+  "secondary",
+  "accent",
+  "background",
+  "card",
+  "foreground",
+  "border",
+  "ring",
+];
 
 export function RenderInputSummaryPanel({
   activeImage,
@@ -28,12 +45,22 @@ export function RenderInputSummaryPanel({
     activeImage.type === "sample"
       ? sampleTitleById[activeImage.sampleId] ?? "示例图片"
       : "本地上传的图片";
+  const effectiveThemeMode =
+    typeof document !== "undefined" && document.documentElement.classList.contains("dark")
+      ? "dark"
+      : "light";
+  const previewThemeTokens = derivePreviewThemeTokens({
+    selectedColors: renderInput.colorRoles.map((entry) => entry.hex),
+    mode: effectiveThemeMode,
+  });
+  const previewRootStyle = buildScopedPreviewThemeCssVariables(previewThemeTokens) as CSSProperties;
 
   return (
     <section
       className="space-y-6"
       aria-label="渲染输入摘要"
       data-testid="render-input-summary"
+      style={previewRootStyle}
       data-render-input={JSON.stringify({
         imageSrc: renderInput.imageSrc,
         colorRoles: renderInput.colorRoles,
@@ -90,6 +117,33 @@ export function RenderInputSummaryPanel({
                   <p className="text-sm font-medium text-foreground">{entry.role}</p>
                   <p className="font-mono text-xs text-muted-foreground">{entry.hex}</p>
                 </div>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-md">
+        <CardHeader>
+          <CardTitle className="text-base">预览主题 Token</CardTitle>
+          <CardDescription>基于三色推导出的只读主题变量，作用域仅限当前预览根节点。</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ul
+            className="grid gap-2 text-xs sm:grid-cols-2 lg:grid-cols-4"
+            aria-label="预览主题 token 摘要"
+            data-testid="render-preview-token-summary"
+          >
+            {PREVIEW_TOKEN_SUMMARY_KEYS.map((token) => (
+              <li
+                key={token}
+                className="flex items-center justify-between gap-3 border border-border bg-card px-3 py-2"
+                data-testid={`preview-token-${token}`}
+              >
+                <span className="font-medium text-foreground">{token}</span>
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  {previewThemeTokens[token]}
+                </span>
               </li>
             ))}
           </ul>
