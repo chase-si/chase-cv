@@ -1,6 +1,7 @@
 "use client";
 
 import { ActiveImagePreview } from "@/components/image-to-ui/active-image-preview";
+import { ExtractedPalettePanel } from "@/components/image-to-ui/extracted-palette-panel";
 import { ImageUploadZone } from "@/components/image-to-ui/image-upload-zone";
 import { ImageToUiSampleCard } from "@/components/image-to-ui/sample-image-card";
 import { ImageToUiStepIndicator } from "@/components/image-to-ui/step-indicator";
@@ -93,19 +94,10 @@ export function ImageToUiToolShell() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div
-                  data-testid="palette-selection"
-                  data-selected-count={paletteSelection.selectedColors.length}
-                  data-extraction-feedback={paletteSelection.extractionFeedback ?? ""}
-                >
-                  {activeImage ? (
-                    <p className="text-sm text-muted-foreground">
-                      已选择图片，色板提取将在下一步接入。
-                    </p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">选择图片后将显示色板与选色控件。</p>
-                  )}
-                </div>
+                <ExtractedPalettePanel
+                  hasActiveImage={Boolean(activeImage)}
+                  paletteSelection={paletteSelection}
+                />
               </CardContent>
             </Card>
           </section>
