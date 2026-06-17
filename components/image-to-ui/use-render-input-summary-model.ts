@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import type { CSSProperties } from "react";
 
 import type { ActiveImage } from "@/lib/image-to-ui/active-image-types";
@@ -46,16 +47,14 @@ export function useRenderInputSummaryModel({
   sampleTitleById,
   selectedColors,
 }: UseRenderInputSummaryModelInput): RenderInputSummaryModel {
+  const { resolvedTheme } = useTheme();
   const renderInput = buildImageToUiRenderInput(activeImage, selectedColors);
   const imageSrc = getActiveImageSrc(activeImage);
   const imageAlt =
     activeImage.type === "sample"
       ? (sampleTitleById[activeImage.sampleId] ?? "示例图片")
       : "本地上传的图片";
-  const effectiveThemeMode =
-    typeof document !== "undefined" && document.documentElement.classList.contains("dark")
-      ? "dark"
-      : "light";
+  const effectiveThemeMode = resolvedTheme === "dark" ? "dark" : "light";
   const previewThemeTokens = derivePreviewThemeTokens({
     selectedColors: renderInput.colorRoles.map((entry) => entry.hex),
     mode: effectiveThemeMode,

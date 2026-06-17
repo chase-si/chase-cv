@@ -7,7 +7,7 @@ import {
 } from "@/lib/image-to-ui/derive-preview-theme";
 
 describe("derivePreviewThemeTokens", () => {
-  it("maps selected colors to primary, secondary, accent", () => {
+  it("preserves selected color order for primary secondary and accent source roles", () => {
     const tokens = derivePreviewThemeTokens({
       selectedColors: ["#FF0088", "#112233", "#445566"],
       mode: "light",
@@ -15,7 +15,7 @@ describe("derivePreviewThemeTokens", () => {
 
     expect(tokens.primary).toBe("rgb(255, 0, 136)");
     expect(tokens.secondary).toBe("rgb(17, 34, 51)");
-    expect(tokens.accent).toBe("rgb(68, 85, 102)");
+    expect(tokens.accent).toBe("rgb(172, 175, 185)");
   });
 
   it("includes all required preview tokens", () => {
@@ -62,7 +62,32 @@ describe("derivePreviewThemeTokens", () => {
 
     expect(tokens.ring).toBe("rgb(51, 102, 255)");
     expect(tokens.card).toBe("rgb(224, 232, 255)");
-    expect(tokens.border).toBe("rgb(173, 194, 255)");
+    expect(tokens.border).toBe("rgb(148, 219, 184)");
+  });
+
+  it("derives light foreground and softened accent from the selected brand colors", () => {
+    const tokens = derivePreviewThemeTokens({
+      selectedColors: ["#3366FF", "#00AA55", "#FFAA00"],
+      mode: "light",
+    });
+
+    expect(tokens.primary).toBe("rgb(51, 102, 255)");
+    expect(tokens.secondary).toBe("rgb(0, 170, 85)");
+    expect(tokens.accent).toBe("rgb(247, 215, 145)");
+    expect(tokens.foreground).toBe("rgb(15, 31, 77)");
+    expect(hasReadableContrast(tokens.background, tokens.foreground)).toBe(true);
+  });
+
+  it("derives dark background and bright primary from the selected primary color", () => {
+    const tokens = derivePreviewThemeTokens({
+      selectedColors: ["#3366FF", "#00AA55", "#FFAA00"],
+      mode: "dark",
+    });
+
+    expect(tokens.background).toBe("rgb(7, 14, 36)");
+    expect(tokens.primary).toBe("rgb(133, 163, 255)");
+    expect(hasReadableContrast(tokens.background, tokens.foreground)).toBe(true);
+    expect(hasReadableContrast(tokens.primary, tokens["primary-foreground"])).toBe(true);
   });
 });
 
@@ -87,7 +112,7 @@ describe("buildScopedPreviewThemeCssVariables", () => {
       "--primary-foreground": expect.any(String),
       "--secondary": "rgb(17, 34, 51)",
       "--secondary-foreground": expect.any(String),
-      "--accent": "rgb(68, 85, 102)",
+      "--accent": expect.any(String),
       "--accent-foreground": expect.any(String),
     });
   });

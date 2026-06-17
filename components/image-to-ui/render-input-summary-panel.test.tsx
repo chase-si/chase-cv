@@ -3,6 +3,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { RenderInputSummaryPanel } from "@/components/image-to-ui/render-input-summary-panel";
 
+const mockThemeState = vi.hoisted(() => ({
+  resolvedTheme: "light",
+}));
+
+vi.mock("next-themes", () => ({
+  useTheme: () => ({
+    resolvedTheme: mockThemeState.resolvedTheme,
+  }),
+}));
+
 vi.mock("next/image", () => ({
   default: function MockNextImage({
     alt,
@@ -19,6 +29,7 @@ vi.mock("next/image", () => ({
 }));
 
 afterEach(() => {
+  mockThemeState.resolvedTheme = "light";
   cleanup();
 });
 
@@ -58,7 +69,7 @@ describe("RenderInputSummaryPanel", () => {
     const preview = screen.getByTestId("saas-preview-surface");
     expect(preview.style.getPropertyValue("--primary")).toBe("rgb(255, 0, 136)");
     expect(preview.style.getPropertyValue("--secondary")).toBe("rgb(17, 34, 51)");
-    expect(preview.style.getPropertyValue("--accent")).toBe("rgb(68, 85, 102)");
+    expect(preview.style.getPropertyValue("--accent")).toBe("rgb(172, 175, 185)");
     expect(preview.className).toMatch(/tracking-normal/);
 
     const tokenSummary = screen.getByTestId("render-preview-token-summary");
@@ -70,6 +81,29 @@ describe("RenderInputSummaryPanel", () => {
     expect(within(tokenSummary).getByTestId("preview-token-foreground")).toBeInTheDocument();
     expect(within(tokenSummary).getByTestId("preview-token-border")).toBeInTheDocument();
     expect(within(tokenSummary).getByTestId("preview-token-ring")).toBeInTheDocument();
+  });
+
+  it("updates scoped preview tokens when the global color scheme changes", () => {
+    const props = {
+      activeImage: {
+        type: "sample" as const,
+        sampleId: "mondrian",
+        src: "/imgs/image-to-ui/mondrian-1280.webp",
+      },
+      sampleTitleById: { mondrian: "蒙德里安构成" },
+      selectedColors: ["#3366FF", "#00AA55", "#FFAA00"],
+    };
+    const { rerender } = render(<RenderInputSummaryPanel {...props} />);
+
+    const preview = screen.getByTestId("saas-preview-surface");
+    expect(preview.style.getPropertyValue("--background")).toBe("rgb(241, 248, 250)");
+    expect(preview.style.getPropertyValue("--primary")).toBe("rgb(51, 102, 255)");
+
+    mockThemeState.resolvedTheme = "dark";
+    rerender(<RenderInputSummaryPanel {...props} />);
+
+    expect(preview.style.getPropertyValue("--background")).toBe("rgb(7, 14, 36)");
+    expect(preview.style.getPropertyValue("--primary")).toBe("rgb(133, 163, 255)");
   });
 
   it("switches between overview and settings tabs inside preview", () => {
