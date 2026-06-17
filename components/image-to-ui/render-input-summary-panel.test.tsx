@@ -269,4 +269,36 @@ describe("RenderInputSummaryPanel", () => {
     expect(within(tabs).getByRole("tab", { name: "Overview" }).className).toMatch(/aria-selected:bg-primary/);
     expect(within(preview).getByTestId("saas-primary-surface").className).toMatch(/bg-primary\/10/);
   });
+
+  it("shows classified role labels and short rationales for each selected color", () => {
+    const selectedColors = ["#faf8f0", "#09568c", "#9e9982"];
+    const renderInput = buildImageToUiRenderInput(
+      {
+        type: "sample",
+        sampleId: "mondrian",
+        src: "/imgs/image-to-ui/mondrian-1280.webp",
+      },
+      selectedColors,
+    );
+
+    render(
+      <RenderInputSummaryPanel
+        activeImage={{
+          type: "sample",
+          sampleId: "mondrian",
+          src: "/imgs/image-to-ui/mondrian-1280.webp",
+        }}
+        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        selectedColors={selectedColors}
+      />,
+    );
+
+    for (const entry of renderInput.colorRoles) {
+      const row = screen.getByTestId(`render-input-color-${entry.role}`);
+      expect(within(row).getByText(entry.role)).toBeInTheDocument();
+      expect(within(row).getByTestId("render-input-color-rationale")).toHaveTextContent(
+        entry.rationale,
+      );
+    }
+  });
 });

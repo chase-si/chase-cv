@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { buildImageToUiRenderInput } from "@/lib/image-to-ui/build-image-to-ui-render-input";
 import {
   assignedRoleLabelForHex,
+  assignedRoleRationaleForHex,
   classifyPaletteThemeRoles,
 } from "@/lib/image-to-ui/classify-palette-theme-roles";
 
@@ -21,6 +22,7 @@ describe("buildImageToUiRenderInput", () => {
       selectedColors.map((hex) => ({
         hex,
         role: assignedRoleLabelForHex(hex, classification),
+        rationale: assignedRoleRationaleForHex(hex, selectedColors),
       })),
     );
     expect(input.colorRoles.map((entry) => entry.role)).not.toEqual(["主色", "辅色", "强调色"]);

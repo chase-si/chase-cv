@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  assignedRoleRationaleForHex,
   classifyPaletteThemeRoles,
   type ClassifiedPaletteThemeRoles,
 } from "@/lib/image-to-ui/classify-palette-theme-roles";
@@ -56,5 +57,22 @@ describe("classifyPaletteThemeRoles", () => {
     expect(() =>
       classifyPaletteThemeRoles(["#111111", "#222222", "not-a-color"]),
     ).toThrow(/unsupported color/i);
+  });
+});
+
+describe("assignedRoleRationaleForHex", () => {
+  it("explains rubric roles with surface, contrast, and mid-tone language", () => {
+    const selectedColors = ["#faf8f0", "#09568c", "#9e9982"];
+    const classification = classifyPaletteThemeRoles(selectedColors);
+
+    expect(assignedRoleRationaleForHex(classification.surfaceSeed, selectedColors)).toMatch(
+      /表面|背景|亮|饱和/,
+    );
+    expect(assignedRoleRationaleForHex(classification.actionSeed, selectedColors)).toMatch(
+      /对比|动作|操作/,
+    );
+    expect(assignedRoleRationaleForHex(classification.supportSeed, selectedColors)).toMatch(
+      /中调|辅助|弱强调|边框/,
+    );
   });
 });

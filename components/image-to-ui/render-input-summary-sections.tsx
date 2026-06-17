@@ -76,6 +76,12 @@ export function RenderInputColorRoles({
           />
           <div className="min-w-0">
             <p className="text-sm font-medium text-foreground">{entry.role}</p>
+            <p
+              className="text-xs text-muted-foreground"
+              data-testid="render-input-color-rationale"
+            >
+              {entry.rationale}
+            </p>
             <p className="font-mono text-xs text-muted-foreground">{entry.hex}</p>
           </div>
         </li>
