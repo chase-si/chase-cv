@@ -106,14 +106,16 @@ export function derivePreviewThemeTokens({
   const secondary = parseHexToRgb(secondaryHex);
   const accent = parseHexToRgb(accentHex);
   const neutralSeed = mixColor(primary, secondary, 0.5);
+  const primarySurface =
+    mode === "dark" ? mixColor(primary, BLACK, 0.72) : mixColor(primary, WHITE, 0.85);
 
   const background =
     mode === "dark" ? mixColor(neutralSeed, BLACK, 0.86) : mixColor(neutralSeed, WHITE, 0.94);
-  const card = mode === "dark" ? mixColor(neutralSeed, BLACK, 0.8) : mixColor(neutralSeed, WHITE, 0.9);
+  const card = primarySurface;
   const muted = mode === "dark" ? mixColor(neutralSeed, BLACK, 0.72) : mixColor(neutralSeed, WHITE, 0.84);
   const border =
-    mode === "dark" ? mixColor(accent, BLACK, 0.62) : mixColor(mixColor(primary, secondary, 0.5), WHITE, 0.72);
-  const ring = accent;
+    mode === "dark" ? mixColor(primary, BLACK, 0.58) : mixColor(primary, WHITE, 0.6);
+  const ring = primary;
 
   return {
     background: toRgbCss(background),

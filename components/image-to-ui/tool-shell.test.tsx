@@ -156,7 +156,7 @@ describe("ImageToUiToolShell render input summary", () => {
 
     const previewRoot = screen.getByTestId("saas-preview-surface");
     expect(previewRoot.style.getPropertyValue("--primary")).toBe("rgb(255, 0, 136)");
-    expect(previewRoot.style.getPropertyValue("--ring")).toBe("rgb(68, 85, 102)");
+    expect(previewRoot.style.getPropertyValue("--ring")).toBe("rgb(255, 0, 136)");
 
     const pageMain = screen.getByRole("main");
     expect(pageMain.style.getPropertyValue("--primary")).toBe("");

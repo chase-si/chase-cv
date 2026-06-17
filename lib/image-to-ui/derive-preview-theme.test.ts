@@ -53,6 +53,17 @@ describe("derivePreviewThemeTokens", () => {
     expect(hasReadableContrast(tokens.secondary, tokens["secondary-foreground"])).toBe(true);
     expect(hasReadableContrast(tokens.accent, tokens["accent-foreground"])).toBe(true);
   });
+
+  it("uses the primary color to drive brand focus and key surfaces", () => {
+    const tokens = derivePreviewThemeTokens({
+      selectedColors: ["#3366FF", "#00AA55", "#FFAA00"],
+      mode: "light",
+    });
+
+    expect(tokens.ring).toBe("rgb(51, 102, 255)");
+    expect(tokens.card).toBe("rgb(224, 232, 255)");
+    expect(tokens.border).toBe("rgb(173, 194, 255)");
+  });
 });
 
 describe("buildScopedPreviewThemeCssVariables", () => {

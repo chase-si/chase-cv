@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toggle } from "@/components/ui/toggle";
+import { cn } from "@/lib/utils";
 
 const PREVIEW_CUSTOMER_PIPELINE_ROWS: Array<{
   customer: string;
@@ -58,18 +59,28 @@ export function SaasThemePreviewSurface({ previewRootStyle, className }: SaasThe
   return (
     <section
       data-testid="saas-preview-surface"
-      className={className ?? "space-y-4 border border-border bg-background p-4 text-foreground"}
+      className={cn(
+        "space-y-4 border border-border bg-background p-4 text-foreground tracking-normal",
+        className,
+      )}
       aria-label="SaaS status and settings preview"
       style={previewRootStyle}
     >
       <Tabs defaultValue="overview">
         <TabsList aria-label="Preview sections">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="settings">Workspace settings</TabsTrigger>
+          <TabsTrigger value="overview" className="aria-selected:bg-primary aria-selected:text-primary-foreground">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="aria-selected:bg-primary aria-selected:text-primary-foreground">
+            Workspace settings
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <div data-testid="saas-status-area" className="space-y-3">
+          <div
+            data-testid="saas-status-area"
+            className="space-y-3 border border-primary/40 bg-primary/10 p-3"
+          >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-sm font-semibold">Platform health</h3>
               <Badge variant="accent" data-testid="saas-accent-badge">
@@ -77,7 +88,10 @@ export function SaasThemePreviewSurface({ previewRootStyle, className }: SaasThe
               </Badge>
             </div>
             <div className="grid gap-3 md:grid-cols-3">
-              <article className="space-y-2 border border-border bg-card p-3">
+              <article
+                data-testid="saas-primary-surface"
+                className="space-y-2 border border-primary/40 bg-primary/10 p-3"
+              >
                 <p className="text-xs text-muted-foreground">Monthly recurring revenue</p>
                 <p className="text-2xl font-semibold" data-testid="saas-metric-mrr">
                   $84,200
