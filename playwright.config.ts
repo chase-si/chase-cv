@@ -1,9 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const port = Number(process.env.PORT ?? 4100);
+const includeJourneys = process.env.PLAYWRIGHT_INCLUDE_JOURNEYS === "1";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  testIgnore: includeJourneys ? undefined : ["**/journeys/**"],
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 1,

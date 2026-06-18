@@ -15,8 +15,11 @@ My personal website to show my skills
 ## E2E Tests (Playwright)
 
 - Install browser once: `npx playwright install chromium`
-- Run the full E2E suite (image-to-ui + flow editor): `yarn test:e2e` or `npm run test:e2e`
-- Specs live under `tests/e2e/` (`image-to-ui-theme-preview.spec.ts`, `flow-editor.spec.ts`)
+- **Small cases** (fast, for PR/local): `yarn test:e2e` or `npm run test:e2e` — `playwright.config.ts` ignores `tests/e2e/journeys/` unless `PLAYWRIGHT_INCLUDE_JOURNEYS=1`
+- **Smoke journeys** (per-feature happy paths): `yarn test:e2e:journey` or `npm run test:e2e:journey`
+- **Full suite**: `yarn test:e2e:all` or `npm run test:e2e:all`
+- Headed small cases only: `yarn test:e2e:headed`
+- Layout: `tests/e2e/*.spec.ts` (small cases), `tests/e2e/helpers/` (shared steps), `tests/e2e/journeys/` (composed journeys)
 - Traces are enabled in Playwright config with `trace: "on-first-retry"`
 
 ## Features

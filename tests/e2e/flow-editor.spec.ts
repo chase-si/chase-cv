@@ -1,45 +1,16 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-const DEMO_STEP_NODE_ID = "step001";
-const DEMO_STEP_DESC = "desc1";
-const DEMO_TRANSFER_NODE_ID = "transfer001";
-
-function flowCanvas(page: Page): Locator {
-  return page.getByTestId("flow-editor-canvas");
-}
-
-function flowProperties(page: Page): Locator {
-  return page.getByTestId("flow-editor-properties");
-}
-
-function flowToolbar(page: Page): Locator {
-  return page.getByTestId("flow-editor-toolbar");
-}
-
-async function openFlowEditor(page: Page): Promise<void> {
-  await page.goto("/flow");
-  await expect(page).toHaveURL(/\/flow$/);
-  await expect(page.getByRole("heading", { level: 1, name: "流程编辑器" })).toBeVisible();
-  await expect(flowCanvas(page).getByTestId("flow-read-only-svg")).toBeVisible();
-}
-
-async function navigateToFlowEditorFromHome(page: Page): Promise<void> {
-  await page.goto("/");
-  await expect(page).toHaveURL(/\/$/);
-  await page
-    .getByRole("navigation")
-    .getByRole("button", { name: "流程编辑器" })
-    .click();
-  await expect(page).toHaveURL(/\/flow$/);
-}
-
-async function selectFlowNode(page: Page, nodeId: string): Promise<void> {
-  const node = flowCanvas(page).locator(`[data-flow-node-id="${nodeId}"]`);
-  await expect(node).toBeVisible();
-  await node.click();
-  await expect(flowProperties(page).getByTestId("flow-properties-form")).toBeVisible();
-  await expect(flowProperties(page)).toContainText(nodeId);
-}
+import {
+  DEMO_STEP_DESC,
+  DEMO_STEP_NODE_ID,
+  DEMO_TRANSFER_NODE_ID,
+  flowCanvas,
+  flowProperties,
+  flowToolbar,
+  navigateToFlowEditorFromHome,
+  openFlowEditor,
+  selectFlowNode,
+} from "./helpers/flow-editor";
 
 test.describe("flow editor e2e", () => {
   test("case 1: navigation opens the flow editor page", async ({ page }) => {
@@ -132,23 +103,5 @@ test.describe("flow editor e2e", () => {
     await expect(flowCanvas(page)).toContainText(DEMO_STEP_DESC);
     await expect(flowCanvas(page)).not.toContainText("mutated-before-reset");
     await expect(highlightSwitch).toHaveAttribute("aria-checked", "true");
-  });
-
-  test("smoke journey: navigate, edit, add step, reset", async ({ page }) => {
-    await navigateToFlowEditorFromHome(page);
-
-    await selectFlowNode(page, DEMO_STEP_NODE_ID);
-    const journeyDesc = "journey-desc-e2e";
-    await flowProperties(page).getByLabel("描述").fill(journeyDesc);
-    await expect(flowCanvas(page)).toContainText(journeyDesc);
-
-    await selectFlowNode(page, DEMO_TRANSFER_NODE_ID);
-    await flowToolbar(page).getByRole("button", { name: "增加顺序步" }).click();
-    await expect(flowProperties(page).getByTestId("flow-properties-form")).toBeVisible();
-
-    await page.getByTestId("flow-demo-reset").click();
-    await expect(flowProperties(page).getByTestId("flow-properties-empty")).toBeVisible();
-    await expect(flowCanvas(page)).toContainText(DEMO_STEP_DESC);
-    await expect(flowCanvas(page)).not.toContainText(journeyDesc);
   });
 });
