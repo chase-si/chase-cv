@@ -250,6 +250,7 @@ export function FlowSvgStepDesc({
   return (
     <g
       data-flow-node-id={id}
+      data-flow-selected={active ? "true" : undefined}
       onClick={() => svgDomOnClick?.(id)}
       role={svgDomOnClick ? "button" : undefined}
     >
@@ -351,6 +352,7 @@ export function FlowSvgTransfer({
   return (
     <g
       data-flow-node-id={id}
+      data-flow-selected={active ? "true" : undefined}
       onClick={() => svgDomOnClick?.(id)}
       role={svgDomOnClick ? "button" : undefined}
     >
@@ -440,9 +442,34 @@ export function FlowSvgEndStep({
   y = FLOW_UNIT * 0.1,
   width = FLOW_UNIT * 0.8,
   height = FLOW_UNIT,
-}) {
+  id,
+  activeId,
+  svgDomOnClick,
+}: {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  id?: string;
+} & FlowSvgBindProps) {
+  const active = activeId === id;
+
   return (
-    <g data-flow-node-type="end">
+    <g
+      data-flow-node-id={id}
+      data-flow-node-type="end"
+      onClick={() => svgDomOnClick?.(id)}
+      role={svgDomOnClick ? "button" : undefined}
+      data-flow-selected={active ? "true" : undefined}
+    >
+      <rect
+        x={0}
+        y={0}
+        width={FLOW_UNIT}
+        height={FLOW_UNIT}
+        fill={FLOW_SVG_ACTIVE_OVERLAY}
+        opacity={active ? 0.2 : 0}
+      />
       <line
         x1={x + width / 2}
         y1={y * 0.5}

@@ -10,6 +10,7 @@ export interface FlowStartNode {
   id?: string;
   text?: string;
   descStr?: string;
+  instance_name?: string;
   start?: boolean;
   status?: FlowStepStatus;
 }
