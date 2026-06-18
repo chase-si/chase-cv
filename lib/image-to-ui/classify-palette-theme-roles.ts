@@ -101,8 +101,18 @@ function mixedSurfaceMuddiness(surface: ScoredColor, support: ScoredColor): numb
 
 function surfaceHierarchyQuality(color: ScoredColor): number {
   const lowLuminancePenalty = Math.max(0, 0.3 - color.luminance) * 1.65;
-  const highSaturationPenalty = Math.max(0, color.saturation - 0.62) * 0.6;
-  return surfaceFitness(color) * 2.25 + color.luminance * 0.85 - lowLuminancePenalty - highSaturationPenalty;
+  const highSaturationPenalty = Math.max(0, color.saturation - 0.48) * 1.05;
+  const warmBrightPenalty =
+    isWarmHue(color) && color.luminance > 0.55
+      ? Math.max(0, color.saturation - 0.36) * 0.85
+      : 0;
+  return (
+    surfaceFitness(color) * 2.25 +
+    color.luminance * 0.85 -
+    lowLuminancePenalty -
+    highSaturationPenalty -
+    warmBrightPenalty
+  );
 }
 
 function surfaceRelativePenalty(
@@ -114,15 +124,30 @@ function surfaceRelativePenalty(
   return Math.max(0, brightestAvailable - surface.luminance) * 15;
 }
 
+function warmActionPenalty(color: ScoredColor): number {
+  if (!isWarmHue(color)) {
+    return 0;
+  }
+
+  const warningHue = color.hue <= 45 || color.hue >= 350;
+  const brightWarmPenalty = Math.max(0, color.luminance - 0.34) * 0.95;
+  const vividWarmPenalty = Math.max(0, color.saturation - 0.66) * 0.45;
+  const warningHuePenalty = warningHue
+    ? Math.max(0, color.saturation - 0.48) * 0.8 +
+      Math.max(0, channelChroma(color.rgb) - 0.45) * 0.35
+    : 0;
+
+  return brightWarmPenalty + vividWarmPenalty + warningHuePenalty;
+}
+
 function actionHarshness(color: ScoredColor): number {
-  const hotWarmPenalty = isWarmHue(color) ? 0.42 : 0;
-  const highChromaPenalty = Math.max(0, color.saturation - 0.58) * 0.75;
+  const highChromaPenalty = Math.max(0, color.saturation - 0.58) * 0.9;
   const lowLightnessPenalty = Math.max(0, 0.16 - color.luminance) * 3.5;
   const darkNearNeutralPenalty =
     color.luminance < 0.12 ? Math.max(0, 0.25 - channelChroma(color.rgb)) * 10 : 0;
   const brightLightnessPenalty = Math.max(0, color.luminance - 0.58) * 1.25;
   return (
-    hotWarmPenalty +
+    warmActionPenalty(color) +
     highChromaPenalty +
     lowLightnessPenalty +
     darkNearNeutralPenalty +
@@ -145,6 +170,31 @@ function actionQuality(color: ScoredColor, surface: ScoredColor): number {
     middleReadableTone * 0.55 -
     actionHarshness(color) -
     lowSaturationPenalty
+  );
+}
+
+function supportCompetitionPenalty(support: ScoredColor, action: ScoredColor): number {
+  const hueDistance = getHueDistance(support, action);
+  const vividSupportPenalty =
+    hueDistance < 0.32 ? Math.max(0, support.saturation - 0.58) * 0.65 : 0;
+  const similarHuePenalty =
+    hueDistance < 0.18 ? Math.max(0, support.saturation - 0.42) * 0.45 : 0;
+  return vividSupportPenalty + similarHuePenalty;
+}
+
+function actionCompetitionPenalty(action: ScoredColor, support: ScoredColor): number {
+  if (!isWarmHue(action) || !isCoolHue(support)) {
+    return 0;
+  }
+
+  const warningHue = action.hue <= 45 || action.hue >= 350;
+  if (!warningHue) {
+    return 0;
+  }
+
+  return (
+    Math.max(0, action.saturation - 0.52) * 0.85 +
+    Math.max(0, channelChroma(action.rgb) - 0.42) * 0.55
   );
 }
 
@@ -191,13 +241,15 @@ function scoreRoleCandidate(
     surfaceHierarchyQuality(surface) +
     supportFitness(support) * 0.65 -
     mixedSurfaceMuddiness(surface, support) * 1.1 -
+    supportCompetitionPenalty(support, action) -
     surfaceRelativePenalty(surface, action, support);
   const score =
     surfaceScore +
     actionQuality(action, surface) * 1.55 +
     foregroundRelationshipScore(surface, action, support) * 0.55 +
     darkSiblingScore(surface, action, support) * 0.55 +
-    selectionOrderHint(surface, action, support);
+    selectionOrderHint(surface, action, support) -
+    actionCompetitionPenalty(action, support);
 
   return { surface, action, support, score };
 }
