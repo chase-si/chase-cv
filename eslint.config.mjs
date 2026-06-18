@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Legacy flow reference copied for migration; linted code lives under lib/flow and components/flow.
+    "flow/**",
   ]),
 ]);
 
