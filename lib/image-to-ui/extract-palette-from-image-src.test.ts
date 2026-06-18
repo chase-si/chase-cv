@@ -13,9 +13,9 @@ import { extractPaletteFromImageSrc } from "@/lib/image-to-ui/extract-palette-fr
 describe("extractPaletteFromImageSrc", () => {
   it("returns normalized palette swatches from colorthief sync API", async () => {
     getPaletteSync.mockReturnValue([
-      { hex: () => "#ff0088" },
-      { hex: () => "#223344" },
-      { hex: () => "#aabbcc" },
+      { hex: () => "#ff0088", proportion: 0.35 },
+      { hex: () => "#223344", proportion: 0.22 },
+      { hex: () => "#aabbcc", proportion: 0.1 },
     ]);
 
     const OriginalImage = globalThis.Image;
@@ -43,13 +43,13 @@ describe("extractPaletteFromImageSrc", () => {
     const swatches = await extractPaletteFromImageSrc("/imgs/image-to-ui/great-wave-1280.webp");
 
     expect(getPaletteSync).toHaveBeenCalledWith(expect.any(MockImage), {
-      colorCount: 8,
+      colorCount: 10,
       ignoreWhite: false,
     });
     expect(swatches).toEqual([
-      { role: "Dominant1", hex: "#FF0088" },
-      { role: "Dominant2", hex: "#223344" },
-      { role: "Dominant3", hex: "#AABBCC" },
+      { role: "Dominant1", hex: "#FF0088", proportion: 0.35 },
+      { role: "Dominant2", hex: "#223344", proportion: 0.22 },
+      { role: "Dominant3", hex: "#AABBCC", proportion: 0.1 },
     ]);
 
     vi.stubGlobal("Image", OriginalImage);
@@ -57,9 +57,9 @@ describe("extractPaletteFromImageSrc", () => {
 
   it("deduplicates identical hex values in the palette", async () => {
     getPaletteSync.mockReturnValue([
-      { hex: () => "#ff0088" },
-      { hex: () => "#ff0088" },
-      { hex: () => "#223344" },
+      { hex: () => "#ff0088", proportion: 0.4 },
+      { hex: () => "#ff0088", proportion: 0.2 },
+      { hex: () => "#223344", proportion: 0.15 },
     ]);
 
     const OriginalImage = globalThis.Image;
@@ -87,6 +87,7 @@ describe("extractPaletteFromImageSrc", () => {
     const swatches = await extractPaletteFromImageSrc("/imgs/image-to-ui/great-wave-1280.webp");
 
     expect(swatches.map((swatch) => swatch.hex)).toEqual(["#FF0088", "#223344"]);
+    expect(swatches[0]?.proportion).toBe(0.6);
 
     vi.stubGlobal("Image", OriginalImage);
   });

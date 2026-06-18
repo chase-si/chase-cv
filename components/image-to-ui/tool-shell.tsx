@@ -77,7 +77,7 @@ export function ImageToUiToolShell() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <ImageUploadZone onFileSelected={selectUpload} />
-                  <div className="max-h-[28rem] space-y-2 overflow-y-auto pr-1">
+                  <div className="max-h-112 space-y-2 overflow-y-auto pr-1">
                     {IMAGE_TO_UI_SAMPLE_IMAGES.map((sample) => (
                       <SampleListButton
                         key={sample.id}

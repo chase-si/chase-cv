@@ -10,6 +10,7 @@ import {
   getPaletteSelectionOrderLabel,
   toggleOrderedPaletteSwatch,
 } from "@/lib/image-to-ui/toggle-ordered-palette-selection";
+import { formatPaletteProportionPercent } from "@/lib/image-to-ui/normalize-dominant-palette";
 import { cn } from "@/lib/utils";
 
 const SELECTION_LIMIT_MESSAGE = "最多只能选择 3 个颜色，请先取消已选颜色再更换。";
@@ -65,11 +66,12 @@ export function ExtractedPalettePanel({
 
       {extractionStatus === "ready" && swatches.length > 0 ? (
         <ul className="grid gap-2 sm:grid-cols-2" aria-label="提取的色板">
-          {swatches.map((swatch, swatchIndex) => {
+          {swatches.map((swatch) => {
             const selectionIndex = selectedColors.indexOf(swatch.hex);
             const isSelected = selectionIndex >= 0;
             const orderLabel = isSelected ? getPaletteSelectionOrderLabel(selectionIndex) : null;
-            const dominanceLabel = `主导色 ${swatchIndex + 1}`;
+            const percentLabel = formatPaletteProportionPercent(swatch.proportion);
+            const widthPercent = Math.max(4, Math.round(swatch.proportion * 1000) / 10);
 
             return (
               <li key={swatch.role}>
@@ -82,6 +84,7 @@ export function ExtractedPalettePanel({
                   )}
                   data-testid={`palette-swatch-${swatch.role}`}
                   aria-pressed={isSelected}
+                  aria-label={`${swatch.hex}，占比 ${percentLabel}`}
                   onClick={() => handleSwatchClick(swatch.hex)}
                 >
                   <span
@@ -98,9 +101,9 @@ export function ExtractedPalettePanel({
                       </span>
                     ) : null}
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex min-h-5 flex-wrap items-center gap-2">
-                      <p className="text-sm font-medium text-foreground">{dominanceLabel}</p>
+                  <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
+                    <div className="flex min-h-5 items-center justify-between gap-2">
+                      <span className="shrink-0 font-mono text-xs text-foreground">{swatch.hex}</span>
                       {orderLabel ? (
                         <span
                           className="inline-flex shrink-0 items-center rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary"
@@ -108,9 +111,33 @@ export function ExtractedPalettePanel({
                         >
                           {orderLabel}
                         </span>
-                      ) : null}
+                      ) : (
+                        <span
+                          className="inline-flex shrink-0 items-center rounded-md border border-transparent px-1.5 py-0.5 text-xs font-medium opacity-0"
+                          aria-hidden
+                        >
+                          已选色 1
+                        </span>
+                      )}
                     </div>
-                    <p className="font-mono text-xs text-muted-foreground">{swatch.hex}</p>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted"
+                        role="img"
+                        aria-label={`占比 ${percentLabel}`}
+                      >
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${widthPercent}%`, backgroundColor: swatch.hex }}
+                        />
+                      </div>
+                      <span
+                        className="w-10 shrink-0 text-right text-xs font-semibold tabular-nums text-foreground"
+                        data-testid={`palette-swatch-share-${swatch.role}`}
+                      >
+                        {percentLabel}
+                      </span>
+                    </div>
                   </div>
                 </button>
               </li>

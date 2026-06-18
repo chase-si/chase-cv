@@ -134,7 +134,7 @@ describe("useActiveImageSelection", () => {
       result.current.updatePaletteSelection({
         selectedColors: ["#112233", "#445566"],
         extractionStatus: "ready",
-        swatches: [{ role: "Dominant1", hex: "#112233" }],
+        swatches: [{ role: "Dominant1", hex: "#112233", proportion: 0.3 }],
         extractionError: null,
       });
     });
@@ -171,7 +171,7 @@ describe("useActiveImageSelection", () => {
       result.current.updatePaletteSelection({
         selectedColors: [],
         extractionStatus: "ready",
-        swatches: [{ role: "Dominant1", hex: "#111111" }],
+        swatches: [{ role: "Dominant1", hex: "#111111", proportion: 0.25 }],
         extractionError: null,
       });
     });

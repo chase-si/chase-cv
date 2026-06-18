@@ -12,9 +12,9 @@ describe("normalizeColorthiefPalette", () => {
     ];
 
     expect(normalizeColorthiefPalette(colors)).toEqual([
-      { role: "Dominant1", hex: "#FF0088" },
-      { role: "Dominant2", hex: "#223344" },
-      { role: "Dominant3", hex: "#AABBCC" },
+      { role: "Dominant1", hex: "#FF0088", proportion: 0.35 },
+      { role: "Dominant2", hex: "#223344", proportion: 0.22 },
+      { role: "Dominant3", hex: "#AABBCC", proportion: 0.1 },
     ]);
   });
 
@@ -27,7 +27,7 @@ describe("normalizeColorthiefPalette", () => {
 
     const swatches = normalizeColorthiefPalette(colors);
 
-    expect(swatches[0]).toEqual({ role: "Dominant1", hex: "#FCFCFA" });
+    expect(swatches[0]).toEqual({ role: "Dominant1", hex: "#FCFCFA", proportion: 0.45 });
     expect(swatches.some((swatch) => swatch.hex === "#FCFCFA")).toBe(true);
   });
 
@@ -53,8 +53,8 @@ describe("normalizeColorthiefPalette", () => {
     ];
 
     expect(normalizeColorthiefPalette(colors)).toEqual([
-      { role: "Dominant1", hex: "#FF0000" },
-      { role: "Dominant2", hex: "#0080FF" },
+      { role: "Dominant1", hex: "#FF0000", proportion: 0.6 },
+      { role: "Dominant2", hex: "#0080FF", proportion: 0.15 },
     ]);
   });
 });

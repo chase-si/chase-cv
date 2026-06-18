@@ -6,9 +6,9 @@ import { ImageToUiToolShell } from "@/components/image-to-ui/tool-shell";
 
 vi.mock("@/lib/image-to-ui/extract-palette-from-image-src", () => ({
   extractPaletteFromImageSrc: vi.fn().mockResolvedValue([
-    { role: "Dominant1", hex: "#FF0088" },
-    { role: "Dominant2", hex: "#112233" },
-    { role: "Dominant3", hex: "#445566" },
+    { role: "Dominant1", hex: "#FF0088", proportion: 0.35 },
+    { role: "Dominant2", hex: "#112233", proportion: 0.22 },
+    { role: "Dominant3", hex: "#445566", proportion: 0.15 },
   ]),
 }));
 
