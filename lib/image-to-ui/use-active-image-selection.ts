@@ -15,10 +15,12 @@ const EXTRACTION_ERROR_MESSAGE = "无法从当前图片提取色板，请换一�
 
 type UseActiveImageSelectionOptions = {
   extractPalette?: (src: string) => Promise<PaletteSwatch[]>;
+  extractionErrorMessage?: string;
 };
 
 export function useActiveImageSelection(options: UseActiveImageSelectionOptions = {}) {
   const extractPalette = options.extractPalette ?? extractPaletteFromImageSrc;
+  const extractionErrorMessage = options.extractionErrorMessage ?? EXTRACTION_ERROR_MESSAGE;
   const [activeImage, setActiveImage] = useState<ActiveImage | null>(null);
   const [paletteSelection, setPaletteSelection] = useState<PaletteSelectionState>(
     emptyPaletteSelection,
@@ -130,10 +132,10 @@ export function useActiveImageSelection(options: UseActiveImageSelectionOptions 
           ...prev,
           extractionStatus: "error",
           swatches: [],
-          extractionError: EXTRACTION_ERROR_MESSAGE,
+          extractionError: extractionErrorMessage,
         }));
       });
-  }, [activeImage, extractPalette]);
+  }, [activeImage, extractPalette, extractionErrorMessage]);
 
   return {
     activeImage,

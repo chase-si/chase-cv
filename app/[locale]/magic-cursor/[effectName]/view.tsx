@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 import type { EffectName } from "magic-cursor-effect";
 
@@ -18,6 +17,7 @@ import { MagicCursorSidebar } from "@/components/magic-cursor/sidebar";
 import { MagicCursorDemoDetail } from "@/components/magic-cursor/demo-detail";
 import { MagicCursorEffectCode } from "@/components/magic-cursor/effect-code";
 import type { OptionsByEffect } from "@/components/magic-cursor/types";
+import { Link } from "@/i18n/navigation";
 import { defaultOptionsByEffect } from "@/lib/constants/magic-cursor";
 import { trackEvent } from "@/lib/analytics";
 
@@ -74,4 +74,3 @@ export function MagicCursorEffectPage({ effect }: Props) {
     </div>
   );
 }
-

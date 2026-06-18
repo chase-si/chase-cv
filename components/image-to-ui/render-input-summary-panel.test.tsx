@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { RenderInputSummaryPanel } from "@/components/image-to-ui/render-input-summary-panel";
 import { buildImageToUiRenderInput } from "@/lib/image-to-ui/build-image-to-ui-render-input";
 import { derivePreviewThemeTokens } from "@/lib/image-to-ui/derive-preview-theme";
+import enMessages from "@/messages/en.json";
 
 const mockThemeState = vi.hoisted(() => ({
   resolvedTheme: "light",
@@ -58,6 +60,14 @@ afterEach(() => {
   cleanup();
 });
 
+function renderWithIntl(ui: ReactNode) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={enMessages}>
+      {ui}
+    </NextIntlClientProvider>,
+  );
+}
+
 describe("RenderInputSummaryPanel", () => {
   it("exposes the image-and-color contract on the summary root", () => {
     const selectedColors = ["#FF0088", "#112233", "#445566"];
@@ -68,7 +78,7 @@ describe("RenderInputSummaryPanel", () => {
     };
     const renderInput = buildImageToUiRenderInput(activeImage, selectedColors);
 
-    render(
+    renderWithIntl(
       <RenderInputSummaryPanel
         activeImage={activeImage}
         sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
@@ -128,7 +138,7 @@ describe("RenderInputSummaryPanel", () => {
       sampleTitleById: { "great-wave": "神奈川冲浪里" },
       selectedColors: ["#3366FF", "#00AA55", "#FFAA00"],
     };
-    const { rerender } = render(<RenderInputSummaryPanel {...props} />);
+    const { rerender } = renderWithIntl(<RenderInputSummaryPanel {...props} />);
 
     const preview = screen.getByTestId("saas-preview-surface");
     const lightTokens = derivePreviewThemeTokens({
@@ -139,7 +149,11 @@ describe("RenderInputSummaryPanel", () => {
     expect(preview.style.getPropertyValue("--primary")).toBe(lightTokens.primary);
 
     mockThemeState.resolvedTheme = "dark";
-    rerender(<RenderInputSummaryPanel {...props} />);
+    rerender(
+      <NextIntlClientProvider locale="en" messages={enMessages}>
+        <RenderInputSummaryPanel {...props} />
+      </NextIntlClientProvider>,
+    );
 
     const darkTokens = derivePreviewThemeTokens({
       selectedColors: props.selectedColors,
@@ -150,7 +164,7 @@ describe("RenderInputSummaryPanel", () => {
   });
 
   it("switches between overview and settings tabs inside preview", () => {
-    render(
+    renderWithIntl(
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
@@ -200,9 +214,9 @@ describe("RenderInputSummaryPanel", () => {
     expect(landingTab).toHaveAttribute("aria-selected", "true");
     expect(within(preview).queryByTestId("saas-status-area")).not.toBeInTheDocument();
     expect(within(preview).getByTestId("landing-page-preview")).toBeInTheDocument();
-    expect(within(preview).getByTestId("landing-hero")).toHaveTextContent("Launch customer success faster");
-    expect(within(preview).getByRole("button", { name: "Start free trial" }).className).toMatch(/bg-primary/);
-    expect(within(preview).getByRole("button", { name: "View demo" }).className).toMatch(/border-primary/);
+    expect(within(preview).getByTestId("landing-hero")).toHaveTextContent("Keep every expansion motion on track.");
+    expect(within(preview).getByRole("button", { name: "Start trial" }).className).toMatch(/bg-primary/);
+    expect(within(preview).getByRole("button", { name: "Watch demo" }).className).toMatch(/border-primary/);
     expect(within(preview).getByTestId("landing-nav")).toBeInTheDocument();
     expect(within(preview).getByTestId("landing-hero-panel")).toBeInTheDocument();
     expect(within(preview).getAllByTestId("landing-feature-card")).toHaveLength(3);
@@ -211,7 +225,7 @@ describe("RenderInputSummaryPanel", () => {
   });
 
   it("shows alert and accent sections in preview overview", () => {
-    render(
+    renderWithIntl(
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
@@ -229,7 +243,7 @@ describe("RenderInputSummaryPanel", () => {
   });
 
   it("renders dashboard navigation and Recharts-powered chart sections in the preview overview", () => {
-    render(
+    renderWithIntl(
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
@@ -242,7 +256,7 @@ describe("RenderInputSummaryPanel", () => {
     );
 
     const preview = screen.getByTestId("saas-preview-surface");
-    expect(within(preview).getByTestId("saas-dashboard-sidebar")).toHaveTextContent("Dashboard");
+    expect(within(preview).getByTestId("saas-dashboard-sidebar")).toHaveTextContent("Overview");
     expect(within(preview).getByTestId("saas-dashboard-toolbar")).toHaveTextContent("Quick Create");
     expect(within(preview).getAllByTestId("saas-kpi-card")).toHaveLength(4);
     expect(within(preview).getByTestId("saas-revenue-chart-section")).toBeInTheDocument();
@@ -260,7 +274,7 @@ describe("RenderInputSummaryPanel", () => {
   });
 
   it("renders a compact data table with status badges and accessible row actions", () => {
-    render(
+    renderWithIntl(
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
@@ -290,7 +304,7 @@ describe("RenderInputSummaryPanel", () => {
   });
 
   it("shows primary secondary and accent roles in the preview section", () => {
-    render(
+    renderWithIntl(
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
@@ -314,7 +328,7 @@ describe("RenderInputSummaryPanel", () => {
 
   it("scopes portaled select popup theme variables to the preview palette", () => {
     const selectedColors = ["#FF0088", "#112233", "#445566"];
-    render(
+    renderWithIntl(
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
@@ -339,7 +353,7 @@ describe("RenderInputSummaryPanel", () => {
   });
 
   it("reserves primary for actions and high-emphasis states instead of large preview surfaces", () => {
-    render(
+    renderWithIntl(
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
@@ -384,7 +398,7 @@ describe("RenderInputSummaryPanel", () => {
       selectedColors,
     );
 
-    render(
+    renderWithIntl(
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",

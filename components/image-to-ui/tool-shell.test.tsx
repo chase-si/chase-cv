@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ImageToUiToolShell } from "@/components/image-to-ui/tool-shell";
+import zhMessages from "@/messages/zh.json";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/image-to-ui",
@@ -61,9 +63,17 @@ function getSampleCard(sampleId: string) {
   return card as HTMLElement;
 }
 
+function renderToolShell() {
+  return render(
+    <NextIntlClientProvider locale="zh" messages={zhMessages}>
+      <ImageToUiToolShell />
+    </NextIntlClientProvider>,
+  );
+}
+
 describe("ImageToUiToolShell active image selection", () => {
   it("shows the selected sample in the main preview with contain fitting", () => {
-    render(<ImageToUiToolShell />);
+    renderToolShell();
 
     fireEvent.click(getSampleCard("great-wave"));
 
@@ -80,7 +90,7 @@ describe("ImageToUiToolShell active image selection", () => {
       revokeObjectURL: vi.fn(),
     });
 
-    render(<ImageToUiToolShell />);
+    renderToolShell();
 
     fireEvent.click(getSampleCard("great-wave"));
     const fileInput = screen.getByLabelText("从本地上传图片");
@@ -93,7 +103,7 @@ describe("ImageToUiToolShell active image selection", () => {
   });
 
   it("keeps sample thumbnails compact with cover cropping", () => {
-    render(<ImageToUiToolShell />);
+    renderToolShell();
 
     const sampleCard = getSampleCard("great-wave");
     const thumbnail = within(sampleCard).getByRole("presentation");
@@ -115,7 +125,7 @@ async function selectThreePaletteSwatches() {
 
 describe("ImageToUiToolShell palette selection", () => {
   it("enables render only after three ordered swatches are selected", async () => {
-    render(<ImageToUiToolShell />);
+    renderToolShell();
 
     fireEvent.click(getSampleCard("great-wave"));
 
@@ -139,7 +149,7 @@ describe("ImageToUiToolShell palette selection", () => {
 
 describe("ImageToUiToolShell render input summary", () => {
   it("switches to the summary step without leaving the page when Render is clicked", async () => {
-    render(<ImageToUiToolShell />);
+    renderToolShell();
 
     await selectThreePaletteSwatches();
     fireEvent.click(screen.getByTestId("palette-render-button"));
@@ -152,7 +162,7 @@ describe("ImageToUiToolShell render input summary", () => {
   });
 
   it("shows the active image and three color roles on the summary step", async () => {
-    render(<ImageToUiToolShell />);
+    renderToolShell();
 
     await selectThreePaletteSwatches();
     fireEvent.click(screen.getByTestId("palette-render-button"));
@@ -168,7 +178,7 @@ describe("ImageToUiToolShell render input summary", () => {
   });
 
   it("applies derived css variables only on the preview root", async () => {
-    render(<ImageToUiToolShell />);
+    renderToolShell();
 
     await selectThreePaletteSwatches();
     fireEvent.click(screen.getByTestId("palette-render-button"));
@@ -186,8 +196,8 @@ describe("ImageToUiToolShell render input summary", () => {
     expect(pageMain.style.getPropertyValue("--ring")).toBe("");
   });
 
-  it("keeps Chinese workflow labels while preview content stays in English", async () => {
-    render(<ImageToUiToolShell />);
+  it("localizes Chinese workflow labels and preview content", async () => {
+    renderToolShell();
 
     await selectThreePaletteSwatches();
     fireEvent.click(screen.getByTestId("palette-render-button"));
@@ -196,14 +206,14 @@ describe("ImageToUiToolShell render input summary", () => {
     expect(screen.getByText("确认当前图片与三色角色；查看完整预览并可返回继续编辑。")).toBeInTheDocument();
 
     const preview = screen.getByTestId("saas-preview-surface");
-    expect(within(preview).getByRole("tab", { name: "Overview" })).toBeInTheDocument();
-    expect(within(preview).getByRole("tab", { name: "Workspace settings" })).toBeInTheDocument();
-    expect(within(preview).getByTestId("saas-dashboard-toolbar")).toHaveTextContent("Documents");
+    expect(within(preview).getByRole("tab", { name: "概览" })).toBeInTheDocument();
+    expect(within(preview).getByRole("tab", { name: "工作区设置" })).toBeInTheDocument();
+    expect(within(preview).getByTestId("saas-dashboard-toolbar")).toHaveTextContent("文档");
     expect(within(preview).getByTestId("saas-revenue-chart-section")).toBeInTheDocument();
   });
 
   it("returns to edit and preserves image and color choices", async () => {
-    render(<ImageToUiToolShell />);
+    renderToolShell();
 
     await selectThreePaletteSwatches();
     fireEvent.click(screen.getByTestId("palette-render-button"));
@@ -218,7 +228,7 @@ describe("ImageToUiToolShell render input summary", () => {
 
 describe("ImageToUiToolShell route restore", () => {
   it("returns to step 1 with the source sidebar after a persisted pageshow", async () => {
-    render(<ImageToUiToolShell />);
+    renderToolShell();
 
     await selectThreePaletteSwatches();
     fireEvent.click(screen.getByTestId("palette-render-button"));

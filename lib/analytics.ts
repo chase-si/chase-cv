@@ -5,7 +5,8 @@ import { sendGAEvent } from "@next/third-parties/google";
 export type AnalyticsEventName =
   | "nav_click"
   | "outbound_click"
-  | "effect_view";
+  | "effect_view"
+  | "language_switch";
 
 export function trackEvent(
   name: AnalyticsEventName,

@@ -7,7 +7,6 @@ import type { PaletteSelectionState } from "@/lib/image-to-ui/active-image-types
 import { MIN_SELECTABLE_PALETTE_SWATCHES } from "@/lib/image-to-ui/active-image-types";
 import { isPaletteRenderEnabled } from "@/lib/image-to-ui/is-palette-render-enabled";
 import {
-  getPaletteSelectionOrderLabel,
   toggleOrderedPaletteSwatch,
 } from "@/lib/image-to-ui/toggle-ordered-palette-selection";
 import { formatPaletteProportionPercent } from "@/lib/image-to-ui/normalize-dominant-palette";
@@ -20,6 +19,18 @@ type ExtractedPalettePanelProps = {
   paletteSelection: PaletteSelectionState;
   onSelectedColorsChange: (selectedColors: string[]) => void;
   onRender?: () => void;
+  labels?: {
+    paletteEmpty: string;
+    paletteLoading: string;
+    paletteAria: string;
+    paletteShare: (percent: string) => string;
+    paletteSwatchAria: (hex: string, percent: string) => string;
+    paletteInsufficient: (count: number) => string;
+    selectionLimit: string;
+    renderButton: string;
+    selectionProgress: (selected: number, required: number) => string;
+    selectedColor: (index: number) => string;
+  };
 };
 
 export function ExtractedPalettePanel({
@@ -27,6 +38,19 @@ export function ExtractedPalettePanel({
   paletteSelection,
   onSelectedColorsChange,
   onRender,
+  labels = {
+    paletteEmpty: "选择图片后将显示色板与选色控件。",
+    paletteLoading: "正在提取色板...",
+    paletteAria: "提取的色板",
+    paletteShare: (percent) => `占比 ${percent}`,
+    paletteSwatchAria: (hex, percent) => `${hex}，占比 ${percent}`,
+    paletteInsufficient: (count) =>
+      `当前图片可用的可选颜色不足 ${count} 个，请换一张对比更丰富的图片。`,
+    selectionLimit: SELECTION_LIMIT_MESSAGE,
+    renderButton: "渲染",
+    selectionProgress: (selected, required) => `已选 ${selected} / ${required} 个颜色`,
+    selectedColor: (index) => `已选色 ${index}`,
+  },
 }: ExtractedPalettePanelProps) {
   const { extractionStatus, swatches, extractionError, selectedColors } = paletteSelection;
   const [selectionLimitMessage, setSelectionLimitMessage] = useState<string | null>(null);
@@ -36,14 +60,14 @@ export function ExtractedPalettePanel({
 
   if (!hasActiveImage) {
     return (
-      <p className="text-sm text-muted-foreground">选择图片后将显示色板与选色控件。</p>
+      <p className="text-sm text-muted-foreground">{labels.paletteEmpty}</p>
     );
   }
 
   const handleSwatchClick = (hex: string) => {
     const result = toggleOrderedPaletteSwatch(selectedColors, hex);
     if (result.type === "limit") {
-      setSelectionLimitMessage(SELECTION_LIMIT_MESSAGE);
+      setSelectionLimitMessage(labels.selectionLimit);
       return;
     }
     setSelectionLimitMessage(null);
@@ -54,7 +78,7 @@ export function ExtractedPalettePanel({
     <div className="space-y-4" data-testid="palette-selection">
       {extractionStatus === "loading" ? (
         <p className="text-sm text-muted-foreground" data-testid="palette-extraction-loading">
-          正在提取色板…
+          {labels.paletteLoading}
         </p>
       ) : null}
 
@@ -65,11 +89,11 @@ export function ExtractedPalettePanel({
       ) : null}
 
       {extractionStatus === "ready" && swatches.length > 0 ? (
-        <ul className="grid gap-2 sm:grid-cols-2" aria-label="提取的色板">
+        <ul className="grid gap-2 sm:grid-cols-2" aria-label={labels.paletteAria}>
           {swatches.map((swatch) => {
             const selectionIndex = selectedColors.indexOf(swatch.hex);
             const isSelected = selectionIndex >= 0;
-            const orderLabel = isSelected ? getPaletteSelectionOrderLabel(selectionIndex) : null;
+            const orderLabel = isSelected ? labels.selectedColor(selectionIndex + 1) : null;
             const percentLabel = formatPaletteProportionPercent(swatch.proportion);
             const widthPercent = Math.max(4, Math.round(swatch.proportion * 1000) / 10);
 
@@ -84,7 +108,7 @@ export function ExtractedPalettePanel({
                   )}
                   data-testid={`palette-swatch-${swatch.role}`}
                   aria-pressed={isSelected}
-                  aria-label={`${swatch.hex}，占比 ${percentLabel}`}
+                  aria-label={labels.paletteSwatchAria(swatch.hex, percentLabel)}
                   onClick={() => handleSwatchClick(swatch.hex)}
                 >
                   <span
@@ -116,7 +140,7 @@ export function ExtractedPalettePanel({
                           className="inline-flex shrink-0 items-center rounded-md border border-transparent px-1.5 py-0.5 text-xs font-medium opacity-0"
                           aria-hidden
                         >
-                          已选色 1
+                          {labels.selectedColor(1)}
                         </span>
                       )}
                     </div>
@@ -124,7 +148,7 @@ export function ExtractedPalettePanel({
                       <div
                         className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted"
                         role="img"
-                        aria-label={`占比 ${percentLabel}`}
+                        aria-label={labels.paletteShare(percentLabel)}
                       >
                         <div
                           className="h-full rounded-full"
@@ -148,7 +172,7 @@ export function ExtractedPalettePanel({
 
       {hasInsufficientSwatches ? (
         <p className="text-sm text-muted-foreground" data-testid="palette-insufficient-swatches">
-          当前图片可用的可选颜色不足 {MIN_SELECTABLE_PALETTE_SWATCHES} 个，请换一张对比更丰富的图片。
+          {labels.paletteInsufficient(MIN_SELECTABLE_PALETTE_SWATCHES)}
         </p>
       ) : null}
 
@@ -166,10 +190,10 @@ export function ExtractedPalettePanel({
           className='shadow-sm hover:shadow-md'
           onClick={() => onRender?.()}
         >
-          渲染
+          {labels.renderButton}
         </Button>
         <p className="text-sm text-muted-foreground" data-testid="palette-selection-progress">
-          已选 {selectedColors.length} / {MIN_SELECTABLE_PALETTE_SWATCHES} 个颜色
+          {labels.selectionProgress(selectedColors.length, MIN_SELECTABLE_PALETTE_SWATCHES)}
         </p>
       </div>
 

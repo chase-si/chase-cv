@@ -1,6 +1,7 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import * as React from "react";
 
@@ -8,6 +9,7 @@ import { Toggle } from "@/components/ui/toggle";
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
+  const t = useTranslations("themeToggle");
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -32,7 +34,7 @@ export function ThemeToggle() {
       pressed={isDark}
       onPressedChange={(next) => setTheme(next ? "dark" : "light")}
       className="rounded-xl border shadow-sm"
-      aria-label={isDark ? "切换为浅色" : "切换为深色"}
+      aria-label={isDark ? t("toLight") : t("toDark")}
     >
       {isDark ? (
         <Sun className="h-4 w-4" />

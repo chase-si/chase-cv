@@ -12,9 +12,10 @@ import type {
   SpotlightOptions,
   TrailOptions,
 } from "magic-cursor-effect";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import type { EffectOptions, MagneticEffectOptions, OptionsByEffect } from "@/components/magic-cursor/types";
+import { useRouter } from "@/i18n/navigation";
 import {
   INVERT_RING_BLEND_MODE_OPTIONS,
   MAGIC_CURSOR_EFFECT_ORDER,
@@ -91,6 +92,7 @@ function isDetailProps(props: Props): props is DetailProps {
 
 export function MagicCursorSidebar(props: Props) {
   const router = useRouter();
+  const t = useTranslations("magicCursor");
   const effect = props.activeEffect;
   const detail = isDetailProps(props) ? props : null;
   const options = detail ? detail.optionsByEffect[detail.activeEffect] : null;
@@ -99,18 +101,18 @@ export function MagicCursorSidebar(props: Props) {
     <Card className="border-border/80 bg-card/80 shadow-lg backdrop-blur-xl">
       <CardHeader className="pb-2">
         <CardTitle>Magic Cursor</CardTitle>
-        <CardDescription>切换不同鼠标效果，并实时调参预览。</CardDescription>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4 pt-0">
         <div className="grid gap-2">
-          <Label className="text-xs text-muted-foreground">效果</Label>
+          <Label className="text-xs text-muted-foreground">{t("effectLabel")}</Label>
           <Button
             variant={effect === null ? "default" : "outline"}
             size="lg"
             className={effect === null ? "shadow-sm border-none" : "shadow-sm"}
             onClick={() => router.push("/magic-cursor")}
           >
-            All
+            {t("all")}
           </Button>
           <div className="grid grid-cols-2 gap-2">
             {MAGIC_CURSOR_EFFECT_ORDER.map((name) => {
@@ -133,7 +135,7 @@ export function MagicCursorSidebar(props: Props) {
 
         {detail && (
           <div className="border border-border bg-muted/30 p-4">
-            <Label className="text-xs text-muted-foreground">参数</Label>
+            <Label className="text-xs text-muted-foreground">{t("paramsLabel")}</Label>
 
             {effect === "spotlight" && (
               <div className="mt-3 grid gap-3">
@@ -431,12 +433,12 @@ export function MagicCursorSidebar(props: Props) {
                     </div>
                     <div className="grid gap-2">
                       <Label className="text-xs font-normal text-muted-foreground">
-                        blendBackground（可选，rgba / 留空用库默认）
+                        {t("blendBackgroundHelp")}
                       </Label>
                       <ColorPicker
                         value={(options as InvertRingOptions).blendBackground ?? ""}
                         allowEmpty
-                        placeholder="例如 rgba(255, 255, 255, 0.9)"
+                        placeholder={t("blendBackgroundPlaceholder")}
                         onChange={(blendBackground) =>
                           detail.setOptionsByEffect((prev) => ({
                             ...prev,
@@ -474,7 +476,7 @@ export function MagicCursorSidebar(props: Props) {
                 />
                 <div className="grid gap-2">
                   <Label className="text-xs font-normal text-muted-foreground">
-                    selector（CSS 选择器）
+                    {t("selectorLabel")}
                   </Label>
                   <Input
                     value={(options as MagneticOptions).selector ?? "[data-magnetic]"}
@@ -490,17 +492,17 @@ export function MagicCursorSidebar(props: Props) {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  预览区域里匹配该选择器的元素会被吸引；默认{" "}
+                  {t("magneticHelp")}{" "}
                   <code className="font-mono text-foreground">[data-magnetic]</code>。
                 </p>
                 <div className="grid gap-2">
                   <Label className="text-xs font-normal text-muted-foreground">
-                    itemColor（预览磁吸块，留空用主题 primary）
+                    {t("itemColorLabel")}
                   </Label>
                   <ColorPicker
                     value={(options as MagneticEffectOptions).itemColor ?? ""}
                     allowEmpty
-                    placeholder="例如 rgba(99, 102, 241, 0.95)"
+                    placeholder={t("itemColorPlaceholder")}
                     onChange={(itemColor) =>
                       detail.setOptionsByEffect((prev) => ({
                         ...prev,
@@ -695,7 +697,7 @@ export function MagicCursorSidebar(props: Props) {
               }))
             }
           >
-            重置为默认参数
+            {t("reset")}
           </Button>
         )}
       </CardContent>
