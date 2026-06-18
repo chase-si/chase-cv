@@ -17,6 +17,12 @@ export {
   expandFlowBranch,
   getFlowToolbarCapabilities,
 } from "@/lib/flow/flow-structure-mutations";
+export { cloneDemoFlowRoot } from "@/lib/flow/clone-demo-flow-root";
+export {
+  DEMO_RUNTIME_GREEN_ARROW_IDS,
+  DEMO_RUNTIME_ID_COLOR_MAP,
+  getDemoRuntimeHighlightPresentation,
+} from "@/lib/flow/demo-runtime-highlight";
 export type { FlowIdFactory } from "@/lib/flow/flow-id-factory";
 export { FlowReadOnlySurface } from "@/components/flow/flow-read-only-surface";
 export { FlowRenderSvg } from "@/components/flow/flow-render-svg";
