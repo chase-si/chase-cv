@@ -36,7 +36,7 @@ export function ImageToUiToolShell() {
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
+      <main className="mx-auto w-full flex-1 px-4 py-8 sm:px-6 sm:py-10">
         <header className="mb-8 space-y-4">
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">

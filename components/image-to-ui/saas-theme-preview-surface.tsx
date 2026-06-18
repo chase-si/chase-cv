@@ -211,10 +211,6 @@ export function SaasThemePreviewSurface({
                   Landing page
                 </TabsTrigger>
               </TabsList>
-              <Button type="button" variant="outline" size="sm">
-                <ArrowUpRight data-icon="inline-start" aria-hidden />
-                Share
-              </Button>
             </div>
           </div>
 
