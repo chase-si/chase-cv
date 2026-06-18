@@ -9,5 +9,14 @@ export {
   getNewFlowX,
   getNewFlowY,
 } from "@/lib/flow/layout-metrics";
+export { adjustFlowZoom, formatFlowZoomPercent, FLOW_ZOOM_DEFAULT } from "@/lib/flow/flow-zoom";
+export {
+  addFlowBranch,
+  addSequentialFlowStep,
+  deleteSupportedFlowNode,
+  expandFlowBranch,
+  getFlowToolbarCapabilities,
+} from "@/lib/flow/flow-structure-mutations";
+export type { FlowIdFactory } from "@/lib/flow/flow-id-factory";
 export { FlowReadOnlySurface } from "@/components/flow/flow-read-only-surface";
 export { FlowRenderSvg } from "@/components/flow/flow-render-svg";
