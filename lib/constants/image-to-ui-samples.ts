@@ -32,6 +32,18 @@ export const IMAGE_TO_UI_SAMPLE_IMAGES: readonly ImageToUiSampleImage[] = [
     description: "大面积相近色相，测试多 swatch 与柔和过渡。",
   },
   {
+    id: "school-athens",
+    imagePath: "/imgs/image-to-ui/school-athens-1280.webp",
+    title: "雅典学院",
+    description: "古典壁画层次与大地色调，观察多人物场景下的稳定主色。",
+  },
+  {
+    id: "girl-pearl",
+    imagePath: "/imgs/image-to-ui/girl-pearl-1280.webp",
+    title: "戴珍珠耳环的少女",
+    description: "柔和肤色与深色背景，观察明暗层次下的色板分布。",
+  },
+  {
     id: "almond-blossom",
     imagePath: "/imgs/image-to-ui/almond-blossom-1280.webp",
     title: "盛开的杏花",
@@ -56,28 +68,10 @@ export const IMAGE_TO_UI_SAMPLE_IMAGES: readonly ImageToUiSampleImage[] = [
     description: "主导红色与装饰图案，观察单一色相下的变化色板。",
   },
   {
-    id: "girl-pearl",
-    imagePath: "/imgs/image-to-ui/girl-pearl-1280.webp",
-    title: "戴珍珠耳环的少女",
-    description: "柔和肤色与深色背景，观察明暗层次下的色板分布。",
-  },
-  {
-    id: "birth-venus",
-    imagePath: "/imgs/image-to-ui/birth-venus-1280.webp",
-    title: "维纳斯的诞生",
-    description: "古典暖色与天空冷色并存，适合双色温对比提取。",
-  },
-  {
     id: "calling-saint-matthew",
     imagePath: "/imgs/image-to-ui/calling-saint-matthew-1280.webp",
     title: "基督呼召马太",
     description: "强明暗对照与局部高光，测试暗场中的动作色提取。",
-  },
-  {
-    id: "school-athens",
-    imagePath: "/imgs/image-to-ui/school-athens-1280.webp",
-    title: "雅典学院",
-    description: "古典壁画层次与大地色调，观察多人物场景下的稳定主色。",
   },
   {
     id: "gleaners",
