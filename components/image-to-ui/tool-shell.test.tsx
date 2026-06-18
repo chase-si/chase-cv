@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -24,6 +25,24 @@ vi.mock("next/image", () => ({
     // eslint-disable-next-line @next/next/no-img-element -- test double for next/image
     return <img alt={alt} src={src} className={className} />;
   },
+}));
+
+vi.mock("recharts", () => ({
+  ResponsiveContainer: ({ children }: { children?: ReactNode }) => (
+    <div data-testid="mock-responsive-container">{children}</div>
+  ),
+  AreaChart: ({ children }: { children?: ReactNode }) => (
+    <svg data-testid="mock-area-chart">{children}</svg>
+  ),
+  BarChart: ({ children }: { children?: ReactNode }) => (
+    <svg data-testid="mock-bar-chart">{children}</svg>
+  ),
+  Area: ({ dataKey }: { dataKey: string }) => <path data-testid={`mock-area-${dataKey}`} />,
+  Bar: ({ dataKey }: { dataKey: string }) => <rect data-testid={`mock-bar-${dataKey}`} />,
+  CartesianGrid: () => <g data-testid="mock-cartesian-grid" />,
+  Tooltip: () => <g data-testid="mock-chart-tooltip" />,
+  XAxis: () => <g data-testid="mock-x-axis" />,
+  YAxis: () => <g data-testid="mock-y-axis" />,
 }));
 
 afterEach(() => {
@@ -176,7 +195,8 @@ describe("ImageToUiToolShell render input summary", () => {
     const preview = screen.getByTestId("saas-preview-surface");
     expect(within(preview).getByRole("tab", { name: "Overview" })).toBeInTheDocument();
     expect(within(preview).getByRole("tab", { name: "Workspace settings" })).toBeInTheDocument();
-    expect(within(preview).getByText("Platform health")).toBeInTheDocument();
+    expect(within(preview).getByTestId("saas-dashboard-toolbar")).toHaveTextContent("Documents");
+    expect(within(preview).getByTestId("saas-revenue-chart-section")).toBeInTheDocument();
   });
 
   it("returns to edit and preserves image and color choices", async () => {
