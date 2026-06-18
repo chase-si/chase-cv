@@ -5,9 +5,11 @@ import { toast } from "sonner";
 
 import { FlowReadOnlySurface } from "@/components/flow/flow-read-only-surface";
 import { FlowNodePropertiesPanel } from "@/components/flow/flow-node-properties-panel";
+import { FlowDemoControls } from "@/components/flow/flow-demo-controls";
 import { FlowStructureToolbar } from "@/components/flow/flow-structure-toolbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DEMO_FLOW_ROOT } from "@/lib/flow/demo-flow-data";
+import { cloneDemoFlowRoot } from "@/lib/flow/clone-demo-flow-root";
+import { getDemoRuntimeHighlightPresentation } from "@/lib/flow/demo-runtime-highlight";
 import { findFlowNodeById } from "@/lib/flow/find-flow-node";
 import { defaultFlowIdFactory } from "@/lib/flow/flow-id-factory";
 import {
@@ -23,9 +25,15 @@ import type { FlowLeafNode, FlowRoot } from "@/lib/flow/types";
 import { cn } from "@/lib/utils";
 
 export function FlowToolShell() {
-  const [flowData, setFlowData] = useState<FlowRoot>(DEMO_FLOW_ROOT);
+  const [flowData, setFlowData] = useState<FlowRoot>(() => cloneDemoFlowRoot());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(FLOW_ZOOM_DEFAULT);
+  const [runningHighlight, setRunningHighlight] = useState(false);
+
+  const runtimeHighlight = useMemo(
+    () => getDemoRuntimeHighlightPresentation(runningHighlight),
+    [runningHighlight],
+  );
 
   const selectedNode = useMemo(
     () => (selectedId ? findFlowNodeById(flowData, selectedId) ?? null : null),
@@ -140,6 +148,11 @@ export function FlowToolShell() {
     }
   }, [flowData, requireSelection, selectedId]);
 
+  const handleResetDemo = useCallback(() => {
+    setFlowData(cloneDemoFlowRoot());
+    setSelectedId(null);
+  }, []);
+
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-8 sm:px-6 sm:py-10">
@@ -150,6 +163,11 @@ export function FlowToolShell() {
           <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
             查看并编辑 SFC 流程结构的可视化草稿；使用左侧工具栏缩放画布并增删分支与顺序步。
           </p>
+          <FlowDemoControls
+            runningHighlight={runningHighlight}
+            onRunningHighlightChange={setRunningHighlight}
+            onReset={handleResetDemo}
+          />
         </header>
 
         <div
@@ -186,6 +204,8 @@ export function FlowToolShell() {
               activeId={selectedId}
               shrinksFactor={zoom}
               svgDomOnClick={handleSelectNode}
+              idColorMap={runtimeHighlight?.idColorMap}
+              greenArrowIds={runtimeHighlight?.greenArrowIds}
             />
           </section>
 

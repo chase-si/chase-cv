@@ -2,6 +2,10 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { FlowToolShell } from "@/components/flow/flow-tool-shell";
+import {
+  FLOW_SVG_RUNTIME_DEMO_BRANCH_FILL,
+  FLOW_SVG_RUNTIME_DEMO_FINISHED_FILL,
+} from "@/components/flow/flow-svg-tokens";
 
 vi.mock("sonner", () => ({
   toast: {
@@ -141,5 +145,92 @@ describe("FlowToolShell", () => {
 
     expect(toolbar.getByTestId("flow-toolbar-zoom-label")).toHaveTextContent("200%");
     expect(toast.info).toHaveBeenCalledWith("已达到最大缩放 200%");
+  });
+
+  it("resets demo data and clears selection without confirmation", () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<FlowToolShell />);
+
+    const canvas = screen.getByTestId("flow-editor-canvas");
+    fireEvent.click(canvas.querySelector('[data-flow-node-id="step001"]')!);
+
+    const properties = within(screen.getByTestId("flow-editor-properties"));
+    fireEvent.change(properties.getByLabelText("描述"), {
+      target: { value: "mutated-desc" },
+    });
+    expect(canvas).toHaveTextContent("mutated-desc");
+
+    fireEvent.click(screen.getByRole("button", { name: /重置示例/ }));
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(canvas).toHaveTextContent("desc1");
+    expect(canvas).not.toHaveTextContent("mutated-desc");
+    expect(
+      within(screen.getByTestId("flow-editor-properties")).getByTestId(
+        "flow-properties-empty",
+      ),
+    ).toBeInTheDocument();
+    confirmSpy.mockRestore();
+  });
+
+  it("preserves running highlight toggle after reset", () => {
+    render(<FlowToolShell />);
+
+    fireEvent.click(screen.getByRole("switch", { name: "运行态高亮" }));
+    expect(screen.getByRole("switch", { name: "运行态高亮" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+
+    const canvas = screen.getByTestId("flow-editor-canvas");
+    fireEvent.click(canvas.querySelector('[data-flow-node-id="step001"]')!);
+    fireEvent.change(within(screen.getByTestId("flow-editor-properties")).getByLabelText("描述"), {
+      target: { value: "temporary" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /重置示例/ }));
+
+    expect(screen.getByRole("switch", { name: "运行态高亮" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+  });
+
+  it("applies fixed demo runtime highlight to top-level and nested nodes", () => {
+    render(<FlowToolShell />);
+    fireEvent.click(screen.getByRole("switch", { name: "运行态高亮" }));
+
+    const canvas = screen.getByTestId("flow-editor-canvas");
+    const topLevelFills = [
+      ...canvas.querySelectorAll('[data-flow-node-id="step001"] rect[fill]'),
+    ].map((el) => el.getAttribute("fill"));
+    expect(topLevelFills).toContain(FLOW_SVG_RUNTIME_DEMO_FINISHED_FILL);
+
+    const nestedFills = [
+      ...canvas.querySelectorAll('[data-flow-node-id="step004"] rect[fill]'),
+    ].map((el) => el.getAttribute("fill"));
+    expect(nestedFills).toContain(FLOW_SVG_RUNTIME_DEMO_BRANCH_FILL);
+
+    expect(
+      canvas.querySelector('[data-flow-green-arrow="step003"]'),
+    ).toBeInTheDocument();
+  });
+
+  it("allows property edits while runtime highlight is enabled", () => {
+    render(<FlowToolShell />);
+    fireEvent.click(screen.getByRole("switch", { name: "运行态高亮" }));
+
+    const canvas = screen.getByTestId("flow-editor-canvas");
+    fireEvent.click(canvas.querySelector('[data-flow-node-id="step001"]')!);
+
+    fireEvent.change(within(screen.getByTestId("flow-editor-properties")).getByLabelText("描述"), {
+      target: { value: "highlight-edit" },
+    });
+
+    expect(canvas).toHaveTextContent("highlight-edit");
+    expect(canvas.querySelector('[data-flow-node-id="step001"]')).toHaveAttribute(
+      "data-flow-selected",
+      "true",
+    );
   });
 });
