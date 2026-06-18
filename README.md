@@ -15,7 +15,8 @@ My personal website to show my skills
 ## E2E Tests (Playwright)
 
 - Install browser once: `npx playwright install chromium`
-- Run image-to-ui E2E suite: `npm run test:e2e`
+- Run the full E2E suite (image-to-ui + flow editor): `yarn test:e2e` or `npm run test:e2e`
+- Specs live under `tests/e2e/` (`image-to-ui-theme-preview.spec.ts`, `flow-editor.spec.ts`)
 - Traces are enabled in Playwright config with `trace: "on-first-retry"`
 
 ## Features
