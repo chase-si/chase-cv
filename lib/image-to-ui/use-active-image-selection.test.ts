@@ -26,13 +26,13 @@ describe("useActiveImageSelection", () => {
     const { result } = renderHook(() => useActiveImageSelection());
 
     act(() => {
-      result.current.selectSample("mondrian", "/imgs/image-to-ui/mondrian-1280.webp");
+      result.current.selectSample("great-wave", "/imgs/image-to-ui/great-wave-1280.webp");
     });
 
     expect(result.current.activeImage).toEqual({
       type: "sample",
-      sampleId: "mondrian",
-      src: "/imgs/image-to-ui/mondrian-1280.webp",
+      sampleId: "great-wave",
+      src: "/imgs/image-to-ui/great-wave-1280.webp",
     });
   });
 
@@ -134,7 +134,7 @@ describe("useActiveImageSelection", () => {
       result.current.updatePaletteSelection({
         selectedColors: ["#112233", "#445566"],
         extractionStatus: "ready",
-        swatches: [{ role: "Dominant1", hex: "#112233" }],
+        swatches: [{ role: "Dominant1", hex: "#112233", proportion: 0.3 }],
         extractionError: null,
       });
     });
@@ -171,7 +171,7 @@ describe("useActiveImageSelection", () => {
       result.current.updatePaletteSelection({
         selectedColors: [],
         extractionStatus: "ready",
-        swatches: [{ role: "Dominant1", hex: "#111111" }],
+        swatches: [{ role: "Dominant1", hex: "#111111", proportion: 0.25 }],
         extractionError: null,
       });
     });

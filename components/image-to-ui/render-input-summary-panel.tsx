@@ -27,25 +27,25 @@ export function RenderInputSummaryPanel({
 
   return (
     <RenderInputSummaryRoot summaryDataAttr={model.summaryDataAttr}>
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] xl:items-start xl:gap-8">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] xl:items-start xl:gap-6">
         <aside className="xl:sticky xl:top-24" aria-label="渲染输入侧栏摘要">
-          <Card className="shadow-md">
+          <Card size="sm" className="shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">输入摘要</CardTitle>
               <CardDescription className="text-xs">图片、三色与推导 Token（只读）。</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex flex-col gap-4 overflow-y-auto max-h-160">
               <RenderInputImageSummary
                 activeImage={activeImage}
                 imageSrc={model.imageSrc}
                 imageAlt={model.imageAlt}
                 compact
               />
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <p className="text-xs font-medium text-foreground">已选颜色角色</p>
                 <RenderInputColorRoles colorRoles={model.renderInput.colorRoles} layout="stack" />
               </div>
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <p className="text-xs font-medium text-foreground">预览主题 Token</p>
                 <RenderPreviewTokenSwatchSummary previewThemeTokens={model.previewThemeTokens} />
               </div>
@@ -53,13 +53,13 @@ export function RenderInputSummaryPanel({
           </Card>
         </aside>
 
-        <Card className="border-dashed shadow-md">
+        <Card className="shadow-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">界面渲染</CardTitle>
-            <CardDescription>Scoped theme 下的 SaaS 预览切片。</CardDescription>
+            <CardDescription>Scoped theme 下的 dashboard 与 marketing 预览。</CardDescription>
           </CardHeader>
           <CardContent>
-            <SaasThemePreviewSurface previewRootStyle={model.previewRootStyle} />
+            <SaasThemePreviewSurface previewRootStyle={model.previewRootStyle} className="max-h-[min(40rem,70vh)] overflow-y-auto" />
           </CardContent>
         </Card>
       </div>

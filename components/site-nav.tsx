@@ -10,11 +10,12 @@ export function SiteNav() {
       <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6">
         <Link href="/">
           <Image
-            src="/logo.png"
-            alt="Logo"
-            width={192}
-            height={52}
-            className="h-8 w-auto"
+            src="/logo.svg"
+            alt="Chase"
+            width={184}
+            height={48}
+            className="h-9 w-auto"
+            priority
           />
         </Link>
 

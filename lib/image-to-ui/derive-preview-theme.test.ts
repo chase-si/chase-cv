@@ -106,7 +106,30 @@ describe("derivePreviewThemeTokens", () => {
     expect(vivid.radius).toMatch(/rem$/);
     expect(Number.parseFloat(calm.radius)).toBeGreaterThan(Number.parseFloat(vivid.radius));
     expect(calm["shadow-color"]).toMatch(/^#/);
-    expect(calm["shadow-sm"]).toContain("4px 4px");
+    expect(calm["shadow-sm"]).toContain("hsl(0 0% 0%");
+    expect(calm["shadow-sm"]).not.toContain("4px 4px");
+  });
+
+  it("generates calmer mode-aware shadows for painting-derived themes", () => {
+    const selectedColors = ["#faf8f0", "#09568c", "#9e9982"];
+    const light = derivePreviewThemeTokens({ selectedColors, mode: "light" });
+    const dark = derivePreviewThemeTokens({ selectedColors, mode: "dark" });
+
+    expect(Number.parseFloat(light["shadow-opacity"])).toBeLessThanOrEqual(0.24);
+    expect(Number.parseFloat(light["shadow-blur"])).toBeGreaterThanOrEqual(12);
+    expect(light["shadow-sm"]).not.toContain("4px 4px 0px");
+    expect(Number.parseFloat(dark["shadow-opacity"])).toBeLessThanOrEqual(0.36);
+    expect(Number.parseFloat(dark["shadow-blur"])).toBeGreaterThanOrEqual(10);
+  });
+
+  it("keeps calm low-saturation palettes within a deliberate radius range", () => {
+    const tokens = derivePreviewThemeTokens({
+      selectedColors: ["#d8d4cc", "#cfc9bf", "#2a5f8f"],
+      mode: "light",
+    });
+
+    expect(Number.parseFloat(tokens.radius)).toBeGreaterThanOrEqual(0.75);
+    expect(Number.parseFloat(tokens.radius)).toBeLessThanOrEqual(1.25);
   });
 
   it("selects readable foreground tokens on colored surfaces", () => {

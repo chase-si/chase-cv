@@ -11,9 +11,9 @@ describe("useActiveImageSelection palette extraction", () => {
 
   it("extracts palette when the active image changes", async () => {
     const swatches: PaletteSwatch[] = [
-      { role: "Dominant1", hex: "#FF0088" },
-      { role: "Dominant2", hex: "#112233" },
-      { role: "Dominant3", hex: "#445566" },
+      { role: "Dominant1", hex: "#FF0088", proportion: 0.35 },
+      { role: "Dominant2", hex: "#112233", proportion: 0.22 },
+      { role: "Dominant3", hex: "#445566", proportion: 0.15 },
     ];
     const extractPalette = vi.fn().mockResolvedValue(swatches);
 
@@ -42,7 +42,7 @@ describe("useActiveImageSelection palette extraction", () => {
     const extractPalette = vi
       .fn()
       .mockImplementationOnce(() => slowPromise)
-      .mockResolvedValueOnce([{ role: "Dominant1", hex: "#AABBCC" }]);
+      .mockResolvedValueOnce([{ role: "Dominant1", hex: "#AABBCC", proportion: 0.2 }]);
 
     const { result } = renderHook(() => useActiveImageSelection({ extractPalette }));
 
@@ -59,11 +59,11 @@ describe("useActiveImageSelection palette extraction", () => {
     });
 
     expect(result.current.paletteSelection.swatches).toEqual([
-      { role: "Dominant1", hex: "#AABBCC" },
+      { role: "Dominant1", hex: "#AABBCC", proportion: 0.2 },
     ]);
 
     act(() => {
-      resolveSlow!([{ role: "Dominant2", hex: "#000000" }]);
+      resolveSlow!([{ role: "Dominant2", hex: "#000000", proportion: 0.1 }]);
     });
 
     await act(async () => {
@@ -71,7 +71,7 @@ describe("useActiveImageSelection palette extraction", () => {
     });
 
     expect(result.current.paletteSelection.swatches).toEqual([
-      { role: "Dominant1", hex: "#AABBCC" },
+      { role: "Dominant1", hex: "#AABBCC", proportion: 0.2 },
     ]);
   });
 

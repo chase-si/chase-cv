@@ -181,3 +181,38 @@
     letter-spacing: var(--tracking-normal);
   }
 }
+
+/* WebKit: Tailwind strips `*::-webkit-scrollbar` → invalid `::-webkit-scrollbar`; use explicit hosts. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--foreground) var(--muted);
+}
+
+:is(html, body, div, section, aside, main, article, textarea) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--foreground) var(--muted);
+}
+
+:is(html, body, div, section, aside, main, article, textarea)::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 8px;
+  height: 8px;
+}
+
+:is(html, body, div, section, aside, main, article, textarea)::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+
+:is(html, body, div, section, aside, main, article, textarea)::-webkit-scrollbar-thumb {
+  background: var(--foreground);
+  border: 1px solid var(--border);
+  box-shadow: 1px 1px 0 0 var(--border);
+}
+
+:is(html, body, div, section, aside, main, article, textarea)::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+:is(html, body, div, section, aside, main, article, textarea)::-webkit-scrollbar-corner {
+  background: var(--muted);
+}
