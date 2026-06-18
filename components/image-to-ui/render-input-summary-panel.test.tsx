@@ -63,15 +63,15 @@ describe("RenderInputSummaryPanel", () => {
     const selectedColors = ["#FF0088", "#112233", "#445566"];
     const activeImage = {
       type: "sample" as const,
-      sampleId: "mondrian",
-      src: "/imgs/image-to-ui/mondrian-1280.webp",
+      sampleId: "great-wave",
+      src: "/imgs/image-to-ui/great-wave-1280.webp",
     };
     const renderInput = buildImageToUiRenderInput(activeImage, selectedColors);
 
     render(
       <RenderInputSummaryPanel
         activeImage={activeImage}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={selectedColors}
       />,
     );
@@ -122,10 +122,10 @@ describe("RenderInputSummaryPanel", () => {
     const props = {
       activeImage: {
         type: "sample" as const,
-        sampleId: "mondrian",
-        src: "/imgs/image-to-ui/mondrian-1280.webp",
+        sampleId: "great-wave",
+        src: "/imgs/image-to-ui/great-wave-1280.webp",
       },
-      sampleTitleById: { mondrian: "蒙德里安构成" },
+      sampleTitleById: { "great-wave": "神奈川冲浪里" },
       selectedColors: ["#3366FF", "#00AA55", "#FFAA00"],
     };
     const { rerender } = render(<RenderInputSummaryPanel {...props} />);
@@ -154,10 +154,10 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
         }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
       />,
     );
@@ -210,10 +210,10 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
         }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
       />,
     );
@@ -228,10 +228,10 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
         }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
       />,
     );
@@ -259,10 +259,10 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
         }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
       />,
     );
@@ -289,10 +289,10 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
         }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
       />,
     );
@@ -312,10 +312,10 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
         }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={["#faf8f0", "#09568c", "#9e9982"]}
       />,
     );
@@ -347,8 +347,8 @@ describe("RenderInputSummaryPanel", () => {
     const renderInput = buildImageToUiRenderInput(
       {
         type: "sample",
-        sampleId: "mondrian",
-        src: "/imgs/image-to-ui/mondrian-1280.webp",
+        sampleId: "great-wave",
+        src: "/imgs/image-to-ui/great-wave-1280.webp",
       },
       selectedColors,
     );
@@ -357,10 +357,10 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
         }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={selectedColors}
       />,
     );

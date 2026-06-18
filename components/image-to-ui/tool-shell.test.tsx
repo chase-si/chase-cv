@@ -61,11 +61,11 @@ describe("ImageToUiToolShell active image selection", () => {
   it("shows the selected sample in the main preview with contain fitting", () => {
     render(<ImageToUiToolShell />);
 
-    fireEvent.click(getSampleCard("mondrian"));
+    fireEvent.click(getSampleCard("great-wave"));
 
     const preview = screen.getByTestId("active-image-preview");
-    const img = within(preview).getByRole("img", { name: "蒙德里安构成" });
-    expect(img).toHaveAttribute("src", "/imgs/image-to-ui/mondrian-1280.webp");
+    const img = within(preview).getByRole("img", { name: "神奈川冲浪里" });
+    expect(img).toHaveAttribute("src", "/imgs/image-to-ui/great-wave-1280.webp");
     expect(img.className).toMatch(/object-contain/);
   });
 
@@ -78,7 +78,7 @@ describe("ImageToUiToolShell active image selection", () => {
 
     render(<ImageToUiToolShell />);
 
-    fireEvent.click(getSampleCard("mondrian"));
+    fireEvent.click(getSampleCard("great-wave"));
     const fileInput = screen.getByLabelText("从本地上传图片");
     const file = new File(["pixels"], "local.png", { type: "image/png" });
     fireEvent.change(fileInput, { target: { files: [file] } });
@@ -91,14 +91,14 @@ describe("ImageToUiToolShell active image selection", () => {
   it("keeps sample thumbnails compact with cover cropping", () => {
     render(<ImageToUiToolShell />);
 
-    const sampleCard = getSampleCard("mondrian");
+    const sampleCard = getSampleCard("great-wave");
     const thumbnail = within(sampleCard).getByRole("presentation");
     expect(thumbnail.className).toMatch(/object-cover/);
   });
 });
 
 async function selectThreePaletteSwatches() {
-  fireEvent.click(getSampleCard("mondrian"));
+  fireEvent.click(getSampleCard("great-wave"));
 
   await waitFor(() => {
     expect(screen.getByTestId("palette-swatch-Dominant1")).toBeInTheDocument();
@@ -113,7 +113,7 @@ describe("ImageToUiToolShell palette selection", () => {
   it("enables render only after three ordered swatches are selected", async () => {
     render(<ImageToUiToolShell />);
 
-    fireEvent.click(getSampleCard("mondrian"));
+    fireEvent.click(getSampleCard("great-wave"));
 
     await waitFor(() => {
       expect(screen.getByTestId("palette-swatch-Dominant1")).toBeInTheDocument();
@@ -155,7 +155,7 @@ describe("ImageToUiToolShell render input summary", () => {
 
     const summary = screen.getByTestId("render-input-summary");
     const imageSummary = within(summary).getByTestId("render-input-image-summary");
-    expect(within(imageSummary).getByRole("img", { name: "蒙德里安构成" })).toBeInTheDocument();
+    expect(within(imageSummary).getByRole("img", { name: "神奈川冲浪里" })).toBeInTheDocument();
     expect(screen.queryByTestId("active-image-preview")).not.toBeInTheDocument();
 
     expect(screen.getByTestId("render-input-color-动作色")).toHaveTextContent("#FF0088");
@@ -207,7 +207,7 @@ describe("ImageToUiToolShell render input summary", () => {
     fireEvent.click(screen.getByTestId("render-back-to-edit"));
 
     expect(screen.getByTestId("palette-selection")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "蒙德里安构成" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "神奈川冲浪里" })).toBeInTheDocument();
     expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("已选色 1");
     expect(screen.getByTestId("palette-render-button")).toBeEnabled();
   });

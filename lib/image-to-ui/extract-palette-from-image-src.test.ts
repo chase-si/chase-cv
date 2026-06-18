@@ -1,21 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 
-const { getColorSync, getPaletteSync } = vi.hoisted(() => ({
-  getColorSync: vi.fn(),
+const { getPaletteSync } = vi.hoisted(() => ({
   getPaletteSync: vi.fn(),
 }));
 
 vi.mock("colorthief", () => ({
-  getColorSync,
   getPaletteSync,
 }));
 
 import { extractPaletteFromImageSrc } from "@/lib/image-to-ui/extract-palette-from-image-src";
 
 describe("extractPaletteFromImageSrc", () => {
-  it("returns merged dominant and palette swatches from colorthief sync APIs", async () => {
-    getColorSync.mockReturnValue({ hex: () => "#ff0088" });
+  it("returns normalized palette swatches from colorthief sync API", async () => {
     getPaletteSync.mockReturnValue([
+      { hex: () => "#ff0088" },
       { hex: () => "#223344" },
       { hex: () => "#aabbcc" },
     ]);
@@ -42,13 +40,10 @@ describe("extractPaletteFromImageSrc", () => {
       },
     );
 
-    const swatches = await extractPaletteFromImageSrc("/imgs/image-to-ui/mondrian-1280.webp");
+    const swatches = await extractPaletteFromImageSrc("/imgs/image-to-ui/great-wave-1280.webp");
 
-    expect(getColorSync).toHaveBeenCalledWith(expect.any(MockImage), {
-      ignoreWhite: false,
-    });
     expect(getPaletteSync).toHaveBeenCalledWith(expect.any(MockImage), {
-      colorCount: 6,
+      colorCount: 8,
       ignoreWhite: false,
     });
     expect(swatches).toEqual([
@@ -60,9 +55,9 @@ describe("extractPaletteFromImageSrc", () => {
     vi.stubGlobal("Image", OriginalImage);
   });
 
-  it("deduplicates when dominant color is already in the palette", async () => {
-    getColorSync.mockReturnValue({ hex: () => "#ff0088" });
+  it("deduplicates identical hex values in the palette", async () => {
     getPaletteSync.mockReturnValue([
+      { hex: () => "#ff0088" },
       { hex: () => "#ff0088" },
       { hex: () => "#223344" },
     ]);
@@ -89,7 +84,7 @@ describe("extractPaletteFromImageSrc", () => {
       },
     );
 
-    const swatches = await extractPaletteFromImageSrc("/imgs/image-to-ui/mondrian-1280.webp");
+    const swatches = await extractPaletteFromImageSrc("/imgs/image-to-ui/great-wave-1280.webp");
 
     expect(swatches.map((swatch) => swatch.hex)).toEqual(["#FF0088", "#223344"]);
 

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const SAMPLE_IMAGE_TITLE = "蒙德里安构成";
+const SAMPLE_IMAGE_ID = "great-wave";
 const CLASSIFIED_THEME_ROLE_LABELS = ["表面基底", "动作色", "辅助色"] as const;
 
 type SelectedSwatch = {
@@ -12,7 +12,7 @@ async function preparePreviewStep(page: Page): Promise<SelectedSwatch[]> {
   await page.goto("/image-to-ui");
   await expect(page).toHaveURL(/\/image-to-ui$/);
 
-  await page.locator('[data-sample-id="mondrian"]').click();
+  await page.locator(`[data-sample-id="${SAMPLE_IMAGE_ID}"]`).click();
 
   const swatches = page.locator('button[data-testid^="palette-swatch-"]');
   await expect(swatches.first()).toBeVisible();
@@ -92,7 +92,7 @@ test.describe("image-to-ui themed preview e2e", () => {
 
     await expect(page).toHaveURL(/\/image-to-ui$/);
     await expect(page.getByLabel("工具步骤")).toContainText("选择图片与颜色");
-    await expect(page.locator('[data-sample-id="mondrian"]')).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator(`[data-sample-id="${SAMPLE_IMAGE_ID}"]`)).toHaveAttribute("aria-pressed", "true");
 
     for (let index = 0; index < selectedSwatches.length; index += 1) {
       const swatch = selectedSwatches[index];
@@ -126,7 +126,7 @@ test.describe("image-to-ui themed preview e2e", () => {
     await expect(page.getByTestId("landing-conversion-strip")).toBeVisible();
 
     await page.getByTestId("render-back-to-edit").click();
-    await expect(page.locator('[data-sample-id="mondrian"]')).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator(`[data-sample-id="${SAMPLE_IMAGE_ID}"]`)).toHaveAttribute("aria-pressed", "true");
 
     for (const swatch of selectedSwatches) {
       await expect(page.getByTestId(swatch.swatchTestId)).toHaveAttribute("aria-pressed", "true");

@@ -26,13 +26,13 @@ describe("useActiveImageSelection", () => {
     const { result } = renderHook(() => useActiveImageSelection());
 
     act(() => {
-      result.current.selectSample("mondrian", "/imgs/image-to-ui/mondrian-1280.webp");
+      result.current.selectSample("great-wave", "/imgs/image-to-ui/great-wave-1280.webp");
     });
 
     expect(result.current.activeImage).toEqual({
       type: "sample",
-      sampleId: "mondrian",
-      src: "/imgs/image-to-ui/mondrian-1280.webp",
+      sampleId: "great-wave",
+      src: "/imgs/image-to-ui/great-wave-1280.webp",
     });
   });
 
