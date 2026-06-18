@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Image from "next/image";
 import { Check, PanelLeft } from "lucide-react";
 
@@ -13,7 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { IMAGE_TO_UI_SAMPLE_IMAGES } from "@/lib/constants/image-to-ui-samples";
 import type { ActiveImage } from "@/lib/image-to-ui/active-image-types";
+import { resolveImageToUiFlowStep } from "@/lib/image-to-ui/resolve-image-to-ui-flow-step";
 import { useActiveImageSelection } from "@/lib/image-to-ui/use-active-image-selection";
+import { useImageToUiRouteRestore } from "@/lib/image-to-ui/use-image-to-ui-route-restore";
 import { cn } from "@/lib/utils";
 
 const sampleTitleById = Object.fromEntries(
@@ -23,9 +25,24 @@ const sampleTitleById = Object.fromEntries(
 type ImageToUiFlowStep = 1 | 2;
 
 export function ImageToUiToolShell() {
-  const { activeImage, paletteSelection, selectSample, selectUpload, setSelectedPaletteColors } =
-    useActiveImageSelection();
+  const {
+    activeImage,
+    paletteSelection,
+    selectSample,
+    selectUpload,
+    setSelectedPaletteColors,
+    resetForRouteRestore,
+  } = useActiveImageSelection();
   const [flowStep, setFlowStep] = useState<ImageToUiFlowStep>(1);
+
+  const handleRouteRestore = useCallback(() => {
+    setFlowStep(1);
+    resetForRouteRestore();
+  }, [resetForRouteRestore]);
+
+  useImageToUiRouteRestore(handleRouteRestore);
+
+  const displayStep = resolveImageToUiFlowStep(flowStep, Boolean(activeImage));
 
   const handleRender = () => {
     if (!activeImage || paletteSelection.selectedColors.length < 3) {
@@ -43,14 +60,14 @@ export function ImageToUiToolShell() {
               图片转界面
             </h1>
             <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-              {flowStep === 1
+              {displayStep === 1
                 ? "上传或选择示例图片，提取主色调并挑选 3 个颜色，为后续界面渲染步骤做准备。"
                 : "确认当前图片与三色角色；查看完整预览并可返回继续编辑。"}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <ImageToUiStepIndicator activeStep={flowStep} />
-            {flowStep === 2 ? (
+            <ImageToUiStepIndicator activeStep={displayStep} />
+            {displayStep === 2 ? (
               <Button
                 type="button"
                 variant="ghost"
@@ -64,7 +81,7 @@ export function ImageToUiToolShell() {
           </div>
         </header>
 
-        {flowStep === 1 ? (
+        {displayStep === 1 ? (
           <div className="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)] xl:items-start xl:gap-8">
             <aside className="space-y-4 xl:sticky xl:top-24" aria-label="图片来源">
               <Card className="shadow-md">
