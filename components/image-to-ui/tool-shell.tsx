@@ -36,10 +36,9 @@ export function ImageToUiToolShell() {
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
         <header className="mb-8 space-y-4">
           <div className="space-y-2">
-            <p className="text-sm font-medium text-primary">实验工具</p>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               图片转界面
             </h1>
@@ -54,9 +53,9 @@ export function ImageToUiToolShell() {
             {flowStep === 2 ? (
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
+                variant="ghost"
                 data-testid="render-back-to-edit"
+                className='shadow-sm hover:shadow-md'
                 onClick={() => setFlowStep(1)}
               >
                 返回编辑

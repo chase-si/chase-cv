@@ -34,7 +34,7 @@ export function RenderInputSummaryPanel({
               <CardTitle className="text-base">输入摘要</CardTitle>
               <CardDescription className="text-xs">图片、三色与推导 Token（只读）。</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col gap-4">
+            <CardContent className="flex flex-col gap-4 overflow-y-auto max-h-160">
               <RenderInputImageSummary
                 activeImage={activeImage}
                 imageSrc={model.imageSrc}
@@ -59,7 +59,7 @@ export function RenderInputSummaryPanel({
             <CardDescription>Scoped theme 下的 dashboard 与 marketing 预览。</CardDescription>
           </CardHeader>
           <CardContent>
-            <SaasThemePreviewSurface previewRootStyle={model.previewRootStyle} />
+            <SaasThemePreviewSurface previewRootStyle={model.previewRootStyle} className="overflow-y-auto max-h-160" />
           </CardContent>
         </Card>
       </div>
