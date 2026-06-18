@@ -1,0 +1,285 @@
+{
+  "metadata": {
+    "siteName": "Chase's CV",
+    "home": {
+      "title": "Chase's CV",
+      "description": "Chase 的个人网站，展示产品化前端、交互实验与设计系统相关作品。"
+    },
+    "magicCursor": {
+      "title": "Magic Cursor | Chase's CV",
+      "description": "用实时预览探索可配置的鼠标效果，并复制 magic-cursor-effect 代码。"
+    },
+    "imageToUi": {
+      "title": "图片转界面 | Chase's CV",
+      "description": "从图片提取色板，选择三个颜色，并预览生成的界面主题。"
+    },
+    "notFound": {
+      "title": "页面未找到 | Chase's CV",
+      "description": "你正在查找的页面不存在。"
+    }
+  },
+  "siteNav": {
+    "logoAlt": "Chase",
+    "works": "作品",
+    "blog": "博客",
+    "github": "GitHub",
+    "languageLabel": "切换语言"
+  },
+  "languageSwitcher": {
+    "english": "EN",
+    "chinese": "中文"
+  },
+  "themeToggle": {
+    "toLight": "切换为浅色",
+    "toDark": "切换为深色"
+  },
+  "home": {
+    "eyebrow": "以「影子」做视觉语言的个人主页",
+    "headlinePrefix": "把",
+    "headlineHighlight": "shadow",
+    "headlineSuffix": "变成你的品牌质感",
+    "intro": "我是 Chase，专注把产品做得更「顺滑」：更清晰的信息层级、更克制的动效、更舒服的阴影与空间感。这里会展示我的项目、经历与思考。",
+    "primaryCta": "看看作品",
+    "secondaryCta": "了解我",
+    "stack": "Next.js · Tailwind · shadcn",
+    "nowLabel": "现在在做",
+    "nowValue": "个人作品集 + Supabase 登录/数据",
+    "focusLabel": "我关注",
+    "focusValue": "视觉一致性 · 交互节奏 · 组件化",
+    "expectLabel": "你可以期待",
+    "expectValue": "一个更像「产品」的简历首页",
+    "workTitle": "作品",
+    "workDescription": "这里先占位，后续我可以把你的项目卡片做成同一套 shadow 体系。",
+    "aboutTitle": "关于",
+    "aboutDescription": "这里先占位，后续可以补充经历、技能栈、时间线等模块。",
+    "contactTitle": "联系",
+    "contactDescription": "这里先占位，后续可以放邮箱/微信/表单。"
+  },
+  "notFound": {
+    "title": "页面未找到",
+    "description": "这个页面可能已经移动，或当前 URL 不正确。",
+    "home": "回到首页"
+  },
+  "magicCursor": {
+    "title": "Magic Cursor",
+    "description": "切换不同鼠标效果，并实时调参预览。",
+    "effectLabel": "效果",
+    "paramsLabel": "参数",
+    "all": "All",
+    "reset": "重置为默认参数",
+    "blendBackgroundHelp": "blendBackground（可选，rgba / 留空用库默认）",
+    "blendBackgroundPlaceholder": "例如 rgba(255, 255, 255, 0.9)",
+    "selectorLabel": "selector（CSS 选择器）",
+    "magneticHelp": "预览区域里匹配该选择器的元素会被吸引；默认",
+    "itemColorLabel": "itemColor（预览磁吸块，留空用主题 primary）",
+    "itemColorPlaceholder": "例如 rgba(99, 102, 241, 0.95)",
+    "copySuccess": "已复制到剪贴板",
+    "copyError": "复制失败",
+    "copy": "复制",
+    "code": "Code"
+  },
+  "imageToUi": {
+    "title": "图片转界面",
+    "stepOneDescription": "上传或选择示例图片，提取主色调并挑选 3 个颜色，为后续界面渲染步骤做准备。",
+    "stepTwoDescription": "确认当前图片与三色角色；查看完整预览并可返回继续编辑。",
+    "backToEdit": "返回编辑",
+    "sourceAria": "图片来源",
+    "sourceTitle": "来源",
+    "sourceDescription": "上传图片，或从紧凑列表选一个示例。",
+    "previewAria": "预览与色板",
+    "previewTitle": "当前图片预览",
+    "previewDescription": "选中图片后在此以 contain 方式展示完整画面。",
+    "paletteTitle": "提取色板",
+    "paletteDescription": "按像素占比提取主导色，并选择 3 个颜色后进入渲染步骤。",
+    "uploadAria": "从本地上传图片",
+    "uploadButton": "选择本地图片",
+    "uploadHelp": "仅在浏览器内预览，不会上传或保存到服务器。",
+    "emptyPreview": "尚未选择图片",
+    "sampleImage": "示例图片",
+    "uploadedImage": "本地上传的图片",
+    "stepsAria": "工具步骤",
+    "steps": {
+      "select": "选择图片与颜色",
+      "render": "渲染界面"
+    },
+    "paletteEmpty": "选择图片后将显示色板与选色控件。",
+    "paletteLoading": "正在提取色板...",
+    "paletteAria": "提取的色板",
+    "paletteShare": "占比 {percent}",
+    "paletteSwatchAria": "{hex}，占比 {percent}",
+    "paletteInsufficient": "当前图片可用的可选颜色不足 {count} 个，请换一张对比更丰富的图片。",
+    "selectionLimit": "最多只能选择 3 个颜色，请先取消已选颜色再更换。",
+    "renderButton": "渲染",
+    "selectionProgress": "已选 {selected} / {required} 个颜色",
+    "selectedColor": "已选色 {index}",
+    "extractionError": "无法从当前图片提取色板，请换一张图片或重新上传。",
+    "summaryAsideAria": "渲染输入侧栏摘要",
+    "summaryTitle": "输入摘要",
+    "summaryDescription": "图片、三色与推导 Token（只读）。",
+    "selectedImage": "已选图片",
+    "selectedColorRoles": "已选颜色角色",
+    "previewTokens": "预览主题 Token",
+    "renderTitle": "界面渲染",
+    "renderDescription": "Scoped theme 下的 dashboard 与 marketing 预览。",
+    "colorRolesAria": "三色角色摘要",
+    "tokensAria": "预览主题 token 摘要",
+    "summaryRootAria": "渲染输入摘要",
+    "roles": {
+      "surface": "表面基底",
+      "action": "动作色",
+      "support": "辅助色"
+    },
+    "roleRationales": {
+      "surfaceLowSaturation": "偏亮且低饱和，适合作背景与表面基底",
+      "surfaceBrighter": "相对更亮，适合作背景与表面层级",
+      "surfaceCalm": "饱和度较低、偏平静，适合作表面与弱化区域",
+      "surfaceDefault": "表面适应性最高，适合作背景与卡片基底",
+      "actionVivid": "与表面基底{contrast}且色彩鲜明，适合作主操作与焦点色",
+      "actionDefault": "与表面基底{contrast}，适合作主操作与焦点色",
+      "supportNeutral": "中调中性色，适合作边框、输入框与弱强调",
+      "supportSecondary": "中调辅助色，适合作次要界面与弱强调",
+      "supportMuted": "偏中性，适合作边框与弱化层次",
+      "supportDefault": "辅助适应性最高，适合作次要界面元素"
+    },
+    "contrast": {
+      "high": "高对比",
+      "medium": "较高对比",
+      "usable": "可用对比"
+    },
+    "samples": {
+      "great-wave": {
+        "title": "神奈川冲浪里",
+        "description": "蓝白对比与细腻渐变，便于观察白/近白主导色是否进入色板。"
+      },
+      "starry-night": {
+        "title": "星月夜",
+        "description": "深蓝夜空与旋涡笔触，测试高对比暗色域提取。"
+      },
+      "impression-sunrise": {
+        "title": "日出·印象",
+        "description": "朦胧晨光与橙蓝对比，观察低饱和雾面色与强调色的分离。"
+      },
+      "water-lilies": {
+        "title": "睡莲",
+        "description": "大面积相近色相，测试多 swatch 与柔和过渡。"
+      },
+      "school-athens": {
+        "title": "雅典学院",
+        "description": "古典壁画层次与大地色调，观察多人物场景下的稳定主色。"
+      },
+      "girl-pearl": {
+        "title": "戴珍珠耳环的少女",
+        "description": "柔和肤色与深色背景，观察明暗层次下的色板分布。"
+      },
+      "almond-blossom": {
+        "title": "盛开的杏花",
+        "description": "浅蓝底与粉白花簇，适合提取轻盈明亮的表面色。"
+      },
+      "mont-sainte-victoire": {
+        "title": "圣维克多山",
+        "description": "几何化山体与天空色块，测试相近冷暖灰的区分度。"
+      },
+      "sunday-grande-jatte": {
+        "title": "大碗岛的星期天",
+        "description": "点彩高饱和草地与水面，观察并列色块下的主色排序。"
+      },
+      "harmony-red": {
+        "title": "红色和谐",
+        "description": "主导红色与装饰图案，观察单一色相下的变化色板。"
+      },
+      "calling-saint-matthew": {
+        "title": "基督呼召马太",
+        "description": "强明暗对照与局部高光，测试暗场中的动作色提取。"
+      },
+      "gleaners": {
+        "title": "拾穗者",
+        "description": "田野暖黄与人物剪影，适合低饱和自然色板。"
+      },
+      "wanderer-fog": {
+        "title": "雾海之上的旅人",
+        "description": "冷灰雾海与深色人物，测试极简配色下的三色选取。"
+      },
+      "gauguin-where": {
+        "title": "我们从何处来",
+        "description": "热带高饱和色块，测试丰富配色下的 swatch 选取。"
+      }
+    },
+    "preview": {
+      "surfaceAria": "SaaS 状态和设置预览",
+      "subtitle": "基于所选图片颜色生成的 scoped theme 预览",
+      "tabsAria": "预览区块",
+      "overview": "概览",
+      "settings": "工作区设置",
+      "landing": "落地页",
+      "dashboardAria": "Dashboard 主题预览",
+      "navAria": "Dashboard 导航",
+      "company": "Acme Inc.",
+      "plan": "Scale plan",
+      "navSectionsAria": "预览 dashboard 区块",
+      "watchBadge": "性能观察",
+      "watchDescription": "扩张风险集中在企业续约客户。",
+      "documents": "文档",
+      "revenueFocus": "营收重点",
+      "documentsDescription": "管理层状态、客户管线与扩张动能。",
+      "search": "搜索",
+      "notifications": "通知",
+      "quickCreate": "快速创建",
+      "platformHealthAria": "平台健康度",
+      "revenueChartAria": "营收趋势图",
+      "totalVisitors": "总访问量",
+      "revenueTrend": "最近 6 个月的营收与扩张趋势。",
+      "lastSixMonths": "最近 6 个月",
+      "segmentChartAria": "客户分层柱状图",
+      "accountSegments": "客户分层",
+      "segmentDescription": "不同分层的活跃量与风险量。",
+      "live": "实时",
+      "incidentTitle": "事故响应通知",
+      "incidentDescription": "APAC API 延迟仍高于 SLO。流量恢复前继续启用缓解 playbook v2。",
+      "responseTeam": "响应团队",
+      "responseDescription": "值班工程师正在持续观察 APAC 延迟。",
+      "details": "详情",
+      "detailsAria": "查看事故响应详情",
+      "detailsTooltip": "升级负责人、支持负责人和基础设施 SRE 已分配。",
+      "accentActionsAria": "强调操作",
+      "accentSpotlight": "强调焦点",
+      "accentDescription": "本周为流失风险客户触发一次聚焦触达活动。",
+      "launchCampaign": "启动活动",
+      "tableSectionAria": "客户管线表格区块",
+      "customerPipeline": "客户管线",
+      "customerPipelineDescription": "本周运营要优先处理的客户。",
+      "customizeColumns": "自定义列",
+      "addSection": "新增区块",
+      "tableAria": "客户管线健康度",
+      "customer": "客户",
+      "owner": "负责人",
+      "stage": "阶段",
+      "status": "状态",
+      "actions": "操作",
+      "rowsSelected": "已选 0 / 68 行。",
+      "pageCount": "第 1 / 7 页",
+      "previousPage": "上一页",
+      "nextPage": "下一页",
+      "settingsAria": "工作区设置组件预览",
+      "upgradeTitle": "升级订阅",
+      "upgradeDescription": "你当前使用免费计划。升级到 Pro 计划即可使用所有功能。",
+      "cancel": "取消",
+      "upgradePlan": "升级计划",
+      "workspacePlan": "工作区计划",
+      "proPlan": "Pro 计划",
+      "businessPlan": "Business 计划",
+      "enterprisePlan": "Enterprise 计划",
+      "autoScale": "自动扩容阈值",
+      "notifySms": "通过短信通知值班人员",
+      "publicStatus": "允许公开状态页",
+      "discard": "放弃",
+      "saveChanges": "保存更改",
+      "landingAria": "品牌落地页预览",
+      "landingEyebrow": "客户成功 OS",
+      "landingHeadline": "让每一次扩张动作都不脱轨。",
+      "landingDescription": "为需要更清晰客户视野、更快 playbook 和更稳定管理层汇报的团队打造的品牌工作区。",
+      "startTrial": "开始试用",
+      "watchDemo": "观看演示",
+      "featureAria": "产品功能亮点"
+    }
+  }
+}

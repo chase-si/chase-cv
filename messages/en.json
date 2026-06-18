@@ -1,0 +1,285 @@
+{
+  "metadata": {
+    "siteName": "Chase's CV",
+    "home": {
+      "title": "Chase's CV",
+      "description": "Chase's personal website for product-minded frontend work, interaction experiments, and design systems."
+    },
+    "magicCursor": {
+      "title": "Magic Cursor | Chase's CV",
+      "description": "Explore configurable cursor effects with live previews and copyable magic-cursor-effect code."
+    },
+    "imageToUi": {
+      "title": "Image to UI | Chase's CV",
+      "description": "Extract a color palette from an image, choose three colors, and preview a generated interface theme."
+    },
+    "notFound": {
+      "title": "Page not found | Chase's CV",
+      "description": "The page you are looking for could not be found."
+    }
+  },
+  "siteNav": {
+    "logoAlt": "Chase",
+    "works": "Works",
+    "blog": "Blog",
+    "github": "GitHub",
+    "languageLabel": "Switch language"
+  },
+  "languageSwitcher": {
+    "english": "EN",
+    "chinese": "中文"
+  },
+  "themeToggle": {
+    "toLight": "Switch to light mode",
+    "toDark": "Switch to dark mode"
+  },
+  "home": {
+    "eyebrow": "A personal site built around shadow as a visual language",
+    "headlinePrefix": "Turning",
+    "headlineHighlight": "shadow",
+    "headlineSuffix": "into product polish",
+    "intro": "I'm Chase. I focus on making products feel smoother: clearer hierarchy, calmer motion, better shadows, and more intentional spacing. This site collects my projects, experience, and notes.",
+    "primaryCta": "View work",
+    "secondaryCta": "About me",
+    "stack": "Next.js · Tailwind · shadcn",
+    "nowLabel": "Now building",
+    "nowValue": "Personal portfolio + Supabase auth/data",
+    "focusLabel": "I care about",
+    "focusValue": "Visual consistency · Interaction rhythm · Components",
+    "expectLabel": "Expect",
+    "expectValue": "A resume homepage that feels more like a product",
+    "workTitle": "Work",
+    "workDescription": "Placeholder for project cards using the same shadow system.",
+    "aboutTitle": "About",
+    "aboutDescription": "Placeholder for experience, skills, and a timeline.",
+    "contactTitle": "Contact",
+    "contactDescription": "Placeholder for email, WeChat, or a contact form."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page may have moved, or the URL may be incorrect.",
+    "home": "Back home"
+  },
+  "magicCursor": {
+    "title": "Magic Cursor",
+    "description": "Switch between cursor effects and tune parameters in real time.",
+    "effectLabel": "Effect",
+    "paramsLabel": "Parameters",
+    "all": "All",
+    "reset": "Reset to defaults",
+    "blendBackgroundHelp": "blendBackground (optional, rgba / leave empty for library default)",
+    "blendBackgroundPlaceholder": "e.g. rgba(255, 255, 255, 0.9)",
+    "selectorLabel": "selector (CSS selector)",
+    "magneticHelp": "Elements matching this selector in the preview area will be attracted; default is",
+    "itemColorLabel": "itemColor (preview magnetic block, empty uses theme primary)",
+    "itemColorPlaceholder": "e.g. rgba(99, 102, 241, 0.95)",
+    "copySuccess": "Copied to clipboard",
+    "copyError": "Copy failed",
+    "copy": "Copy",
+    "code": "Code"
+  },
+  "imageToUi": {
+    "title": "Image to UI",
+    "stepOneDescription": "Upload or choose a sample image, extract dominant colors, and pick three colors for the interface rendering step.",
+    "stepTwoDescription": "Review the current image and three color roles, inspect the full preview, or go back to edit.",
+    "backToEdit": "Back to edit",
+    "sourceAria": "Image source",
+    "sourceTitle": "Source",
+    "sourceDescription": "Upload an image or choose one sample from the compact list.",
+    "previewAria": "Preview and palette",
+    "previewTitle": "Current image preview",
+    "previewDescription": "After selecting an image, the complete picture is shown here with contain sizing.",
+    "paletteTitle": "Extracted palette",
+    "paletteDescription": "Extract dominant colors by pixel share, then choose three colors to enter the rendering step.",
+    "uploadAria": "Upload image from local device",
+    "uploadButton": "Choose local image",
+    "uploadHelp": "Previewed only in your browser. Nothing is uploaded or saved to the server.",
+    "emptyPreview": "No image selected",
+    "sampleImage": "Sample image",
+    "uploadedImage": "Local uploaded image",
+    "stepsAria": "Tool steps",
+    "steps": {
+      "select": "Choose image and colors",
+      "render": "Render interface"
+    },
+    "paletteEmpty": "Select an image to show the palette and color controls.",
+    "paletteLoading": "Extracting palette...",
+    "paletteAria": "Extracted palette",
+    "paletteShare": "Share {percent}",
+    "paletteSwatchAria": "{hex}, share {percent}",
+    "paletteInsufficient": "The current image has fewer than {count} selectable colors. Choose an image with richer contrast.",
+    "selectionLimit": "You can select up to 3 colors. Deselect a color before choosing another.",
+    "renderButton": "Render",
+    "selectionProgress": "{selected} / {required} colors selected",
+    "selectedColor": "Selected color {index}",
+    "extractionError": "Unable to extract a palette from this image. Try another image or upload it again.",
+    "summaryAsideAria": "Rendering input sidebar summary",
+    "summaryTitle": "Input summary",
+    "summaryDescription": "Image, three colors, and derived tokens (read-only).",
+    "selectedImage": "Selected image",
+    "selectedColorRoles": "Selected color roles",
+    "previewTokens": "Preview theme tokens",
+    "renderTitle": "Interface rendering",
+    "renderDescription": "Dashboard and marketing previews under a scoped theme.",
+    "colorRolesAria": "Three color role summary",
+    "tokensAria": "Preview theme token summary",
+    "summaryRootAria": "Rendering input summary",
+    "roles": {
+      "surface": "Surface base",
+      "action": "Action color",
+      "support": "Support color"
+    },
+    "roleRationales": {
+      "surfaceLowSaturation": "Bright and low-saturation, suitable for backgrounds and surface bases",
+      "surfaceBrighter": "Relatively brighter, suitable for backgrounds and surface hierarchy",
+      "surfaceCalm": "Lower saturation and calmer, suitable for surfaces and muted areas",
+      "surfaceDefault": "Best surface fit, suitable for backgrounds and card bases",
+      "actionVivid": "Vivid with {contrast} against the surface base, suitable for primary actions and focus color",
+      "actionDefault": "{contrast} against the surface base, suitable for primary actions and focus color",
+      "supportNeutral": "Mid-tone neutral, suitable for borders, inputs, and soft emphasis",
+      "supportSecondary": "Mid-tone support color, suitable for secondary UI and soft emphasis",
+      "supportMuted": "Leans neutral, suitable for borders and subtle hierarchy",
+      "supportDefault": "Best support fit, suitable for secondary interface elements"
+    },
+    "contrast": {
+      "high": "high contrast",
+      "medium": "strong contrast",
+      "usable": "usable contrast"
+    },
+    "samples": {
+      "great-wave": {
+        "title": "The Great Wave off Kanagawa",
+        "description": "Blue and white contrast with subtle gradients, useful for checking whether white and near-white colors enter the palette."
+      },
+      "starry-night": {
+        "title": "The Starry Night",
+        "description": "Deep blue night sky and swirling brushwork, useful for testing high-contrast dark color extraction."
+      },
+      "impression-sunrise": {
+        "title": "Impression, Sunrise",
+        "description": "Misty morning light with orange-blue contrast, useful for separating muted atmospheric colors from accents."
+      },
+      "water-lilies": {
+        "title": "Water Lilies",
+        "description": "Large areas of similar hues, useful for testing multiple swatches and subtle transitions."
+      },
+      "school-athens": {
+        "title": "The School of Athens",
+        "description": "Classical mural depth and earth tones, useful for stable dominant colors in a dense figure scene."
+      },
+      "girl-pearl": {
+        "title": "Girl with a Pearl Earring",
+        "description": "Soft skin tones against a dark background, useful for observing palette balance across light and dark areas."
+      },
+      "almond-blossom": {
+        "title": "Almond Blossom",
+        "description": "Pale blue ground and pink-white blossoms, useful for extracting airy, bright surface colors."
+      },
+      "mont-sainte-victoire": {
+        "title": "Mont Sainte-Victoire",
+        "description": "Geometric mountain shapes and sky blocks, useful for distinguishing close cool and warm grays."
+      },
+      "sunday-grande-jatte": {
+        "title": "A Sunday on La Grande Jatte",
+        "description": "Pointillist saturated grass and water, useful for observing dominant color order across adjacent blocks."
+      },
+      "harmony-red": {
+        "title": "Harmony in Red",
+        "description": "Dominant reds and decorative patterns, useful for observing palette variation inside one hue family."
+      },
+      "calling-saint-matthew": {
+        "title": "The Calling of Saint Matthew",
+        "description": "Strong chiaroscuro and local highlights, useful for testing action color extraction in dark scenes."
+      },
+      "gleaners": {
+        "title": "The Gleaners",
+        "description": "Warm fields and silhouetted figures, useful for low-saturation natural palettes."
+      },
+      "wanderer-fog": {
+        "title": "Wanderer above the Sea of Fog",
+        "description": "Cool gray fog and a dark figure, useful for testing three-color selection in a minimal palette."
+      },
+      "gauguin-where": {
+        "title": "Where Do We Come From?",
+        "description": "Tropical saturated color blocks, useful for testing swatch selection from a rich palette."
+      }
+    },
+    "preview": {
+      "surfaceAria": "SaaS status and settings preview",
+      "subtitle": "Scoped theme preview generated from selected image colors",
+      "tabsAria": "Preview sections",
+      "overview": "Overview",
+      "settings": "Workspace settings",
+      "landing": "Landing page",
+      "dashboardAria": "Dashboard theme preview",
+      "navAria": "Dashboard navigation",
+      "company": "Acme Inc.",
+      "plan": "Scale plan",
+      "navSectionsAria": "Preview dashboard sections",
+      "watchBadge": "Performance Watch",
+      "watchDescription": "Expansion risk is concentrated in enterprise renewals.",
+      "documents": "Documents",
+      "revenueFocus": "Revenue focus",
+      "documentsDescription": "Executive status, customer pipeline, and expansion momentum.",
+      "search": "Search",
+      "notifications": "Notifications",
+      "quickCreate": "Quick Create",
+      "platformHealthAria": "Platform health",
+      "revenueChartAria": "Revenue trend chart",
+      "totalVisitors": "Total visitors",
+      "revenueTrend": "Revenue and expansion trend for the last 6 months.",
+      "lastSixMonths": "Last 6 months",
+      "segmentChartAria": "Segment bar chart",
+      "accountSegments": "Account segments",
+      "segmentDescription": "Active and risk volume by segment.",
+      "live": "Live",
+      "incidentTitle": "Incident response notice",
+      "incidentDescription": "API latency remains above SLO in APAC. Keep mitigation playbook v2 active until traffic normalizes.",
+      "responseTeam": "Response team",
+      "responseDescription": "On-call engineers are actively watching APAC latency.",
+      "details": "Details",
+      "detailsAria": "Show incident response details",
+      "detailsTooltip": "Escalation owner, support lead, and infra SRE are assigned.",
+      "accentActionsAria": "Accent actions",
+      "accentSpotlight": "Accent spotlight",
+      "accentDescription": "Trigger a focused outreach campaign for churn-risk accounts this week.",
+      "launchCampaign": "Launch campaign",
+      "tableSectionAria": "Customer pipeline table section",
+      "customerPipeline": "Customer pipeline",
+      "customerPipelineDescription": "Prioritized accounts for this week's operators.",
+      "customizeColumns": "Customize Columns",
+      "addSection": "Add Section",
+      "tableAria": "Customer pipeline health",
+      "customer": "Customer",
+      "owner": "Owner",
+      "stage": "Stage",
+      "status": "Status",
+      "actions": "Actions",
+      "rowsSelected": "0 of 68 row(s) selected.",
+      "pageCount": "Page 1 of 7",
+      "previousPage": "Go to previous page",
+      "nextPage": "Go to next page",
+      "settingsAria": "Workspace settings component gallery",
+      "upgradeTitle": "Upgrade your subscription",
+      "upgradeDescription": "You are currently on the free plan. Upgrade to the pro plan to get access to all features.",
+      "cancel": "Cancel",
+      "upgradePlan": "Upgrade Plan",
+      "workspacePlan": "Workspace plan",
+      "proPlan": "Pro Plan",
+      "businessPlan": "Business Plan",
+      "enterprisePlan": "Enterprise Plan",
+      "autoScale": "Auto-scale threshold",
+      "notifySms": "Notify on-call via SMS",
+      "publicStatus": "Allow public status page",
+      "discard": "Discard",
+      "saveChanges": "Save changes",
+      "landingAria": "Branded landing page preview",
+      "landingEyebrow": "Customer success OS",
+      "landingHeadline": "Keep every expansion motion on track.",
+      "landingDescription": "A branded workspace for teams that need sharper account visibility, faster playbooks, and calmer executive reporting.",
+      "startTrial": "Start trial",
+      "watchDemo": "Watch demo",
+      "featureAria": "Product feature highlights"
+    }
+  }
+}

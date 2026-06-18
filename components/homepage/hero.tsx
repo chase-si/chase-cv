@@ -1,28 +1,31 @@
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+
+import { Link } from "@/i18n/navigation";
 
 export function HomepageHero() {
+  const t = useTranslations("home");
+
   return (
     <section className="grid items-center gap-10 lg:grid-cols-12">
       <div className="lg:col-span-7">
         <div className="inline-flex items-center gap-2 border border-zinc-900/10 bg-white/70 px-3 py-1 text-xs text-zinc-700 shadow-sm dark:border-white/10 dark:bg-black/40 dark:text-zinc-200">
           <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.20)]" />
-          以「影子」做视觉语言的个人主页
+          {t("eyebrow")}
         </div>
 
         <h1 className="mt-6 text-balance text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
-          把
+          {t("headlinePrefix")}
           <span className="relative mx-2 inline-block">
             <span className="absolute -inset-1 -z-10 bg-linear-to-r from-indigo-500/25 via-fuchsia-500/20 to-sky-500/25 blur-xl" />
             <span className="bg-linear-to-r from-indigo-600 via-fuchsia-600 to-sky-600 bg-clip-text text-transparent">
-              shadow
+              {t("headlineHighlight")}
             </span>
           </span>
-          变成你的品牌质感
+          {t("headlineSuffix")}
         </h1>
 
         <p className="mt-6 max-w-xl text-pretty text-base leading-7 text-zinc-600 dark:text-zinc-300 sm:text-lg">
-          我是 Chase，专注把产品做得更「顺滑」：更清晰的信息层级、更克制的动效、更舒服的阴影与空间感。
-          这里会展示我的项目、经历与思考。
+          {t("intro")}
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -30,16 +33,16 @@ export function HomepageHero() {
             href="#work"
             className="inline-flex h-11 items-center justify-center bg-zinc-950 px-5 text-sm font-medium text-white shadow-[0_18px_60px_rgba(0,0,0,0.22)] transition hover:-translate-y-px hover:shadow-[0_22px_70px_rgba(0,0,0,0.28)] dark:bg-white dark:text-black dark:shadow-[0_22px_80px_rgba(0,0,0,0.45)]"
           >
-            看看作品
+            {t("primaryCta")}
           </Link>
           <Link
             href="#about"
             className="inline-flex h-11 items-center justify-center border border-zinc-900/10 bg-white/70 px-5 text-sm font-medium text-zinc-900 shadow-sm transition hover:bg-white hover:shadow-md dark:border-white/10 dark:bg-black/40 dark:text-white dark:hover:bg-black/50"
           >
-            了解我
+            {t("secondaryCta")}
           </Link>
           <div className="text-xs text-zinc-500 dark:text-zinc-400 sm:pl-2">
-            Next.js · Tailwind · shadcn
+            {t("stack")}
           </div>
         </div>
       </div>
@@ -55,28 +58,28 @@ export function HomepageHero() {
             <div className="grid gap-4">
               <div className="border border-zinc-900/10 bg-white/80 p-4 shadow-[0_18px_55px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black/40 dark:shadow-[0_22px_70px_rgba(0,0,0,0.50)]">
                 <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                  现在在做
+                  {t("nowLabel")}
                 </div>
                 <div className="mt-1 text-sm font-medium">
-                  个人作品集 + Supabase 登录/数据
+                  {t("nowValue")}
                 </div>
               </div>
 
               <div className="border border-zinc-900/10 bg-white/80 p-4 shadow-[0_18px_55px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black/40 dark:shadow-[0_22px_70px_rgba(0,0,0,0.50)]">
                 <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                  我关注
+                  {t("focusLabel")}
                 </div>
                 <div className="mt-1 text-sm font-medium">
-                  视觉一致性 · 交互节奏 · 组件化
+                  {t("focusValue")}
                 </div>
               </div>
 
               <div className="border border-zinc-900/10 bg-white/80 p-4 shadow-[0_18px_55px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black/40 dark:shadow-[0_22px_70px_rgba(0,0,0,0.50)]">
                 <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                  你可以期待
+                  {t("expectLabel")}
                 </div>
                 <div className="mt-1 text-sm font-medium">
-                  一个更像「产品」的简历首页
+                  {t("expectValue")}
                 </div>
               </div>
             </div>

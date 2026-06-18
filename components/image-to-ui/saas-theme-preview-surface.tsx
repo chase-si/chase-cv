@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import { useTranslations } from "next-intl";
 import {
   Area,
   AreaChart,
@@ -148,14 +149,6 @@ const SEGMENT_SERIES = [
   { segment: "Gov", active: 28, risk: 6 },
 ];
 
-const DASHBOARD_NAV_ITEMS = [
-  { label: "Dashboard", icon: LayoutDashboard, active: true },
-  { label: "Lifecycle", icon: Activity, active: false },
-  { label: "Documents", icon: FileText, active: false },
-  { label: "Team", icon: Users, active: false },
-  { label: "Settings", icon: Settings, active: false },
-];
-
 const LANDING_FEATURE_CARDS = [
   {
     title: "Pipeline intelligence",
@@ -180,6 +173,8 @@ export function SaasThemePreviewSurface({
   previewRootStyle,
   className,
 }: SaasThemePreviewSurfaceProps) {
+  const t = useTranslations("imageToUi.preview");
+
   return (
     <section
       data-testid="saas-preview-surface"
@@ -187,7 +182,7 @@ export function SaasThemePreviewSurface({
         "border border-border bg-background p-3 text-foreground tracking-normal sm:p-4",
         className,
       )}
-      aria-label="SaaS status and settings preview"
+      aria-label={t("surfaceAria")}
       style={previewRootStyle}
     >
       <PreviewThemeScopeProvider previewRootStyle={previewRootStyle}>
@@ -201,29 +196,29 @@ export function SaasThemePreviewSurface({
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-foreground">Atlas Control Room</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  Scoped theme preview generated from selected image colors
+                  {t("subtitle")}
                 </p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <TabsList aria-label="Preview sections">
+              <TabsList aria-label={t("tabsAria")}>
                 <TabsTrigger
                   value="overview"
                   className="aria-selected:bg-primary aria-selected:text-primary-foreground"
                 >
-                  Overview
+                  {t("overview")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="settings"
                   className="aria-selected:bg-primary aria-selected:text-primary-foreground"
                 >
-                  Workspace settings
+                  {t("settings")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="landing"
                   className="aria-selected:bg-primary aria-selected:text-primary-foreground"
                 >
-                  Landing page
+                  {t("landing")}
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -248,29 +243,38 @@ export function SaasThemePreviewSurface({
 }
 
 function DashboardPreview() {
+  const t = useTranslations("imageToUi.preview");
+  const navItems = [
+    { label: t("overview"), icon: LayoutDashboard, active: true },
+    { label: "Lifecycle", icon: Activity, active: false },
+    { label: t("documents"), icon: FileText, active: false },
+    { label: "Team", icon: Users, active: false },
+    { label: t("settings"), icon: Settings, active: false },
+  ];
+
   return (
     <section
       data-testid="saas-dashboard-preview"
       className="bg-background pt-4"
-      aria-label="Dashboard theme preview"
+      aria-label={t("dashboardAria")}
     >
       <div className="grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)]">
         <aside
           data-testid="saas-dashboard-sidebar"
           className="hidden flex-col gap-4 border border-border bg-card p-3 lg:flex"
-          aria-label="Dashboard navigation"
+          aria-label={t("navAria")}
         >
           <div className="flex items-center gap-2 p-1">
             <div className="flex size-8 items-center justify-center bg-primary text-primary-foreground">
               A
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-foreground">Acme Inc.</p>
-              <p className="truncate text-xs text-muted-foreground">Scale plan</p>
+              <p className="truncate text-sm font-medium text-foreground">{t("company")}</p>
+              <p className="truncate text-xs text-muted-foreground">{t("plan")}</p>
             </div>
           </div>
-          <nav className="flex flex-col gap-1" aria-label="Preview dashboard sections">
-            {DASHBOARD_NAV_ITEMS.map((item) => {
+          <nav className="flex flex-col gap-1" aria-label={t("navSectionsAria")}>
+            {navItems.map((item) => {
               const Icon = item.icon;
 
               return (
@@ -293,10 +297,10 @@ function DashboardPreview() {
           <Card size="sm" className="mt-auto shadow-sm">
             <CardHeader className="pb-2">
               <Badge variant="accent" data-testid="saas-accent-badge">
-                Performance Watch
+                {t("watchBadge")}
               </Badge>
               <CardDescription className="text-xs">
-                Expansion risk is concentrated in enterprise renewals.
+                {t("watchDescription")}
               </CardDescription>
             </CardHeader>
           </Card>
@@ -307,25 +311,25 @@ function DashboardPreview() {
             <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="min-w-0 space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <CardTitle className="text-lg">Documents</CardTitle>
+                  <CardTitle className="text-lg">{t("documents")}</CardTitle>
                   <Badge variant="secondary" data-testid="saas-secondary-chip">
-                    Revenue focus
+                    {t("revenueFocus")}
                   </Badge>
                 </div>
                 <CardDescription>
-                  Executive status, customer pipeline, and expansion momentum.
+                  {t("documentsDescription")}
                 </CardDescription>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button type="button" variant="outline" size="sm">
                   <Search data-icon="inline-start" aria-hidden />
-                  Search
+                  {t("search")}
                 </Button>
-                <Button type="button" variant="outline" size="icon-sm" aria-label="Notifications">
+                <Button type="button" variant="outline" size="icon-sm" aria-label={t("notifications")}>
                   <Bell aria-hidden />
                 </Button>
                 <Button type="button" size="sm" data-testid="saas-primary-action">
-                  Quick Create
+                  {t("quickCreate")}
                 </Button>
               </div>
             </CardHeader>
@@ -334,7 +338,7 @@ function DashboardPreview() {
           <section
             data-testid="saas-status-area"
             className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"
-            aria-label="Platform health"
+            aria-label={t("platformHealthAria")}
           >
             {DASHBOARD_KPI_CARDS.map((card) => (
               <Card key={card.label} size="sm" data-testid="saas-kpi-card" className="min-h-32 shadow-sm">
@@ -359,15 +363,15 @@ function DashboardPreview() {
               size="sm"
               data-testid="saas-revenue-chart-section"
               className="min-h-80 shadow-sm"
-              aria-label="Revenue trend chart"
+              aria-label={t("revenueChartAria")}
             >
               <CardHeader>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <CardTitle>Total visitors</CardTitle>
-                    <CardDescription>Revenue and expansion trend for the last 6 months.</CardDescription>
+                    <CardTitle>{t("totalVisitors")}</CardTitle>
+                    <CardDescription>{t("revenueTrend")}</CardDescription>
                   </div>
-                  <Badge variant="outline">Last 6 months</Badge>
+                  <Badge variant="outline">{t("lastSixMonths")}</Badge>
                 </div>
               </CardHeader>
               <CardContent>
@@ -422,15 +426,15 @@ function DashboardPreview() {
               size="sm"
               data-testid="saas-segment-chart-section"
               className="min-h-80 shadow-sm"
-              aria-label="Segment bar chart"
+              aria-label={t("segmentChartAria")}
             >
               <CardHeader>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <CardTitle>Account segments</CardTitle>
-                    <CardDescription>Active and risk volume by segment.</CardDescription>
+                    <CardTitle>{t("accountSegments")}</CardTitle>
+                    <CardDescription>{t("segmentDescription")}</CardDescription>
                   </div>
-                  <Badge variant="accent">Live</Badge>
+                  <Badge variant="accent">{t("live")}</Badge>
                 </div>
               </CardHeader>
               <CardContent>
@@ -467,18 +471,18 @@ function DashboardPreview() {
           </div>
 
           <Alert variant="default" data-testid="saas-alert-notification">
-            <AlertTitle>Incident response notice</AlertTitle>
+            <AlertTitle>{t("incidentTitle")}</AlertTitle>
             <AlertDescription>
-              API latency remains above SLO in APAC. Keep mitigation playbook v2 active until traffic normalizes.
+              {t("incidentDescription")}
             </AlertDescription>
           </Alert>
 
           <Card size="sm" className="shadow-sm">
             <CardContent className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-col gap-1">
-                <p className="text-sm font-medium text-foreground">Response team</p>
+                <p className="text-sm font-medium text-foreground">{t("responseTeam")}</p>
                 <p className="text-xs text-muted-foreground">
-                  On-call engineers are actively watching APAC latency.
+                  {t("responseDescription")}
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -495,12 +499,12 @@ function DashboardPreview() {
                   <TooltipTrigger
                     type="button"
                     className="text-xs font-medium text-primary underline-offset-4 hover:underline focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:outline-none"
-                    aria-label="Show incident response details"
+                    aria-label={t("detailsAria")}
                   >
-                    Details
+                    {t("details")}
                   </TooltipTrigger>
                   <PreviewTooltipContent side="left">
-                    Escalation owner, support lead, and infra SRE are assigned.
+                    {t("detailsTooltip")}
                   </PreviewTooltipContent>
                 </Tooltip>
               </div>
@@ -509,17 +513,17 @@ function DashboardPreview() {
 
           <CustomerPipelineTable />
 
-          <Card size="sm" data-testid="saas-accent-section" className="shadow-sm" aria-label="Accent actions">
+          <Card size="sm" data-testid="saas-accent-section" className="shadow-sm" aria-label={t("accentActionsAria")}>
             <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="min-w-0">
-                <p className="text-xs font-medium uppercase text-muted-foreground">Accent spotlight</p>
+                <p className="text-xs font-medium uppercase text-muted-foreground">{t("accentSpotlight")}</p>
                 <p className="text-sm text-foreground">
-                  Trigger a focused outreach campaign for churn-risk accounts this week.
+                  {t("accentDescription")}
                 </p>
               </div>
               <Button type="button" size="sm">
                 <Zap data-icon="inline-start" aria-hidden />
-                Launch campaign
+                {t("launchCampaign")}
               </Button>
             </CardContent>
           </Card>
@@ -530,37 +534,39 @@ function DashboardPreview() {
 }
 
 function CustomerPipelineTable() {
+  const t = useTranslations("imageToUi.preview");
+
   return (
     <Card
       size="sm"
       data-testid="saas-data-table-section"
       className="shadow-sm"
-      aria-label="Customer pipeline table section"
+      aria-label={t("tableSectionAria")}
     >
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <CardTitle>Customer pipeline</CardTitle>
-          <CardDescription>Prioritized accounts for this week&apos;s operators.</CardDescription>
+          <CardTitle>{t("customerPipeline")}</CardTitle>
+          <CardDescription>{t("customerPipelineDescription")}</CardDescription>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" size="sm">
-            Customize Columns
+            {t("customizeColumns")}
           </Button>
           <Button type="button" size="sm">
-            Add Section
+            {t("addSection")}
           </Button>
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-      <Table aria-label="Customer pipeline health">
+      <Table aria-label={t("tableAria")}>
         <TableHeader>
           <TableRow>
-            <TableHead>Customer</TableHead>
-            <TableHead>Owner</TableHead>
+            <TableHead>{t("customer")}</TableHead>
+            <TableHead>{t("owner")}</TableHead>
             <TableHead>ARR</TableHead>
-            <TableHead>Stage</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{t("stage")}</TableHead>
+            <TableHead>{t("status")}</TableHead>
+            <TableHead className="text-right">{t("actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -583,13 +589,13 @@ function CustomerPipelineTable() {
         </TableBody>
       </Table>
       <div className="flex flex-col gap-2 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
-        <p>0 of 68 row(s) selected.</p>
+        <p>{t("rowsSelected")}</p>
         <div className="flex items-center gap-2">
-          <span>Page 1 of 7</span>
-          <Button type="button" variant="outline" size="icon-xs" aria-label="Go to previous page">
+          <span>{t("pageCount")}</span>
+          <Button type="button" variant="outline" size="icon-xs" aria-label={t("previousPage")}>
             <ChevronLeft aria-hidden />
           </Button>
-          <Button type="button" variant="outline" size="icon-xs" aria-label="Go to next page">
+          <Button type="button" variant="outline" size="icon-xs" aria-label={t("nextPage")}>
             <ChevronRight aria-hidden />
           </Button>
         </div>
@@ -600,24 +606,26 @@ function CustomerPipelineTable() {
 }
 
 function WorkspaceSettingsPreview() {
+  const t = useTranslations("imageToUi.preview");
+
   return (
     <div
       className="flex flex-col gap-4 bg-background pt-4"
       data-testid="saas-settings-form"
-      aria-label="Workspace settings component gallery"
+      aria-label={t("settingsAria")}
     >
       <Card size="sm" data-testid="saas-settings-upgrade" className="shadow-sm">
         <CardHeader>
-          <CardTitle>Upgrade your subscription</CardTitle>
+          <CardTitle>{t("upgradeTitle")}</CardTitle>
           <CardDescription>
-            You are currently on the free plan. Upgrade to the pro plan to get access to all features.
+            {t("upgradeDescription")}
           </CardDescription>
         </CardHeader>
         <CardFooter className="justify-end gap-2">
           <Button type="button" variant="outline">
-            Cancel
+            {t("cancel")}
           </Button>
-          <Button type="button">Upgrade Plan</Button>
+          <Button type="button">{t("upgradePlan")}</Button>
         </CardFooter>
       </Card>
 
@@ -705,16 +713,16 @@ function WorkspaceSettingsPreview() {
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="autoscale-threshold">Auto-scale threshold</Label>
-            <Slider aria-label="Auto-scale threshold" id="autoscale-threshold" min={20} max={95} defaultValue={[65]} />
+            <Label htmlFor="autoscale-threshold">{t("autoScale")}</Label>
+            <Slider aria-label={t("autoScale")} id="autoscale-threshold" min={20} max={95} defaultValue={[65]} />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Toggle type="button" variant="outline" defaultPressed>
               Enable maintenance mode
             </Toggle>
             <label className="flex items-center gap-2 text-sm text-foreground">
-              <Checkbox defaultChecked aria-label="Notify on-call via SMS" />
-              <span>Notify on-call via SMS</span>
+              <Checkbox defaultChecked aria-label={t("notifySms")} />
+              <span>{t("notifySms")}</span>
             </label>
           </div>
         </CardContent>
@@ -722,7 +730,7 @@ function WorkspaceSettingsPreview() {
           <Button type="button" variant="secondary">
             Reset
           </Button>
-          <Button type="button">Save changes</Button>
+          <Button type="button">{t("saveChanges")}</Button>
         </CardFooter>
       </Card>
 
@@ -762,11 +770,13 @@ function WorkspaceSettingsPreview() {
 }
 
 function MarketingPreview() {
+  const t = useTranslations("imageToUi.preview");
+
   return (
     <section
       data-testid="landing-page-preview"
       className="flex flex-col gap-4 bg-background pt-4"
-      aria-label="Branded landing page preview"
+      aria-label={t("landingAria")}
     >
       <Card size="sm" className="shadow-sm">
         <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -793,22 +803,21 @@ function MarketingPreview() {
       >
         <Card size="sm" className="shadow-sm">
           <CardContent className="flex min-w-0 flex-col justify-center gap-5 py-4">
-            <Badge variant="accent">Customer success OS</Badge>
+            <Badge variant="accent">{t("landingEyebrow")}</Badge>
             <div className="max-w-2xl">
               <h3 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-                Launch customer success faster
+                {t("landingHeadline")}
               </h3>
               <p className="mt-3 text-sm leading-6 text-muted-foreground md:text-base">
-                Turn extracted brand colors into a polished SaaS landing page with clear proof,
-                conversion paths, and operational momentum.
+                {t("landingDescription")}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button type="button" data-testid="landing-primary-cta">
-                Start free trial
+                {t("startTrial")}
               </Button>
               <Button type="button" variant="outline" className="border-primary text-primary hover:bg-primary/10">
-                View demo
+                {t("watchDemo")}
               </Button>
             </div>
           </CardContent>

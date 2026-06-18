@@ -16,6 +16,50 @@ export const THEME_PALETTE_ASSIGNED_ROLE_LABELS = [
 export type ThemePaletteAssignedRoleLabel =
   (typeof THEME_PALETTE_ASSIGNED_ROLE_LABELS)[number];
 
+export type ThemePaletteRoleLabels = {
+  surface: string;
+  action: string;
+  support: string;
+};
+
+export type ThemePaletteRoleRationaleLabels = {
+  surfaceLowSaturation: string;
+  surfaceBrighter: string;
+  surfaceCalm: string;
+  surfaceDefault: string;
+  actionVivid: (contrast: string) => string;
+  actionDefault: (contrast: string) => string;
+  supportNeutral: string;
+  supportSecondary: string;
+  supportMuted: string;
+  supportDefault: string;
+  contrastHigh: string;
+  contrastMedium: string;
+  contrastUsable: string;
+};
+
+export const defaultThemePaletteRoleLabels: ThemePaletteRoleLabels = {
+  surface: "表面基底",
+  action: "动作色",
+  support: "辅助色",
+};
+
+export const defaultThemePaletteRoleRationaleLabels: ThemePaletteRoleRationaleLabels = {
+  surfaceLowSaturation: "偏亮且低饱和，适合作背景与表面基底",
+  surfaceBrighter: "相对更亮，适合作背景与表面层级",
+  surfaceCalm: "饱和度较低、偏平静，适合作表面与弱化区域",
+  surfaceDefault: "表面适应性最高，适合作背景与卡片基底",
+  actionVivid: (contrast) => `与表面基底${contrast}且色彩鲜明，适合作主操作与焦点色`,
+  actionDefault: (contrast) => `与表面基底${contrast}，适合作主操作与焦点色`,
+  supportNeutral: "中调中性色，适合作边框、输入框与弱强调",
+  supportSecondary: "中调辅助色，适合作次要界面与弱强调",
+  supportMuted: "偏中性，适合作边框与弱化层次",
+  supportDefault: "辅助适应性最高，适合作次要界面元素",
+  contrastHigh: "高对比",
+  contrastMedium: "较高对比",
+  contrastUsable: "可用对比",
+};
+
 export type ClassifiedPaletteThemeRoles = {
   surfaceSeed: string;
   actionSeed: string;
@@ -320,64 +364,80 @@ export function classifyPaletteThemeRoles(
 export function assignedRoleLabelForHex(
   hex: string,
   classification: ClassifiedPaletteThemeRoles,
-): ThemePaletteAssignedRoleLabel {
+  labels: ThemePaletteRoleLabels = defaultThemePaletteRoleLabels,
+): string {
   const normalized = normalizeHexColor(hex);
   if (normalized === classification.surfaceSeed) {
-    return "表面基底";
+    return labels.surface;
   }
   if (normalized === classification.actionSeed) {
-    return "动作色";
+    return labels.action;
   }
   if (normalized === classification.supportSeed) {
-    return "辅助色";
+    return labels.support;
   }
   throw new Error(`Selected color is not part of the classified palette: ${hex}`);
 }
 
-function surfaceRoleRationale(color: ScoredColor): string {
+function surfaceRoleRationale(
+  color: ScoredColor,
+  labels: ThemePaletteRoleRationaleLabels,
+): string {
   const calm = color.saturation < 0.35;
   const bright = color.luminance > 0.65;
   if (bright && calm) {
-    return "偏亮且低饱和，适合作背景与表面基底";
+    return labels.surfaceLowSaturation;
   }
   if (bright) {
-    return "相对更亮，适合作背景与表面层级";
+    return labels.surfaceBrighter;
   }
   if (calm) {
-    return "饱和度较低、偏平静，适合作表面与弱化区域";
+    return labels.surfaceCalm;
   }
-  return "表面适应性最高，适合作背景与卡片基底";
+  return labels.surfaceDefault;
 }
 
-function actionRoleRationale(color: ScoredColor, surfaceRgb: RgbColor): string {
+function actionRoleRationale(
+  color: ScoredColor,
+  surfaceRgb: RgbColor,
+  labels: ThemePaletteRoleRationaleLabels,
+): string {
   const contrast = getContrastRatio(color.rgb, surfaceRgb);
   const contrastPhrase =
-    contrast >= 7 ? "高对比" : contrast >= 4.5 ? "较高对比" : "可用对比";
+    contrast >= 7
+      ? labels.contrastHigh
+      : contrast >= 4.5
+        ? labels.contrastMedium
+        : labels.contrastUsable;
   const vivid = color.saturation >= 0.45;
   if (vivid) {
-    return `与表面基底${contrastPhrase}且色彩鲜明，适合作主操作与焦点色`;
+    return labels.actionVivid(contrastPhrase);
   }
-  return `与表面基底${contrastPhrase}，适合作主操作与焦点色`;
+  return labels.actionDefault(contrastPhrase);
 }
 
-function supportRoleRationale(color: ScoredColor): string {
+function supportRoleRationale(
+  color: ScoredColor,
+  labels: ThemePaletteRoleRationaleLabels,
+): string {
   const midTone = Math.abs(color.luminance - 0.42) < 0.22;
   const neutral = color.saturation < 0.5;
   if (midTone && neutral) {
-    return "中调中性色，适合作边框、输入框与弱强调";
+    return labels.supportNeutral;
   }
   if (midTone) {
-    return "中调辅助色，适合作次要界面与弱强调";
+    return labels.supportSecondary;
   }
   if (neutral) {
-    return "偏中性，适合作边框与弱化层次";
+    return labels.supportMuted;
   }
-  return "辅助适应性最高，适合作次要界面元素";
+  return labels.supportDefault;
 }
 
 export function assignedRoleRationaleForHex(
   hex: string,
   selectedColors: string[],
+  labels: ThemePaletteRoleRationaleLabels = defaultThemePaletteRoleRationaleLabels,
 ): string {
   const classification = classifyPaletteThemeRoles(selectedColors);
   const colors = scoreColors(selectedColors.slice(0, 3));
@@ -388,14 +448,14 @@ export function assignedRoleRationaleForHex(
   }
 
   if (normalized === classification.surfaceSeed) {
-    return surfaceRoleRationale(color);
+    return surfaceRoleRationale(color, labels);
   }
   if (normalized === classification.actionSeed) {
     const surfaceRgb = colors.find((entry) => entry.hex === classification.surfaceSeed)!.rgb;
-    return actionRoleRationale(color, surfaceRgb);
+    return actionRoleRationale(color, surfaceRgb, labels);
   }
   if (normalized === classification.supportSeed) {
-    return supportRoleRationale(color);
+    return supportRoleRationale(color, labels);
   }
   throw new Error(`Selected color is not part of the classified palette: ${hex}`);
 }

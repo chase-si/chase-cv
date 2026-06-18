@@ -15,11 +15,13 @@ export function RenderInputImageSummary({
   imageSrc,
   imageAlt,
   compact = false,
+  label = "已选图片",
 }: {
   activeImage: ActiveImage;
   imageSrc: string;
   imageAlt: string;
   compact?: boolean;
+  label?: string;
 }) {
   return (
     <div
@@ -44,7 +46,7 @@ export function RenderInputImageSummary({
         )}
       </div>
       <div className="min-w-0">
-        <p className="text-sm font-medium text-foreground">已选图片</p>
+        <p className="text-sm font-medium text-foreground">{label}</p>
         <p className="truncate text-xs text-muted-foreground">{imageAlt}</p>
       </div>
     </div>
@@ -54,14 +56,16 @@ export function RenderInputImageSummary({
 export function RenderInputColorRoles({
   colorRoles,
   layout = "grid",
+  ariaLabel = "三色角色摘要",
 }: {
   colorRoles: ImageToUiRenderInput["colorRoles"];
   layout?: "grid" | "stack";
+  ariaLabel?: string;
 }) {
   return (
     <ul
       className={cn("gap-2", layout === "stack" ? "flex flex-col" : "grid sm:grid-cols-3")}
-      aria-label="三色角色摘要"
+      aria-label={ariaLabel}
     >
       {colorRoles.map((entry) => (
         <li
@@ -92,13 +96,15 @@ export function RenderInputColorRoles({
 
 export function RenderPreviewTokenSwatchSummary({
   previewThemeTokens,
+  ariaLabel = "预览主题 token 摘要",
 }: {
   previewThemeTokens: PreviewThemeTokens;
+  ariaLabel?: string;
 }) {
   return (
     <ul
       className="grid gap-2"
-      aria-label="预览主题 token 摘要"
+      aria-label={ariaLabel}
       data-testid="render-preview-token-summary"
     >
       {PREVIEW_TOKEN_SUMMARY_KEYS.map((token) => (
@@ -130,13 +136,15 @@ function TokenSwatchRow({ token, value }: { token: PreviewThemeTokenKey; value: 
 export function RenderInputSummaryRoot({
   summaryDataAttr,
   children,
+  ariaLabel = "渲染输入摘要",
 }: {
   summaryDataAttr: string;
   children: ReactNode;
+  ariaLabel?: string;
 }) {
   return (
     <section
-      aria-label="渲染输入摘要"
+      aria-label={ariaLabel}
       data-testid="render-input-summary"
       data-render-input={summaryDataAttr}
     >

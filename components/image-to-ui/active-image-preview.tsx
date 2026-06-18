@@ -5,11 +5,21 @@ import { getActiveImageSrc, type ActiveImage } from "@/lib/image-to-ui/active-im
 type ActiveImagePreviewProps = {
   activeImage: ActiveImage | null;
   sampleTitleById: Record<string, string>;
+  labels?: {
+    emptyPreview: string;
+    sampleImage: string;
+    uploadedImage: string;
+  };
 };
 
 export function ActiveImagePreview({
   activeImage,
   sampleTitleById,
+  labels = {
+    emptyPreview: "尚未选择图片",
+    sampleImage: "示例图片",
+    uploadedImage: "本地上传的图片",
+  },
 }: ActiveImagePreviewProps) {
   if (!activeImage) {
     return (
@@ -17,7 +27,7 @@ export function ActiveImagePreview({
         data-testid="active-image-preview"
         className="flex aspect-video items-center justify-center border border-border bg-muted/30 text-sm text-muted-foreground"
       >
-        尚未选择图片
+        {labels.emptyPreview}
       </div>
     );
   }
@@ -25,8 +35,8 @@ export function ActiveImagePreview({
   const src = getActiveImageSrc(activeImage);
   const alt =
     activeImage.type === "sample"
-      ? sampleTitleById[activeImage.sampleId] ?? "示例图片"
-      : "本地上传的图片";
+      ? sampleTitleById[activeImage.sampleId] ?? labels.sampleImage
+      : labels.uploadedImage;
 
   return (
     <div

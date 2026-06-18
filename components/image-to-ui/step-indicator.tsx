@@ -4,20 +4,32 @@ import { cn } from "@/lib/utils";
 
 type ImageToUiStepIndicatorProps = {
   activeStep: 1 | 2;
+  labels?: {
+    stepsAria: string;
+    select: string;
+    render: string;
+  };
 };
 
-const STEPS = [
-  { number: 1 as const, label: "选择图片与颜色" },
-  { number: 2 as const, label: "渲染界面" },
-] as const;
+export function ImageToUiStepIndicator({
+  activeStep,
+  labels = {
+    stepsAria: "工具步骤",
+    select: "选择图片与颜色",
+    render: "渲染界面",
+  },
+}: ImageToUiStepIndicatorProps) {
+  const steps = [
+    { number: 1 as const, label: labels.select },
+    { number: 2 as const, label: labels.render },
+  ] as const;
 
-export function ImageToUiStepIndicator({ activeStep }: ImageToUiStepIndicatorProps) {
   return (
-    <ol className="flex items-center gap-0 text-sm" aria-label="工具步骤">
-      {STEPS.map((step, index) => {
+    <ol className="flex items-center gap-0 text-sm" aria-label={labels.stepsAria}>
+      {steps.map((step, index) => {
         const isActive = activeStep === step.number;
         const isComplete = activeStep > step.number;
-        const isLast = index === STEPS.length - 1;
+        const isLast = index === steps.length - 1;
 
         return (
           <li key={step.number} className="flex min-w-0 items-center">

@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { GitFork } from "lucide-react";
+import { useTranslations } from "next-intl";
 
+import { Link } from "@/i18n/navigation";
 import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 
@@ -10,6 +11,8 @@ const BLOG_URL = "https://blog.dashuaibi.vip/blog";
 const GITHUB_URL = "https://github.com/chase-si";
 
 export function SiteNavActions() {
+  const t = useTranslations("siteNav");
+
   return (
     <nav className="hidden items-center gap-2 text-sm sm:flex">
       <Button
@@ -25,7 +28,7 @@ export function SiteNavActions() {
           />
         }
       >
-        作品
+        {t("works")}
       </Button>
       <Button
         variant="ghost"
@@ -44,7 +47,7 @@ export function SiteNavActions() {
           />
         }
       >
-        博客
+        {t("blog")}
       </Button>
       <Button
         variant="outline"
