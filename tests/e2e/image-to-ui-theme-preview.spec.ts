@@ -120,7 +120,7 @@ test.describe("image-to-ui themed preview e2e", () => {
 
     await page.getByRole("tab", { name: "Workspace settings" }).click();
     await expect(page.getByText("Upgrade your subscription")).toBeVisible();
-    await expect(page.getByText("Team Members")).toBeVisible();
+    await expect(page.getByText("Team Members", { exact: true })).toBeVisible();
     await expect(page.getByText("Create an account")).toBeVisible();
 
     await page.getByRole("tab", { name: "Landing page" }).click();
