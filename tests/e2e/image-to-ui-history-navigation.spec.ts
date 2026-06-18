@@ -1,21 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const SAMPLE_IMAGE_ID = "great-wave";
-
-async function openRenderStep(page: import("@playwright/test").Page) {
-  await page.goto("/image-to-ui");
-  await page.locator(`[data-sample-id="${SAMPLE_IMAGE_ID}"]`).click();
-
-  const swatches = page.locator('button[data-testid^="palette-swatch-"]');
-  await expect(swatches.first()).toBeVisible();
-
-  for (let index = 0; index < 3; index += 1) {
-    await swatches.nth(index).click();
-  }
-
-  await page.getByTestId("palette-render-button").click();
-  await expect(page.getByTestId("render-input-summary")).toBeVisible();
-}
+import { openRenderStep, SAMPLE_IMAGE_ID } from "./helpers/image-to-ui";
 
 test.describe("image-to-ui browser history", () => {
   test("back and forward restore step 1 with interactive source sidebar", async ({ page }) => {
