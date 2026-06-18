@@ -1,11 +1,39 @@
 "use client";
 
+import { useCallback, useMemo, useState } from "react";
+
 import { FlowReadOnlySurface } from "@/components/flow/flow-read-only-surface";
+import { FlowNodePropertiesPanel } from "@/components/flow/flow-node-properties-panel";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DEMO_FLOW_ROOT } from "@/lib/flow/demo-flow-data";
+import { findFlowNodeById } from "@/lib/flow/find-flow-node";
+import { updateFlowNodeById } from "@/lib/flow/update-flow-node";
+import type { FlowLeafNode, FlowRoot } from "@/lib/flow/types";
 import { cn } from "@/lib/utils";
 
 export function FlowToolShell() {
+  const [flowData, setFlowData] = useState<FlowRoot>(DEMO_FLOW_ROOT);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const selectedNode = useMemo(
+    () => (selectedId ? findFlowNodeById(flowData, selectedId) ?? null : null),
+    [flowData, selectedId],
+  );
+
+  const handleSelectNode = useCallback((id: string | undefined) => {
+    setSelectedId(id ?? null);
+  }, []);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedId(null);
+  }, []);
+
+  const handlePatchNode = useCallback((id: string, patch: Partial<FlowLeafNode>) => {
+    setFlowData((prev) =>
+      updateFlowNodeById(prev, id, (node) => ({ ...node, ...patch }) as FlowLeafNode),
+    );
+  }, []);
+
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-8 sm:px-6 sm:py-10">
@@ -45,7 +73,12 @@ export function FlowToolShell() {
             className="min-h-[min(480px,60vh)] min-w-0 flex-1"
             aria-label="流程图画布"
           >
-            <FlowReadOnlySurface datas={DEMO_FLOW_ROOT} className="min-h-[min(480px,60vh)]" />
+            <FlowReadOnlySurface
+              datas={flowData}
+              className="min-h-[min(480px,60vh)]"
+              activeId={selectedId}
+              svgDomOnClick={handleSelectNode}
+            />
           </section>
 
           <aside
@@ -58,8 +91,12 @@ export function FlowToolShell() {
                 <CardTitle className="text-sm">属性</CardTitle>
                 <CardDescription>选中节点后在此编辑参数</CardDescription>
               </CardHeader>
-              <CardContent className="py-4 text-sm text-muted-foreground">
-                尚未选中节点
+              <CardContent className="py-4">
+                <FlowNodePropertiesPanel
+                  selectedNode={selectedNode}
+                  onPatchNode={handlePatchNode}
+                  onClearSelection={handleClearSelection}
+                />
               </CardContent>
             </Card>
           </aside>

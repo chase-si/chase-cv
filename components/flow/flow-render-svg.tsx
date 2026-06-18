@@ -73,7 +73,7 @@ function FlowSvgCond({
   const lineNum = lineNumFromWidth(w);
 
   return (
-    <g data-flow-node-id={id} data-flow-node-type="cond">
+    <g data-flow-node-id={id} data-flow-node-type="cond" data-flow-selected={active ? "true" : undefined}>
       <g
         onClick={() => svgDomOnClick?.(id)}
         role={svgDomOnClick ? "button" : undefined}
@@ -129,7 +129,7 @@ function FlowSvgPara({
   const lineNum = lineNumFromWidth(w);
 
   return (
-    <g data-flow-node-id={id} data-flow-node-type="para">
+    <g data-flow-node-id={id} data-flow-node-type="para" data-flow-selected={active ? "true" : undefined}>
       <g
         onClick={() => svgDomOnClick?.(id)}
         role={svgDomOnClick ? "button" : undefined}
@@ -169,7 +169,7 @@ export function getFlowSvg(data: FlowItem, bindProps: FlowSvgBindProps) {
     case "step":
       return <FlowSvgStepDesc {...data} {...bindProps} />;
     case "end":
-      return <FlowSvgEndStep />;
+      return <FlowSvgEndStep {...data} {...bindProps} />;
     case "start":
       return <FlowSvgStepDesc startFlag {...data} {...bindProps} />;
     case "transfer":
