@@ -25,6 +25,7 @@ export function useActiveImageSelection(options: UseActiveImageSelectionOptions 
   );
   const uploadObjectUrlRef = useRef<string | null>(null);
   const extractionRequestIdRef = useRef(0);
+  const activeImageRef = useRef<ActiveImage | null>(null);
 
   const revokeUploadUrl = useCallback(() => {
     if (uploadObjectUrlRef.current) {
@@ -85,6 +86,16 @@ export function useActiveImageSelection(options: UseActiveImageSelectionOptions 
     }));
   }, []);
 
+  const resetForRouteRestore = useCallback(() => {
+    if (activeImageRef.current?.type === "upload") {
+      applyActiveImage(null);
+    }
+  }, [applyActiveImage]);
+
+  useEffect(() => {
+    activeImageRef.current = activeImage;
+  }, [activeImage]);
+
   useEffect(() => {
     return () => {
       revokeUploadUrl();
@@ -131,5 +142,6 @@ export function useActiveImageSelection(options: UseActiveImageSelectionOptions 
     selectUpload,
     updatePaletteSelection,
     setSelectedPaletteColors,
+    resetForRouteRestore,
   };
 }

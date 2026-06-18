@@ -6,10 +6,10 @@ import { ExtractedPalettePanel } from "@/components/image-to-ui/extracted-palett
 import { emptyPaletteSelection, type PaletteSelectionState } from "@/lib/image-to-ui/active-image-types";
 
 const readySwatches = [
-  { role: "Dominant1" as const, hex: "#FF0088" },
-  { role: "Dominant2" as const, hex: "#112233" },
-  { role: "Dominant3" as const, hex: "#445566" },
-  { role: "Dominant4" as const, hex: "#AABBCC" },
+  { role: "Dominant1" as const, hex: "#FF0088", proportion: 0.35 },
+  { role: "Dominant2" as const, hex: "#112233", proportion: 0.22 },
+  { role: "Dominant3" as const, hex: "#445566", proportion: 0.15 },
+  { role: "Dominant4" as const, hex: "#AABBCC", proportion: 0.08 },
 ];
 
 function renderPanel(
@@ -70,8 +70,8 @@ describe("ExtractedPalettePanel", () => {
       />,
     );
 
-    expect(screen.getByTestId("palette-swatch-Dominant1")).toHaveTextContent("主导色 1");
     expect(screen.getByTestId("palette-swatch-Dominant1")).toHaveTextContent("#FF0088");
+    expect(screen.getByTestId("palette-swatch-share-Dominant1")).toHaveTextContent("35%");
   });
 
   it("shows inline error and insufficient swatch guidance", () => {
@@ -86,7 +86,7 @@ describe("ExtractedPalettePanel", () => {
     renderPanel({
       ...emptyPaletteSelection(),
       extractionStatus: "ready",
-      swatches: [{ role: "Dominant1", hex: "#FF0088" }],
+      swatches: [{ role: "Dominant1", hex: "#FF0088", proportion: 0.5 }],
     });
 
     expect(screen.getByTestId("palette-insufficient-swatches")).toHaveTextContent("不足 3 个");
@@ -148,7 +148,7 @@ describe("ExtractedPalettePanel", () => {
     renderPanel({
       ...emptyPaletteSelection(),
       extractionStatus: "ready",
-      swatches: [{ role: "Dominant1", hex: "#FF0088" }],
+      swatches: [{ role: "Dominant1", hex: "#FF0088", proportion: 0.5 }],
       selectedColors: ["#FF0088", "#112233", "#445566"],
     });
 

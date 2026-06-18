@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const SAMPLE_IMAGE_TITLE = "蒙德里安构成";
+const SAMPLE_IMAGE_ID = "great-wave";
 const CLASSIFIED_THEME_ROLE_LABELS = ["表面基底", "动作色", "辅助色"] as const;
 
 type SelectedSwatch = {
@@ -12,7 +12,7 @@ async function preparePreviewStep(page: Page): Promise<SelectedSwatch[]> {
   await page.goto("/image-to-ui");
   await expect(page).toHaveURL(/\/image-to-ui$/);
 
-  await page.getByRole("button", { name: SAMPLE_IMAGE_TITLE }).click();
+  await page.locator(`[data-sample-id="${SAMPLE_IMAGE_ID}"]`).click();
 
   const swatches = page.locator('button[data-testid^="palette-swatch-"]');
   await expect(swatches.first()).toBeVisible();
@@ -69,7 +69,7 @@ test.describe("image-to-ui themed preview e2e", () => {
     const previewSurface = page.getByTestId("saas-preview-surface");
 
     await expect(siteHeader).toBeVisible();
-    await expect(page.getByRole("img", { name: "Logo" })).toBeVisible();
+    await expect(siteHeader.locator("img").first()).toBeVisible();
     await expect(previewSurface).toBeVisible();
     await expect(page.getByTestId("saas-primary-action")).toBeVisible();
     await expect(page.getByTestId("saas-secondary-chip")).toBeVisible();
@@ -92,7 +92,7 @@ test.describe("image-to-ui themed preview e2e", () => {
 
     await expect(page).toHaveURL(/\/image-to-ui$/);
     await expect(page.getByLabel("工具步骤")).toContainText("选择图片与颜色");
-    await expect(page.getByRole("button", { name: SAMPLE_IMAGE_TITLE })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator(`[data-sample-id="${SAMPLE_IMAGE_ID}"]`)).toHaveAttribute("aria-pressed", "true");
 
     for (let index = 0; index < selectedSwatches.length; index += 1) {
       const swatch = selectedSwatches[index];
@@ -110,11 +110,28 @@ test.describe("image-to-ui themed preview e2e", () => {
 
     await expect(page.getByTestId("render-preview-token-summary")).toBeVisible();
     await expect(page.getByTestId("saas-status-area")).toBeVisible();
+    await expect(page.getByTestId("saas-dashboard-toolbar")).toBeVisible();
+    await expect(page.getByTestId("saas-revenue-chart-section")).toBeVisible();
+    await expect(page.getByTestId("saas-segment-chart-section")).toBeVisible();
+    await expect(page.getByTestId("saas-recharts-area").locator("svg")).toBeVisible();
+    await expect(page.getByTestId("saas-recharts-bar").locator("svg")).toBeVisible();
     await expect(page.getByTestId("saas-data-table-section")).toBeVisible();
     await expect(page.getByTestId("saas-accent-section")).toBeVisible();
 
+    await page.getByRole("tab", { name: "Workspace settings" }).click();
+    await expect(page.getByText("Upgrade your subscription")).toBeVisible();
+    await expect(page.getByText("Team Members", { exact: true })).toBeVisible();
+    await expect(page.getByText("Create an account")).toBeVisible();
+
+    await page.getByRole("tab", { name: "Landing page" }).click();
+    await expect(page.getByTestId("landing-page-preview")).toBeVisible();
+    await expect(page.getByTestId("landing-nav")).toBeVisible();
+    await expect(page.getByTestId("landing-hero")).toContainText("Launch customer success faster");
+    await expect(page.getByTestId("landing-hero-panel")).toBeVisible();
+    await expect(page.getByTestId("landing-conversion-strip")).toBeVisible();
+
     await page.getByTestId("render-back-to-edit").click();
-    await expect(page.getByRole("button", { name: SAMPLE_IMAGE_TITLE })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator(`[data-sample-id="${SAMPLE_IMAGE_ID}"]`)).toHaveAttribute("aria-pressed", "true");
 
     for (const swatch of selectedSwatches) {
       await expect(page.getByTestId(swatch.swatchTestId)).toHaveAttribute("aria-pressed", "true");

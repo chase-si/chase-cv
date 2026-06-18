@@ -1,8 +1,8 @@
-import { getColorSync, getPaletteSync } from "colorthief";
+import { getPaletteSync } from "colorthief";
 
 import {
   EXTRACTED_PALETTE_COLOR_COUNT,
-  mergeColorthiefDominantAndPalette,
+  normalizeColorthiefPalette,
 } from "@/lib/image-to-ui/normalize-dominant-palette";
 
 function loadImageElement(src: string): Promise<HTMLImageElement> {
@@ -17,10 +17,9 @@ function loadImageElement(src: string): Promise<HTMLImageElement> {
 
 export async function extractPaletteFromImageSrc(src: string) {
   const image = await loadImageElement(src);
-  const dominant = getColorSync(image, { ignoreWhite: false });
   const palette = getPaletteSync(image, {
     colorCount: EXTRACTED_PALETTE_COLOR_COUNT,
     ignoreWhite: false,
   });
-  return mergeColorthiefDominantAndPalette(dominant, palette);
+  return normalizeColorthiefPalette(palette);
 }

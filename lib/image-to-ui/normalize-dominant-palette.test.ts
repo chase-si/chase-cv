@@ -1,10 +1,7 @@
 import { createColor } from "colorthief";
 import { describe, expect, it } from "vitest";
 
-import {
-  mergeColorthiefDominantAndPalette,
-  normalizeColorthiefPalette,
-} from "@/lib/image-to-ui/normalize-dominant-palette";
+import { normalizeColorthiefPalette } from "@/lib/image-to-ui/normalize-dominant-palette";
 
 describe("normalizeColorthiefPalette", () => {
   it("preserves dominance order and normalizes hex", () => {
@@ -15,9 +12,9 @@ describe("normalizeColorthiefPalette", () => {
     ];
 
     expect(normalizeColorthiefPalette(colors)).toEqual([
-      { role: "Dominant1", hex: "#FF0088" },
-      { role: "Dominant2", hex: "#223344" },
-      { role: "Dominant3", hex: "#AABBCC" },
+      { role: "Dominant1", hex: "#FF0088", proportion: 0.35 },
+      { role: "Dominant2", hex: "#223344", proportion: 0.22 },
+      { role: "Dominant3", hex: "#AABBCC", proportion: 0.1 },
     ]);
   });
 
@@ -30,7 +27,7 @@ describe("normalizeColorthiefPalette", () => {
 
     const swatches = normalizeColorthiefPalette(colors);
 
-    expect(swatches[0]).toEqual({ role: "Dominant1", hex: "#FCFCFA" });
+    expect(swatches[0]).toEqual({ role: "Dominant1", hex: "#FCFCFA", proportion: 0.45 });
     expect(swatches.some((swatch) => swatch.hex === "#FCFCFA")).toBe(true);
   });
 
@@ -56,37 +53,8 @@ describe("normalizeColorthiefPalette", () => {
     ];
 
     expect(normalizeColorthiefPalette(colors)).toEqual([
-      { role: "Dominant1", hex: "#FF0000" },
-      { role: "Dominant2", hex: "#0080FF" },
-    ]);
-  });
-});
-
-describe("mergeColorthiefDominantAndPalette", () => {
-  it("places dominant color first then palette colors in order", () => {
-    const dominant = createColor(255, 0, 136, 5000, 0.4);
-    const palette = [
-      createColor(34, 51, 68, 2500, 0.22),
-      createColor(170, 187, 204, 1200, 0.1),
-    ];
-
-    expect(mergeColorthiefDominantAndPalette(dominant, palette)).toEqual([
-      { role: "Dominant1", hex: "#FF0088" },
-      { role: "Dominant2", hex: "#223344" },
-      { role: "Dominant3", hex: "#AABBCC" },
-    ]);
-  });
-
-  it("deduplicates when dominant hex already appears in the palette", () => {
-    const dominant = createColor(255, 0, 136, 5000, 0.4);
-    const palette = [
-      createColor(255, 0, 136, 4000, 0.35),
-      createColor(34, 51, 68, 2500, 0.22),
-    ];
-
-    expect(mergeColorthiefDominantAndPalette(dominant, palette).map((swatch) => swatch.hex)).toEqual([
-      "#FF0088",
-      "#223344",
+      { role: "Dominant1", hex: "#FF0000", proportion: 0.6 },
+      { role: "Dominant2", hex: "#0080FF", proportion: 0.15 },
     ]);
   });
 });

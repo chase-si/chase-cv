@@ -225,7 +225,10 @@ export function derivePreviewThemeTokens({
   const card = mode === "dark" ? darkenColor(surface, 0.62) : lightenColor(surface, 0.06);
   const popover =
     mode === "dark" ? lightenColor(card, 0.08) : lightenColor(card, 0.42);
-  const muted = mode === "dark" ? darkenColor(neutralSeed, 0.72) : lightenColor(neutralSeed, 0.84);
+  const muted =
+    mode === "dark"
+      ? darkenColor(neutralSeed, 0.72)
+      : mixColor(mixColor(background, card, 0.5), darkenColor(neutralSeed, 0.28), 0.48);
   const border = mode === "dark" ? darkenColor(support, 0.5) : lightenColor(support, 0.58);
   const input =
     mode === "dark"

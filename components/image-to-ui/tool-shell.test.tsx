@@ -1,13 +1,18 @@
+import type { ReactNode } from "react";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ImageToUiToolShell } from "@/components/image-to-ui/tool-shell";
 
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/image-to-ui",
+}));
+
 vi.mock("@/lib/image-to-ui/extract-palette-from-image-src", () => ({
   extractPaletteFromImageSrc: vi.fn().mockResolvedValue([
-    { role: "Dominant1", hex: "#FF0088" },
-    { role: "Dominant2", hex: "#112233" },
-    { role: "Dominant3", hex: "#445566" },
+    { role: "Dominant1", hex: "#FF0088", proportion: 0.35 },
+    { role: "Dominant2", hex: "#112233", proportion: 0.22 },
+    { role: "Dominant3", hex: "#445566", proportion: 0.15 },
   ]),
 }));
 
@@ -26,6 +31,24 @@ vi.mock("next/image", () => ({
   },
 }));
 
+vi.mock("recharts", () => ({
+  ResponsiveContainer: ({ children }: { children?: ReactNode }) => (
+    <div data-testid="mock-responsive-container">{children}</div>
+  ),
+  AreaChart: ({ children }: { children?: ReactNode }) => (
+    <svg data-testid="mock-area-chart">{children}</svg>
+  ),
+  BarChart: ({ children }: { children?: ReactNode }) => (
+    <svg data-testid="mock-bar-chart">{children}</svg>
+  ),
+  Area: ({ dataKey }: { dataKey: string }) => <path data-testid={`mock-area-${dataKey}`} />,
+  Bar: ({ dataKey }: { dataKey: string }) => <rect data-testid={`mock-bar-${dataKey}`} />,
+  CartesianGrid: () => <g data-testid="mock-cartesian-grid" />,
+  Tooltip: () => <g data-testid="mock-chart-tooltip" />,
+  XAxis: () => <g data-testid="mock-x-axis" />,
+  YAxis: () => <g data-testid="mock-y-axis" />,
+}));
+
 afterEach(() => {
   cleanup();
 });
@@ -42,11 +65,11 @@ describe("ImageToUiToolShell active image selection", () => {
   it("shows the selected sample in the main preview with contain fitting", () => {
     render(<ImageToUiToolShell />);
 
-    fireEvent.click(getSampleCard("mondrian"));
+    fireEvent.click(getSampleCard("great-wave"));
 
     const preview = screen.getByTestId("active-image-preview");
-    const img = within(preview).getByRole("img", { name: "蒙德里安构成" });
-    expect(img).toHaveAttribute("src", "/imgs/image-to-ui/mondrian-1280.webp");
+    const img = within(preview).getByRole("img", { name: "神奈川冲浪里" });
+    expect(img).toHaveAttribute("src", "/imgs/image-to-ui/great-wave-1280.webp");
     expect(img.className).toMatch(/object-contain/);
   });
 
@@ -59,7 +82,7 @@ describe("ImageToUiToolShell active image selection", () => {
 
     render(<ImageToUiToolShell />);
 
-    fireEvent.click(getSampleCard("mondrian"));
+    fireEvent.click(getSampleCard("great-wave"));
     const fileInput = screen.getByLabelText("从本地上传图片");
     const file = new File(["pixels"], "local.png", { type: "image/png" });
     fireEvent.change(fileInput, { target: { files: [file] } });
@@ -72,14 +95,14 @@ describe("ImageToUiToolShell active image selection", () => {
   it("keeps sample thumbnails compact with cover cropping", () => {
     render(<ImageToUiToolShell />);
 
-    const sampleCard = getSampleCard("mondrian");
+    const sampleCard = getSampleCard("great-wave");
     const thumbnail = within(sampleCard).getByRole("presentation");
     expect(thumbnail.className).toMatch(/object-cover/);
   });
 });
 
 async function selectThreePaletteSwatches() {
-  fireEvent.click(getSampleCard("mondrian"));
+  fireEvent.click(getSampleCard("great-wave"));
 
   await waitFor(() => {
     expect(screen.getByTestId("palette-swatch-Dominant1")).toBeInTheDocument();
@@ -94,7 +117,7 @@ describe("ImageToUiToolShell palette selection", () => {
   it("enables render only after three ordered swatches are selected", async () => {
     render(<ImageToUiToolShell />);
 
-    fireEvent.click(getSampleCard("mondrian"));
+    fireEvent.click(getSampleCard("great-wave"));
 
     await waitFor(() => {
       expect(screen.getByTestId("palette-swatch-Dominant1")).toBeInTheDocument();
@@ -136,7 +159,7 @@ describe("ImageToUiToolShell render input summary", () => {
 
     const summary = screen.getByTestId("render-input-summary");
     const imageSummary = within(summary).getByTestId("render-input-image-summary");
-    expect(within(imageSummary).getByRole("img", { name: "蒙德里安构成" })).toBeInTheDocument();
+    expect(within(imageSummary).getByRole("img", { name: "神奈川冲浪里" })).toBeInTheDocument();
     expect(screen.queryByTestId("active-image-preview")).not.toBeInTheDocument();
 
     expect(screen.getByTestId("render-input-color-动作色")).toHaveTextContent("#FF0088");
@@ -169,14 +192,14 @@ describe("ImageToUiToolShell render input summary", () => {
     await selectThreePaletteSwatches();
     fireEvent.click(screen.getByTestId("palette-render-button"));
 
-    expect(screen.getByText("实验工具")).toBeInTheDocument();
     expect(screen.getByText("图片转界面")).toBeInTheDocument();
     expect(screen.getByText("确认当前图片与三色角色；查看完整预览并可返回继续编辑。")).toBeInTheDocument();
 
     const preview = screen.getByTestId("saas-preview-surface");
     expect(within(preview).getByRole("tab", { name: "Overview" })).toBeInTheDocument();
     expect(within(preview).getByRole("tab", { name: "Workspace settings" })).toBeInTheDocument();
-    expect(within(preview).getByText("Platform health")).toBeInTheDocument();
+    expect(within(preview).getByTestId("saas-dashboard-toolbar")).toHaveTextContent("Documents");
+    expect(within(preview).getByTestId("saas-revenue-chart-section")).toBeInTheDocument();
   });
 
   it("returns to edit and preserves image and color choices", async () => {
@@ -187,8 +210,25 @@ describe("ImageToUiToolShell render input summary", () => {
     fireEvent.click(screen.getByTestId("render-back-to-edit"));
 
     expect(screen.getByTestId("palette-selection")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "蒙德里安构成" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "神奈川冲浪里" })).toBeInTheDocument();
     expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("已选色 1");
     expect(screen.getByTestId("palette-render-button")).toBeEnabled();
+  });
+});
+
+describe("ImageToUiToolShell route restore", () => {
+  it("returns to step 1 with the source sidebar after a persisted pageshow", async () => {
+    render(<ImageToUiToolShell />);
+
+    await selectThreePaletteSwatches();
+    fireEvent.click(screen.getByTestId("palette-render-button"));
+    expect(screen.getByTestId("render-input-summary")).toBeInTheDocument();
+
+    fireEvent(window, new PageTransitionEvent("pageshow", { persisted: true }));
+
+    expect(screen.getByLabelText("图片来源")).toBeInTheDocument();
+    expect(screen.queryByTestId("render-input-summary")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("工具步骤")).toHaveTextContent("选择图片与颜色");
+    expect(screen.getByTestId("palette-selection")).toBeInTheDocument();
   });
 });

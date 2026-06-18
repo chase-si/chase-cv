@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -30,6 +31,28 @@ vi.mock("next/image", () => ({
   },
 }));
 
+vi.mock("recharts", () => ({
+  ResponsiveContainer: ({ children }: { children?: ReactNode }) => (
+    <div data-testid="mock-responsive-container">{children}</div>
+  ),
+  AreaChart: ({ children }: { children?: ReactNode }) => (
+    <svg data-testid="mock-area-chart">{children}</svg>
+  ),
+  BarChart: ({ children }: { children?: ReactNode }) => (
+    <svg data-testid="mock-bar-chart">{children}</svg>
+  ),
+  Area: ({ dataKey, fill, stroke }: { dataKey: string; fill: string; stroke: string }) => (
+    <path data-testid={`mock-area-${dataKey}`} data-fill={fill} data-stroke={stroke} />
+  ),
+  Bar: ({ dataKey, fill }: { dataKey: string; fill: string }) => (
+    <rect data-testid={`mock-bar-${dataKey}`} data-fill={fill} />
+  ),
+  CartesianGrid: () => <g data-testid="mock-cartesian-grid" />,
+  Tooltip: () => <g data-testid="mock-chart-tooltip" />,
+  XAxis: () => <g data-testid="mock-x-axis" />,
+  YAxis: () => <g data-testid="mock-y-axis" />,
+}));
+
 afterEach(() => {
   mockThemeState.resolvedTheme = "light";
   cleanup();
@@ -40,15 +63,15 @@ describe("RenderInputSummaryPanel", () => {
     const selectedColors = ["#FF0088", "#112233", "#445566"];
     const activeImage = {
       type: "sample" as const,
-      sampleId: "mondrian",
-      src: "/imgs/image-to-ui/mondrian-1280.webp",
+      sampleId: "great-wave",
+      src: "/imgs/image-to-ui/great-wave-1280.webp",
     };
     const renderInput = buildImageToUiRenderInput(activeImage, selectedColors);
 
     render(
       <RenderInputSummaryPanel
         activeImage={activeImage}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={selectedColors}
       />,
     );
@@ -99,10 +122,10 @@ describe("RenderInputSummaryPanel", () => {
     const props = {
       activeImage: {
         type: "sample" as const,
-        sampleId: "mondrian",
-        src: "/imgs/image-to-ui/mondrian-1280.webp",
+        sampleId: "great-wave",
+        src: "/imgs/image-to-ui/great-wave-1280.webp",
       },
-      sampleTitleById: { mondrian: "蒙德里安构成" },
+      sampleTitleById: { "great-wave": "神奈川冲浪里" },
       selectedColors: ["#3366FF", "#00AA55", "#FFAA00"],
     };
     const { rerender } = render(<RenderInputSummaryPanel {...props} />);
@@ -131,10 +154,10 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
         }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
       />,
     );
@@ -152,17 +175,22 @@ describe("RenderInputSummaryPanel", () => {
     fireEvent.click(settingsTab);
     expect(settingsTab).toHaveAttribute("aria-selected", "true");
 
-    const settingsForm = within(preview).getByTestId("saas-settings-form");
+    const settingsGallery = within(preview).getByTestId("saas-settings-form");
     expect(within(preview).queryByTestId("saas-status-area")).not.toBeInTheDocument();
-    expect(within(settingsForm).getByLabelText("Workspace name")).toBeInTheDocument();
-    expect(within(settingsForm).getByRole("combobox", { name: "Plan" })).toBeInTheDocument();
-    expect(within(settingsForm).getByRole("group", { name: "Auto-scale threshold" })).toBeInTheDocument();
-    expect(within(settingsForm).getByRole("button", { name: "Enable maintenance mode" })).toBeInTheDocument();
+    expect(within(settingsGallery).getByText("Upgrade your subscription")).toBeInTheDocument();
+    expect(within(settingsGallery).getByText("Team Members")).toBeInTheDocument();
+    expect(within(settingsGallery).getByText("Create an account")).toBeInTheDocument();
+    expect(within(settingsGallery).getByLabelText("Workspace name")).toBeInTheDocument();
+    expect(within(settingsGallery).getByRole("combobox", { name: "Plan" })).toBeInTheDocument();
+    expect(within(settingsGallery).getByRole("group", { name: "Auto-scale threshold" })).toBeInTheDocument();
     expect(
-      within(settingsForm).getByRole("checkbox", { name: /Notify on-call via SMS/ }),
+      within(settingsGallery).getByRole("button", { name: "Enable maintenance mode" }),
     ).toBeInTheDocument();
-    expect(within(settingsForm).getByRole("switch", { name: "Allow public status page" })).toBeInTheDocument();
-    expect(within(settingsForm).getByRole("button", { name: "Save changes" })).toBeInTheDocument();
+    expect(
+      within(settingsGallery).getByRole("checkbox", { name: /Notify on-call via SMS/ }),
+    ).toBeInTheDocument();
+    expect(within(settingsGallery).getByRole("button", { name: "Save changes" })).toBeInTheDocument();
+    expect(within(settingsGallery).getByText("Cookie Settings")).toBeInTheDocument();
 
     fireEvent.click(overviewTab);
     expect(within(preview).getByTestId("saas-metric-mrr")).toHaveTextContent("$84,200");
@@ -175,9 +203,11 @@ describe("RenderInputSummaryPanel", () => {
     expect(within(preview).getByTestId("landing-hero")).toHaveTextContent("Launch customer success faster");
     expect(within(preview).getByRole("button", { name: "Start free trial" }).className).toMatch(/bg-primary/);
     expect(within(preview).getByRole("button", { name: "View demo" }).className).toMatch(/border-primary/);
+    expect(within(preview).getByTestId("landing-nav")).toBeInTheDocument();
+    expect(within(preview).getByTestId("landing-hero-panel")).toBeInTheDocument();
     expect(within(preview).getAllByTestId("landing-feature-card")).toHaveLength(3);
     expect(within(preview).getByTestId("landing-social-proof")).toHaveTextContent("+8");
-    expect(within(preview).getByTestId("landing-progress-strip")).toBeInTheDocument();
+    expect(within(preview).getByTestId("landing-conversion-strip")).toBeInTheDocument();
   });
 
   it("shows alert and accent sections in preview overview", () => {
@@ -185,10 +215,10 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
         }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
       />,
     );
@@ -198,22 +228,31 @@ describe("RenderInputSummaryPanel", () => {
     expect(within(preview).getByTestId("saas-accent-section")).toBeInTheDocument();
   });
 
-  it("renders display feedback primitives in the preview overview", () => {
+  it("renders dashboard navigation and Recharts-powered chart sections in the preview overview", () => {
     render(
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
         }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
       />,
     );
 
     const preview = screen.getByTestId("saas-preview-surface");
-    expect(within(preview).getByTestId("saas-health-progress")).toBeInTheDocument();
-    expect(within(preview).getByTestId("saas-overview-separator")).toBeInTheDocument();
+    expect(within(preview).getByTestId("saas-dashboard-sidebar")).toHaveTextContent("Dashboard");
+    expect(within(preview).getByTestId("saas-dashboard-toolbar")).toHaveTextContent("Quick Create");
+    expect(within(preview).getAllByTestId("saas-kpi-card")).toHaveLength(4);
+    expect(within(preview).getByTestId("saas-revenue-chart-section")).toBeInTheDocument();
+    expect(within(preview).getByTestId("saas-segment-chart-section")).toBeInTheDocument();
+    expect(within(preview).getByTestId("mock-area-chart")).toBeInTheDocument();
+    expect(within(preview).getByTestId("mock-bar-chart")).toBeInTheDocument();
+    expect(within(preview).getByTestId("mock-area-revenue")).toHaveAttribute("data-stroke", "var(--primary)");
+    expect(within(preview).getByTestId("mock-area-expansion")).toHaveAttribute("data-stroke", "var(--accent)");
+    expect(within(preview).getByTestId("mock-bar-active")).toHaveAttribute("data-fill", "var(--secondary)");
+    expect(within(preview).getByTestId("mock-bar-risk")).toHaveAttribute("data-fill", "var(--accent)");
     expect(within(preview).getByTestId("saas-response-team")).toHaveTextContent("+2");
     expect(
       within(preview).getByRole("button", { name: "Show incident response details" }),
@@ -225,10 +264,10 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
         }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
       />,
     );
@@ -255,10 +294,10 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
         }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={["#FF0088", "#112233", "#445566"]}
       />,
     );
@@ -270,7 +309,33 @@ describe("RenderInputSummaryPanel", () => {
 
     const tabs = within(preview).getByRole("tablist", { name: "Preview sections" });
     expect(within(tabs).getByRole("tab", { name: "Overview" }).className).toMatch(/aria-selected:bg-primary/);
-    expect(within(preview).getByTestId("saas-primary-surface").className).toMatch(/bg-secondary\/10/);
+    expect(within(preview).getByTestId("saas-dashboard-sidebar").className).toMatch(/bg-card/);
+  });
+
+  it("scopes portaled select popup theme variables to the preview palette", () => {
+    const selectedColors = ["#FF0088", "#112233", "#445566"];
+    render(
+      <RenderInputSummaryPanel
+        activeImage={{
+          type: "sample",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
+        }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
+        selectedColors={selectedColors}
+      />,
+    );
+
+    const preview = screen.getByTestId("saas-preview-surface");
+    const lightTokens = derivePreviewThemeTokens({ selectedColors, mode: "light" });
+
+    fireEvent.click(within(preview).getByRole("tab", { name: "Workspace settings" }));
+    fireEvent.click(within(preview).getByRole("combobox", { name: "Plan" }));
+
+    const selectPopup = document.querySelector('[data-slot="select-content"]');
+    expect(selectPopup).toBeTruthy();
+    expect((selectPopup as HTMLElement).style.getPropertyValue("--primary")).toBe(lightTokens.primary);
+    expect((selectPopup as HTMLElement).style.getPropertyValue("--accent")).toBe(lightTokens.accent);
   });
 
   it("reserves primary for actions and high-emphasis states instead of large preview surfaces", () => {
@@ -278,16 +343,20 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
         }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={["#faf8f0", "#09568c", "#9e9982"]}
       />,
     );
 
     const preview = screen.getByTestId("saas-preview-surface");
-    const overviewLargeSurfaceTestIds = ["saas-status-area", "saas-primary-surface"];
+    const overviewLargeSurfaceTestIds = [
+      "saas-status-area",
+      "saas-revenue-chart-section",
+      "saas-segment-chart-section",
+    ];
 
     for (const testId of overviewLargeSurfaceTestIds) {
       const className = within(preview).getByTestId(testId).className;
@@ -309,8 +378,8 @@ describe("RenderInputSummaryPanel", () => {
     const renderInput = buildImageToUiRenderInput(
       {
         type: "sample",
-        sampleId: "mondrian",
-        src: "/imgs/image-to-ui/mondrian-1280.webp",
+        sampleId: "great-wave",
+        src: "/imgs/image-to-ui/great-wave-1280.webp",
       },
       selectedColors,
     );
@@ -319,10 +388,10 @@ describe("RenderInputSummaryPanel", () => {
       <RenderInputSummaryPanel
         activeImage={{
           type: "sample",
-          sampleId: "mondrian",
-          src: "/imgs/image-to-ui/mondrian-1280.webp",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
         }}
-        sampleTitleById={{ mondrian: "蒙德里安构成" }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
         selectedColors={selectedColors}
       />,
     );
