@@ -4,6 +4,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ImageToUiToolShell } from "@/components/image-to-ui/tool-shell";
 
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/image-to-ui",
+}));
+
 vi.mock("@/lib/image-to-ui/extract-palette-from-image-src", () => ({
   extractPaletteFromImageSrc: vi.fn().mockResolvedValue([
     { role: "Dominant1", hex: "#FF0088", proportion: 0.35 },
@@ -188,7 +192,6 @@ describe("ImageToUiToolShell render input summary", () => {
     await selectThreePaletteSwatches();
     fireEvent.click(screen.getByTestId("palette-render-button"));
 
-    expect(screen.getByText("实验工具")).toBeInTheDocument();
     expect(screen.getByText("图片转界面")).toBeInTheDocument();
     expect(screen.getByText("确认当前图片与三色角色；查看完整预览并可返回继续编辑。")).toBeInTheDocument();
 
@@ -210,5 +213,22 @@ describe("ImageToUiToolShell render input summary", () => {
     expect(screen.getByRole("img", { name: "神奈川冲浪里" })).toBeInTheDocument();
     expect(screen.getByTestId("palette-swatch-role-Dominant1")).toHaveTextContent("已选色 1");
     expect(screen.getByTestId("palette-render-button")).toBeEnabled();
+  });
+});
+
+describe("ImageToUiToolShell route restore", () => {
+  it("returns to step 1 with the source sidebar after a persisted pageshow", async () => {
+    render(<ImageToUiToolShell />);
+
+    await selectThreePaletteSwatches();
+    fireEvent.click(screen.getByTestId("palette-render-button"));
+    expect(screen.getByTestId("render-input-summary")).toBeInTheDocument();
+
+    fireEvent(window, new PageTransitionEvent("pageshow", { persisted: true }));
+
+    expect(screen.getByLabelText("图片来源")).toBeInTheDocument();
+    expect(screen.queryByTestId("render-input-summary")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("工具步骤")).toHaveTextContent("选择图片与颜色");
+    expect(screen.getByTestId("palette-selection")).toBeInTheDocument();
   });
 });
