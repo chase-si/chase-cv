@@ -5,25 +5,81 @@ on:
     branches: [main]
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
         env:
           NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+        run: yarn build
 
+      - name: Pack standalone release
+        run: |
+          cp -r public .next/standalone/
+          cp -r .next/static .next/standalone/.next/
+          tar -czf release.tar.gz -C .next/standalone .
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release
+          path: release.tar.gz
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release
+
+      - name: Upload release to server
+        uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.PORT }}
-          envs: NEXT_PUBLIC_GA_MEASUREMENT_ID
+          source: release.tar.gz
+          target: /root/project/chase-cv
 
+      - name: Extract and restart
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+          command_timeout: 5m
           script: |
-            cd /root/project/chase-cv
-            git pull origin main
-            yarn install
-            yarn build
-            pm2 restart chase-cv
+            set -euo pipefail
+            DEPLOY_ROOT=/root/project/chase-cv
+            APP_DIR="$DEPLOY_ROOT/app"
+            ARCHIVE="$DEPLOY_ROOT/release.tar.gz"
+            STAGING=$(mktemp -d)
+
+            mkdir -p "$APP_DIR"
+            tar -xzf "$ARCHIVE" -C "$STAGING"
+            rsync -a --delete "$STAGING"/ "$APP_DIR"/
+            rm -rf "$STAGING" "$ARCHIVE"
+
+            if pm2 describe chase-cv >/dev/null 2>&1; then
+              pm2 restart chase-cv --update-env
+            else
+              pm2 start "$APP_DIR/server.js" --name chase-cv --cwd "$APP_DIR"
+            fi
+            pm2 save
