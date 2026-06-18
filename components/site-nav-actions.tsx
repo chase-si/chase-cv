@@ -34,6 +34,22 @@ export function SiteNavActions() {
         className="shadow-sm"
         render={
           <Link
+            href="/flow"
+            onClick={() =>
+              trackEvent("nav_click", { target: "flow_editor", href: "/flow" })
+            }
+          />
+        }
+      >
+        流程编辑器
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        nativeButton={false}
+        className="shadow-sm"
+        render={
+          <Link
             href={BLOG_URL}
             target="_blank"
             rel="noreferrer"
