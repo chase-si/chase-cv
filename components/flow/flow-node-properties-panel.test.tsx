@@ -13,7 +13,6 @@ const stepNode: FlowLeafNode = {
   id: "step-test",
   text: "001",
   descStr: "desc-a",
-  instance_name: "inst-a",
 };
 
 describe("FlowNodePropertiesPanel", () => {

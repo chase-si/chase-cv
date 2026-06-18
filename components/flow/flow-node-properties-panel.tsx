@@ -106,16 +106,6 @@ export function FlowNodePropertiesPanel({
               onChange={(e) => onPatchNode(nodeId, { descStr: e.target.value })}
             />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="flow-prop-instance">实例名称</Label>
-            <Input
-              id="flow-prop-instance"
-              value={selectedNode.instance_name ?? ""}
-              onChange={(e) =>
-                onPatchNode(nodeId, { instance_name: e.target.value })
-              }
-            />
-          </div>
         </>
       ) : null}
 
@@ -130,16 +120,6 @@ export function FlowNodePropertiesPanel({
             />
           </div>
           <ReadOnlyRow label="描述" value={selectedNode.descStr ?? "—"} />
-          <div className="space-y-1">
-            <Label htmlFor="flow-prop-instance">实例名称</Label>
-            <Input
-              id="flow-prop-instance"
-              value={selectedNode.instance_name ?? ""}
-              onChange={(e) =>
-                onPatchNode(nodeId, { instance_name: e.target.value })
-              }
-            />
-          </div>
         </>
       ) : null}
 

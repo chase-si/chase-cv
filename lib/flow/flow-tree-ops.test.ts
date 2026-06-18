@@ -83,8 +83,6 @@ describe("flow tree ops", () => {
       id: "id-1",
       text: "",
       descStr: "",
-      instance_name: "",
-      instance_id: "",
       status: "ready",
     });
   });

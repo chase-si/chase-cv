@@ -21,15 +21,17 @@ function labelFlow(flow: FlowRoot) {
   return assignFlowNodeLabels(flow);
 }
 
-function createTransfer(id: string) {
+function createTransfer(id: string, expr = "") {
   return {
     type: "transfer" as const,
     id,
     text: "",
-    expr: "",
+    expr,
     status: "ready" as const,
   };
 }
+
+const SEQUENTIAL_STEP_TRANSFER_EXPR = "true";
 
 export function addSequentialFlowStep(options: {
   renderData: FlowRoot;
@@ -50,12 +52,16 @@ export function addSequentialFlowStep(options: {
     newStep = createBlankFlowStep(stepId);
     const withStep = insertFlowItemAfterId(renderData, newStep, activeId);
     const transferId = createId();
-    newFlowData = insertFlowItemAfterId(withStep, createTransfer(transferId), stepId);
+    newFlowData = insertFlowItemAfterId(
+      withStep,
+      createTransfer(transferId, SEQUENTIAL_STEP_TRANSFER_EXPR),
+      stepId,
+    );
   } else if (selectedData.type === "start" || selectedData.type === "step") {
     const transferId = createId();
     const withTransfer = insertFlowItemAfterId(
       renderData,
-      createTransfer(transferId),
+      createTransfer(transferId, SEQUENTIAL_STEP_TRANSFER_EXPR),
       activeId,
     );
     newStep = createBlankFlowStep(createId());

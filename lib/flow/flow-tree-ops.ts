@@ -197,8 +197,6 @@ export function createBlankFlowStep(id: string): FlowStepNode {
     id,
     text: "",
     descStr: "",
-    instance_name: "",
-    instance_id: "",
     status: "ready",
   };
 }

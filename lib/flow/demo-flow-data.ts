@@ -98,6 +98,12 @@ const RAW_DEMO_FLOW: FlowRoot = [
     ],
   },
   {
+    type: "transfer",
+    id: "transfer006",
+    expr: "true",
+    status: "ready",
+  },
+  {
     type: "step",
     id: "step006",
     descStr: "desc6",

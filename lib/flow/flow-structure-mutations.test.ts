@@ -39,7 +39,7 @@ describe("flow structure mutations", () => {
       text?: string;
     };
     expect(newTransfer?.text).toMatch(/^T\d+$/);
-    expect(newTransfer?.expr).toBe("");
+    expect(newTransfer?.expr).toBe("true");
   });
 
   it("adds a condition branch from a step and selects the new inner step", () => {
