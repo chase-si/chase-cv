@@ -59,7 +59,7 @@ export function RenderInputSummaryPanel({
             <CardDescription>Scoped theme 下的 dashboard 与 marketing 预览。</CardDescription>
           </CardHeader>
           <CardContent>
-            <SaasThemePreviewSurface previewRootStyle={model.previewRootStyle} className="overflow-y-auto max-h-160" />
+            <SaasThemePreviewSurface previewRootStyle={model.previewRootStyle} className="max-h-[min(40rem,70vh)] overflow-y-auto" />
           </CardContent>
         </Card>
       </div>

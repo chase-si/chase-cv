@@ -118,6 +118,11 @@ test.describe("image-to-ui themed preview e2e", () => {
     await expect(page.getByTestId("saas-data-table-section")).toBeVisible();
     await expect(page.getByTestId("saas-accent-section")).toBeVisible();
 
+    await page.getByRole("tab", { name: "Workspace settings" }).click();
+    await expect(page.getByText("Upgrade your subscription")).toBeVisible();
+    await expect(page.getByText("Team Members")).toBeVisible();
+    await expect(page.getByText("Create an account")).toBeVisible();
+
     await page.getByRole("tab", { name: "Landing page" }).click();
     await expect(page.getByTestId("landing-page-preview")).toBeVisible();
     await expect(page.getByTestId("landing-nav")).toBeVisible();

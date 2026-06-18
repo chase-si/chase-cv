@@ -175,17 +175,22 @@ describe("RenderInputSummaryPanel", () => {
     fireEvent.click(settingsTab);
     expect(settingsTab).toHaveAttribute("aria-selected", "true");
 
-    const settingsForm = within(preview).getByTestId("saas-settings-form");
+    const settingsGallery = within(preview).getByTestId("saas-settings-form");
     expect(within(preview).queryByTestId("saas-status-area")).not.toBeInTheDocument();
-    expect(within(settingsForm).getByLabelText("Workspace name")).toBeInTheDocument();
-    expect(within(settingsForm).getByRole("combobox", { name: "Plan" })).toBeInTheDocument();
-    expect(within(settingsForm).getByRole("group", { name: "Auto-scale threshold" })).toBeInTheDocument();
-    expect(within(settingsForm).getByRole("button", { name: "Enable maintenance mode" })).toBeInTheDocument();
+    expect(within(settingsGallery).getByText("Upgrade your subscription")).toBeInTheDocument();
+    expect(within(settingsGallery).getByText("Team Members")).toBeInTheDocument();
+    expect(within(settingsGallery).getByText("Create an account")).toBeInTheDocument();
+    expect(within(settingsGallery).getByLabelText("Workspace name")).toBeInTheDocument();
+    expect(within(settingsGallery).getByRole("combobox", { name: "Plan" })).toBeInTheDocument();
+    expect(within(settingsGallery).getByRole("group", { name: "Auto-scale threshold" })).toBeInTheDocument();
     expect(
-      within(settingsForm).getByRole("checkbox", { name: /Notify on-call via SMS/ }),
+      within(settingsGallery).getByRole("button", { name: "Enable maintenance mode" }),
     ).toBeInTheDocument();
-    expect(within(settingsForm).getByRole("switch", { name: "Allow public status page" })).toBeInTheDocument();
-    expect(within(settingsForm).getByRole("button", { name: "Save changes" })).toBeInTheDocument();
+    expect(
+      within(settingsGallery).getByRole("checkbox", { name: /Notify on-call via SMS/ }),
+    ).toBeInTheDocument();
+    expect(within(settingsGallery).getByRole("button", { name: "Save changes" })).toBeInTheDocument();
+    expect(within(settingsGallery).getByText("Cookie Settings")).toBeInTheDocument();
 
     fireEvent.click(overviewTab);
     expect(within(preview).getByTestId("saas-metric-mrr")).toHaveTextContent("$84,200");
@@ -304,7 +309,33 @@ describe("RenderInputSummaryPanel", () => {
 
     const tabs = within(preview).getByRole("tablist", { name: "Preview sections" });
     expect(within(tabs).getByRole("tab", { name: "Overview" }).className).toMatch(/aria-selected:bg-primary/);
-    expect(within(preview).getByTestId("saas-dashboard-sidebar").className).toMatch(/bg-muted\/30/);
+    expect(within(preview).getByTestId("saas-dashboard-sidebar").className).toMatch(/bg-card/);
+  });
+
+  it("scopes portaled select popup theme variables to the preview palette", () => {
+    const selectedColors = ["#FF0088", "#112233", "#445566"];
+    render(
+      <RenderInputSummaryPanel
+        activeImage={{
+          type: "sample",
+          sampleId: "great-wave",
+          src: "/imgs/image-to-ui/great-wave-1280.webp",
+        }}
+        sampleTitleById={{ "great-wave": "神奈川冲浪里" }}
+        selectedColors={selectedColors}
+      />,
+    );
+
+    const preview = screen.getByTestId("saas-preview-surface");
+    const lightTokens = derivePreviewThemeTokens({ selectedColors, mode: "light" });
+
+    fireEvent.click(within(preview).getByRole("tab", { name: "Workspace settings" }));
+    fireEvent.click(within(preview).getByRole("combobox", { name: "Plan" }));
+
+    const selectPopup = document.querySelector('[data-slot="select-content"]');
+    expect(selectPopup).toBeTruthy();
+    expect((selectPopup as HTMLElement).style.getPropertyValue("--primary")).toBe(lightTokens.primary);
+    expect((selectPopup as HTMLElement).style.getPropertyValue("--accent")).toBe(lightTokens.accent);
   });
 
   it("reserves primary for actions and high-emphasis states instead of large preview surfaces", () => {
