@@ -15,8 +15,8 @@ export function ImageToUiStepIndicator({
   activeStep,
   labels = {
     stepsAria: "工具步骤",
-    select: "选择图片与颜色",
-    render: "渲染界面",
+    select: "选择名画与颜色",
+    render: "生成界面预览",
   },
 }: ImageToUiStepIndicatorProps) {
   const steps = [

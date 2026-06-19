@@ -10,8 +10,8 @@
       "description": "用实时预览探索可配置的鼠标效果，并复制 magic-cursor-effect 代码。"
     },
     "imageToUi": {
-      "title": "图片转界面 | Chase's CV",
-      "description": "从图片提取色板，选择三个颜色，并预览生成的界面主题。"
+      "title": "把名画配色变成 UI 主题 | Chase's CV",
+      "description": "从经典画作中提取配色，映射为背景、主操作与辅助色，并实时预览成 shadcn / Tailwind 风格的界面主题。"
     },
     "flow": {
       "title": "流程编辑器 | Chase's CV",
@@ -84,28 +84,28 @@
     "code": "Code"
   },
   "imageToUi": {
-    "title": "图片转界面",
-    "stepOneDescription": "上传或选择示例图片，提取主色调并挑选 3 个颜色，为后续界面渲染步骤做准备。",
-    "stepTwoDescription": "确认当前图片与三色角色；查看完整预览并可返回继续编辑。",
+    "title": "把名画配色变成 UI 主题",
+    "stepOneDescription": "选择一幅经典画作或上传图片，提取它的主色、强调色与辅助色，实时生成 shadcn 风格的界面主题预览。",
+    "stepTwoDescription": "查看这组名画配色在 dashboard 与 landing page 中的效果，也可以返回继续调整颜色。",
     "backToEdit": "返回编辑",
     "sourceAria": "图片来源",
     "sourceTitle": "来源",
-    "sourceDescription": "上传图片，或从紧凑列表选一个示例。",
+    "sourceDescription": "上传图片，或从经典画作中选择一个配色灵感。",
     "previewAria": "预览与色板",
-    "previewTitle": "当前图片预览",
-    "previewDescription": "选中图片后在此以 contain 方式展示完整画面。",
-    "paletteTitle": "提取色板",
-    "paletteDescription": "按像素占比提取主导色，并选择 3 个颜色后进入渲染步骤。",
+    "previewTitle": "当前灵感图",
+    "previewDescription": "选中图片后在此查看完整画面与配色来源。",
+    "paletteTitle": "从画作提取 UI 配色",
+    "paletteDescription": "选择 3 个颜色后，系统会自动映射为背景、主操作与辅助层级，并生成界面预览。",
     "uploadAria": "从本地上传图片",
     "uploadButton": "选择本地图片",
-    "uploadHelp": "仅在浏览器内预览，不会上传或保存到服务器。",
+    "uploadHelp": "图片只在浏览器内处理，不会上传到服务器。",
     "emptyPreview": "尚未选择图片",
     "sampleImage": "示例图片",
     "uploadedImage": "本地上传的图片",
     "stepsAria": "工具步骤",
     "steps": {
-      "select": "选择图片与颜色",
-      "render": "渲染界面"
+      "select": "选择名画与颜色",
+      "render": "生成界面预览"
     },
     "paletteEmpty": "选择图片后将显示色板与选色控件。",
     "paletteLoading": "正在提取色板...",
@@ -114,21 +114,21 @@
     "paletteSwatchAria": "{hex}，占比 {percent}",
     "paletteInsufficient": "当前图片可用的可选颜色不足 {count} 个，请换一张对比更丰富的图片。",
     "selectionLimit": "最多只能选择 3 个颜色，请先取消已选颜色再更换。",
-    "renderButton": "渲染",
+    "renderButton": "生成界面预览",
     "selectionProgress": "已选 {selected} / {required} 个颜色",
     "selectedColor": "已选色 {index}",
     "extractionError": "无法从当前图片提取色板，请换一张图片或重新上传。",
-    "summaryAsideAria": "渲染输入侧栏摘要",
-    "summaryTitle": "输入摘要",
-    "summaryDescription": "图片、三色与推导 Token（只读）。",
+    "summaryAsideAria": "主题输入摘要",
+    "summaryTitle": "主题来源",
+    "summaryDescription": "图片、三色角色与推导 token（只读）。",
     "selectedImage": "已选图片",
     "selectedColorRoles": "已选颜色角色",
     "previewTokens": "预览主题 Token",
-    "renderTitle": "界面渲染",
-    "renderDescription": "Scoped theme 下的 dashboard 与 marketing 预览。",
+    "renderTitle": "主题预览",
+    "renderDescription": "查看这组名画配色在 dashboard 与 landing page 中的效果。",
     "colorRolesAria": "三色角色摘要",
     "tokensAria": "预览主题 token 摘要",
-    "summaryRootAria": "渲染输入摘要",
+    "summaryRootAria": "主题输入摘要",
     "roles": {
       "surface": "表面基底",
       "action": "动作色",
@@ -154,64 +154,64 @@
     "samples": {
       "great-wave": {
         "title": "神奈川冲浪里",
-        "description": "蓝白对比与细腻渐变，便于观察白/近白主导色是否进入色板。"
+        "description": "蓝白浪潮与木版画质感，适合生成清爽、克制、带东方秩序感的产品界面。"
       },
       "starry-night": {
         "title": "星月夜",
-        "description": "深蓝夜空与旋涡笔触，测试高对比暗色域提取。"
+        "description": "深蓝夜空与金黄星光，适合生成高对比、沉浸感强的深色界面。"
       },
       "impression-sunrise": {
         "title": "日出·印象",
-        "description": "朦胧晨光与橙蓝对比，观察低饱和雾面色与强调色的分离。"
+        "description": "雾蓝与日出橙相互牵引，适合生成柔和、轻盈、有呼吸感的界面主题。"
       },
       "water-lilies": {
         "title": "睡莲",
-        "description": "大面积相近色相，测试多 swatch 与柔和过渡。"
+        "description": "层叠绿意与水面微光，适合生成安静、自然、低压力的内容界面。"
       },
       "school-athens": {
         "title": "雅典学院",
-        "description": "古典壁画层次与大地色调，观察多人物场景下的稳定主色。"
+        "description": "古典建筑与温和大地色，适合生成理性、结构清晰的知识型界面。"
       },
       "girl-pearl": {
         "title": "戴珍珠耳环的少女",
-        "description": "柔和肤色与深色背景，观察明暗层次下的色板分布。"
+        "description": "柔和肤色与深色背景，适合生成精致、聚焦、带轻奢感的界面。"
       },
       "almond-blossom": {
         "title": "盛开的杏花",
-        "description": "浅蓝底与粉白花簇，适合提取轻盈明亮的表面色。"
+        "description": "浅蓝天空与粉白花簇，适合生成明亮、轻盈、亲和的界面主题。"
       },
       "mont-sainte-victoire": {
         "title": "圣维克多山",
-        "description": "几何化山体与天空色块，测试相近冷暖灰的区分度。"
+        "description": "几何化山体与冷暖灰绿，适合生成沉稳、克制、有结构感的后台界面。"
       },
       "sunday-grande-jatte": {
         "title": "大碗岛的星期天",
-        "description": "点彩高饱和草地与水面，观察并列色块下的主色排序。"
+        "description": "点彩草地与明亮水面，适合生成活泼、清新、节奏明快的界面。"
       },
       "harmony-red": {
         "title": "红色和谐",
-        "description": "主导红色与装饰图案，观察单一色相下的变化色板。"
+        "description": "饱满红色与装饰图案，适合生成大胆、热烈、品牌感强的界面。"
       },
       "calling-saint-matthew": {
         "title": "基督呼召马太",
-        "description": "强明暗对照与局部高光，测试暗场中的动作色提取。"
+        "description": "强烈明暗与聚焦高光，适合生成戏剧性、对比鲜明的深色产品界面。"
       },
       "gleaners": {
         "title": "拾穗者",
-        "description": "田野暖黄与人物剪影，适合低饱和自然色板。"
+        "description": "田野暖黄与朴素人物色调，适合生成温暖、踏实、自然的界面。"
       },
       "wanderer-fog": {
         "title": "雾海之上的旅人",
-        "description": "冷灰雾海与深色人物，测试极简配色下的三色选取。"
+        "description": "冷灰雾海与深色剪影，适合生成极简、沉静、有留白感的界面。"
       },
       "gauguin-where": {
         "title": "我们从何处来",
-        "description": "热带高饱和色块，测试丰富配色下的 swatch 选取。"
+        "description": "热带色块与浓烈对比，适合生成异域、醒目、富有表现力的界面。"
       }
     },
     "preview": {
       "surfaceAria": "SaaS 状态和设置预览",
-      "subtitle": "基于所选图片颜色生成的 scoped theme 预览",
+      "subtitle": "基于名画配色生成的界面主题预览",
       "tabsAria": "预览区块",
       "overview": "概览",
       "settings": "工作区设置",

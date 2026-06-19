@@ -47,7 +47,7 @@ export function ExtractedPalettePanel({
     paletteInsufficient: (count) =>
       `当前图片可用的可选颜色不足 ${count} 个，请换一张对比更丰富的图片。`,
     selectionLimit: SELECTION_LIMIT_MESSAGE,
-    renderButton: "渲染",
+    renderButton: "生成界面预览",
     selectionProgress: (selected, required) => `已选 ${selected} / ${required} 个颜色`,
     selectedColor: (index) => `已选色 ${index}`,
   },
