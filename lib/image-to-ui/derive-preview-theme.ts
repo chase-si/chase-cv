@@ -1,6 +1,7 @@
 type ThemeMode = "light" | "dark";
 
 import { classifyPaletteThemeRoles } from "@/lib/image-to-ui/classify-palette-theme-roles";
+import { assertSelectedColorsEligibleForRender } from "@/lib/image-to-ui/palette-render-gate";
 import {
   getContrastRatio,
   getSaturation,
@@ -207,9 +208,7 @@ export function derivePreviewThemeTokens({
   selectedColors,
   mode,
 }: DerivePreviewThemeTokensInput): PreviewThemeTokens {
-  if (selectedColors.length < 3) {
-    throw new Error("Three selected colors are required to derive preview theme tokens");
-  }
+  assertSelectedColorsEligibleForRender(selectedColors, "derive preview theme tokens");
 
   const { surfaceSeed, actionSeed, supportSeed } = classifyPaletteThemeRoles(selectedColors);
 

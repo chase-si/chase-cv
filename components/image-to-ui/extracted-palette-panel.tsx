@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { PaletteSelectionState } from "@/lib/image-to-ui/active-image-types";
 import { MIN_SELECTABLE_PALETTE_SWATCHES } from "@/lib/image-to-ui/active-image-types";
-import { isPaletteRenderEnabled } from "@/lib/image-to-ui/is-palette-render-enabled";
+import { isPaletteRenderEnabled } from "@/lib/image-to-ui/palette-render-gate";
 import {
   toggleOrderedPaletteSwatch,
 } from "@/lib/image-to-ui/toggle-ordered-palette-selection";

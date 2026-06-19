@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { IMAGE_TO_UI_SAMPLE_IMAGES } from "@/lib/constants/image-to-ui-samples";
 import type { ActiveImage } from "@/lib/image-to-ui/active-image-types";
+import { isPaletteRenderEnabled } from "@/lib/image-to-ui/palette-render-gate";
 import { resolveImageToUiFlowStep } from "@/lib/image-to-ui/resolve-image-to-ui-flow-step";
 import { useActiveImageSelection } from "@/lib/image-to-ui/use-active-image-selection";
 import { useImageToUiRouteRestore } from "@/lib/image-to-ui/use-image-to-ui-route-restore";
@@ -86,7 +87,7 @@ export function ImageToUiToolShell() {
   const displayStep = resolveImageToUiFlowStep(flowStep, Boolean(activeImage));
 
   const handleRender = () => {
-    if (!activeImage || paletteSelection.selectedColors.length < 3) {
+    if (!activeImage || !isPaletteRenderEnabled(paletteSelection)) {
       return;
     }
     setFlowStep(2);
