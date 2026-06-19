@@ -17,6 +17,7 @@ type MetadataNamespace =
   | "metadata.home"
   | "metadata.magicCursor"
   | "metadata.imageToUi"
+  | "metadata.flow"
   | "metadata.notFound";
 
 export async function buildLocalizedMetadata({

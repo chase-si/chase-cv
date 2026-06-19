@@ -9,7 +9,12 @@ export const siteUrl = new URL(
     DEFAULT_SITE_URL,
 );
 
-export const indexedPathnames = ["/", "/magic-cursor", "/image-to-ui"] as const;
+export const indexedPathnames = [
+  "/",
+  "/magic-cursor",
+  "/image-to-ui",
+  "/flow",
+] as const;
 
 export type IndexedPathname = (typeof indexedPathnames)[number];
 

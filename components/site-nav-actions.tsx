@@ -44,7 +44,7 @@ export function SiteNavActions() {
           />
         }
       >
-        流程编辑器
+        {t("flowEditor")}
       </Button>
       <Button
         variant="ghost"
