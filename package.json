@@ -9,7 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --project=chromium",
     "test:e2e:journey": "PLAYWRIGHT_INCLUDE_JOURNEYS=1 playwright test tests/e2e/journeys",
     "test:e2e:headed": "playwright test --project=chromium-headed --workers=1"
   },

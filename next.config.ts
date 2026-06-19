@@ -3,6 +3,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  skipProxyUrlNormalize: true,
 };
 
 const withNextIntl = createNextIntlPlugin();
