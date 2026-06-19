@@ -437,8 +437,8 @@ export function assignedRoleRationaleForHex(
   hex: string,
   selectedColors: string[],
   labels: ThemePaletteRoleRationaleLabels = defaultThemePaletteRoleRationaleLabels,
+  classification: ClassifiedPaletteThemeRoles = classifyPaletteThemeRoles(selectedColors),
 ): string {
-  const classification = classifyPaletteThemeRoles(selectedColors);
   const colors = scoreColors(selectedColors.slice(0, 3));
   const normalized = normalizeHexColor(hex);
   const color = colors.find((entry) => entry.hex === normalized);

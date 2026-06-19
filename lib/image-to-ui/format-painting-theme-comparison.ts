@@ -34,6 +34,7 @@ export function buildPaintingThemeComparisonSnapshot(
   const fullTokens = derivePreviewThemeTokens({
     selectedColors: fixture.selectedColors,
     mode: fixture.mode,
+    classifiedRoles,
   });
 
   const tokens = COMPARISON_TOKEN_KEYS.reduce(
