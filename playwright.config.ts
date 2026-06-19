@@ -15,8 +15,8 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    command: `npm run dev -- --hostname 127.0.0.1 --port ${port}`,
-    url: `http://127.0.0.1:${port}/`,
+    command: `WATCHPACK_POLLING=true yarn dev --hostname 127.0.0.1 --port ${port}`,
+    url: `http://127.0.0.1:${port}/zh`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

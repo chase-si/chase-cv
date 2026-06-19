@@ -11,11 +11,13 @@ test.describe("image-to-ui themed preview e2e", () => {
     const selectedSwatches = await preparePreviewStep(page);
 
     await expect(page).toHaveURL(/\/image-to-ui$/);
-    await expect(page.getByLabel("工具步骤")).toContainText("渲染界面");
+    await expect(page.getByLabel("Tool steps")).toContainText("Render interface");
     await expect(page.getByTestId("render-input-summary")).toBeVisible();
     await expect(page.getByTestId("saas-preview-surface")).toBeVisible();
     await expect(
-      page.getByText("上传或选择示例图片，提取主色调并挑选 3 个颜色，为后续界面渲染步骤做准备。"),
+      page.getByText(
+        "Upload or choose a sample image, extract dominant colors, and pick three colors for the interface rendering step.",
+      ),
     ).toHaveCount(0);
     await expect(page.getByTestId("render-input-image-summary")).toBeVisible();
 
@@ -59,7 +61,7 @@ test.describe("image-to-ui themed preview e2e", () => {
     await page.getByTestId("render-back-to-edit").click();
 
     await expect(page).toHaveURL(/\/image-to-ui$/);
-    await expect(page.getByLabel("工具步骤")).toContainText("选择图片与颜色");
+    await expect(page.getByLabel("Tool steps")).toContainText("Choose image and colors");
     await expect(page.locator(`[data-sample-id="${SAMPLE_IMAGE_ID}"]`)).toHaveAttribute("aria-pressed", "true");
 
     for (let index = 0; index < selectedSwatches.length; index += 1) {
