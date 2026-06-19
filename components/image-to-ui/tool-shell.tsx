@@ -1,6 +1,5 @@
 "use client";
 
-import { useCallback, useState } from "react";
 import Image from "next/image";
 import { Check, PanelLeft } from "lucide-react";
 import { useMessages, useTranslations } from "next-intl";
@@ -14,13 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { IMAGE_TO_UI_SAMPLE_IMAGES } from "@/lib/constants/image-to-ui-samples";
 import type { ActiveImage } from "@/lib/image-to-ui/active-image-types";
-import { isPaletteRenderEnabled } from "@/lib/image-to-ui/palette-render-gate";
-import { resolveImageToUiFlowStep } from "@/lib/image-to-ui/resolve-image-to-ui-flow-step";
-import { useActiveImageSelection } from "@/lib/image-to-ui/use-active-image-selection";
-import { useImageToUiRouteRestore } from "@/lib/image-to-ui/use-image-to-ui-route-restore";
+import { useImageToUiToolSession } from "@/lib/image-to-ui/use-image-to-ui-tool-session";
 import { cn } from "@/lib/utils";
-
-type ImageToUiFlowStep = 1 | 2;
 
 export function ImageToUiToolShell() {
   const t = useTranslations("imageToUi");
@@ -68,30 +62,15 @@ export function ImageToUiToolShell() {
   const {
     activeImage,
     paletteSelection,
+    displayStep,
     selectSample,
     selectUpload,
     setSelectedPaletteColors,
-    resetForRouteRestore,
-  } = useActiveImageSelection({
+    backToEdit,
+    confirmRender,
+  } = useImageToUiToolSession({
     extractionErrorMessage: t("extractionError"),
   });
-  const [flowStep, setFlowStep] = useState<ImageToUiFlowStep>(1);
-
-  const handleRouteRestore = useCallback(() => {
-    setFlowStep(1);
-    resetForRouteRestore();
-  }, [resetForRouteRestore]);
-
-  useImageToUiRouteRestore(handleRouteRestore);
-
-  const displayStep = resolveImageToUiFlowStep(flowStep, Boolean(activeImage));
-
-  const handleRender = () => {
-    if (!activeImage || !isPaletteRenderEnabled(paletteSelection)) {
-      return;
-    }
-    setFlowStep(2);
-  };
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
@@ -122,7 +101,7 @@ export function ImageToUiToolShell() {
                 variant="ghost"
                 data-testid="render-back-to-edit"
                 className='shadow-sm hover:shadow-md'
-                onClick={() => setFlowStep(1)}
+                onClick={backToEdit}
               >
                 {t("backToEdit")}
               </Button>
@@ -181,7 +160,7 @@ export function ImageToUiToolShell() {
                 activeImage={activeImage}
                 paletteSelection={paletteSelection}
                 setSelectedPaletteColors={setSelectedPaletteColors}
-                onRender={handleRender}
+                onRender={confirmRender}
                 labels={{
                   paletteTitle: t("paletteTitle"),
                   paletteDescription: t("paletteDescription"),
@@ -269,7 +248,7 @@ function PaletteCard({
   labels,
 }: {
   activeImage: ActiveImage | null;
-  paletteSelection: ReturnType<typeof useActiveImageSelection>["paletteSelection"];
+  paletteSelection: ReturnType<typeof useImageToUiToolSession>["paletteSelection"];
   setSelectedPaletteColors: (colors: string[]) => void;
   onRender: () => void;
   labels: {
