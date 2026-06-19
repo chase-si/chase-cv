@@ -1,6 +1,10 @@
 ## Summary
 My personal website to show my skills
 
+## Flow domain imports
+
+Flow **logic** lives under `lib/flow/` (deep imports like `@/lib/flow/demo-runtime-highlight`); `lib/flow/index.ts` re-exports domain APIs only, not React/SVG UI. Presentation token strings for SVG/CSS sit in `lib/flow/svg-presentation.ts`; `components/flow/` binds them to the canvas.
+
 ## Analytics (GA4)
 
 1. 复制 [`.env.example`](.env.example) 为 `.env.local`（若尚无该文件）。
