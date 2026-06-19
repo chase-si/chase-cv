@@ -13,6 +13,10 @@
       "title": "Image to UI | Chase's CV",
       "description": "Extract a color palette from an image, choose three colors, and preview a generated interface theme."
     },
+    "flow": {
+      "title": "Flow editor | Chase's CV",
+      "description": "Visualize and edit SFC flow structure in an experimental editor."
+    },
     "notFound": {
       "title": "Page not found | Chase's CV",
       "description": "The page you are looking for could not be found."
@@ -21,6 +25,7 @@
   "siteNav": {
     "logoAlt": "Chase",
     "works": "Works",
+    "flowEditor": "Flow editor",
     "blog": "Blog",
     "github": "GitHub",
     "languageLabel": "Switch language"
