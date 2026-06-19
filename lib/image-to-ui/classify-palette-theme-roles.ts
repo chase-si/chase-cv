@@ -6,6 +6,7 @@ import {
   toRelativeLuminance,
   type RgbColor,
 } from "@/lib/image-to-ui/palette-color-math";
+import { assertSelectedColorsEligibleForRender } from "@/lib/image-to-ui/palette-render-gate";
 
 export const THEME_PALETTE_ASSIGNED_ROLE_LABELS = [
   "表面基底",
@@ -343,9 +344,7 @@ function scoreColors(selectedColors: string[]): ScoredColor[] {
 export function classifyPaletteThemeRoles(
   selectedColors: string[],
 ): ClassifiedPaletteThemeRoles {
-  if (selectedColors.length < 3) {
-    throw new Error("Three selected colors are required to classify palette theme roles");
-  }
+  assertSelectedColorsEligibleForRender(selectedColors, "classify palette theme roles");
 
   const colors = scoreColors(selectedColors.slice(0, 3));
   const candidate = pickBestRoleCandidate(colors);
@@ -438,8 +437,8 @@ export function assignedRoleRationaleForHex(
   hex: string,
   selectedColors: string[],
   labels: ThemePaletteRoleRationaleLabels = defaultThemePaletteRoleRationaleLabels,
+  classification: ClassifiedPaletteThemeRoles = classifyPaletteThemeRoles(selectedColors),
 ): string {
-  const classification = classifyPaletteThemeRoles(selectedColors);
   const colors = scoreColors(selectedColors.slice(0, 3));
   const normalized = normalizeHexColor(hex);
   const color = colors.find((entry) => entry.hex === normalized);

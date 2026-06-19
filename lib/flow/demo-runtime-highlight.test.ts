@@ -8,7 +8,7 @@ import {
 import {
   FLOW_SVG_RUNTIME_DEMO_BRANCH_FILL,
   FLOW_SVG_RUNTIME_DEMO_FINISHED_FILL,
-} from "@/components/flow/flow-svg-tokens";
+} from "@/lib/flow/svg-presentation";
 
 describe("getDemoRuntimeHighlightPresentation", () => {
   it("returns undefined when highlight is disabled", () => {

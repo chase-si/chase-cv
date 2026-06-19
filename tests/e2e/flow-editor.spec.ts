@@ -9,6 +9,7 @@ import {
   flowToolbar,
   navigateToFlowEditorFromHome,
   openFlowEditor,
+  openFlowEditorZh,
   selectFlowNode,
 } from "./helpers/flow-editor";
 
@@ -20,6 +21,13 @@ test.describe("flow editor e2e", () => {
     await expect(flowCanvas(page).getByTestId("flow-read-only-svg")).toBeVisible();
     await expect(flowProperties(page).getByTestId("flow-properties-empty")).toBeVisible();
     await expect(flowProperties(page)).toContainText("尚未选中节点");
+  });
+
+  test("case 1b: Chinese locale route serves flow editor", async ({ page }) => {
+    await openFlowEditorZh(page);
+    await expect(
+      page.getByRole("navigation").getByRole("button", { name: "流程编辑器" }),
+    ).toBeVisible();
   });
 
   test("case 2: select a demo step and edit its visible description", async ({ page }) => {

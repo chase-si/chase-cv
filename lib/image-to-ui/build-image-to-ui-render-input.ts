@@ -4,6 +4,7 @@ import {
   assignedRoleLabelForHex,
   assignedRoleRationaleForHex,
   classifyPaletteThemeRoles,
+  type ClassifiedPaletteThemeRoles,
   type ThemePaletteRoleLabels,
   type ThemePaletteRoleRationaleLabels,
 } from "@/lib/image-to-ui/classify-palette-theme-roles";
@@ -27,12 +28,18 @@ export function buildImageToUiRenderInput(
     roles?: ThemePaletteRoleLabels;
     roleRationales?: ThemePaletteRoleRationaleLabels;
   },
+  classifiedRoles?: ClassifiedPaletteThemeRoles,
 ): ImageToUiRenderInput {
-  const classification = classifyPaletteThemeRoles(selectedColors);
+  const classification = classifiedRoles ?? classifyPaletteThemeRoles(selectedColors);
   const colorRoles = selectedColors.map((hex) => ({
     role: assignedRoleLabelForHex(hex, classification, labels?.roles),
     hex,
-    rationale: assignedRoleRationaleForHex(hex, selectedColors, labels?.roleRationales),
+    rationale: assignedRoleRationaleForHex(
+      hex,
+      selectedColors,
+      labels?.roleRationales,
+      classification,
+    ),
   }));
 
   return {

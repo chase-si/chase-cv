@@ -13,6 +13,10 @@
       "title": "图片转界面 | Chase's CV",
       "description": "从图片提取色板，选择三个颜色，并预览生成的界面主题。"
     },
+    "flow": {
+      "title": "流程编辑器 | Chase's CV",
+      "description": "可视化查看与编辑 SFC 流程结构的实验工具。"
+    },
     "notFound": {
       "title": "页面未找到 | Chase's CV",
       "description": "你正在查找的页面不存在。"
@@ -21,6 +25,7 @@
   "siteNav": {
     "logoAlt": "Chase",
     "works": "作品",
+    "flowEditor": "流程编辑器",
     "blog": "博客",
     "github": "GitHub",
     "languageLabel": "切换语言"

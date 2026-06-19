@@ -28,9 +28,16 @@ export async function navigateToFlowEditorFromHome(page: Page): Promise<void> {
   await expect(page).toHaveURL(/\/$/);
   await page
     .getByRole("navigation")
-    .getByRole("button", { name: "流程编辑器" })
+    .getByRole("button", { name: "Flow editor" })
     .click();
   await expect(page).toHaveURL(/\/flow$/);
+}
+
+export async function openFlowEditorZh(page: Page): Promise<void> {
+  await page.goto("/zh/flow");
+  await expect(page).toHaveURL(/\/zh\/flow$/);
+  await expect(page.getByRole("heading", { level: 1, name: "流程编辑器" })).toBeVisible();
+  await expect(flowCanvas(page).getByTestId("flow-read-only-svg")).toBeVisible();
 }
 
 export async function selectFlowNode(page: Page, nodeId: string): Promise<void> {

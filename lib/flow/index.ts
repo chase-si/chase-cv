@@ -24,5 +24,3 @@ export {
   getDemoRuntimeHighlightPresentation,
 } from "@/lib/flow/demo-runtime-highlight";
 export type { FlowIdFactory } from "@/lib/flow/flow-id-factory";
-export { FlowReadOnlySurface } from "@/components/flow/flow-read-only-surface";
-export { FlowRenderSvg } from "@/components/flow/flow-render-svg";
