@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
 export const SAMPLE_IMAGE_ID = "great-wave";
-export const CLASSIFIED_THEME_ROLE_LABELS = ["表面基底", "动作色", "辅助色"] as const;
+export const CLASSIFIED_THEME_ROLE_LABELS = ["Surface base", "Action color", "Support color"] as const;
 
 export type SelectedSwatch = {
   swatchTestId: string;

@@ -11,10 +11,10 @@ test.describe("image-to-ui browser history", () => {
 
     await page.goBack();
     await expect(page).toHaveURL(/\/image-to-ui$/);
-    await expect(page.getByLabel("图片来源")).toBeVisible();
-    await expect(page.getByText("来源")).toBeVisible();
+    await expect(page.getByLabel("Image source")).toBeVisible();
+    await expect(page.getByText("Source", { exact: true })).toBeVisible();
     await expect(page.getByTestId("render-input-summary")).toHaveCount(0);
-    await expect(page.getByLabel("工具步骤")).toContainText("选择图片与颜色");
+    await expect(page.getByLabel("Tool steps")).toContainText("Choose image and colors");
 
     await page.locator(`[data-sample-id="${SAMPLE_IMAGE_ID}"]`).click();
     await expect(page.getByTestId("palette-swatch-Dominant1")).toBeVisible();
@@ -24,7 +24,7 @@ test.describe("image-to-ui browser history", () => {
 
     await page.goBack();
     await expect(page).toHaveURL(/\/image-to-ui$/);
-    await expect(page.getByLabel("图片来源")).toBeVisible();
+    await expect(page.getByLabel("Image source")).toBeVisible();
     await expect(page.getByTestId("render-input-summary")).toHaveCount(0);
 
     await page.locator(`[data-sample-id="${SAMPLE_IMAGE_ID}"]`).click();
