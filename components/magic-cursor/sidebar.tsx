@@ -17,9 +17,14 @@ import { useTranslations } from "next-intl";
 import type { EffectOptions, MagneticEffectOptions, OptionsByEffect } from "@/components/magic-cursor/types";
 import { useRouter } from "@/i18n/navigation";
 import {
+  clampMagicCursorNumber,
   INVERT_RING_BLEND_MODE_OPTIONS,
   MAGIC_CURSOR_EFFECT_ORDER,
-} from "@/lib/constants/magic-cursor";
+  MAGIC_CURSOR_MAGNETIC_SIDEBAR,
+  MAGIC_CURSOR_SIDEBAR_BOUNDS,
+  resolveInvertRingBlendModeSelectValue,
+  ringBorderWidthMinForEffect,
+} from "@/lib/magic-cursor/config";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -39,15 +44,6 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { ColorPicker } from "@/components/ui/color-picker";
-
-function clampNumber(input: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, input));
-}
-
-function invertRingBlendModeSelectValue(options: InvertRingOptions): string {
-  const raw = options.blendMode ?? "difference";
-  return INVERT_RING_BLEND_MODE_OPTIONS.some((o) => o.value === raw) ? raw : "difference";
-}
 
 type SliderFieldProps = {
   label: ReactNode;
@@ -141,10 +137,13 @@ export function MagicCursorSidebar(props: Props) {
               <div className="mt-3 grid gap-3">
                 <SliderField
                   label={`radius (${(options as SpotlightOptions).radius ?? 0}px)`}
-                  min={10}
-                  max={260}
-                  step={1}
-                  value={(options as SpotlightOptions).radius ?? 140}
+                  min={MAGIC_CURSOR_SIDEBAR_BOUNDS.spotlight.radius.min}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.spotlight.radius.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.spotlight.radius.step}
+                  value={
+                    (options as SpotlightOptions).radius ??
+                    MAGIC_CURSOR_SIDEBAR_BOUNDS.spotlight.radius.fallback
+                  }
                   onChange={(radius) =>
                     detail.setOptionsByEffect((prev) => ({
                       ...prev,
@@ -180,10 +179,13 @@ export function MagicCursorSidebar(props: Props) {
               <div className="mt-3 grid gap-3">
                 <SliderField
                   label={`maxDots (${(options as TrailOptions).maxDots ?? 0})`}
-                  min={6}
-                  max={2000}
-                  step={1}
-                  value={(options as TrailOptions).maxDots ?? 24}
+                  min={MAGIC_CURSOR_SIDEBAR_BOUNDS.trail.maxDots.min}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.trail.maxDots.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.trail.maxDots.step}
+                  value={
+                    (options as TrailOptions).maxDots ??
+                    MAGIC_CURSOR_SIDEBAR_BOUNDS.trail.maxDots.fallback
+                  }
                   onChange={(maxDots) =>
                     detail.setOptionsByEffect((prev) => ({
                       ...prev,
@@ -196,10 +198,12 @@ export function MagicCursorSidebar(props: Props) {
                 />
                 <SliderField
                   label={`size (${(options as TrailOptions).size ?? 0}px)`}
-                  min={2}
-                  max={180}
-                  step={1}
-                  value={(options as TrailOptions).size ?? 6}
+                  min={MAGIC_CURSOR_SIDEBAR_BOUNDS.trail.size.min}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.trail.size.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.trail.size.step}
+                  value={
+                    (options as TrailOptions).size ?? MAGIC_CURSOR_SIDEBAR_BOUNDS.trail.size.fallback
+                  }
                   onChange={(size) =>
                     detail.setOptionsByEffect((prev) => ({
                       ...prev,
@@ -212,10 +216,13 @@ export function MagicCursorSidebar(props: Props) {
                 />
                 <SliderField
                   label={`throttleMs (${(options as TrailOptions).throttleMs ?? 0}ms)`}
-                  min={0}
-                  max={40}
-                  step={1}
-                  value={(options as TrailOptions).throttleMs ?? 16}
+                  min={MAGIC_CURSOR_SIDEBAR_BOUNDS.trail.throttleMs.min}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.trail.throttleMs.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.trail.throttleMs.step}
+                  value={
+                    (options as TrailOptions).throttleMs ??
+                    MAGIC_CURSOR_SIDEBAR_BOUNDS.trail.throttleMs.fallback
+                  }
                   onChange={(throttleMs) =>
                     detail.setOptionsByEffect((prev) => ({
                       ...prev,
@@ -251,10 +258,12 @@ export function MagicCursorSidebar(props: Props) {
               <div className="mt-3 grid gap-3">
                 <SliderField
                   label={`size (${(options as RingOptions).size ?? 0}px)`}
-                  min={18}
-                  max={120}
-                  step={1}
-                  value={(options as RingOptions).size ?? 36}
+                  min={MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.size.min}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.size.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.size.step}
+                  value={
+                    (options as RingOptions).size ?? MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.size.fallback
+                  }
                   onChange={(size) =>
                     detail.setOptionsByEffect((prev) => ({
                       ...prev,
@@ -267,10 +276,13 @@ export function MagicCursorSidebar(props: Props) {
                 />
                 <SliderField
                   label={`borderWidth (${(options as RingOptions).borderWidth ?? 0}px)`}
-                  min={effect === "invertRing" ? 0 : 1}
-                  max={8}
-                  step={1}
-                  value={(options as RingOptions).borderWidth ?? 2}
+                  min={ringBorderWidthMinForEffect(effect)}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.borderWidth.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.borderWidth.step}
+                  value={
+                    (options as RingOptions).borderWidth ??
+                    MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.borderWidth.fallback
+                  }
                   onChange={(borderWidth) =>
                     detail.setOptionsByEffect((prev) => ({
                       ...prev,
@@ -283,16 +295,23 @@ export function MagicCursorSidebar(props: Props) {
                 />
                 <SliderField
                   label={`smoothing (${(options as RingOptions).smoothing ?? 0})`}
-                  min={0.02}
-                  max={0.5}
-                  step={0.01}
-                  value={(options as RingOptions).smoothing ?? 0.18}
+                  min={MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.smoothing.min}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.smoothing.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.smoothing.step}
+                  value={
+                    (options as RingOptions).smoothing ??
+                    MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.smoothing.fallback
+                  }
                   onChange={(smoothing) =>
                     detail.setOptionsByEffect((prev) => ({
                       ...prev,
                       [effect]: {
                         ...(prev[effect] as RingOptions),
-                        smoothing: clampNumber(smoothing, 0.02, 0.5),
+                        smoothing: clampMagicCursorNumber(
+                          smoothing,
+                          MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.smoothing.min,
+                          MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.smoothing.max,
+                        ),
                       },
                     }))
                   }
@@ -320,80 +339,115 @@ export function MagicCursorSidebar(props: Props) {
                   <>
                     <SliderField
                       label={`zoom (${(options as MagnifierOptions).zoom ?? 1})`}
-                      min={1}
-                      max={2.6}
-                      step={0.05}
-                      value={(options as MagnifierOptions).zoom ?? 1.6}
+                      min={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.zoom.min}
+                      max={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.zoom.max}
+                      step={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.zoom.step}
+                      value={
+                        (options as MagnifierOptions).zoom ??
+                        MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.zoom.fallback
+                      }
                       onChange={(zoom) =>
                         detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           magnifier: {
                             ...(prev.magnifier as MagnifierOptions),
-                            zoom: clampNumber(zoom, 1, 2.6),
+                            zoom: clampMagicCursorNumber(
+                              zoom,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.zoom.min,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.zoom.max,
+                            ),
                           },
                         }))
                       }
                     />
                     <SliderField
                       label={`lensBlurPx (${(options as MagnifierOptions).lensBlurPx ?? 0})`}
-                      min={0}
-                      max={24}
-                      step={1}
-                      value={(options as MagnifierOptions).lensBlurPx ?? 6}
+                      min={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensBlurPx.min}
+                      max={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensBlurPx.max}
+                      step={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensBlurPx.step}
+                      value={
+                        (options as MagnifierOptions).lensBlurPx ??
+                        MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensBlurPx.fallback
+                      }
                       onChange={(lensBlurPx) =>
                         detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           magnifier: {
                             ...(prev.magnifier as MagnifierOptions),
-                            lensBlurPx: clampNumber(lensBlurPx, 0, 24),
+                            lensBlurPx: clampMagicCursorNumber(
+                              lensBlurPx,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensBlurPx.min,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensBlurPx.max,
+                            ),
                           },
                         }))
                       }
                     />
                     <SliderField
                       label={`lensBrightness (${(options as MagnifierOptions).lensBrightness ?? 1})`}
-                      min={0.5}
-                      max={2}
-                      step={0.05}
-                      value={(options as MagnifierOptions).lensBrightness ?? 1.15}
+                      min={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensBrightness.min}
+                      max={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensBrightness.max}
+                      step={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensBrightness.step}
+                      value={
+                        (options as MagnifierOptions).lensBrightness ??
+                        MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensBrightness.fallback
+                      }
                       onChange={(lensBrightness) =>
                         detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           magnifier: {
                             ...(prev.magnifier as MagnifierOptions),
-                            lensBrightness: clampNumber(lensBrightness, 0.5, 2),
+                            lensBrightness: clampMagicCursorNumber(
+                              lensBrightness,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensBrightness.min,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensBrightness.max,
+                            ),
                           },
                         }))
                       }
                     />
                     <SliderField
                       label={`lensSaturate (${(options as MagnifierOptions).lensSaturate ?? 1})`}
-                      min={0}
-                      max={2.5}
-                      step={0.05}
-                      value={(options as MagnifierOptions).lensSaturate ?? 1.25}
+                      min={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensSaturate.min}
+                      max={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensSaturate.max}
+                      step={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensSaturate.step}
+                      value={
+                        (options as MagnifierOptions).lensSaturate ??
+                        MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensSaturate.fallback
+                      }
                       onChange={(lensSaturate) =>
                         detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           magnifier: {
                             ...(prev.magnifier as MagnifierOptions),
-                            lensSaturate: clampNumber(lensSaturate, 0, 2.5),
+                            lensSaturate: clampMagicCursorNumber(
+                              lensSaturate,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensSaturate.min,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensSaturate.max,
+                            ),
                           },
                         }))
                       }
                     />
                     <SliderField
                       label={`lensFillOpacity (${(options as MagnifierOptions).lensFillOpacity ?? 0})`}
-                      min={0}
-                      max={0.35}
-                      step={0.01}
-                      value={(options as MagnifierOptions).lensFillOpacity ?? 0.06}
+                      min={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensFillOpacity.min}
+                      max={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensFillOpacity.max}
+                      step={MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensFillOpacity.step}
+                      value={
+                        (options as MagnifierOptions).lensFillOpacity ??
+                        MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensFillOpacity.fallback
+                      }
                       onChange={(lensFillOpacity) =>
                         detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           magnifier: {
                             ...(prev.magnifier as MagnifierOptions),
-                            lensFillOpacity: clampNumber(lensFillOpacity, 0, 0.35),
+                            lensFillOpacity: clampMagicCursorNumber(
+                              lensFillOpacity,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensFillOpacity.min,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.magnifier.lensFillOpacity.max,
+                            ),
                           },
                         }))
                       }
@@ -408,7 +462,7 @@ export function MagicCursorSidebar(props: Props) {
                         blendMode（mix-blend-mode）
                       </Label>
                       <Select
-                        value={invertRingBlendModeSelectValue(options as InvertRingOptions)}
+                        value={resolveInvertRingBlendModeSelectValue(options as InvertRingOptions)}
                         onValueChange={(blendMode) =>
                           detail.setOptionsByEffect((prev) => ({
                             ...prev,
@@ -460,16 +514,23 @@ export function MagicCursorSidebar(props: Props) {
               <div className="mt-3 grid gap-3">
                 <SliderField
                   label={`strength (${(options as MagneticOptions).strength ?? 0})`}
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={(options as MagneticOptions).strength ?? 0.35}
+                  min={MAGIC_CURSOR_MAGNETIC_SIDEBAR.strength.min}
+                  max={MAGIC_CURSOR_MAGNETIC_SIDEBAR.strength.max}
+                  step={MAGIC_CURSOR_MAGNETIC_SIDEBAR.strength.step}
+                  value={
+                    (options as MagneticOptions).strength ??
+                    MAGIC_CURSOR_MAGNETIC_SIDEBAR.strength.fallback
+                  }
                   onChange={(strength) =>
                     detail.setOptionsByEffect((prev) => ({
                       ...prev,
                       magnetic: {
                         ...(prev.magnetic as MagneticOptions),
-                        strength: clampNumber(strength, 0, 1),
+                        strength: clampMagicCursorNumber(
+                          strength,
+                          MAGIC_CURSOR_MAGNETIC_SIDEBAR.strength.min,
+                          MAGIC_CURSOR_MAGNETIC_SIDEBAR.strength.max,
+                        ),
                       },
                     }))
                   }
@@ -479,7 +540,10 @@ export function MagicCursorSidebar(props: Props) {
                     {t("selectorLabel")}
                   </Label>
                   <Input
-                    value={(options as MagneticOptions).selector ?? "[data-magnetic]"}
+                    value={
+                      (options as MagneticOptions).selector ??
+                      MAGIC_CURSOR_MAGNETIC_SIDEBAR.defaultSelector
+                    }
                     onChange={(e) =>
                       detail.setOptionsByEffect((prev) => ({
                         ...prev,
@@ -493,7 +557,10 @@ export function MagicCursorSidebar(props: Props) {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {t("magneticHelp")}{" "}
-                  <code className="font-mono text-foreground">[data-magnetic]</code>。
+                  <code className="font-mono text-foreground">
+                    {MAGIC_CURSOR_MAGNETIC_SIDEBAR.defaultSelector}
+                  </code>
+                  。
                 </p>
                 <div className="grid gap-2">
                   <Label className="text-xs font-normal text-muted-foreground">
@@ -521,10 +588,13 @@ export function MagicCursorSidebar(props: Props) {
               <div className="mt-3 grid gap-3">
                 <SliderField
                   label={`emission (${(options as FlameOptions | SmokeOptions).emission ?? 0})`}
-                  min={1}
-                  max={8}
-                  step={1}
-                  value={(options as FlameOptions | SmokeOptions).emission ?? 2}
+                  min={MAGIC_CURSOR_SIDEBAR_BOUNDS.flameSmoke.emission.min}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.flameSmoke.emission.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.flameSmoke.emission.step}
+                  value={
+                    (options as FlameOptions | SmokeOptions).emission ??
+                    MAGIC_CURSOR_SIDEBAR_BOUNDS.flameSmoke.emission.fallback
+                  }
                   onChange={(emission) =>
                     detail.setOptionsByEffect((prev) => ({
                       ...prev,
@@ -537,10 +607,13 @@ export function MagicCursorSidebar(props: Props) {
                 />
                 <SliderField
                   label={`size (${(options as FlameOptions | SmokeOptions).size ?? 0}px)`}
-                  min={4}
-                  max={40}
-                  step={1}
-                  value={(options as FlameOptions | SmokeOptions).size ?? 10}
+                  min={MAGIC_CURSOR_SIDEBAR_BOUNDS.flameSmoke.size.min}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.flameSmoke.size.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.flameSmoke.size.step}
+                  value={
+                    (options as FlameOptions | SmokeOptions).size ??
+                    MAGIC_CURSOR_SIDEBAR_BOUNDS.flameSmoke.size.fallback
+                  }
                   onChange={(size) =>
                     detail.setOptionsByEffect((prev) => ({
                       ...prev,
@@ -553,10 +626,13 @@ export function MagicCursorSidebar(props: Props) {
                 />
                 <SliderField
                   label={`lifeMs (${(options as FlameOptions | SmokeOptions).lifeMs ?? 0}ms)`}
-                  min={200}
-                  max={2400}
-                  step={20}
-                  value={(options as FlameOptions | SmokeOptions).lifeMs ?? 700}
+                  min={MAGIC_CURSOR_SIDEBAR_BOUNDS.flameSmoke.lifeMs.min}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.flameSmoke.lifeMs.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.flameSmoke.lifeMs.step}
+                  value={
+                    (options as FlameOptions | SmokeOptions).lifeMs ??
+                    MAGIC_CURSOR_SIDEBAR_BOUNDS.flameSmoke.lifeMs.fallback
+                  }
                   onChange={(lifeMs) =>
                     detail.setOptionsByEffect((prev) => ({
                       ...prev,
@@ -572,48 +648,69 @@ export function MagicCursorSidebar(props: Props) {
                   <>
                     <SliderField
                       label={`rise (${(options as FlameOptions).rise ?? 0})`}
-                      min={0}
-                      max={4}
-                      step={0.05}
-                      value={(options as FlameOptions).rise ?? 1.6}
+                      min={MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.rise.min}
+                      max={MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.rise.max}
+                      step={MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.rise.step}
+                      value={
+                        (options as FlameOptions).rise ??
+                        MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.rise.fallback
+                      }
                       onChange={(rise) =>
                         detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           flame: {
                             ...(prev.flame as FlameOptions),
-                            rise: clampNumber(rise, 0, 4),
+                            rise: clampMagicCursorNumber(
+                              rise,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.rise.min,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.rise.max,
+                            ),
                           },
                         }))
                       }
                     />
                     <SliderField
                       label={`jitter (${(options as FlameOptions).jitter ?? 0})`}
-                      min={0}
-                      max={3}
-                      step={0.05}
-                      value={(options as FlameOptions).jitter ?? 0.9}
+                      min={MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.jitter.min}
+                      max={MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.jitter.max}
+                      step={MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.jitter.step}
+                      value={
+                        (options as FlameOptions).jitter ??
+                        MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.jitter.fallback
+                      }
                       onChange={(jitter) =>
                         detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           flame: {
                             ...(prev.flame as FlameOptions),
-                            jitter: clampNumber(jitter, 0, 3),
+                            jitter: clampMagicCursorNumber(
+                              jitter,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.jitter.min,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.jitter.max,
+                            ),
                           },
                         }))
                       }
                     />
                     <SliderField
                       label={`maxDpr (${(options as FlameOptions).maxDpr ?? 2})`}
-                      min={1}
-                      max={4}
-                      step={0.5}
-                      value={(options as FlameOptions).maxDpr ?? 2}
+                      min={MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.maxDpr.min}
+                      max={MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.maxDpr.max}
+                      step={MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.maxDpr.step}
+                      value={
+                        (options as FlameOptions).maxDpr ??
+                        MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.maxDpr.fallback
+                      }
                       onChange={(maxDpr) =>
                         detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           flame: {
                             ...(prev.flame as FlameOptions),
-                            maxDpr: clampNumber(maxDpr, 1, 4),
+                            maxDpr: clampMagicCursorNumber(
+                              maxDpr,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.maxDpr.min,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.flame.maxDpr.max,
+                            ),
                           },
                         }))
                       }
@@ -625,32 +722,46 @@ export function MagicCursorSidebar(props: Props) {
                   <>
                     <SliderField
                       label={`rise (${(options as SmokeOptions).rise ?? 0})`}
-                      min={0}
-                      max={2.4}
-                      step={0.05}
-                      value={(options as SmokeOptions).rise ?? 0.8}
+                      min={MAGIC_CURSOR_SIDEBAR_BOUNDS.smoke.rise.min}
+                      max={MAGIC_CURSOR_SIDEBAR_BOUNDS.smoke.rise.max}
+                      step={MAGIC_CURSOR_SIDEBAR_BOUNDS.smoke.rise.step}
+                      value={
+                        (options as SmokeOptions).rise ??
+                        MAGIC_CURSOR_SIDEBAR_BOUNDS.smoke.rise.fallback
+                      }
                       onChange={(rise) =>
                         detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           smoke: {
                             ...(prev.smoke as SmokeOptions),
-                            rise: clampNumber(rise, 0, 2.4),
+                            rise: clampMagicCursorNumber(
+                              rise,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.smoke.rise.min,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.smoke.rise.max,
+                            ),
                           },
                         }))
                       }
                     />
                     <SliderField
                       label={`drift (${(options as SmokeOptions).drift ?? 0})`}
-                      min={0}
-                      max={2}
-                      step={0.05}
-                      value={(options as SmokeOptions).drift ?? 0.7}
+                      min={MAGIC_CURSOR_SIDEBAR_BOUNDS.smoke.drift.min}
+                      max={MAGIC_CURSOR_SIDEBAR_BOUNDS.smoke.drift.max}
+                      step={MAGIC_CURSOR_SIDEBAR_BOUNDS.smoke.drift.step}
+                      value={
+                        (options as SmokeOptions).drift ??
+                        MAGIC_CURSOR_SIDEBAR_BOUNDS.smoke.drift.fallback
+                      }
                       onChange={(drift) =>
                         detail.setOptionsByEffect((prev) => ({
                           ...prev,
                           smoke: {
                             ...(prev.smoke as SmokeOptions),
-                            drift: clampNumber(drift, 0, 2),
+                            drift: clampMagicCursorNumber(
+                              drift,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.smoke.drift.min,
+                              MAGIC_CURSOR_SIDEBAR_BOUNDS.smoke.drift.max,
+                            ),
                           },
                         }))
                       }
