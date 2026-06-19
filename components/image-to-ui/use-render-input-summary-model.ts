@@ -5,17 +5,14 @@ import type { CSSProperties } from "react";
 
 import type { ActiveImage } from "@/lib/image-to-ui/active-image-types";
 import { getActiveImageSrc } from "@/lib/image-to-ui/active-image-types";
-import {
-  buildImageToUiRenderInput,
-  type ImageToUiRenderInput,
-} from "@/lib/image-to-ui/build-image-to-ui-render-input";
+import type { ImageToUiRenderInput } from "@/lib/image-to-ui/build-image-to-ui-render-input";
+import { buildImageToUiStep2PreviewPipeline } from "@/lib/image-to-ui/image-to-ui-step2-preview-pipeline";
 import type {
   ThemePaletteRoleLabels,
   ThemePaletteRoleRationaleLabels,
 } from "@/lib/image-to-ui/classify-palette-theme-roles";
 import {
   buildScopedPreviewThemeCssVariables,
-  derivePreviewThemeTokens,
   type PreviewThemeTokenKey,
   type PreviewThemeTokens,
 } from "@/lib/image-to-ui/derive-preview-theme";
@@ -85,20 +82,21 @@ export function useRenderInputSummaryModel({
   },
 }: UseRenderInputSummaryModelInput): RenderInputSummaryModel {
   const { resolvedTheme } = useTheme();
-  const renderInput = buildImageToUiRenderInput(activeImage, selectedColors, {
-    roles: labels.roles,
-    roleRationales: labels.roleRationales,
+  const effectiveThemeMode = resolvedTheme === "dark" ? "dark" : "light";
+  const { renderInput, previewThemeTokens } = buildImageToUiStep2PreviewPipeline({
+    activeImage,
+    selectedColors,
+    mode: effectiveThemeMode,
+    labels: {
+      roles: labels.roles,
+      roleRationales: labels.roleRationales,
+    },
   });
   const imageSrc = getActiveImageSrc(activeImage);
   const imageAlt =
     activeImage.type === "sample"
       ? (sampleTitleById[activeImage.sampleId] ?? labels.sampleImage)
       : labels.uploadedImage;
-  const effectiveThemeMode = resolvedTheme === "dark" ? "dark" : "light";
-  const previewThemeTokens = derivePreviewThemeTokens({
-    selectedColors: renderInput.colorRoles.map((entry) => entry.hex),
-    mode: effectiveThemeMode,
-  });
   const previewRootStyle = buildScopedPreviewThemeCssVariables(previewThemeTokens) as CSSProperties;
 
   return {

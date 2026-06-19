@@ -22,7 +22,7 @@ describe("buildImageToUiRenderInput", () => {
       selectedColors.map((hex) => ({
         hex,
         role: assignedRoleLabelForHex(hex, classification),
-        rationale: assignedRoleRationaleForHex(hex, selectedColors),
+        rationale: assignedRoleRationaleForHex(hex, selectedColors, undefined, classification),
       })),
     );
     expect(input.colorRoles.map((entry) => entry.role)).not.toEqual(["主色", "辅色", "强调色"]);

@@ -1,6 +1,9 @@
 type ThemeMode = "light" | "dark";
 
-import { classifyPaletteThemeRoles } from "@/lib/image-to-ui/classify-palette-theme-roles";
+import {
+  classifyPaletteThemeRoles,
+  type ClassifiedPaletteThemeRoles,
+} from "@/lib/image-to-ui/classify-palette-theme-roles";
 import { assertSelectedColorsEligibleForRender } from "@/lib/image-to-ui/palette-render-gate";
 import {
   getContrastRatio,
@@ -71,6 +74,7 @@ export type PreviewThemeTokens = Record<PreviewThemeTokenKey, string>;
 export type DerivePreviewThemeTokensInput = {
   selectedColors: [string, string, string] | string[];
   mode: ThemeMode;
+  classifiedRoles?: ClassifiedPaletteThemeRoles;
 };
 
 function clampColorChannel(value: number): number {
@@ -207,10 +211,12 @@ function deriveShadowLayers(
 export function derivePreviewThemeTokens({
   selectedColors,
   mode,
+  classifiedRoles,
 }: DerivePreviewThemeTokensInput): PreviewThemeTokens {
   assertSelectedColorsEligibleForRender(selectedColors, "derive preview theme tokens");
 
-  const { surfaceSeed, actionSeed, supportSeed } = classifyPaletteThemeRoles(selectedColors);
+  const { surfaceSeed, actionSeed, supportSeed } =
+    classifiedRoles ?? classifyPaletteThemeRoles(selectedColors);
 
   const surface = parseHexToRgb(surfaceSeed);
   const action = parseHexToRgb(actionSeed);
