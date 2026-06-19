@@ -1,7 +1,7 @@
 import {
   FLOW_SVG_RUNTIME_DEMO_BRANCH_FILL,
   FLOW_SVG_RUNTIME_DEMO_FINISHED_FILL,
-} from "@/components/flow/flow-svg-tokens";
+} from "@/lib/flow/svg-presentation";
 
 /** Fixed demo nodes: completed top-level steps and a nested branch step. */
 export const DEMO_RUNTIME_ID_COLOR_MAP: Record<string, string> = {
