@@ -10,8 +10,8 @@
       "description": "Explore configurable cursor effects with live previews and copyable magic-cursor-effect code."
     },
     "imageToUi": {
-      "title": "Image to UI | Chase's CV",
-      "description": "Extract a color palette from an image, choose three colors, and preview a generated interface theme."
+      "title": "Masterpiece Colors to shadcn Themes | Chase's CV",
+      "description": "Extract palettes from classic paintings, map them into UI color roles, and preview shadcn/Tailwind-style themes in real interface layouts."
     },
     "flow": {
       "title": "Flow editor | Chase's CV",
@@ -84,28 +84,28 @@
     "code": "Code"
   },
   "imageToUi": {
-    "title": "Image to UI",
-    "stepOneDescription": "Upload or choose a sample image, extract dominant colors, and pick three colors for the interface rendering step.",
-    "stepTwoDescription": "Review the current image and three color roles, inspect the full preview, or go back to edit.",
+    "title": "Turn Masterpiece Colors into UI Themes",
+    "stepOneDescription": "Choose a classic painting or upload an image, extract its primary, accent, and support colors, then preview a shadcn-style interface theme.",
+    "stepTwoDescription": "See how this painting-inspired palette feels across dashboard and landing page layouts, or go back to tune the colors.",
     "backToEdit": "Back to edit",
     "sourceAria": "Image source",
     "sourceTitle": "Source",
-    "sourceDescription": "Upload an image or choose one sample from the compact list.",
+    "sourceDescription": "Upload an image or choose a classic painting as your color inspiration.",
     "previewAria": "Preview and palette",
-    "previewTitle": "Current image preview",
-    "previewDescription": "After selecting an image, the complete picture is shown here with contain sizing.",
-    "paletteTitle": "Extracted palette",
-    "paletteDescription": "Extract dominant colors by pixel share, then choose three colors to enter the rendering step.",
+    "previewTitle": "Current inspiration image",
+    "previewDescription": "Review the full image and the source of the palette.",
+    "paletteTitle": "Extract UI colors from the painting",
+    "paletteDescription": "Choose three colors and the tool maps them into background, primary action, and support layers for a live interface preview.",
     "uploadAria": "Upload image from local device",
     "uploadButton": "Choose local image",
-    "uploadHelp": "Previewed only in your browser. Nothing is uploaded or saved to the server.",
+    "uploadHelp": "Images are processed only in your browser and are not uploaded to the server.",
     "emptyPreview": "No image selected",
     "sampleImage": "Sample image",
     "uploadedImage": "Local uploaded image",
     "stepsAria": "Tool steps",
     "steps": {
-      "select": "Choose image and colors",
-      "render": "Render interface"
+      "select": "Choose painting and colors",
+      "render": "Generate interface preview"
     },
     "paletteEmpty": "Select an image to show the palette and color controls.",
     "paletteLoading": "Extracting palette...",
@@ -114,21 +114,21 @@
     "paletteSwatchAria": "{hex}, share {percent}",
     "paletteInsufficient": "The current image has fewer than {count} selectable colors. Choose an image with richer contrast.",
     "selectionLimit": "You can select up to 3 colors. Deselect a color before choosing another.",
-    "renderButton": "Render",
+    "renderButton": "Generate interface preview",
     "selectionProgress": "{selected} / {required} colors selected",
     "selectedColor": "Selected color {index}",
     "extractionError": "Unable to extract a palette from this image. Try another image or upload it again.",
-    "summaryAsideAria": "Rendering input sidebar summary",
-    "summaryTitle": "Input summary",
-    "summaryDescription": "Image, three colors, and derived tokens (read-only).",
+    "summaryAsideAria": "Theme input summary",
+    "summaryTitle": "Theme source",
+    "summaryDescription": "Image, color roles, and derived tokens (read-only).",
     "selectedImage": "Selected image",
     "selectedColorRoles": "Selected color roles",
     "previewTokens": "Preview theme tokens",
-    "renderTitle": "Interface rendering",
-    "renderDescription": "Dashboard and marketing previews under a scoped theme.",
+    "renderTitle": "Theme preview",
+    "renderDescription": "See how this painting-inspired palette works across dashboard and landing page layouts.",
     "colorRolesAria": "Three color role summary",
     "tokensAria": "Preview theme token summary",
-    "summaryRootAria": "Rendering input summary",
+    "summaryRootAria": "Theme input summary",
     "roles": {
       "surface": "Surface base",
       "action": "Action color",
@@ -154,64 +154,64 @@
     "samples": {
       "great-wave": {
         "title": "The Great Wave off Kanagawa",
-        "description": "Blue and white contrast with subtle gradients, useful for checking whether white and near-white colors enter the palette."
+        "description": "Blue-white surf and woodblock texture for crisp, restrained product interfaces with an ordered Eastern feel."
       },
       "starry-night": {
         "title": "The Starry Night",
-        "description": "Deep blue night sky and swirling brushwork, useful for testing high-contrast dark color extraction."
+        "description": "Deep blue night and golden starlight for immersive, high-contrast dark interfaces."
       },
       "impression-sunrise": {
         "title": "Impression, Sunrise",
-        "description": "Misty morning light with orange-blue contrast, useful for separating muted atmospheric colors from accents."
+        "description": "Misty blue and sunrise orange for soft, airy interface themes with room to breathe."
       },
       "water-lilies": {
         "title": "Water Lilies",
-        "description": "Large areas of similar hues, useful for testing multiple swatches and subtle transitions."
+        "description": "Layered greens and reflected light for calm, natural, low-pressure content interfaces."
       },
       "school-athens": {
         "title": "The School of Athens",
-        "description": "Classical mural depth and earth tones, useful for stable dominant colors in a dense figure scene."
+        "description": "Classical architecture and warm earth tones for rational, structured knowledge interfaces."
       },
       "girl-pearl": {
         "title": "Girl with a Pearl Earring",
-        "description": "Soft skin tones against a dark background, useful for observing palette balance across light and dark areas."
+        "description": "Soft skin tones against a dark ground for refined, focused interfaces with a subtle luxury feel."
       },
       "almond-blossom": {
         "title": "Almond Blossom",
-        "description": "Pale blue ground and pink-white blossoms, useful for extracting airy, bright surface colors."
+        "description": "Pale blue sky and pink-white blossoms for bright, light, approachable interface themes."
       },
       "mont-sainte-victoire": {
         "title": "Mont Sainte-Victoire",
-        "description": "Geometric mountain shapes and sky blocks, useful for distinguishing close cool and warm grays."
+        "description": "Geometric mountain forms and muted gray-greens for steady, restrained dashboard interfaces."
       },
       "sunday-grande-jatte": {
         "title": "A Sunday on La Grande Jatte",
-        "description": "Pointillist saturated grass and water, useful for observing dominant color order across adjacent blocks."
+        "description": "Pointillist grass and bright water for fresh, lively interfaces with a quick visual rhythm."
       },
       "harmony-red": {
         "title": "Harmony in Red",
-        "description": "Dominant reds and decorative patterns, useful for observing palette variation inside one hue family."
+        "description": "Saturated reds and decorative patterning for bold, warm interfaces with strong brand presence."
       },
       "calling-saint-matthew": {
         "title": "The Calling of Saint Matthew",
-        "description": "Strong chiaroscuro and local highlights, useful for testing action color extraction in dark scenes."
+        "description": "Dramatic shadow and focused highlights for dark product interfaces with sharp contrast."
       },
       "gleaners": {
         "title": "The Gleaners",
-        "description": "Warm fields and silhouetted figures, useful for low-saturation natural palettes."
+        "description": "Warm fields and grounded figure tones for natural, practical, quietly confident interfaces."
       },
       "wanderer-fog": {
         "title": "Wanderer above the Sea of Fog",
-        "description": "Cool gray fog and a dark figure, useful for testing three-color selection in a minimal palette."
+        "description": "Cool gray fog and a dark silhouette for minimal, contemplative interfaces with generous space."
       },
       "gauguin-where": {
         "title": "Where Do We Come From?",
-        "description": "Tropical saturated color blocks, useful for testing swatch selection from a rich palette."
+        "description": "Tropical color blocks and vivid contrast for expressive, memorable interface themes."
       }
     },
     "preview": {
       "surfaceAria": "SaaS status and settings preview",
-      "subtitle": "Scoped theme preview generated from selected image colors",
+      "subtitle": "Interface theme preview generated from painting-inspired colors",
       "tabsAria": "Preview sections",
       "overview": "Overview",
       "settings": "Workspace settings",

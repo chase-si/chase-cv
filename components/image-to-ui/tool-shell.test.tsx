@@ -157,7 +157,7 @@ describe("ImageToUiToolShell render input summary", () => {
     expect(screen.getByTestId("render-input-summary")).toBeInTheDocument();
     expect(screen.getByTestId("saas-preview-surface")).toBeInTheDocument();
     expect(screen.queryByTestId("palette-selection")).not.toBeInTheDocument();
-    expect(screen.getByText("渲染界面")).toBeInTheDocument();
+    expect(screen.getAllByText("生成界面预览").length).toBeGreaterThan(0);
     expect(screen.queryByText("界面生成功能即将接入。")).not.toBeInTheDocument();
   });
 
@@ -202,8 +202,8 @@ describe("ImageToUiToolShell render input summary", () => {
     await selectThreePaletteSwatches();
     fireEvent.click(screen.getByTestId("palette-render-button"));
 
-    expect(screen.getByText("图片转界面")).toBeInTheDocument();
-    expect(screen.getByText("确认当前图片与三色角色；查看完整预览并可返回继续编辑。")).toBeInTheDocument();
+    expect(screen.getByText("把名画配色变成 UI 主题")).toBeInTheDocument();
+    expect(screen.getByText("查看这组名画配色在 dashboard 与 landing page 中的效果，也可以返回继续调整颜色。")).toBeInTheDocument();
 
     const preview = screen.getByTestId("saas-preview-surface");
     expect(within(preview).getByRole("tab", { name: "概览" })).toBeInTheDocument();
@@ -238,7 +238,7 @@ describe("ImageToUiToolShell route restore", () => {
 
     expect(screen.getByLabelText("图片来源")).toBeInTheDocument();
     expect(screen.queryByTestId("render-input-summary")).not.toBeInTheDocument();
-    expect(screen.getByLabelText("工具步骤")).toHaveTextContent("选择图片与颜色");
+    expect(screen.getByLabelText("工具步骤")).toHaveTextContent("选择名画与颜色");
     expect(screen.getByTestId("palette-selection")).toBeInTheDocument();
   });
 });
