@@ -13,7 +13,7 @@ import type { PaletteSwatch } from "@/lib/image-to-ui/normalize-dominant-palette
 
 const EXTRACTION_ERROR_MESSAGE = "无法从当前图片提取色板，请换一张图片或重新上传。";
 
-export export type UseActiveImageSelectionOptions = {
+export type UseActiveImageSelectionOptions = {
   extractPalette?: (src: string) => Promise<PaletteSwatch[]>;
   extractionErrorMessage?: string;
 };
