@@ -57,24 +57,41 @@
     "toDark": "切换为深色"
   },
   "home": {
-    "eyebrow": "以「影子」做视觉语言的个人主页",
-    "headlinePrefix": "把",
-    "headlineHighlight": "shadow",
-    "headlineSuffix": "变成你的品牌质感",
-    "intro": "我是 Chase，专注把产品做得更「顺滑」：更清晰的信息层级、更克制的动效、更舒服的阴影与空间感。这里会展示我的项目、经历与思考。",
-    "primaryCta": "看看作品",
-    "secondaryCta": "了解我",
-    "stack": "Next.js · Tailwind · shadcn",
-    "nowLabel": "现在在做",
-    "nowValue": "个人作品集 + Supabase 登录/数据",
-    "focusLabel": "我关注",
-    "focusValue": "视觉一致性 · 交互节奏 · 组件化",
-    "expectLabel": "你可以期待",
-    "expectValue": "一个更像「产品」的简历首页",
-    "workTitle": "作品",
-    "workDescription": "这里先占位，后续我可以把你的项目卡片做成同一套 shadow 体系。",
-    "aboutTitle": "关于",
-    "aboutDescription": "这里先占位，后续可以补充经历、技能栈、时间线等模块。",
+    "eyebrow": "Brutalist Product Lab",
+    "introLead": "我是 Chase。",
+    "introPast": "曾经，我是一名拥有 8 年经验的资深前端工程师。",
+    "introPresent": "现在，我用 AI 扩展自己的能力边界：",
+    "introPresentDetail": "写代码、做产品、管项目，像一个完整团队一样构建作品。",
+    "introFoundation": "工程经验，是我驾驭 AI 的底层能力。",
+    "primaryCta": "探索项目",
+    "secondaryCta": "工作经历",
+    "workbenchLabel": "混合工作台预览",
+    "projectsSectionTitle": "有意思的项目",
+    "projectsSectionAria": "有意思的项目",
+    "projects": {
+      "items": {
+        "imageToUi": {
+          "problem": "名画配色如何映射成可读的界面层级，而不是一堆好看的色块？",
+          "tag1": "配色映射",
+          "tag2": "实时预览",
+          "entry": "进入 Image to UI"
+        },
+        "magicCursor": {
+          "problem": "鼠标特效上线前，怎样在真实布局里试参数、看手感？",
+          "tag1": "交互实验",
+          "tag2": "可配置",
+          "entry": "进入 Magic Cursor"
+        },
+        "flowEditor": {
+          "problem": "结构化流程一复杂，树形关系就容易在脑子里打结。",
+          "tag1": "流程结构",
+          "tag2": "可视化编辑",
+          "entry": "进入 Flow Editor"
+        }
+      }
+    },
+    "experienceTitle": "工作经历",
+    "experienceDescription": "时间线占位：后续可填入真实公司、角色与成果，不编造虚假履历。",
     "contactTitle": "联系",
     "contactDescription": "这里先占位，后续可以放邮箱/微信/表单。"
   },

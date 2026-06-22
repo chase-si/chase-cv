@@ -23,3 +23,10 @@ export const projectNavigationItems: ProjectNavigationItem[] = [
     analyticsTarget: "flow_editor",
   },
 ];
+
+/** Homepage lab-bench showcase order (differs from nav menu order). */
+export const homepageProjectShowcaseOrder: ProjectId[] = [
+  "imageToUi",
+  "magicCursor",
+  "flowEditor",
+];
