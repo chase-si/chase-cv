@@ -92,6 +92,39 @@
     },
     "experienceTitle": "工作经历",
     "experienceDescription": "时间线占位：后续可填入真实公司、角色与成果，不编造虚假履历。",
+    "experience": {
+      "sectionAria": "工作经历时间线",
+      "supportingLine": "对应 8 年前端工程背景；下列条目均为可替换占位，待填入真实履历后再更新。",
+      "fields": {
+        "period": "时间段",
+        "role": "角色",
+        "scope": "范围",
+        "outcomes": "代表性成果"
+      },
+      "entries": {
+        "entry1": {
+          "period": "[[placeholder]] 待填写任职时间段或时长。",
+          "role": "[[placeholder]] 待填写职位名称。",
+          "scope": "[[placeholder]] 待填写团队、产品或技术栈范围。",
+          "outcomes": [
+            "[[placeholder]] 待填写代表性成果，不编造数据指标。",
+            "[[placeholder]] 可继续补充成果条目。"
+          ]
+        },
+        "entry2": {
+          "period": "[[placeholder]] 待填写任职时间段或时长。",
+          "role": "[[placeholder]] 待填写职位名称。",
+          "scope": "[[placeholder]] 待填写团队、产品或技术栈范围。",
+          "outcomes": ["[[placeholder]] 待填写代表性成果，不编造数据指标。"]
+        },
+        "entry3": {
+          "period": "[[placeholder]] 待填写任职时间段或时长。",
+          "role": "[[placeholder]] 待填写职位名称。",
+          "scope": "[[placeholder]] 待填写团队、产品或技术栈范围。",
+          "outcomes": ["[[placeholder]] 待填写代表性成果，不编造数据指标。"]
+        }
+      }
+    },
     "contactTitle": "联系",
     "contactDescription": "这里先占位，后续可以放邮箱/微信/表单。"
   },
