@@ -57,24 +57,41 @@
     "toDark": "Switch to dark mode"
   },
   "home": {
-    "eyebrow": "A personal site built around shadow as a visual language",
-    "headlinePrefix": "Turning",
-    "headlineHighlight": "shadow",
-    "headlineSuffix": "into product polish",
-    "intro": "I'm Chase. I focus on making products feel smoother: clearer hierarchy, calmer motion, better shadows, and more intentional spacing. This site collects my projects, experience, and notes.",
-    "primaryCta": "View work",
-    "secondaryCta": "About me",
-    "stack": "Next.js · Tailwind · shadcn",
-    "nowLabel": "Now building",
-    "nowValue": "Personal portfolio + Supabase auth/data",
-    "focusLabel": "I care about",
-    "focusValue": "Visual consistency · Interaction rhythm · Components",
-    "expectLabel": "Expect",
-    "expectValue": "A resume homepage that feels more like a product",
-    "workTitle": "Work",
-    "workDescription": "Placeholder for project cards using the same shadow system.",
-    "aboutTitle": "About",
-    "aboutDescription": "Placeholder for experience, skills, and a timeline.",
+    "eyebrow": "Brutalist Product Lab",
+    "introLead": "I'm Chase.",
+    "introPast": "I spent eight years as a senior frontend engineer.",
+    "introPresent": "Today I use AI to stretch what one person can ship:",
+    "introPresentDetail": "writing code, shaping products, and running projects—like a small team in one workflow.",
+    "introFoundation": "Engineering judgment is what keeps my AI-assisted work grounded.",
+    "primaryCta": "Explore projects",
+    "secondaryCta": "Work experience",
+    "workbenchLabel": "Mixed workbench preview",
+    "projectsSectionTitle": "Interesting projects",
+    "projectsSectionAria": "Interesting projects",
+    "projects": {
+      "items": {
+        "imageToUi": {
+          "problem": "How do painting palettes map into readable UI roles instead of decorative swatches?",
+          "tag1": "Color roles",
+          "tag2": "Live preview",
+          "entry": "Open Image to UI"
+        },
+        "magicCursor": {
+          "problem": "How do you tune cursor effects in a real layout before shipping them?",
+          "tag1": "Interaction lab",
+          "tag2": "Configurable",
+          "entry": "Open Magic Cursor"
+        },
+        "flowEditor": {
+          "problem": "Complex structured flows are hard to hold in your head without a visual tree.",
+          "tag1": "Flow structure",
+          "tag2": "Visual editing",
+          "entry": "Open Flow Editor"
+        }
+      }
+    },
+    "experienceTitle": "Work experience",
+    "experienceDescription": "Timeline placeholder—room for real roles and outcomes later, without invented employers or metrics.",
     "contactTitle": "Contact",
     "contactDescription": "Placeholder for email, WeChat, or a contact form."
   },
