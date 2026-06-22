@@ -92,6 +92,43 @@
     },
     "experienceTitle": "Work experience",
     "experienceDescription": "Timeline placeholder—room for real roles and outcomes later, without invented employers or metrics.",
+    "experience": {
+      "sectionAria": "Work experience timeline",
+      "supportingLine": "This frames eight years of frontend engineering; each entry below uses replaceable placeholders until real resume details are added.",
+      "fields": {
+        "period": "Period",
+        "role": "Role",
+        "scope": "Scope",
+        "outcomes": "Representative outcomes"
+      },
+      "entries": {
+        "entry1": {
+          "period": "[[placeholder]] Add hiring period or duration when ready.",
+          "role": "[[placeholder]] Add job title when ready.",
+          "scope": "[[placeholder]] Add team, product, or stack scope when ready.",
+          "outcomes": [
+            "[[placeholder]] Add a representative outcome—no invented metrics.",
+            "[[placeholder]] Add another outcome when ready."
+          ]
+        },
+        "entry2": {
+          "period": "[[placeholder]] Add hiring period or duration when ready.",
+          "role": "[[placeholder]] Add job title when ready.",
+          "scope": "[[placeholder]] Add team, product, or stack scope when ready.",
+          "outcomes": [
+            "[[placeholder]] Add a representative outcome—no invented metrics."
+          ]
+        },
+        "entry3": {
+          "period": "[[placeholder]] Add hiring period or duration when ready.",
+          "role": "[[placeholder]] Add job title when ready.",
+          "scope": "[[placeholder]] Add team, product, or stack scope when ready.",
+          "outcomes": [
+            "[[placeholder]] Add a representative outcome—no invented metrics."
+          ]
+        }
+      }
+    },
     "contactTitle": "Contact",
     "contactDescription": "Placeholder for email, WeChat, or a contact form."
   },

@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { HomepageHero } from "@/components/homepage/hero";
 import { HomepageProjectShowcase } from "@/components/homepage/project-showcase";
+import { HomepageWorkExperienceTimeline } from "@/components/homepage/work-experience-timeline";
 import type { AppLocale } from "@/i18n/routing";
 import { buildLocalizedMetadata } from "@/lib/metadata";
 
@@ -31,12 +32,7 @@ export default async function Page({ params }: Props) {
         <div className="mt-16 grid gap-16 sm:mt-20">
           <HomepageProjectShowcase />
 
-          <section id="experience" className="scroll-mt-24">
-            <h2 className="text-2xl font-semibold tracking-tight">{t("experienceTitle")}</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              {t("experienceDescription")}
-            </p>
-          </section>
+          <HomepageWorkExperienceTimeline />
 
           <section id="contact" className="scroll-mt-24">
             <h2 className="text-lg font-semibold tracking-tight">{t("contactTitle")}</h2>
