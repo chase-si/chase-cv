@@ -24,8 +24,26 @@
   },
   "siteNav": {
     "logoAlt": "Chase",
-    "works": "Works",
-    "flowEditor": "Flow editor",
+    "primaryAria": "Primary navigation",
+    "mobileAria": "Mobile navigation",
+    "menu": "Menu",
+    "projects": {
+      "label": "Projects",
+      "items": {
+        "magicCursor": {
+          "name": "Magic Cursor",
+          "description": "Explore configurable cursor effects."
+        },
+        "imageToUi": {
+          "name": "Image to UI",
+          "description": "Turn painting palettes into interface themes."
+        },
+        "flowEditor": {
+          "name": "Flow Editor",
+          "description": "Visualize and edit structured flows."
+        }
+      }
+    },
     "blog": "Blog",
     "github": "GitHub",
     "languageLabel": "Switch language"
