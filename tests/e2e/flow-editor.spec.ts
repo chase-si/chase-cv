@@ -25,9 +25,10 @@ test.describe("flow editor e2e", () => {
 
   test("case 1b: Chinese locale route serves flow editor", async ({ page }) => {
     await openFlowEditorZh(page);
-    await expect(
-      page.getByRole("navigation").getByRole("button", { name: "流程编辑器" }),
-    ).toBeVisible();
+    const nav = page.getByRole("navigation", { name: "主导航" });
+
+    await nav.getByRole("button", { name: "项目" }).click();
+    await expect(nav.getByRole("menuitem", { name: /Flow Editor/ })).toBeVisible();
   });
 
   test("case 2: select a demo step and edit its visible description", async ({ page }) => {

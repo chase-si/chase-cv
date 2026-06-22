@@ -24,8 +24,26 @@
   },
   "siteNav": {
     "logoAlt": "Chase",
-    "works": "作品",
-    "flowEditor": "流程编辑器",
+    "primaryAria": "主导航",
+    "mobileAria": "移动端导航",
+    "menu": "菜单",
+    "projects": {
+      "label": "项目",
+      "items": {
+        "magicCursor": {
+          "name": "Magic Cursor",
+          "description": "探索可配置的鼠标特效。"
+        },
+        "imageToUi": {
+          "name": "Image to UI",
+          "description": "把名画配色变成界面主题。"
+        },
+        "flowEditor": {
+          "name": "Flow Editor",
+          "description": "可视化编辑结构化流程。"
+        }
+      }
+    },
     "blog": "博客",
     "github": "GitHub",
     "languageLabel": "切换语言"
