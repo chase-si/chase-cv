@@ -1,5 +1,6 @@
 import type {
   EffectName,
+  ElectricArcOptions,
   FlameOptions,
   InvertRingOptions,
   MagneticOptions,
@@ -23,7 +24,8 @@ export type EffectOptions =
   | MagnifierOptions
   | InvertRingOptions
   | FlameOptions
-  | SmokeOptions;
+  | SmokeOptions
+  | ElectricArcOptions;
 
 export type OptionsByEffect = Record<EffectName, EffectOptions>;
 

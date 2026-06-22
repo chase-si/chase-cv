@@ -58,12 +58,27 @@ describe("LanguageSwitcher", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "中文" }));
 
-    expect(mockRouteState.push).toHaveBeenCalledWith("/zh/magic-cursor?demo=ring#preview");
+    expect(mockRouteState.push).toHaveBeenCalledWith(
+      "/magic-cursor?demo=ring#preview",
+      { locale: "zh" },
+    );
     expect(document.cookie).toContain("NEXT_LOCALE=zh");
     expect(trackEvent).toHaveBeenCalledWith("language_switch", {
       from: "en",
       to: "zh",
       path: "/magic-cursor?demo=ring#preview",
     });
+  });
+
+  it("switches back to English with locale option", async () => {
+    renderSwitcher("zh");
+
+    fireEvent.click(screen.getByRole("button", { name: "EN" }));
+
+    expect(mockRouteState.push).toHaveBeenCalledWith(
+      "/magic-cursor?demo=ring#preview",
+      { locale: "en" },
+    );
+    expect(document.cookie).toContain("NEXT_LOCALE=en");
   });
 });

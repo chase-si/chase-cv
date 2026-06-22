@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme-provider";
 
 import type {
   Destroyable,
   EffectName,
+  ElectricArcOptions,
   FlameOptions,
   InvertRingOptions,
   MagneticOptions,
@@ -21,6 +22,7 @@ import { MAGIC_CURSOR_EFFECTS } from "@/lib/constants/magic-cursor";
 import { cn } from "@/lib/utils";
 import type { MagneticEffectOptions } from "@/components/magic-cursor/types";
 import { toMagneticLibraryOptions } from "@/lib/magic-cursor/magnetic-options";
+import { bindRingReachActivationSync } from "@/lib/magic-cursor/ring-reach-sync";
 
 type Props = {
   effect: EffectName;
@@ -32,7 +34,8 @@ type Props = {
     | MagnifierOptions
     | InvertRingOptions
     | FlameOptions
-    | SmokeOptions;
+    | SmokeOptions
+    | ElectricArcOptions;
   enabled?: boolean;
   className?: string;
 };
@@ -59,6 +62,12 @@ function create(effect: EffectName, root: HTMLDivElement, options: Props["option
       return createEffect(MAGIC_CURSOR_EFFECTS.FLAME.type, root, options as FlameOptions);
     case MAGIC_CURSOR_EFFECTS.SMOKE.type:
       return createEffect(MAGIC_CURSOR_EFFECTS.SMOKE.type, root, options as SmokeOptions);
+    case MAGIC_CURSOR_EFFECTS.ELECTRIC_ARC.type:
+      return createEffect(
+        MAGIC_CURSOR_EFFECTS.ELECTRIC_ARC.type,
+        root,
+        options as ElectricArcOptions,
+      );
     default: {
       const _never: never = effect;
       throw new Error(`Unknown effect: ${_never}`);
@@ -127,7 +136,13 @@ export function MagicCursorDemoTile({
     instanceRef.current?.destroy();
     instanceRef.current = create(effect, root, options);
 
+    let unbindRingReachSync: (() => void) | undefined;
+    if (effect === MAGIC_CURSOR_EFFECTS.RING.type) {
+      unbindRingReachSync = bindRingReachActivationSync(root);
+    }
+
     return () => {
+      unbindRingReachSync?.();
       instanceRef.current?.destroy();
       instanceRef.current = null;
     };

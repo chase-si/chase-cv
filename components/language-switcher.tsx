@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import type { AppLocale } from "@/i18n/routing";
 import { routing } from "@/i18n/routing";
 import { trackEvent } from "@/lib/analytics";
-import { localizePathname } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
@@ -28,16 +27,15 @@ export function LanguageSwitcher() {
 
     const search = window.location.search;
     const hash = window.location.hash;
-    const nextPathname = localizePathname(pathname || "/", nextLocale);
-    const target = `${nextPathname}${search}${hash}`;
+    const target = `${pathname || "/"}${search}${hash}`;
 
     writeLocaleCookie(nextLocale);
     trackEvent("language_switch", {
       from: locale,
       to: nextLocale,
-      path: `${pathname || "/"}${search}${hash}`,
+      path: target,
     });
-    router.push(target);
+    router.push(target, { locale: nextLocale });
   };
 
   return (

@@ -7,11 +7,7 @@ import type { EffectName } from "magic-cursor-effect";
 import { MagicCursorDemoTile } from "@/components/magic-cursor/demo-tile";
 import { MagicCursorSidebar } from "@/components/magic-cursor/sidebar";
 import { Card } from "@/components/ui/card";
-import {
-  defaultOptionsByEffect,
-  MAGIC_CURSOR_EFFECT_ORDER,
-  MAGIC_CURSOR_EFFECTS,
-} from "@/lib/constants/magic-cursor";
+import { defaultOptionsByEffect, MAGIC_CURSOR_EFFECT_ORDER } from "@/lib/constants/magic-cursor";
 
 export function MagicCursorEffectGalleryPage() {
   const [active, setActive] = useState<EffectName | null>(null);
@@ -26,30 +22,29 @@ export function MagicCursorEffectGalleryPage() {
 
           <Card className="overflow-hidden p-0 shadow-lg backdrop-blur-xl lg:col-span-8">
             <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
-              {[...MAGIC_CURSOR_EFFECT_ORDER, MAGIC_CURSOR_EFFECTS.INVERT_RING.type].map(
-                (effect) => {
-                  const enabled = active === effect;
-                  return (
-                    <div
-                      key={effect}
-                      onMouseEnter={() => setActive(effect)}
-                      onMouseLeave={() =>
-                        setActive((prev) => (prev === effect ? null : prev))
-                      }
-                      onFocus={() => setActive(effect)}
-                      onBlur={() =>
-                        setActive((prev) => (prev === effect ? null : prev))
-                      }
-                    >
-                      <MagicCursorDemoTile
-                        enabled={enabled}
-                        effect={effect}
-                        options={defaultOptionsByEffect[effect]}
-                      />
-                    </div>
-                  );
-                },
-              )}
+              {MAGIC_CURSOR_EFFECT_ORDER.map((effect) => {
+                // ring 依赖 reach 激活，懒挂载时指针已在格内会永远进不了 activated 状态
+                const enabled = effect === "ring" || active === effect;
+                return (
+                  <div
+                    key={effect}
+                    onMouseEnter={() => setActive(effect)}
+                    onMouseLeave={() =>
+                      setActive((prev) => (prev === effect ? null : prev))
+                    }
+                    onFocus={() => setActive(effect)}
+                    onBlur={() =>
+                      setActive((prev) => (prev === effect ? null : prev))
+                    }
+                  >
+                    <MagicCursorDemoTile
+                      enabled={enabled}
+                      effect={effect}
+                      options={defaultOptionsByEffect[effect]}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </Card>
         </div>
