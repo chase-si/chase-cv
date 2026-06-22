@@ -12,7 +12,7 @@ const mockThemeState = vi.hoisted(() => ({
   resolvedTheme: "light",
 }));
 
-vi.mock("next-themes", () => ({
+vi.mock("@/components/theme-provider", () => ({
   useTheme: () => ({
     resolvedTheme: mockThemeState.resolvedTheme,
   }),

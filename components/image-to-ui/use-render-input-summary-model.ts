@@ -1,6 +1,6 @@
 "use client";
 
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme-provider";
 import type { CSSProperties } from "react";
 
 import type { ActiveImage } from "@/lib/image-to-ui/active-image-types";

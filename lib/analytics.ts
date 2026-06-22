@@ -1,6 +1,6 @@
 "use client";
 
-import { sendGAEvent } from "@next/third-parties/google";
+import { sendGtagEvent } from "@/lib/gtag";
 
 export type AnalyticsEventName =
   | "nav_click"
@@ -14,5 +14,5 @@ export function trackEvent(
 ) {
   const id = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
   if (!id) return;
-  sendGAEvent("event", name, params ?? {});
+  sendGtagEvent(name, params);
 }
