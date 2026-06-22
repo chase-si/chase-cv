@@ -3,6 +3,7 @@
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import type {
   EffectName,
+  ElectricArcOptions,
   FlameOptions,
   InvertRingOptions,
   MagneticOptions,
@@ -23,6 +24,7 @@ import {
   MAGIC_CURSOR_MAGNETIC_SIDEBAR,
   MAGIC_CURSOR_SIDEBAR_BOUNDS,
   resolveInvertRingBlendModeSelectValue,
+  ringSmoothingFallbackForEffect,
   ringBorderWidthMinForEffect,
 } from "@/lib/magic-cursor/config";
 import { Button } from "@/components/ui/button";
@@ -300,7 +302,7 @@ export function MagicCursorSidebar(props: Props) {
                   step={MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.smoothing.step}
                   value={
                     (options as RingOptions).smoothing ??
-                    MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.smoothing.fallback
+                    ringSmoothingFallbackForEffect(effect)
                   }
                   onChange={(smoothing) =>
                     detail.setOptionsByEffect((prev) => ({
@@ -789,6 +791,142 @@ export function MagicCursorSidebar(props: Props) {
                     />
                   </div>
                 )}
+              </div>
+            )}
+
+            {effect === "electricArc" && (
+              <div className="mt-3 grid gap-3">
+                <SliderField
+                  label={`emission (${(options as ElectricArcOptions).emission ?? 0})`}
+                  min={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.emission.min}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.emission.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.emission.step}
+                  value={
+                    (options as ElectricArcOptions).emission ??
+                    MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.emission.fallback
+                  }
+                  onChange={(emission) =>
+                    detail.setOptionsByEffect((prev) => ({
+                      ...prev,
+                      electricArc: {
+                        ...(prev.electricArc as ElectricArcOptions),
+                        emission,
+                      },
+                    }))
+                  }
+                />
+                <SliderField
+                  label={`length (${(options as ElectricArcOptions).length ?? 0}px)`}
+                  min={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.length.min}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.length.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.length.step}
+                  value={
+                    (options as ElectricArcOptions).length ??
+                    MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.length.fallback
+                  }
+                  onChange={(length) =>
+                    detail.setOptionsByEffect((prev) => ({
+                      ...prev,
+                      electricArc: {
+                        ...(prev.electricArc as ElectricArcOptions),
+                        length,
+                      },
+                    }))
+                  }
+                />
+                <SliderField
+                  label={`radius (${(options as ElectricArcOptions).radius ?? 0}px)`}
+                  min={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.radius.min}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.radius.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.radius.step}
+                  value={
+                    (options as ElectricArcOptions).radius ??
+                    MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.radius.fallback
+                  }
+                  onChange={(radius) =>
+                    detail.setOptionsByEffect((prev) => ({
+                      ...prev,
+                      electricArc: {
+                        ...(prev.electricArc as ElectricArcOptions),
+                        radius,
+                      },
+                    }))
+                  }
+                />
+                <SliderField
+                  label={`lifeMs (${(options as ElectricArcOptions).lifeMs ?? 0}ms)`}
+                  min={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.lifeMs.min}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.lifeMs.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.lifeMs.step}
+                  value={
+                    (options as ElectricArcOptions).lifeMs ??
+                    MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.lifeMs.fallback
+                  }
+                  onChange={(lifeMs) =>
+                    detail.setOptionsByEffect((prev) => ({
+                      ...prev,
+                      electricArc: {
+                        ...(prev.electricArc as ElectricArcOptions),
+                        lifeMs,
+                      },
+                    }))
+                  }
+                />
+                <SliderField
+                  label={`clickBurst (${(options as ElectricArcOptions).clickBurst ?? 0})`}
+                  min={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.clickBurst.min}
+                  max={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.clickBurst.max}
+                  step={MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.clickBurst.step}
+                  value={
+                    (options as ElectricArcOptions).clickBurst ??
+                    MAGIC_CURSOR_SIDEBAR_BOUNDS.electricArc.clickBurst.fallback
+                  }
+                  onChange={(clickBurst) =>
+                    detail.setOptionsByEffect((prev) => ({
+                      ...prev,
+                      electricArc: {
+                        ...(prev.electricArc as ElectricArcOptions),
+                        clickBurst,
+                      },
+                    }))
+                  }
+                />
+                <div className="grid gap-2">
+                  <Label className="text-xs font-normal text-muted-foreground">
+                    color (rgba)
+                  </Label>
+                  <ColorPicker
+                    value={(options as ElectricArcOptions).color ?? ""}
+                    allowEmpty
+                    onChange={(color) =>
+                      detail.setOptionsByEffect((prev) => ({
+                        ...prev,
+                        electricArc: {
+                          ...(prev.electricArc as ElectricArcOptions),
+                          color,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-xs font-normal text-muted-foreground">
+                    glowColor (rgba)
+                  </Label>
+                  <ColorPicker
+                    value={(options as ElectricArcOptions).glowColor ?? ""}
+                    allowEmpty
+                    onChange={(glowColor) =>
+                      detail.setOptionsByEffect((prev) => ({
+                        ...prev,
+                        electricArc: {
+                          ...(prev.electricArc as ElectricArcOptions),
+                          glowColor,
+                        },
+                      }))
+                    }
+                  />
+                </div>
               </div>
             )}
           </div>

@@ -1,5 +1,6 @@
 import type {
   EffectName,
+  ElectricArcOptions,
   FlameOptions,
   InvertRingOptions,
   MagnifierOptions,
@@ -18,7 +19,7 @@ export const MAGIC_CURSOR_EFFECTS = {
       size: 38,
       color: "rgba(99, 102, 241, 0.95)",
       borderWidth: 2,
-      smoothing: 0.9,
+      smoothing: 0.22,
     } satisfies RingOptions,
   },
   MAGNIFIER: {
@@ -27,7 +28,7 @@ export const MAGIC_CURSOR_EFFECTS = {
       size: 52,
       color: "rgba(99, 102, 241, 0.95)",
       borderWidth: 2,
-      smoothing: 0.9,
+      smoothing: 0.1,
       zoom: 1.6,
       lensBlurPx: 6,
       lensBrightness: 1.15,
@@ -89,7 +90,20 @@ export const MAGIC_CURSOR_EFFECTS = {
       borderWidth: 2,
       smoothing: 0.9,
       blendMode: "difference",
+      blendBackground: "#fff",
     } satisfies InvertRingOptions,
+  },
+  ELECTRIC_ARC: {
+    type: "electricArc" as const,
+    options: {
+      emission: 3,
+      length: 28,
+      radius: 38,
+      lifeMs: 210,
+      color: "rgba(99, 102, 241, 0.95)",
+      glowColor: "rgba(99, 102, 241, 0.34)",
+      clickBurst: 16,
+    } satisfies ElectricArcOptions,
   },
 } as const;
 
@@ -102,6 +116,7 @@ export const MAGIC_CURSOR_EFFECT_ORDER: readonly EffectName[] = [
   "flame",
   "smoke",
   "invertRing",
+  "electricArc",
 ];
 
 export const INVERT_RING_BLEND_MODE_OPTIONS: readonly { value: string; label: string }[] = [
@@ -155,7 +170,14 @@ export const MAGIC_CURSOR_SIDEBAR_BOUNDS = {
     size: { min: 18, max: 120, step: 1, fallback: 36 } satisfies SliderBound,
     borderWidth: { min: 1, max: 8, step: 1, fallback: 2 } satisfies SliderBound,
     borderWidthInvertRingMin: 0,
-    smoothing: { min: 0.02, max: 0.5, step: 0.01, fallback: 0.18 } satisfies SliderBound,
+    smoothing: { min: 0, max: 1, step: 0.01, fallback: 0.18 } satisfies SliderBound,
+  },
+  electricArc: {
+    emission: { min: 1, max: 12, step: 1, fallback: 2 } satisfies SliderBound,
+    length: { min: 8, max: 80, step: 1, fallback: 26 } satisfies SliderBound,
+    radius: { min: 8, max: 120, step: 1, fallback: 34 } satisfies SliderBound,
+    lifeMs: { min: 80, max: 800, step: 10, fallback: 220 } satisfies SliderBound,
+    clickBurst: { min: 2, max: 40, step: 1, fallback: 14 } satisfies SliderBound,
   },
   magnifier: {
     zoom: { min: 1, max: 2.6, step: 0.05, fallback: 1.6 } satisfies SliderBound,
@@ -195,4 +217,13 @@ export function ringBorderWidthMinForEffect(effect: EffectName): number {
   return effect === "invertRing"
     ? MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.borderWidthInvertRingMin
     : MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.borderWidth.min;
+}
+
+export function ringSmoothingFallbackForEffect(
+  effect: "ring" | "magnifier" | "invertRing",
+): number {
+  const defaults = defaultOptionsByEffect[effect];
+  return "smoothing" in defaults && typeof defaults.smoothing === "number"
+    ? defaults.smoothing
+    : MAGIC_CURSOR_SIDEBAR_BOUNDS.ring.smoothing.fallback;
 }
