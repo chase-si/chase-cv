@@ -111,6 +111,7 @@ describe("FlowToolShell", () => {
     expect(toolbar.getByRole("button", { name: "增加顺序步" })).toBeDisabled();
     expect(toolbar.getByRole("button", { name: "删除节点" })).toBeDisabled();
     expect(toolbar.getByText("请先在画布中选择节点")).toBeInTheDocument();
+    expect(toolbar.queryByRole("alert")).not.toBeInTheDocument();
     expect(toolbar.getByTestId("flow-toolbar-zoom-label")).toHaveTextContent("100%");
   });
 

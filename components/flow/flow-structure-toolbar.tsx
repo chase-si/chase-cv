@@ -11,7 +11,6 @@ import {
   Trash2,
 } from "lucide-react";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -133,12 +132,12 @@ export function FlowStructureToolbar({
           >
             {copy.zoomHeading}
           </h2>
-          <div className="grid grid-cols-[2rem_minmax(3.5rem,1fr)_2rem] items-center overflow-hidden border border-border bg-background shadow-xs">
+          <div className="grid grid-cols-[2rem_minmax(3.5rem,1fr)_2rem] items-center gap-1 rounded-lg bg-muted/50 p-1">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="icon-sm"
-              className="rounded-none border-r border-border"
+              className="rounded-md"
               aria-label={copy.zoomOut}
               onClick={onZoomOut}
             >
@@ -146,15 +145,15 @@ export function FlowStructureToolbar({
             </Button>
             <span
               data-testid="flow-toolbar-zoom-label"
-              className="text-center text-xs font-medium tabular-nums text-foreground"
+              className="flex h-8 items-center justify-center rounded-md bg-background px-1 text-center text-xs font-medium tabular-nums text-foreground shadow-xs ring-1 ring-border"
             >
               {formatFlowZoomPercent(zoom)}
             </span>
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="icon-sm"
-              className="rounded-none border-l border-border"
+              className="rounded-md"
               aria-label={copy.zoomIn}
               onClick={onZoomIn}
             >
@@ -177,19 +176,12 @@ export function FlowStructureToolbar({
             >
               {copy.nodeActions}
             </h2>
-            <p className="truncate text-xs text-muted-foreground">
+            <p className="min-w-0 break-words text-xs leading-4 text-muted-foreground">
               {selectedNodeId
                 ? interpolateFlowCopy(copy.selected, { id: selectedNodeId })
-                : copy.selectionHint}
+                : copy.selectAlert}
             </p>
           </div>
-          {!selectedNodeId ? (
-            <Alert className="px-3 py-2">
-              <AlertDescription className="text-xs text-muted-foreground">
-                {copy.selectAlert}
-              </AlertDescription>
-            </Alert>
-          ) : null}
           <div className="flex flex-col gap-2">
             {structureActions.map((action) => (
               <ToolbarActionButton

@@ -222,7 +222,7 @@ export function FlowRenderSvg({
       style={{ transformOrigin: "0 0" }}
       width={x}
       height={y}
-      className="text-foreground"
+      className="text-foreground [&_text]:fill-current"
     >
       {datas.map((item, idx) => (
         <g

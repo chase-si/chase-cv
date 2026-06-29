@@ -94,6 +94,7 @@ describe("FlowReadOnlySurface", () => {
     render(<FlowReadOnlySurface datas={DEMO_FLOW_ROOT} />);
     const svg = document.querySelector('[data-testid="flow-read-only-svg"]');
     expect(svg).toBeTruthy();
+    expect(svg).toHaveClass("[&_text]:fill-current");
     expect(Number(svg!.getAttribute("width"))).toBeGreaterThan(0);
     expect(Number(svg!.getAttribute("height"))).toBeGreaterThan(0);
   });
