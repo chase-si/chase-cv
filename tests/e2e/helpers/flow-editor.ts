@@ -19,7 +19,7 @@ export function flowToolbar(page: Page): Locator {
 export async function openFlowEditor(page: Page): Promise<void> {
   await page.goto("/flow");
   await expect(page).toHaveURL(/\/flow$/);
-  await expect(page.getByRole("heading", { level: 1, name: "流程编辑器" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Flow Editor" })).toBeVisible();
   await expect(flowCanvas(page).getByTestId("flow-read-only-svg")).toBeVisible();
 }
 

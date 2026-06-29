@@ -17,11 +17,11 @@ test.describe("flow editor journey", () => {
 
     await selectFlowNode(page, DEMO_STEP_NODE_ID);
     const journeyDesc = "journey-desc-e2e";
-    await flowProperties(page).getByLabel("描述").fill(journeyDesc);
+    await flowProperties(page).getByLabel("Description").fill(journeyDesc);
     await expect(flowCanvas(page)).toContainText(journeyDesc);
 
     await selectFlowNode(page, DEMO_TRANSFER_NODE_ID);
-    await flowToolbar(page).getByRole("button", { name: "增加顺序步" }).click();
+    await flowToolbar(page).getByRole("button", { name: "Add sequential step" }).click();
     await expect(flowProperties(page).getByTestId("flow-properties-form")).toBeVisible();
 
     await page.getByTestId("flow-demo-reset").click();

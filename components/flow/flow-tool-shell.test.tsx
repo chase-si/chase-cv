@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { FlowToolShell } from "@/components/flow/flow-tool-shell";
+import type { FlowUiCopy } from "@/components/flow/flow-ui-copy";
 import {
   FLOW_SVG_RUNTIME_DEMO_BRANCH_FILL,
   FLOW_SVG_RUNTIME_DEMO_FINISHED_FILL,
@@ -15,6 +16,7 @@ vi.mock("sonner", () => ({
 }));
 
 import { toast } from "sonner";
+import enMessages from "@/messages/en.json";
 
 afterEach(() => {
   cleanup();
@@ -31,6 +33,18 @@ describe("FlowToolShell", () => {
     expect(screen.getByTestId("flow-editor-toolbar")).toBeInTheDocument();
     expect(screen.getByTestId("flow-editor-canvas")).toBeInTheDocument();
     expect(screen.getByTestId("flow-editor-properties")).toBeInTheDocument();
+  });
+
+  it("renders localized editor controls from page copy", () => {
+    render(<FlowToolShell copy={enMessages.flowEditor as FlowUiCopy} />);
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Flow Editor" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add sequential step" })).toBeDisabled();
+    expect(screen.getByTestId("flow-editor-properties")).toHaveTextContent(
+      "No node selected",
+    );
   });
 
   it("renders seeded demo flow in the canvas region", () => {

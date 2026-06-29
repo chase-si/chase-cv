@@ -15,6 +15,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  defaultFlowUiCopy,
+  interpolateFlowCopy,
+  type FlowUiCopy,
+} from "@/components/flow/flow-ui-copy";
 import { formatFlowZoomPercent } from "@/lib/flow/flow-zoom";
 import type { getFlowToolbarCapabilities } from "@/lib/flow/flow-structure-mutations";
 import { cn } from "@/lib/utils";
@@ -34,6 +39,7 @@ export type FlowStructureToolbarProps = {
   onExpandBranch: () => void;
   onDelete: () => void;
   selectedNodeId?: string | null;
+  copy?: FlowUiCopy["toolbar"];
   className?: string;
 };
 
@@ -58,7 +64,7 @@ function ToolbarActionButton({
       type="button"
       variant={destructive ? "destructive" : "outline"}
       size="sm"
-      className="w-full justify-start"
+      className="w-full justify-start px-2 text-xs"
       disabled={disabled}
       onClick={onClick}
     >
@@ -79,33 +85,34 @@ export function FlowStructureToolbar({
   onExpandBranch,
   onDelete,
   selectedNodeId,
+  copy = defaultFlowUiCopy.toolbar,
   className,
 }: FlowStructureToolbarProps) {
   const structureActions: ToolbarAction[] = [
     {
       key: "add-step",
-      label: "增加顺序步",
+      label: copy.addStep,
       icon: <ListPlus aria-hidden />,
       onClick: onAddSequentialStep,
       disabled: !capabilities.canAddSequentialStep,
     },
     {
       key: "add-branch",
-      label: "增加分支",
+      label: copy.addBranch,
       icon: <GitBranchPlus aria-hidden />,
       onClick: onAddBranch,
       disabled: !capabilities.canAddBranch,
     },
     {
       key: "expand-branch",
-      label: "扩展分支",
+      label: copy.expandBranch,
       icon: <Split aria-hidden />,
       onClick: onExpandBranch,
       disabled: !capabilities.canExpandBranch,
     },
     {
       key: "delete",
-      label: "删除节点",
+      label: copy.deleteNode,
       icon: <Trash2 aria-hidden />,
       onClick: onDelete,
       disabled: !capabilities.canDelete,
@@ -116,7 +123,7 @@ export function FlowStructureToolbar({
   return (
     <Card size="sm" className={cn("h-full shadow-sm", className)}>
       <CardHeader className="border-b border-border">
-        <CardTitle className="text-sm">编辑工具</CardTitle>
+        <CardTitle className="text-sm">{copy.title}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <section className="flex flex-col gap-2" aria-labelledby="flow-zoom-heading">
@@ -124,7 +131,7 @@ export function FlowStructureToolbar({
             id="flow-zoom-heading"
             className="text-xs font-medium text-muted-foreground"
           >
-            画布缩放
+            {copy.zoomHeading}
           </h2>
           <div className="grid grid-cols-[2rem_minmax(3.5rem,1fr)_2rem] items-center overflow-hidden border border-border bg-background shadow-xs">
             <Button
@@ -132,7 +139,7 @@ export function FlowStructureToolbar({
               variant="ghost"
               size="icon-sm"
               className="rounded-none border-r border-border"
-              aria-label="缩小"
+              aria-label={copy.zoomOut}
               onClick={onZoomOut}
             >
               <Minus aria-hidden />
@@ -148,7 +155,7 @@ export function FlowStructureToolbar({
               variant="ghost"
               size="icon-sm"
               className="rounded-none border-l border-border"
-              aria-label="放大"
+              aria-label={copy.zoomIn}
               onClick={onZoomIn}
             >
               <Plus aria-hidden />
@@ -156,7 +163,7 @@ export function FlowStructureToolbar({
           </div>
           <Button type="button" variant="ghost" size="sm" onClick={onZoomReset}>
             <RotateCcw aria-hidden />
-            重置为 100%
+            {copy.zoomReset}
           </Button>
         </section>
 
@@ -168,16 +175,18 @@ export function FlowStructureToolbar({
               id="flow-structure-heading"
               className="text-xs font-medium text-muted-foreground"
             >
-              节点操作
+              {copy.nodeActions}
             </h2>
             <p className="truncate text-xs text-muted-foreground">
-              {selectedNodeId ? `已选：${selectedNodeId}` : "选择节点后进行编辑"}
+              {selectedNodeId
+                ? interpolateFlowCopy(copy.selected, { id: selectedNodeId })
+                : copy.selectionHint}
             </p>
           </div>
           {!selectedNodeId ? (
             <Alert className="px-3 py-2">
               <AlertDescription className="text-xs text-muted-foreground">
-                请先在画布中选择节点
+                {copy.selectAlert}
               </AlertDescription>
             </Alert>
           ) : null}
