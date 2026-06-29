@@ -175,29 +175,69 @@
       },
       "entries": {
         "entry1": {
+          "yearLabel": "[[placeholder]] Year",
+          "company": "[[placeholder]] Company name",
           "period": "[[placeholder]] Add hiring period or duration when ready.",
           "role": "[[placeholder]] Add job title when ready.",
           "scope": "[[placeholder]] Add team, product, or stack scope when ready.",
           "outcomes": [
             "[[placeholder]] Add a representative outcome—no invented metrics.",
             "[[placeholder]] Add another outcome when ready."
-          ]
+          ],
+          "projects": {
+            "entry1-p1": {
+              "title": "[[placeholder]] Project title",
+              "blurb": "[[placeholder]] One-line project summary for the timeline card."
+            },
+            "entry1-p2": {
+              "title": "[[placeholder]] Project title",
+              "blurb": "[[placeholder]] Scope, stack, or collaboration notes."
+            },
+            "entry1-p3": {
+              "title": "[[placeholder]] Project title",
+              "blurb": "[[placeholder]] Outcome-oriented summary without invented metrics."
+            }
+          }
         },
         "entry2": {
+          "yearLabel": "[[placeholder]] Year",
+          "company": "[[placeholder]] Company name",
           "period": "[[placeholder]] Add hiring period or duration when ready.",
           "role": "[[placeholder]] Add job title when ready.",
           "scope": "[[placeholder]] Add team, product, or stack scope when ready.",
           "outcomes": [
             "[[placeholder]] Add a representative outcome—no invented metrics."
-          ]
+          ],
+          "projects": {
+            "entry2-p1": {
+              "title": "[[placeholder]] Project title",
+              "blurb": "[[placeholder]] One-line project summary for the timeline card."
+            },
+            "entry2-p2": {
+              "title": "[[placeholder]] Project title",
+              "blurb": "[[placeholder]] Scope, stack, or collaboration notes."
+            }
+          }
         },
         "entry3": {
+          "yearLabel": "[[placeholder]] Year",
+          "company": "[[placeholder]] Company name",
           "period": "[[placeholder]] Add hiring period or duration when ready.",
           "role": "[[placeholder]] Add job title when ready.",
           "scope": "[[placeholder]] Add team, product, or stack scope when ready.",
           "outcomes": [
             "[[placeholder]] Add a representative outcome—no invented metrics."
-          ]
+          ],
+          "projects": {
+            "entry3-p1": {
+              "title": "[[placeholder]] Project title",
+              "blurb": "[[placeholder]] One-line project summary for the timeline card."
+            },
+            "entry3-p2": {
+              "title": "[[placeholder]] Project title",
+              "blurb": "[[placeholder]] Scope, stack, or collaboration notes."
+            }
+          }
         }
       }
     },

@@ -3,6 +3,15 @@ export const homepageWorkExperienceEntryIds = ["entry1", "entry2", "entry3"] as 
 export type HomepageWorkExperienceEntryId =
   (typeof homepageWorkExperienceEntryIds)[number];
 
+export const homepageWorkExperienceProjectIds = {
+  entry1: ["entry1-p1", "entry1-p2", "entry1-p3"],
+  entry2: ["entry2-p1", "entry2-p2"],
+  entry3: ["entry3-p1", "entry3-p2"],
+} as const satisfies Record<HomepageWorkExperienceEntryId, readonly string[]>;
+
+export type HomepageWorkExperienceProjectId =
+  (typeof homepageWorkExperienceProjectIds)[HomepageWorkExperienceEntryId][number];
+
 export const workExperienceFieldKeys = [
   "period",
   "role",

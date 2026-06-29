@@ -4,7 +4,7 @@ export type HomepageMotionCapabilities = {
 };
 
 export function getHomepageMotionCapabilities(): HomepageMotionCapabilities {
-  if (typeof window === "undefined") {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
     return { animate: false, lenis: false };
   }
 

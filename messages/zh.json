@@ -175,25 +175,65 @@
       },
       "entries": {
         "entry1": {
+          "yearLabel": "[[placeholder]] 年份",
+          "company": "[[placeholder]] 公司名称",
           "period": "[[placeholder]] 待填写任职时间段或时长。",
           "role": "[[placeholder]] 待填写职位名称。",
           "scope": "[[placeholder]] 待填写团队、产品或技术栈范围。",
           "outcomes": [
             "[[placeholder]] 待填写代表性成果，不编造数据指标。",
             "[[placeholder]] 可继续补充成果条目。"
-          ]
+          ],
+          "projects": {
+            "entry1-p1": {
+              "title": "[[placeholder]] 项目名称",
+              "blurb": "[[placeholder]] 项目简介一两句，用于时间线卡片。"
+            },
+            "entry1-p2": {
+              "title": "[[placeholder]] 项目名称",
+              "blurb": "[[placeholder]] 范围、技术栈或协作说明。"
+            },
+            "entry1-p3": {
+              "title": "[[placeholder]] 项目名称",
+              "blurb": "[[placeholder]] 成果向摘要，不编造指标。"
+            }
+          }
         },
         "entry2": {
+          "yearLabel": "[[placeholder]] 年份",
+          "company": "[[placeholder]] 公司名称",
           "period": "[[placeholder]] 待填写任职时间段或时长。",
           "role": "[[placeholder]] 待填写职位名称。",
           "scope": "[[placeholder]] 待填写团队、产品或技术栈范围。",
-          "outcomes": ["[[placeholder]] 待填写代表性成果，不编造数据指标。"]
+          "outcomes": ["[[placeholder]] 待填写代表性成果，不编造数据指标。"],
+          "projects": {
+            "entry2-p1": {
+              "title": "[[placeholder]] 项目名称",
+              "blurb": "[[placeholder]] 项目简介一两句，用于时间线卡片。"
+            },
+            "entry2-p2": {
+              "title": "[[placeholder]] 项目名称",
+              "blurb": "[[placeholder]] 范围、技术栈或协作说明。"
+            }
+          }
         },
         "entry3": {
+          "yearLabel": "[[placeholder]] 年份",
+          "company": "[[placeholder]] 公司名称",
           "period": "[[placeholder]] 待填写任职时间段或时长。",
           "role": "[[placeholder]] 待填写职位名称。",
           "scope": "[[placeholder]] 待填写团队、产品或技术栈范围。",
-          "outcomes": ["[[placeholder]] 待填写代表性成果，不编造数据指标。"]
+          "outcomes": ["[[placeholder]] 待填写代表性成果，不编造数据指标。"],
+          "projects": {
+            "entry3-p1": {
+              "title": "[[placeholder]] 项目名称",
+              "blurb": "[[placeholder]] 项目简介一两句，用于时间线卡片。"
+            },
+            "entry3-p2": {
+              "title": "[[placeholder]] 项目名称",
+              "blurb": "[[placeholder]] 范围、技术栈或协作说明。"
+            }
+          }
         }
       }
     },

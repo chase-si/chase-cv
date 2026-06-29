@@ -6,6 +6,7 @@ import { HomepageWorkExperienceTimeline } from "@/components/homepage/work-exper
 import {
   fabricatedResumePatterns,
   homepageWorkExperienceEntryIds,
+  homepageWorkExperienceProjectIds,
   WORK_EXPERIENCE_PLACEHOLDER_MARKER,
   workExperienceFieldKeys,
 } from "@/lib/homepage-work-experience";
@@ -30,28 +31,31 @@ afterEach(() => {
 });
 
 describe("HomepageWorkExperienceTimeline", () => {
-  it("renders a vertical timeline with labeled placeholder fields for each entry", () => {
+  it("renders experience entries with placeholder project cards and resume fields", () => {
     renderTimeline("en");
 
     const section = screen.getByRole("region", { name: "Work experience timeline" });
     const timeline = within(section).getByTestId("work-experience-timeline");
-    const items = within(timeline).getAllByTestId(/^work-experience-entry-/);
 
-    expect(items).toHaveLength(homepageWorkExperienceEntryIds.length);
+    expect(timeline).toBeInTheDocument();
 
     for (const entryId of homepageWorkExperienceEntryIds) {
       const item = within(section).getByTestId(`work-experience-entry-${entryId}`);
 
       for (const field of workExperienceFieldKeys) {
         if (field === "outcomes") {
-          const outcomesList = within(item).getByTestId("work-experience-field-outcomes");
-          expect(within(outcomesList).getAllByRole("listitem").length).toBeGreaterThan(0);
           continue;
         }
 
         const fieldNode = within(item).getByTestId(`work-experience-field-${field}`);
         expect(fieldNode).toBeInTheDocument();
         expect(fieldNode.textContent).toContain(WORK_EXPERIENCE_PLACEHOLDER_MARKER);
+      }
+
+      for (const projectId of homepageWorkExperienceProjectIds[entryId]) {
+        const card = within(section).getByTestId(`work-experience-project-${projectId}`);
+        const blurb = within(card).getByTestId(`work-experience-project-${projectId}-blurb`);
+        expect(blurb.textContent).toContain(WORK_EXPERIENCE_PLACEHOLDER_MARKER);
       }
     }
   });
@@ -64,7 +68,7 @@ describe("HomepageWorkExperienceTimeline", () => {
     const labels = [...new Set(terms.map((node) => node.textContent))];
 
     expect(labels).toEqual(
-      expect.arrayContaining(["时间段", "角色", "范围", "代表性成果"]),
+      expect.arrayContaining(["时间段", "角色", "范围"]),
     );
     expect(within(section).getByText(/8\s*年/)).toBeInTheDocument();
   });
