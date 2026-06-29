@@ -26,10 +26,10 @@ export default async function Page({ params }: Props) {
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 sm:py-16">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
         <HomepageHero />
 
-        <div className="mt-16 grid gap-16 sm:mt-20">
+        <div className="mt-14 grid gap-16 sm:mt-16">
           <HomepageProjectShowcase />
 
           <HomepageWorkExperienceTimeline />

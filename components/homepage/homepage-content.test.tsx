@@ -32,6 +32,13 @@ function renderHomepage(locale: "en" | "zh") {
   );
 }
 
+function getByExactTextContent(text: string) {
+  return screen.getByText((_, node) => {
+    if (!node || node.textContent !== text) return false;
+    return Array.from(node.children).every((child) => child.textContent !== text);
+  });
+}
+
 afterEach(() => {
   cleanup();
 });
@@ -40,18 +47,22 @@ describe("Homepage content", () => {
   it("shows supplied Chinese hero positioning copy", () => {
     renderHomepage("zh");
 
-    expect(screen.getByText("我是 Chase。")).toBeInTheDocument();
+    expect(getByExactTextContent("我是 Chase。")).toBeInTheDocument();
     expect(screen.getByText(/8 年经验/)).toBeInTheDocument();
-    expect(screen.getByText(/工程经验，是我驾驭 AI 的底层能力。/)).toBeInTheDocument();
+    expect(getByExactTextContent("工程经验，是我驾驭 AI 的底层能力。")).toBeInTheDocument();
   });
 
   it("shows natural English hero copy in parallel", () => {
     renderHomepage("en");
 
-    expect(screen.getByText("I'm Chase.")).toBeInTheDocument();
-    expect(screen.getByText(/eight years as a senior frontend engineer/)).toBeInTheDocument();
+    expect(getByExactTextContent("I'm Chase.")).toBeInTheDocument();
     expect(
-      screen.getByText(/Engineering judgment is what keeps my AI-assisted work grounded./),
+      getByExactTextContent("I spent eight years as a senior frontend engineer."),
+    ).toBeInTheDocument();
+    expect(
+      getByExactTextContent(
+        "Engineering judgment is what keeps my AI-assisted work grounded.",
+      ),
     ).toBeInTheDocument();
   });
 

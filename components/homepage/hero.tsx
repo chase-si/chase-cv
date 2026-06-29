@@ -5,37 +5,49 @@ import { useTranslations } from "next-intl";
 import { HomepageHeroWorkbenchPreview } from "@/components/homepage/hero-workbench-preview";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 export function HomepageHero() {
   const t = useTranslations("home");
 
-  const paragraphs = [
-    t("introLead"),
-    t("introPast"),
-    `${t("introPresent")} ${t("introPresentDetail")}`,
-    t("introFoundation"),
-  ];
-
   return (
-    <section className="grid items-start gap-10 lg:grid-cols-12 lg:gap-12">
-      <div className="lg:col-span-7">
+    <section className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-12">
+      <div>
         <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-[2px_2px_0_0] shadow-foreground/80">
           <span className="inline-block size-2 rounded-full bg-chart-2" />
           {t("eyebrow")}
         </div>
 
-        <div className="mt-6 space-y-4 text-pretty text-base leading-7 text-foreground sm:text-lg">
-          {paragraphs.map((paragraph, index) => (
-            <p
-              key={paragraph}
-              className={cn(
-                index === 0 && "text-2xl font-semibold tracking-tight sm:text-3xl",
-                index === paragraphs.length - 1 && "text-muted-foreground",
-              )}
+        <div className="mt-6 space-y-5 text-pretty text-lg font-semibold leading-8 text-foreground sm:text-2xl sm:leading-10">
+          <p className="text-4xl font-black tracking-tight sm:text-6xl">
+            {t("introLeadPrefix")}
+            <span className="text-primary">{t("introLeadName")}</span>
+            {t("introLeadSuffix")}
+          </p>
+          <p>
+            {t("introPastBefore")}
+            <span className="text-primary">{t("introPastEmphasis")}</span>
+            {t("introPastAfter")}
+          </p>
+          <p>
+            {t("introPresent")}{" "}
+            <span className="text-primary">{t("introPresentDetailLead")}</span>
+            {t("introPresentDetailRest")}
+          </p>
+          <p>
+            <span className="text-primary">{t("introFoundationLead")}</span>
+            {t("introFoundationRest")}
+          </p>
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-2">
+          {["Product frontend", "AI-assisted builder", "Interaction tools"].map((label) => (
+            <span
+              key={label}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 font-mono text-xs shadow-[2px_2px_0_0] shadow-foreground/80"
             >
-              {paragraph}
-            </p>
+              <span className="size-1.5 rounded-full bg-chart-2" />
+              {label}
+            </span>
           ))}
         </div>
 
@@ -44,7 +56,7 @@ export function HomepageHero() {
             render={<Link href="#projects" />}
             nativeButton={false}
             size="lg"
-            className="shadow-[3px_3px_0_0] shadow-foreground/90"
+            className="min-w-40 rounded-xl shadow-[4px_4px_0_0] shadow-foreground/90"
           >
             {t("primaryCta")}
           </Button>
@@ -53,14 +65,14 @@ export function HomepageHero() {
             nativeButton={false}
             variant="outline"
             size="lg"
-            className="bg-card shadow-[3px_3px_0_0] shadow-foreground/80"
+            className="min-w-40 rounded-xl bg-card shadow-[4px_4px_0_0] shadow-foreground/80"
           >
             {t("secondaryCta")}
           </Button>
         </div>
       </div>
 
-      <div className="lg:col-span-5">
+      <div>
         <HomepageHeroWorkbenchPreview />
       </div>
     </section>

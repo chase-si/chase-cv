@@ -29,17 +29,17 @@ function TimelineEntry({ entryId }: { entryId: HomepageWorkExperienceEntryId }) 
         className="absolute -left-[calc(0.625rem+1px)] top-5 size-3 rounded-full border-2 border-border bg-background shadow-[2px_2px_0_0] shadow-foreground/80 sm:-left-[calc(0.75rem+1px)]"
       />
 
-      <article className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-[4px_4px_0_0] shadow-foreground/90 sm:p-6">
-        <dl className="space-y-4">
+      <article className="min-w-0 rounded-3xl border-2 border-border bg-card p-4 shadow-[5px_5px_0_0] shadow-foreground sm:p-5">
+        <dl className="grid gap-4 sm:grid-cols-[10rem_minmax(0,1fr)_minmax(0,1.05fr)_minmax(0,1.25fr)] sm:items-start">
           {fields.map(({ key, label }) => (
             <div key={key} className="min-w-0">
-              <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <dt className="font-mono text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
                 {label}
               </dt>
               <dd
                 data-testid={`work-experience-field-${key}`}
                 data-field={key}
-                className="mt-1 text-sm leading-relaxed text-foreground break-words"
+                className="mt-2 text-sm font-semibold leading-relaxed text-foreground break-words"
               >
                 {t(`experience.entries.${entryId}.${key}`)}
               </dd>
@@ -47,14 +47,14 @@ function TimelineEntry({ entryId }: { entryId: HomepageWorkExperienceEntryId }) 
           ))}
 
           <div className="min-w-0">
-            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <dt className="font-mono text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
               {t("experience.fields.outcomes")}
             </dt>
             <dd className="mt-1">
               <ul
                 data-testid="work-experience-field-outcomes"
                 data-field="outcomes"
-                className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-foreground"
+                className="list-disc space-y-2 pl-5 text-sm font-semibold leading-relaxed text-foreground"
               >
                 {outcomes.map((outcome) => (
                   <li key={outcome} className="break-words">
@@ -74,17 +74,17 @@ export function HomepageWorkExperienceTimeline() {
   const t = useTranslations("home");
 
   return (
-    <section
-      id="experience"
-      aria-label={t("experience.sectionAria")}
-      className={cn("scroll-mt-24 space-y-6")}
-    >
+    <section id="experience" aria-label={t("experience.sectionAria")} className={cn("scroll-mt-24 space-y-6")}>
       <header className="space-y-3">
-        <h2 className="text-2xl font-semibold tracking-tight">{t("experienceTitle")}</h2>
-        <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          {t("experienceDescription")}
-        </p>
-        <p className="max-w-2xl text-sm leading-relaxed text-foreground">
+        <div className="flex items-center gap-4">
+          <span className="size-5 shrink-0 bg-foreground" />
+          <h2 className="text-3xl font-black tracking-tight">{t("experienceTitle")}</h2>
+          <span className="h-px flex-1 bg-border" />
+          <p className="hidden max-w-sm text-xs leading-relaxed text-muted-foreground md:block">
+            {t("experienceDescription")}
+          </p>
+        </div>
+        <p className="max-w-3xl text-sm leading-relaxed text-foreground">
           {t("experience.supportingLine")}
         </p>
       </header>
