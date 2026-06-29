@@ -11,7 +11,7 @@ export function HomepageHeroWorkbenchPreview() {
   return (
     <div
       aria-label={t("workbenchLabel")}
-      className="relative overflow-hidden rounded-[2rem] border-2 border-border bg-card shadow-[8px_8px_0_0] shadow-foreground"
+      className="relative overflow-hidden rounded-4xl border-2 border-border bg-card shadow-[8px_8px_0_0] shadow-foreground"
     >
       <div className="flex items-center justify-between border-b-2 border-border px-5 py-3">
         <div className="font-mono text-xs font-bold uppercase tracking-wide">Workbench</div>

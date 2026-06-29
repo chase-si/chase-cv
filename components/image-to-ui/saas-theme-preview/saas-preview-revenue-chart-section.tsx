@@ -22,7 +22,7 @@ export function SaasPreviewRevenueChartSection() {
     <Card
       size="sm"
       data-testid="saas-revenue-chart-section"
-      className="min-h-80 shadow-sm"
+      className="min-h-80"
       aria-label={t("revenueChartAria")}
     >
       <CardHeader>

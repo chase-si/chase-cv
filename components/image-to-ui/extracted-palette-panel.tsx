@@ -187,7 +187,7 @@ export function ExtractedPalettePanel({
           type="button"
           data-testid="palette-render-button"
           disabled={!renderEnabled}
-          className='shadow-sm hover:shadow-md'
+          className="hover:shadow-md"
           onClick={() => onRender?.()}
         >
           {labels.renderButton}

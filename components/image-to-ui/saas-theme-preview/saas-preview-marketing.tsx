@@ -20,7 +20,7 @@ export function SaasPreviewMarketing() {
       className="flex flex-col gap-4 bg-background pt-4"
       aria-label={t("landingAria")}
     >
-      <Card size="sm" className="shadow-sm">
+      <Card size="sm">
         <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2" data-testid="landing-nav">
             <div className="flex size-8 items-center justify-center bg-primary text-sm font-semibold text-primary-foreground">
@@ -43,7 +43,7 @@ export function SaasPreviewMarketing() {
         data-testid="landing-hero"
         className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]"
       >
-        <Card size="sm" className="shadow-sm">
+        <Card size="sm">
           <CardContent className="flex min-w-0 flex-col justify-center gap-5 py-4">
             <Badge variant="accent">{t("landingEyebrow")}</Badge>
             <div className="max-w-2xl">
@@ -65,7 +65,7 @@ export function SaasPreviewMarketing() {
           </CardContent>
         </Card>
 
-        <Card size="sm" data-testid="landing-hero-panel" className="shadow-sm" aria-label="Marketing dashboard preview card">
+        <Card size="sm" data-testid="landing-hero-panel" aria-label="Marketing dashboard preview card">
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -98,7 +98,7 @@ export function SaasPreviewMarketing() {
 
       <div className="grid gap-4 md:grid-cols-3">
         {LANDING_FEATURE_CARDS.map((feature) => (
-          <Card key={feature.title} size="sm" data-testid="landing-feature-card" className="min-h-36 shadow-sm">
+          <Card key={feature.title} size="sm" data-testid="landing-feature-card" className="min-h-36">
             <CardHeader>
               <div className="flex size-9 items-center justify-center bg-secondary text-secondary-foreground">
                 <Zap className="size-4" aria-hidden />
@@ -111,7 +111,7 @@ export function SaasPreviewMarketing() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
-        <Card size="sm" data-testid="landing-social-proof" className="shadow-sm">
+        <Card size="sm" data-testid="landing-social-proof">
           <CardContent className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium text-foreground">Trusted by growth teams</p>
@@ -134,7 +134,7 @@ export function SaasPreviewMarketing() {
           </CardContent>
         </Card>
 
-        <Card size="sm" data-testid="landing-conversion-strip" className="shadow-sm">
+        <Card size="sm" data-testid="landing-conversion-strip">
           <CardContent className="flex flex-col justify-between gap-3">
             <div>
               <p className="text-sm font-medium text-foreground">Ready to operationalize?</p>

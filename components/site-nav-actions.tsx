@@ -100,7 +100,6 @@ export function SiteNavActions() {
             aria-expanded={projectsOpen}
             aria-controls={projectsOpen ? projectsMenuId : undefined}
             aria-haspopup="menu"
-            className="shadow-sm"
             onClick={() => setProjectsOpen((open) => !open)}
           >
             {t("projects.label")}
@@ -126,7 +125,6 @@ export function SiteNavActions() {
           className={buttonVariants({
             variant: "ghost",
             size: "sm",
-            className: "shadow-sm",
           })}
           onClick={() => {
             trackEvent("nav_click", { target: "blog", href: BLOG_URL });
@@ -143,7 +141,7 @@ export function SiteNavActions() {
           className={buttonVariants({
             variant: "outline",
             size: "icon",
-            className: "rounded-full shadow-sm hover:shadow-md",
+            className: "rounded-full hover:shadow-md",
           })}
           onClick={() => {
             trackEvent("nav_click", { target: "github", href: GITHUB_URL });
@@ -169,7 +167,7 @@ export function SiteNavActions() {
           aria-expanded={mobileMenuOpen}
           aria-controls={mobileMenuOpen ? mobileMenuId : undefined}
           aria-haspopup="menu"
-          className="rounded-full shadow-sm"
+          className="rounded-full"
           onClick={() => setMobileMenuOpen((open) => !open)}
         >
           <Menu data-icon="inline-start" />

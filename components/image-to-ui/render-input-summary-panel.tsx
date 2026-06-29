@@ -1,6 +1,13 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardScrollArea,
+  CardTitle,
+} from "@/components/ui/card";
 import type { ActiveImage } from "@/lib/image-to-ui/active-image-types";
 import type {
   ThemePaletteRoleLabels,
@@ -88,49 +95,57 @@ export function RenderInputSummaryPanel({
     >
       <div className="grid gap-5 xl:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] xl:items-start xl:gap-6">
         <aside className="xl:sticky xl:top-24" aria-label={labels.summaryAsideAria}>
-          <Card size="sm" className="shadow-md">
+          <Card size="sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">{labels.summaryTitle}</CardTitle>
               <CardDescription className="text-xs">
                 {labels.summaryDescription}
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col gap-4 overflow-y-auto max-h-160">
-              <RenderInputImageSummary
-                activeImage={activeImage}
-                imageSrc={model.imageSrc}
-                imageAlt={model.imageAlt}
-                compact
-                label={labels.selectedImage}
-              />
-              <div className="flex flex-col gap-2">
-                <p className="text-xs font-medium text-foreground">
-                  {labels.selectedColorRoles}
-                </p>
-                <RenderInputColorRoles
-                  colorRoles={model.renderInput.colorRoles}
-                  layout="stack"
-                  ariaLabel={labels.colorRolesAria}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <p className="text-xs font-medium text-foreground">{labels.previewTokens}</p>
-                <RenderPreviewTokenSwatchSummary
-                  previewThemeTokens={model.previewThemeTokens}
-                  ariaLabel={labels.tokensAria}
-                />
-              </div>
+            <CardContent>
+              <CardScrollArea className="max-h-160 pr-1">
+                <div className="flex flex-col gap-4">
+                  <RenderInputImageSummary
+                    activeImage={activeImage}
+                    imageSrc={model.imageSrc}
+                    imageAlt={model.imageAlt}
+                    compact
+                    label={labels.selectedImage}
+                  />
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs font-medium text-foreground">
+                      {labels.selectedColorRoles}
+                    </p>
+                    <RenderInputColorRoles
+                      colorRoles={model.renderInput.colorRoles}
+                      layout="stack"
+                      ariaLabel={labels.colorRolesAria}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs font-medium text-foreground">{labels.previewTokens}</p>
+                    <RenderPreviewTokenSwatchSummary
+                      previewThemeTokens={model.previewThemeTokens}
+                      ariaLabel={labels.tokensAria}
+                    />
+                  </div>
+                </div>
+              </CardScrollArea>
             </CardContent>
           </Card>
         </aside>
 
-        <Card className="shadow-md">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">{labels.renderTitle}</CardTitle>
             <CardDescription>{labels.renderDescription}</CardDescription>
           </CardHeader>
           <CardContent>
-            <SaasThemePreviewSurface previewRootStyle={model.previewRootStyle} className="max-h-[min(40rem,70vh)] overflow-y-auto" />
+            <CardScrollArea className="max-h-[min(40rem,70vh)] pr-1">
+              <SaasThemePreviewSurface
+                previewRootStyle={model.previewRootStyle}
+              />
+            </CardScrollArea>
           </CardContent>
         </Card>
       </div>

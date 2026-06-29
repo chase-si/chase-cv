@@ -16,7 +16,7 @@ export function SaasPreviewStatusArea() {
       aria-label={t("platformHealthAria")}
     >
       {DASHBOARD_KPI_CARDS.map((card) => (
-        <Card key={card.label} size="sm" data-testid="saas-kpi-card" className="min-h-32 shadow-sm">
+        <Card key={card.label} size="sm" data-testid="saas-kpi-card" className="min-h-32">
           <CardHeader className="flex flex-1 flex-col justify-between gap-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">

@@ -12,7 +12,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card border flex flex-col gap-6 overflow-hidden bg-card py-6 text-sm text-card-foreground shadow-md ring-1 ring-foreground/5 has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 dark:ring-foreground/10 *:[img:first-child]:*:[img:last-child]:rounded-none",
+        "group/card flex flex-col gap-6 overflow-hidden rounded-2xl border bg-card py-6 text-sm text-card-foreground shadow-md ring-1 ring-foreground/5 has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 dark:ring-foreground/10 *:[img:first-child]:*:[img:last-child]:rounded-none",
         className
       )}
       {...props}
@@ -76,6 +76,19 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+function CardScrollArea({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-scroll-area"
+      className={cn(
+        "min-h-0 overflow-auto overscroll-contain [scrollbar-color:var(--muted-foreground)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:size-2.5 [&::-webkit-scrollbar-corner]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/50 [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/80 [&::-webkit-scrollbar-track]:bg-transparent",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -97,4 +110,5 @@ export {
   CardAction,
   CardDescription,
   CardContent,
+  CardScrollArea,
 }

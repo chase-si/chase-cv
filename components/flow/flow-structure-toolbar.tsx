@@ -120,7 +120,7 @@ export function FlowStructureToolbar({
   ];
 
   return (
-    <Card size="sm" className={cn("h-full shadow-sm", className)}>
+    <Card size="sm" className={cn("h-full", className)}>
       <CardHeader className="border-b border-border">
         <CardTitle className="text-sm">{copy.title}</CardTitle>
       </CardHeader>

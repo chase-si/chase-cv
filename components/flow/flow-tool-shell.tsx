@@ -259,7 +259,7 @@ export function FlowToolShell({ copy = defaultFlowUiCopy }: { copy?: FlowUiCopy 
             className="col-span-2 min-h-0 min-w-0 lg:col-span-1"
             aria-label={copy.propertiesAria}
           >
-            <Card className="h-full shadow-sm">
+            <Card className="h-full">
               <CardHeader className="border-b border-border">
                 <CardTitle className="text-sm">{copy.properties.title}</CardTitle>
                 <CardDescription>{copy.properties.description}</CardDescription>
