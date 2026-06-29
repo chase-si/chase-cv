@@ -20,7 +20,7 @@ export function MagicCursorEffectGalleryPage() {
             <MagicCursorSidebar activeEffect={null} />
           </section>
 
-          <Card className="overflow-hidden p-0 shadow-lg backdrop-blur-xl lg:col-span-8">
+          <Card className="overflow-hidden p-0 backdrop-blur-xl lg:col-span-8">
             <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
               {MAGIC_CURSOR_EFFECT_ORDER.map((effect) => {
                 // ring 依赖 reach 激活，懒挂载时指针已在格内会永远进不了 activated 状态

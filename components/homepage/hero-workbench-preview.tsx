@@ -11,7 +11,7 @@ export function HomepageHeroWorkbenchPreview() {
   return (
     <div
       aria-label={t("workbenchLabel")}
-      className="relative overflow-hidden rounded-4xl border-2 border-border bg-card shadow-[8px_8px_0_0] shadow-foreground"
+      className="relative overflow-hidden rounded-4xl border-2 border-border bg-card shadow-[8px_8px_0_0] shadow-foreground/50"
     >
       <div className="flex items-center justify-between border-b-2 border-border px-5 py-3">
         <div className="font-mono text-xs font-bold uppercase tracking-wide">Workbench</div>
@@ -101,7 +101,7 @@ function NodeBox({
   className?: string;
 }) {
   return (
-    <span className={cn("rounded-lg border-2 border-border bg-card px-3 py-2 text-xs font-bold shadow-[2px_2px_0_0] shadow-foreground/80", className)}>
+    <span className={cn("rounded-lg border-2 border-border bg-card px-3 py-2 text-xs font-bold shadow-[2px_2px_0_0] shadow-foreground/50", className)}>
       {children}
     </span>
   );

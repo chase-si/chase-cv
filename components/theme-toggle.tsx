@@ -19,7 +19,7 @@ export function ThemeToggle() {
   if (!mounted) {
     return (
       <span
-        className={`inline-flex h-9 w-9 items-center justify-center border shadow-sm pointer-events-none opacity-0`}
+        className={`inline-flex h-9 w-9 items-center justify-center border shadow-xs pointer-events-none opacity-0`}
         aria-hidden
       />
     );
@@ -33,7 +33,7 @@ export function ThemeToggle() {
       size="icon"
       pressed={isDark}
       onPressedChange={(next) => setTheme(next ? "dark" : "light")}
-      className="rounded-xl border shadow-sm"
+      className="rounded-xl border shadow-xs"
       aria-label={isDark ? t("toLight") : t("toDark")}
     >
       {isDark ? (

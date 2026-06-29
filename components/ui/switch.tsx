@@ -51,7 +51,7 @@ function Switch({
       <span
         aria-hidden
         className={cn(
-          "block size-4 bg-background shadow-sm transition-transform data-[state=checked]:translate-x-4",
+          "block size-4 bg-background shadow-xs transition-transform data-[state=checked]:translate-x-4",
         )}
         data-state={currentChecked ? "checked" : "unchecked"}
       />

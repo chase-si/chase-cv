@@ -26,10 +26,10 @@ function TimelineEntry({ entryId }: { entryId: HomepageWorkExperienceEntryId }) 
     >
       <span
         aria-hidden
-        className="absolute -left-[calc(0.625rem+1px)] top-5 size-3 rounded-full border-2 border-border bg-background shadow-[2px_2px_0_0] shadow-foreground/80 sm:-left-[calc(0.75rem+1px)]"
+        className="absolute -left-[calc(0.625rem+1px)] top-5 size-3 rounded-full border-2 border-border bg-background shadow-[2px_2px_0_0] shadow-foreground/50 sm:-left-[calc(0.75rem+1px)]"
       />
 
-      <article className="min-w-0 rounded-3xl border-2 border-border bg-card p-4 shadow-[5px_5px_0_0] shadow-foreground sm:p-5">
+      <article className="min-w-0 rounded-3xl border-2 border-border bg-card p-4 shadow-[5px_5px_0_0] shadow-foreground/50 sm:p-5">
         <dl className="grid gap-4 sm:grid-cols-[10rem_minmax(0,1fr)_minmax(0,1.05fr)_minmax(0,1.25fr)] sm:items-start">
           {fields.map(({ key, label }) => (
             <div key={key} className="min-w-0">

@@ -30,7 +30,7 @@ export function FlowDemoControls({
     <div
       data-testid="flow-demo-controls"
       className={cn(
-        "flex flex-wrap items-center justify-end gap-3 border border-border bg-card p-3 shadow-sm",
+        "flex flex-wrap items-center justify-end gap-3 border border-border bg-card p-3 shadow-xs",
         className,
       )}
     >

@@ -110,7 +110,7 @@ export function SiteNavActions() {
               id={projectsMenuId}
               role="menu"
               aria-label={t("projects.label")}
-              className="absolute right-0 top-full mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-border bg-card p-2 shadow-lg"
+              className="absolute right-0 top-full mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-border bg-card p-2 shadow-md"
             >
               <div className="flex flex-col gap-1">
                 <ProjectMenuItems onNavigate={closeProjects} />
@@ -141,7 +141,7 @@ export function SiteNavActions() {
           className={buttonVariants({
             variant: "outline",
             size: "icon",
-            className: "rounded-full hover:shadow-md",
+            className: "rounded-full hover:shadow-sm",
           })}
           onClick={() => {
             trackEvent("nav_click", { target: "github", href: GITHUB_URL });
@@ -178,7 +178,7 @@ export function SiteNavActions() {
             id={mobileMenuId}
             role="menu"
             aria-label={t("menu")}
-            className="fixed left-4 right-4 top-16 rounded-2xl border border-border bg-card p-2 shadow-lg"
+            className="fixed left-4 right-4 top-16 rounded-2xl border border-border bg-card p-2 shadow-md"
           >
             <div className="flex flex-col gap-1">
               <ProjectMenuItems onNavigate={closeMobileMenu} />

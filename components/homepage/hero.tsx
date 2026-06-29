@@ -12,7 +12,7 @@ export function HomepageHero() {
   return (
     <section className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-12">
       <div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-[2px_2px_0_0] shadow-foreground/80">
+        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-[2px_2px_0_0] shadow-foreground/50">
           <span className="inline-block size-2 rounded-full bg-chart-2" />
           {t("eyebrow")}
         </div>
@@ -43,7 +43,7 @@ export function HomepageHero() {
           {["Product frontend", "AI-assisted builder", "Interaction tools"].map((label) => (
             <span
               key={label}
-              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 font-mono text-xs shadow-[2px_2px_0_0] shadow-foreground/80"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 font-mono text-xs shadow-[2px_2px_0_0] shadow-foreground/50"
             >
               <span className="size-1.5 rounded-full bg-chart-2" />
               {label}
@@ -56,7 +56,7 @@ export function HomepageHero() {
             render={<Link href="#projects" />}
             nativeButton={false}
             size="lg"
-            className="min-w-40 rounded-xl shadow-[4px_4px_0_0] shadow-foreground/90"
+            className="min-w-40 rounded-xl shadow-xs"
           >
             {t("primaryCta")}
           </Button>
@@ -65,7 +65,7 @@ export function HomepageHero() {
             nativeButton={false}
             variant="outline"
             size="lg"
-            className="min-w-40 rounded-xl bg-card shadow-[4px_4px_0_0] shadow-foreground/80"
+            className="min-w-40 rounded-xl bg-card shadow-xs"
           >
             {t("secondaryCta")}
           </Button>
