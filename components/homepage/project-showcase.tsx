@@ -3,6 +3,7 @@
 import { ImageIcon, MousePointer2, Workflow } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { HomepageMotion } from "@/components/homepage/homepage-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
@@ -132,20 +133,24 @@ export function HomepageProjectShowcase() {
 
   return (
     <section id="projects" aria-label={t("projectsSectionAria")} className="scroll-mt-24 space-y-6">
-      <header className="flex items-center gap-4">
+      <HomepageMotion kind="reveal" className="flex items-center gap-4">
         <span className="size-5 shrink-0 bg-foreground" />
         <h2 className="text-3xl font-black tracking-tight">{t("projectsSectionTitle")}</h2>
         <span className="h-px flex-1 bg-border" />
-      </header>
+      </HomepageMotion>
 
-      <ul className="grid gap-6">
+      <ul className="grid gap-6" data-homepage-motion-group>
         {homepageProjectShowcaseOrder.map((id) => {
           const nav = navById[id];
           const Icon = projectIcons[id];
 
           return (
             <li key={id}>
-              <article className="overflow-hidden rounded-[2rem] border-2 border-border bg-card shadow-[8px_8px_0_0] shadow-foreground/50">
+              <HomepageMotion
+                as="article"
+                kind="reveal-card"
+                className="overflow-hidden rounded-[2rem] border-2 border-border bg-card shadow-[8px_8px_0_0] shadow-foreground/50"
+              >
                 <div className="grid gap-0 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1fr)]">
                   <div className="relative border-b-2 border-border lg:border-b-0 lg:border-r-2">
                     <ProjectPreviewArt id={id} />
@@ -186,7 +191,7 @@ export function HomepageProjectShowcase() {
                     </div>
                   </div>
                 </div>
-              </article>
+              </HomepageMotion>
             </li>
           );
         })}

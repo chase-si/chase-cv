@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { HomepageContact } from "@/components/homepage/homepage-contact";
 import { HomepageHero } from "@/components/homepage/hero";
 import { HomepageProjectShowcase } from "@/components/homepage/project-showcase";
 import { HomepageWorkExperienceTimeline } from "@/components/homepage/work-experience-timeline";
@@ -22,8 +23,6 @@ export async function generateMetadata({ params }: Props) {
 export default async function Page({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations({ locale, namespace: "home" });
-
   return (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
@@ -34,10 +33,7 @@ export default async function Page({ params }: Props) {
 
           <HomepageWorkExperienceTimeline />
 
-          <section id="contact" className="scroll-mt-24">
-            <h2 className="text-lg font-semibold tracking-tight">{t("contactTitle")}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{t("contactDescription")}</p>
-          </section>
+          <HomepageContact />
         </div>
       </main>
     </div>

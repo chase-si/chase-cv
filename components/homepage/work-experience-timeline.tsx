@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
+import { HomepageMotion } from "@/components/homepage/homepage-motion";
 import {
   homepageWorkExperienceEntryIds,
   type HomepageWorkExperienceEntryId,
@@ -29,7 +30,11 @@ function TimelineEntry({ entryId }: { entryId: HomepageWorkExperienceEntryId }) 
         className="absolute -left-[calc(0.625rem+1px)] top-5 size-3 rounded-full border-2 border-border bg-background shadow-[2px_2px_0_0] shadow-foreground/50 sm:-left-[calc(0.75rem+1px)]"
       />
 
-      <article className="min-w-0 rounded-3xl border-2 border-border bg-card p-4 shadow-[5px_5px_0_0] shadow-foreground/50 sm:p-5">
+      <HomepageMotion
+        as="article"
+        kind="reveal-card"
+        className="min-w-0 rounded-3xl border-2 border-border bg-card p-4 shadow-[5px_5px_0_0] shadow-foreground/50 sm:p-5"
+      >
         <dl className="grid gap-4 sm:grid-cols-[10rem_minmax(0,1fr)_minmax(0,1.05fr)_minmax(0,1.25fr)] sm:items-start">
           {fields.map(({ key, label }) => (
             <div key={key} className="min-w-0">
@@ -65,7 +70,7 @@ function TimelineEntry({ entryId }: { entryId: HomepageWorkExperienceEntryId }) 
             </dd>
           </div>
         </dl>
-      </article>
+      </HomepageMotion>
     </li>
   );
 }
@@ -76,21 +81,22 @@ export function HomepageWorkExperienceTimeline() {
   return (
     <section id="experience" aria-label={t("experience.sectionAria")} className={cn("scroll-mt-24 space-y-6")}>
       <header className="space-y-3">
-        <div className="flex items-center gap-4">
+        <HomepageMotion kind="reveal" className="flex items-center gap-4">
           <span className="size-5 shrink-0 bg-foreground" />
           <h2 className="text-3xl font-black tracking-tight">{t("experienceTitle")}</h2>
           <span className="h-px flex-1 bg-border" />
           <p className="hidden max-w-sm text-xs leading-relaxed text-muted-foreground md:block">
             {t("experienceDescription")}
           </p>
-        </div>
-        <p className="max-w-3xl text-sm leading-relaxed text-foreground">
+        </HomepageMotion>
+        <HomepageMotion as="p" kind="reveal" className="max-w-3xl text-sm leading-relaxed text-foreground">
           {t("experience.supportingLine")}
-        </p>
+        </HomepageMotion>
       </header>
 
       <ol
         data-testid="work-experience-timeline"
+        data-homepage-motion-group
         className="relative space-y-8 border-l-2 border-border pl-6 sm:pl-8"
       >
         {homepageWorkExperienceEntryIds.map((entryId) => (
