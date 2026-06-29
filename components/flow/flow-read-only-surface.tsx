@@ -18,7 +18,7 @@ export function FlowReadOnlySurface({
     <div
       data-testid="flow-read-only-surface"
       className={cn(
-        "overflow-auto rounded-2xl border border-border bg-card p-4",
+        "overflow-auto rounded-2xl border border-border bg-muted/20 p-4 shadow-inner",
         className,
       )}
     >

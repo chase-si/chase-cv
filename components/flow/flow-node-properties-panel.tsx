@@ -1,5 +1,7 @@
 "use client";
 
+import { MousePointerClick } from "lucide-react";
+
 import type { FlowLeafNode } from "@/lib/flow/types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,12 +63,23 @@ export function FlowNodePropertiesPanel({
 }: FlowNodePropertiesPanelProps) {
   if (!selectedNode?.id) {
     return (
-      <p
+      <div
         data-testid="flow-properties-empty"
-        className={cn("text-sm text-muted-foreground", className)}
+        className={cn(
+          "flex min-h-40 flex-col items-center justify-center gap-3 border border-dashed border-border bg-muted/20 p-5 text-center",
+          className,
+        )}
       >
-        尚未选中节点
-      </p>
+        <span className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          <MousePointerClick aria-hidden className="size-5" />
+        </span>
+        <div className="flex flex-col gap-1">
+          <p className="text-sm font-medium text-foreground">尚未选中节点</p>
+          <p className="text-xs leading-5 text-muted-foreground">
+            在画布中选择节点后，可在这里查看和编辑属性。
+          </p>
+        </div>
+      </div>
     );
   }
 

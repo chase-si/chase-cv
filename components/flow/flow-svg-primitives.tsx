@@ -1,3 +1,5 @@
+import type { KeyboardEvent } from "react";
+
 import type { FlowStepStatus } from "@/lib/flow/types";
 import {
   FLOW_ARROW_OFFSET,
@@ -14,6 +16,29 @@ import {
   FLOW_SVG_RUNNING_STROKE,
   FLOW_SVG_STROKE,
 } from "@/components/flow/flow-svg-tokens";
+
+export function getFlowNodeInteractionProps(
+  id: string | undefined,
+  onSelect: ((id: string | undefined) => void) | undefined,
+) {
+  if (!onSelect) {
+    return {};
+  }
+
+  const selectNode = () => onSelect(id);
+
+  return {
+    onClick: selectNode,
+    onKeyDown: (event: KeyboardEvent<SVGGElement>) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        selectNode();
+      }
+    },
+    role: "button" as const,
+    tabIndex: 0,
+  };
+}
 
 export function flowStatusStroke(status?: FlowStepStatus) {
   return status === "finished" ? FLOW_SVG_FINISHED_STROKE : FLOW_SVG_RUNNING_STROKE;
@@ -251,8 +276,7 @@ export function FlowSvgStepDesc({
     <g
       data-flow-node-id={id}
       data-flow-selected={active ? "true" : undefined}
-      onClick={() => svgDomOnClick?.(id)}
-      role={svgDomOnClick ? "button" : undefined}
+      {...getFlowNodeInteractionProps(id, svgDomOnClick)}
     >
       <rect
         x={x - padding}
@@ -353,8 +377,7 @@ export function FlowSvgTransfer({
     <g
       data-flow-node-id={id}
       data-flow-selected={active ? "true" : undefined}
-      onClick={() => svgDomOnClick?.(id)}
-      role={svgDomOnClick ? "button" : undefined}
+      {...getFlowNodeInteractionProps(id, svgDomOnClick)}
     >
       <rect
         x={0}
@@ -458,8 +481,7 @@ export function FlowSvgEndStep({
     <g
       data-flow-node-id={id}
       data-flow-node-type="end"
-      onClick={() => svgDomOnClick?.(id)}
-      role={svgDomOnClick ? "button" : undefined}
+      {...getFlowNodeInteractionProps(id, svgDomOnClick)}
       data-flow-selected={active ? "true" : undefined}
     >
       <rect

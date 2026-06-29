@@ -42,7 +42,9 @@ describe("FlowStructureToolbar", () => {
 
     expect(screen.getByTestId("flow-toolbar-zoom-label")).toHaveTextContent("110%");
     expect(screen.getByRole("button", { name: "放大" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "重置为 100%" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "增加顺序步" })).toBeDisabled();
+    expect(screen.getByText("请先在画布中选择节点")).toBeInTheDocument();
   });
 
   it("disables structure actions when capabilities are false", () => {
@@ -62,7 +64,7 @@ describe("FlowStructureToolbar", () => {
 
     expect(screen.getByRole("button", { name: "增加分支" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "扩展分支" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "删除" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "删除节点" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "放大" })).toBeEnabled();
   });
 

@@ -22,6 +22,7 @@ import {
   FlowSvgPaddingLine,
   FlowSvgStepDesc,
   FlowSvgTransfer,
+  getFlowNodeInteractionProps,
 } from "@/components/flow/flow-svg-primitives";
 
 function lineNumFromWidth(width: number) {
@@ -75,8 +76,7 @@ function FlowSvgCond({
   return (
     <g data-flow-node-id={id} data-flow-node-type="cond" data-flow-selected={active ? "true" : undefined}>
       <g
-        onClick={() => svgDomOnClick?.(id)}
-        role={svgDomOnClick ? "button" : undefined}
+        {...getFlowNodeInteractionProps(id, svgDomOnClick)}
       >
         <rect
           x={0}
@@ -131,8 +131,7 @@ function FlowSvgPara({
   return (
     <g data-flow-node-id={id} data-flow-node-type="para" data-flow-selected={active ? "true" : undefined}>
       <g
-        onClick={() => svgDomOnClick?.(id)}
-        role={svgDomOnClick ? "button" : undefined}
+        {...getFlowNodeInteractionProps(id, svgDomOnClick)}
       >
         <rect
           x={0}

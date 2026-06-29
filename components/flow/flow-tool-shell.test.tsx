@@ -95,7 +95,8 @@ describe("FlowToolShell", () => {
 
     const toolbar = within(screen.getByTestId("flow-editor-toolbar"));
     expect(toolbar.getByRole("button", { name: "增加顺序步" })).toBeDisabled();
-    expect(toolbar.getByRole("button", { name: "删除" })).toBeDisabled();
+    expect(toolbar.getByRole("button", { name: "删除节点" })).toBeDisabled();
+    expect(toolbar.getByText("请先在画布中选择节点")).toBeInTheDocument();
     expect(toolbar.getByTestId("flow-toolbar-zoom-label")).toHaveTextContent("100%");
   });
 
@@ -118,14 +119,20 @@ describe("FlowToolShell", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("clears selection after deleting a supported step", () => {
+  it("confirms before deleting a supported step", () => {
     render(<FlowToolShell />);
 
     const canvas = screen.getByTestId("flow-editor-canvas");
     fireEvent.click(canvas.querySelector('[data-flow-node-id="step002"]')!);
 
     const toolbar = within(screen.getByTestId("flow-editor-toolbar"));
-    fireEvent.click(toolbar.getByRole("button", { name: "删除" }));
+    fireEvent.click(toolbar.getByRole("button", { name: "删除节点" }));
+
+    expect(screen.getByRole("alertdialog", { name: "删除所选节点？" })).toHaveTextContent(
+      "step002",
+    );
+    expect(canvas.querySelector('[data-flow-node-id="step002"]')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "确认删除" }));
 
     expect(
       within(screen.getByTestId("flow-editor-properties")).getByTestId(
@@ -147,8 +154,7 @@ describe("FlowToolShell", () => {
     expect(toast.info).toHaveBeenCalledWith("已达到最大缩放 200%");
   });
 
-  it("resets demo data and clears selection without confirmation", () => {
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+  it("confirms before resetting modified demo data", () => {
     render(<FlowToolShell />);
 
     const canvas = screen.getByTestId("flow-editor-canvas");
@@ -162,7 +168,10 @@ describe("FlowToolShell", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /重置示例/ }));
 
-    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(screen.getByRole("alertdialog", { name: "重置示例？" })).toBeInTheDocument();
+    expect(canvas).toHaveTextContent("mutated-desc");
+    fireEvent.click(screen.getByRole("button", { name: "确认重置" }));
+
     expect(canvas).toHaveTextContent("desc1");
     expect(canvas).not.toHaveTextContent("mutated-desc");
     expect(
@@ -170,7 +179,15 @@ describe("FlowToolShell", () => {
         "flow-properties-empty",
       ),
     ).toBeInTheDocument();
-    confirmSpy.mockRestore();
+  });
+
+  it("resets an unchanged demo without confirmation", () => {
+    render(<FlowToolShell />);
+
+    fireEvent.click(screen.getByRole("button", { name: /重置示例/ }));
+
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    expect(screen.getByTestId("flow-editor-canvas")).toHaveTextContent("desc1");
   });
 
   it("preserves running highlight toggle after reset", () => {
@@ -189,6 +206,7 @@ describe("FlowToolShell", () => {
     });
 
     fireEvent.click(screen.getByRole("button", { name: /重置示例/ }));
+    fireEvent.click(screen.getByRole("button", { name: "确认重置" }));
 
     expect(screen.getByRole("switch", { name: "运行态高亮" })).toHaveAttribute(
       "aria-checked",
