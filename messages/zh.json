@@ -248,6 +248,8 @@
   "magicCursor": {
     "title": "Magic Cursor",
     "description": "切换不同鼠标效果，并实时调参预览。",
+    "effectsTitle": "效果选择",
+    "effectsDescription": "选择要预览或配置的鼠标效果。",
     "effectLabel": "效果",
     "paramsLabel": "参数",
     "all": "All",

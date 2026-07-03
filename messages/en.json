@@ -252,6 +252,8 @@
   "magicCursor": {
     "title": "Magic Cursor",
     "description": "Switch between cursor effects and tune parameters in real time.",
+    "effectsTitle": "Effects",
+    "effectsDescription": "Choose an effect to preview or configure.",
     "effectLabel": "Effect",
     "paramsLabel": "Parameters",
     "all": "All",

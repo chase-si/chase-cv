@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import type { EffectName } from "magic-cursor-effect";
+import { useTranslations } from "next-intl";
 
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import {
@@ -28,16 +29,26 @@ type Props = {
 export function MagicCursorEffectPage({ effect }: Props) {
   const [optionsByEffect, setOptionsByEffect] = useState<OptionsByEffect>(defaultOptionsByEffect);
   const options = optionsByEffect[effect];
+  const t = useTranslations("magicCursor");
 
   useEffect(() => {
     trackEvent("effect_view", { effect });
   }, [effect]);
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
-        <div className="grid gap-6 lg:grid-cols-12">
-          <section className="lg:col-span-4">
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <main className="mx-auto w-full flex-1 px-4 py-8 sm:px-6 sm:py-10">
+        <header className="mb-8 space-y-2">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            {t("title")}
+          </h1>
+          <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
+            {t("description")}
+          </p>
+        </header>
+
+        <div className="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)] xl:items-start xl:gap-8">
+          <section>
             <MagicCursorSidebar
               activeEffect={effect}
               optionsByEffect={optionsByEffect}
@@ -46,7 +57,7 @@ export function MagicCursorEffectPage({ effect }: Props) {
             />
           </section>
 
-          <Card className="lg:col-span-8">
+          <Card>
             <CardHeader className="pb-2">
               <Breadcrumb>
                 <BreadcrumbList>

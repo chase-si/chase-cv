@@ -193,8 +193,8 @@ export function FlowToolShell({ copy = defaultFlowUiCopy }: { copy?: FlowUiCopy 
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-8 sm:px-6">
-        <header className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <main className="mx-auto flex w-full flex-1 flex-col px-4 py-8 sm:px-6 sm:py-10">
+        <header className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex min-w-0 flex-col gap-2">
             <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               {copy.title}
