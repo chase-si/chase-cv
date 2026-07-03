@@ -78,6 +78,23 @@ export function SiteNavActions() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const projectsMenuId = React.useId();
   const mobileMenuId = React.useId();
+  const projectsMenuRootRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!projectsOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!projectsMenuRootRef.current?.contains(event.target as Node)) {
+        setProjectsOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [projectsOpen]);
 
   const closeProjects = () => setProjectsOpen(false);
   const closeMobileMenu = () => setMobileMenuOpen(false);
@@ -93,7 +110,7 @@ export function SiteNavActions() {
           }
         }}
       >
-        <div className="relative">
+        <div ref={projectsMenuRootRef} className="relative">
           <Button
             type="button"
             size="sm"

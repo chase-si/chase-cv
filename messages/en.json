@@ -28,7 +28,7 @@
     "mobileAria": "Mobile navigation",
     "menu": "Menu",
     "projects": {
-      "label": "Projects",
+      "label": "Playground",
       "items": {
         "magicCursor": {
           "name": "Magic Cursor",
@@ -135,11 +135,11 @@
     "introFoundation": "Engineering judgment is what keeps my AI-assisted work grounded.",
     "introFoundationLead": "Engineering judgment",
     "introFoundationRest": " is what keeps my AI-assisted work grounded.",
-    "primaryCta": "Explore projects",
+    "primaryCta": "Explore the playground",
     "secondaryCta": "Work experience",
     "workbenchLabel": "Mixed workbench preview",
-    "projectsSectionTitle": "Interesting projects",
-    "projectsSectionAria": "Interesting projects",
+    "projectsSectionTitle": "Playground",
+    "projectsSectionAria": "Playground",
     "projects": {
       "items": {
         "imageToUi": {

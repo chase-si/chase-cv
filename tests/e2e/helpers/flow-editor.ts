@@ -27,7 +27,7 @@ export async function navigateToFlowEditorFromHome(page: Page): Promise<void> {
   await page.goto("/");
   await expect(page).toHaveURL(/\/$/);
   const nav = page.getByRole("navigation", { name: "Primary navigation" });
-  await nav.getByRole("button", { name: "Projects" }).click();
+  await nav.getByRole("button", { name: "Playground" }).click();
   await nav.getByRole("menuitem", { name: /Flow Editor/ }).click();
   await expect(page).toHaveURL(/\/flow$/);
 }

@@ -49,18 +49,18 @@ afterEach(() => {
 });
 
 describe("SiteNavActions", () => {
-  it("reveals localized project destinations from a single Projects control (English)", async () => {
+  it("reveals localized project destinations from a single Playground control (English)", async () => {
     renderNav("en");
 
     const nav = screen.getByRole("navigation", { name: "Primary navigation" });
-    const projectsButton = within(nav).getByRole("button", { name: "Projects" });
+    const projectsButton = within(nav).getByRole("button", { name: "Playground" });
 
     expect(within(nav).queryByRole("link", { name: /Works/i })).not.toBeInTheDocument();
     expect(within(nav).queryByRole("link", { name: /Flow editor/i })).not.toBeInTheDocument();
 
     fireEvent.click(projectsButton);
 
-    const projects = within(nav).getByRole("menu", { name: "Projects" });
+    const projects = within(nav).getByRole("menu", { name: "Playground" });
     expect(within(projects).getByRole("menuitem", { name: /Magic Cursor/i })).toHaveAttribute(
       "href",
       "/magic-cursor",
@@ -78,7 +78,7 @@ describe("SiteNavActions", () => {
     expect(screen.getByText("Visualize and edit structured flows.")).toBeInTheDocument();
 
     fireEvent.keyDown(projectsButton, { key: "Escape" });
-    expect(within(nav).queryByRole("menu", { name: "Projects" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("menu", { name: "Playground" })).not.toBeInTheDocument();
   });
 
   it("keeps existing nav affordances and tracks project clicks consistently", async () => {
@@ -86,9 +86,9 @@ describe("SiteNavActions", () => {
     renderNav("zh");
 
     const nav = screen.getByRole("navigation", { name: "主导航" });
-    fireEvent.click(within(nav).getByRole("button", { name: "项目" }));
+    fireEvent.click(within(nav).getByRole("button", { name: "游乐场" }));
 
-    const projects = within(nav).getByRole("menu", { name: "项目" });
+    const projects = within(nav).getByRole("menu", { name: "游乐场" });
     expect(within(projects).getByText("探索可配置的鼠标特效。")).toBeInTheDocument();
     expect(within(projects).getByText("把名画配色变成界面主题。")).toBeInTheDocument();
     expect(within(projects).getByText("可视化编辑结构化流程。")).toBeInTheDocument();
@@ -107,6 +107,18 @@ describe("SiteNavActions", () => {
       "href",
       "https://github.com/chase-si",
     );
+  });
+
+  it("closes the Playground menu when a pointer press occurs outside it", () => {
+    renderNav("en");
+
+    const nav = screen.getByRole("navigation", { name: "Primary navigation" });
+    fireEvent.click(within(nav).getByRole("button", { name: "Playground" }));
+    expect(within(nav).getByRole("menu", { name: "Playground" })).toBeInTheDocument();
+
+    fireEvent.pointerDown(document.body);
+
+    expect(within(nav).queryByRole("menu", { name: "Playground" })).not.toBeInTheDocument();
   });
 
   it("exposes projects, blog, and GitHub in a compact mobile menu", () => {

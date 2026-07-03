@@ -27,7 +27,7 @@ test.describe("flow editor e2e", () => {
     await openFlowEditorZh(page);
     const nav = page.getByRole("navigation", { name: "主导航" });
 
-    await nav.getByRole("button", { name: "项目" }).click();
+    await nav.getByRole("button", { name: "游乐场" }).click();
     await expect(nav.getByRole("menuitem", { name: /Flow Editor/ })).toBeVisible();
   });
 

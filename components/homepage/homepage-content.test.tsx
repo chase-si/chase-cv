@@ -69,7 +69,7 @@ describe("Homepage content", () => {
   it("links hero CTAs to projects and work experience", () => {
     renderHomepage("en");
 
-    expect(screen.getByRole("button", { name: "Explore projects" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Explore the playground" })).toHaveAttribute(
       "href",
       "#projects",
     );
@@ -82,7 +82,7 @@ describe("Homepage content", () => {
   it("lists project cards in Image to UI, Magic Cursor, Flow Editor order with entry links", () => {
     renderHomepage("en");
 
-    const section = screen.getByRole("region", { name: "Interesting projects" });
+    const section = screen.getByRole("region", { name: "Playground" });
     const titles = within(section)
       .getAllByRole("heading", { level: 3 })
       .map((heading) => heading.textContent);
@@ -106,7 +106,7 @@ describe("Homepage content", () => {
   it("does not introduce AI-focused copy in the project section", () => {
     renderHomepage("en");
 
-    const section = screen.getByRole("region", { name: "Interesting projects" });
+    const section = screen.getByRole("region", { name: "Playground" });
     expect(within(section).queryByText(/\bAI\b/i)).not.toBeInTheDocument();
     expect(within(section).queryByText(/artificial intelligence/i)).not.toBeInTheDocument();
   });
