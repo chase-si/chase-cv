@@ -1,16 +1,34 @@
-export const homepageWorkExperienceEntryIds = ["entry1", "entry2", "entry3"] as const;
+import { homepageWorkExperienceContent } from "@/lib/homepage-work-experience/content";
 
-export type HomepageWorkExperienceEntryId =
-  (typeof homepageWorkExperienceEntryIds)[number];
+export {
+  homepageWorkExperienceContent,
+  type LocalizedString,
+  type WorkExperienceEntryContent,
+  type WorkExperienceProjectContent,
+} from "@/lib/homepage-work-experience/content";
+export { patchHomeMessagesWithWorkExperience } from "@/lib/homepage-work-experience/messages";
 
-export const homepageWorkExperienceProjectIds = {
-  entry1: ["entry1-p1", "entry1-p2", "entry1-p3"],
-  entry2: ["entry2-p1", "entry2-p2"],
-  entry3: ["entry3-p1", "entry3-p2"],
-} as const satisfies Record<HomepageWorkExperienceEntryId, readonly string[]>;
+const { entries } = homepageWorkExperienceContent;
 
-export type HomepageWorkExperienceProjectId =
-  (typeof homepageWorkExperienceProjectIds)[HomepageWorkExperienceEntryId][number];
+type WorkExperienceEntry = (typeof homepageWorkExperienceContent.entries)[number];
+
+export type HomepageWorkExperienceEntryId = WorkExperienceEntry["id"];
+
+export type HomepageWorkExperienceProjectId = WorkExperienceEntry["projects"][number]["id"];
+
+export const homepageWorkExperienceEntryIds: readonly HomepageWorkExperienceEntryId[] =
+  entries.map((entry) => entry.id);
+
+export const homepageWorkExperienceProjectIds = (() => {
+  const result = {} as Record<
+    HomepageWorkExperienceEntryId,
+    readonly HomepageWorkExperienceProjectId[]
+  >;
+  for (const entry of entries) {
+    result[entry.id] = entry.projects.map((project) => project.id);
+  }
+  return result;
+})();
 
 export const workExperienceFieldKeys = [
   "period",
@@ -20,6 +38,10 @@ export const workExperienceFieldKeys = [
 ] as const;
 
 export type WorkExperienceFieldKey = (typeof workExperienceFieldKeys)[number];
+
+export const workExperienceProjectFieldKeys = ["title", "blurb", "image"] as const;
+
+export type WorkExperienceProjectFieldKey = (typeof workExperienceProjectFieldKeys)[number];
 
 /** Marker present in placeholder copy until real resume content is supplied. */
 export const WORK_EXPERIENCE_PLACEHOLDER_MARKER = "[[placeholder]]";

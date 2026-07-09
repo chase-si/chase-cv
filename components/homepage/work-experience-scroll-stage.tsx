@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { getHomepageMotionCapabilities } from "@/lib/homepage-motion/capabilities";
+import { useHomepageMotionCapabilities } from "@/hooks/use-homepage-motion-capabilities";
 import {
   HOMEPAGE_EXPERIENCE_S_PATH,
   measureExperiencePathNodes,
@@ -23,12 +24,14 @@ import { cn } from "@/lib/utils";
 function ExperienceProjectCard({
   title,
   blurb,
+  imageSrc,
   company,
   className,
   testId,
 }: {
   title: string;
   blurb: string;
+  imageSrc: string;
   company: string;
   className?: string;
   testId: string;
@@ -37,16 +40,28 @@ function ExperienceProjectCard({
     <div className={cn("min-w-0", className)}>
       <article
         data-testid={testId}
-        className="rounded-3xl border-2 border-border bg-card p-4 shadow-[5px_5px_0_0] shadow-foreground/50 sm:p-5"
+        className="overflow-hidden rounded-3xl border-2 border-border bg-card shadow-[5px_5px_0_0] shadow-foreground/50"
       >
-        <h3 className="text-lg font-black tracking-tight text-foreground">{title}</h3>
-        <p
-          data-testid={`${testId}-blurb`}
-          data-field="blurb"
-          className="mt-2 text-sm leading-relaxed text-muted-foreground"
-        >
-          {blurb}
-        </p>
+        <div className="relative aspect-16/10 w-full border-b-2 border-border bg-muted/30">
+          <Image
+            src={imageSrc}
+            alt=""
+            fill
+            data-testid={`${testId}-image`}
+            className="object-cover object-top"
+            sizes="(max-width: 768px) 100vw, 32rem"
+          />
+        </div>
+        <div className="p-4 sm:p-5">
+          <h3 className="text-lg font-black tracking-tight text-foreground">{title}</h3>
+          <p
+            data-testid={`${testId}-blurb`}
+            data-field="blurb"
+            className="mt-2 text-sm leading-relaxed text-muted-foreground"
+          >
+            {blurb}
+          </p>
+        </div>
       </article>
       <p className="mt-1 font-mono text-[10px] text-muted-foreground">{company}</p>
     </div>
@@ -146,7 +161,7 @@ export function WorkExperienceScrollStage() {
   const pathRef = useRef<SVGPathElement>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [pathNodes, setPathNodes] = useState<ExperiencePathNode[]>([]);
-  const [motionEnabled, setMotionEnabled] = useState(false);
+  const { animate: motionEnabled } = useHomepageMotionCapabilities();
 
   const yearLabels = useMemo(
     () =>
@@ -173,10 +188,7 @@ export function WorkExperienceScrollStage() {
   }, []);
 
   useLayoutEffect(() => {
-    const capabilities = getHomepageMotionCapabilities();
-    setMotionEnabled(capabilities.animate);
-
-    if (!capabilities.animate) {
+    if (!motionEnabled) {
       const path = pathRef.current;
       if (path) {
         setExperiencePathFullyDrawn(path);
@@ -200,7 +212,7 @@ export function WorkExperienceScrollStage() {
       flatProjects,
       onPathNodes: setPathNodes,
     });
-  }, [flatProjects]);
+  }, [flatProjects, motionEnabled]);
 
   return (
     <div ref={scopeRef} data-testid="work-experience-timeline" className="relative">
@@ -228,6 +240,7 @@ export function WorkExperienceScrollStage() {
               const company = t(`experience.entries.${entryId}.company`);
               const title = t(`experience.entries.${entryId}.projects.${projectId}.title`);
               const blurb = t(`experience.entries.${entryId}.projects.${projectId}.blurb`);
+              const imageSrc = t(`experience.entries.${entryId}.projects.${projectId}.image`);
               const testId = `work-experience-project-${projectId}`;
 
               if (!motionEnabled) {
@@ -245,6 +258,7 @@ export function WorkExperienceScrollStage() {
                       testId={testId}
                       title={title}
                       blurb={blurb}
+                      imageSrc={imageSrc}
                       company={company}
                     />
                   </div>
@@ -268,6 +282,7 @@ export function WorkExperienceScrollStage() {
                     testId={testId}
                     title={title}
                     blurb={blurb}
+                    imageSrc={imageSrc}
                     company={company}
                   />
                 </div>

@@ -14,7 +14,7 @@ export const HOMEPAGE_REVEAL_EASE = "back.out(1.35)";
 export const HOMEPAGE_SCROLL_TRIGGER_START = "top 86%";
 
 /** Work experience pinned scroll section. */
-export const HOMEPAGE_EXPERIENCE_PIN_PX = 4200;
+export const HOMEPAGE_EXPERIENCE_PIN_PX = 8400;
 
 export const HOMEPAGE_EXPERIENCE_SCRUB = 0.45;
 

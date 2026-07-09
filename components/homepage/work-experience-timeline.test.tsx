@@ -7,6 +7,7 @@ import {
   fabricatedResumePatterns,
   homepageWorkExperienceEntryIds,
   homepageWorkExperienceProjectIds,
+  patchHomeMessagesWithWorkExperience,
   WORK_EXPERIENCE_PLACEHOLDER_MARKER,
   workExperienceFieldKeys,
 } from "@/lib/homepage-work-experience";
@@ -14,7 +15,8 @@ import enMessages from "@/messages/en.json";
 import zhMessages from "@/messages/zh.json";
 
 function renderTimeline(locale: "en" | "zh") {
-  const messages = locale === "zh" ? zhMessages : enMessages;
+  const base = locale === "zh" ? zhMessages : enMessages;
+  const messages = patchHomeMessagesWithWorkExperience(base, locale);
   return render(
     <NextIntlClientProvider locale={locale} messages={messages}>
       <HomepageWorkExperienceTimeline />
@@ -31,7 +33,7 @@ afterEach(() => {
 });
 
 describe("HomepageWorkExperienceTimeline", () => {
-  it("renders experience entries with placeholder project cards and resume fields", () => {
+  it("renders experience entries with image project cards and resume fields", () => {
     renderTimeline("en");
 
     const section = screen.getByRole("region", { name: "Work experience timeline" });
@@ -49,13 +51,16 @@ describe("HomepageWorkExperienceTimeline", () => {
 
         const fieldNode = within(item).getByTestId(`work-experience-field-${field}`);
         expect(fieldNode).toBeInTheDocument();
-        expect(fieldNode.textContent).toContain(WORK_EXPERIENCE_PLACEHOLDER_MARKER);
+        expect(fieldNode.textContent).not.toContain(WORK_EXPERIENCE_PLACEHOLDER_MARKER);
       }
 
       for (const projectId of homepageWorkExperienceProjectIds[entryId]) {
         const card = within(section).getByTestId(`work-experience-project-${projectId}`);
         const blurb = within(card).getByTestId(`work-experience-project-${projectId}-blurb`);
-        expect(blurb.textContent).toContain(WORK_EXPERIENCE_PLACEHOLDER_MARKER);
+        expect(blurb.textContent).not.toContain(WORK_EXPERIENCE_PLACEHOLDER_MARKER);
+        expect(
+          within(card).getByTestId(`work-experience-project-${projectId}-image`),
+        ).toBeInTheDocument();
       }
     }
   });
@@ -70,7 +75,9 @@ describe("HomepageWorkExperienceTimeline", () => {
     expect(labels).toEqual(
       expect.arrayContaining(["时间段", "角色", "范围"]),
     );
-    expect(within(section).getByText(/8\s*年/)).toBeInTheDocument();
+    expect(
+      within(section).getByText("约 8 年 Web、桌面与移动端产品交付；按雇主归纳，项目卡以截图佐证。"),
+    ).toBeInTheDocument();
   });
 
   it("does not include fabricated employers, date ranges, or metric-style achievements", () => {
