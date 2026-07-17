@@ -28,18 +28,9 @@ export function HomepageHero() {
             {t("introLeadSuffix")}
           </HomepageMotion>
           <HomepageMotion as="p" kind="hero">
-            {t("introPastBefore")}
-            <span className="text-primary">{t("introPastEmphasis")}</span>
-            {t("introPastAfter")}
-          </HomepageMotion>
-          <HomepageMotion as="p" kind="hero">
             {t("introPresent")}{" "}
             <span className="text-primary">{t("introPresentDetailLead")}</span>
             {t("introPresentDetailRest")}
-          </HomepageMotion>
-          <HomepageMotion as="p" kind="hero">
-            <span className="text-primary">{t("introFoundationLead")}</span>
-            {t("introFoundationRest")}
           </HomepageMotion>
         </div>
 

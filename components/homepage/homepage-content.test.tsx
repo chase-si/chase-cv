@@ -47,21 +47,25 @@ describe("Homepage content", () => {
   it("shows supplied Chinese hero positioning copy", () => {
     renderHomepage("zh");
 
-    expect(getByExactTextContent("我是 Chase。")).toBeInTheDocument();
-    expect(screen.getByText(/8 年经验/)).toBeInTheDocument();
-    expect(getByExactTextContent("工程经验，是我驾驭 AI 的底层能力。")).toBeInTheDocument();
+    expect(
+      getByExactTextContent("我是 Chase，一名从古法编程走来的 AI 构建者。"),
+    ).toBeInTheDocument();
+    expect(
+      getByExactTextContent("8 年工程经验打底，现在我用 AI 把一个人的能力，扩展成一支团队。"),
+    ).toBeInTheDocument();
   });
 
   it("shows natural English hero copy in parallel", () => {
     renderHomepage("en");
 
-    expect(getByExactTextContent("I'm Chase.")).toBeInTheDocument();
     expect(
-      getByExactTextContent("I spent eight years as a senior frontend engineer."),
+      getByExactTextContent(
+        "I’m Chase, an AI-powered builder shaped by eight years of old-school coding.",
+      ),
     ).toBeInTheDocument();
     expect(
       getByExactTextContent(
-        "Engineering judgment is what keeps my AI-assisted work grounded.",
+        "Now, I use AI to build with the capabilities of an entire team.",
       ),
     ).toBeInTheDocument();
   });
