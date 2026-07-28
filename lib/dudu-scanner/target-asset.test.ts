@@ -2,21 +2,24 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getTargetRecord } from "@/lib/dudu-scanner/catalog";
 import {
-  DUDU_SCANNER_SHARED_CHARACTER_FALLBACK_SRC,
   preloadTargetImage,
+  resetTargetImageCacheForTests,
   resolveTargetDisplaySrc,
 } from "@/lib/dudu-scanner/target-asset";
 
 describe("target asset helpers", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    resetTargetImageCacheForTests();
   });
 
-  it("resolves production src by default and shared silhouette on fallback", () => {
+  it("resolves production src by default and per-target placeholder on fallback", () => {
     const production = getTargetRecord("fry-sprite").imageSrc;
+    const placeholder = getTargetRecord("fry-sprite").placeholderSrc;
     expect(resolveTargetDisplaySrc("fry-sprite", false)).toBe(production);
-    expect(resolveTargetDisplaySrc("fry-sprite", true)).toBe(
-      DUDU_SCANNER_SHARED_CHARACTER_FALLBACK_SRC,
+    expect(resolveTargetDisplaySrc("fry-sprite", true)).toBe(placeholder);
+    expect(resolveTargetDisplaySrc("boba-bubbles", true)).toBe(
+      getTargetRecord("boba-bubbles").placeholderSrc,
     );
   });
 

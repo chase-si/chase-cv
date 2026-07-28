@@ -15,13 +15,17 @@ const TARGET_COPY_FIELDS = ["name", "description", "suggestion"] as const;
 
 describe("dudu scanner catalog", () => {
   it("maps each target to stable production character assets", () => {
+    const geminiProductionTargets = new Set(["boba-bubbles", "sleepy-bug"]);
+
     for (const targetId of DUDU_SCANNER_TARGET_IDS) {
       const record = getTargetRecord(targetId);
+      const stem = geminiProductionTargets.has(targetId)
+        ? `${targetId}-gemini`
+        : targetId;
+
       expect(record.id).toBe(targetId);
-      expect(record.imageSrc).toBe(`/dudu-scanner/characters/${targetId}.png`);
-      expect(record.placeholderSrc).toBe(
-        `/dudu-scanner/placeholders/${targetId}.svg`,
-      );
+      expect(record.imageSrc).toBe(`/dudu-scanner/characters/${stem}.png`);
+      expect(record.placeholderSrc).toBe(`/dudu-scanner/placeholders/${stem}.svg`);
     }
   });
 

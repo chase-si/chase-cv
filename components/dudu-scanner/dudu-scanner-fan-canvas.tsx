@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { getCachedTargetImage } from "@/lib/dudu-scanner/target-asset";
 import {
   createScannerVisualRenderer,
   type ScannerVisualMetrics,
@@ -89,13 +90,36 @@ export function DuduScannerFanCanvas({
       targetImageRef.current = null;
       return;
     }
+
+    const cached = getCachedTargetImage(targetImageSrc);
+    if (cached) {
+      targetImageRef.current = cached;
+      return () => {
+        if (targetImageRef.current === cached) {
+          targetImageRef.current = null;
+        }
+      };
+    }
+
+    let cancelled = false;
     const image = new Image();
-    image.src = targetImageSrc;
     image.onload = () => {
-      targetImageRef.current = image;
+      if (!cancelled) {
+        targetImageRef.current = image;
+      }
     };
+    image.onerror = () => {
+      if (!cancelled) {
+        targetImageRef.current = null;
+      }
+    };
+    image.src = targetImageSrc;
+
     return () => {
-      targetImageRef.current = null;
+      cancelled = true;
+      if (targetImageRef.current === image) {
+        targetImageRef.current = null;
+      }
     };
   }, [targetImageSrc]);
 

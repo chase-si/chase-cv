@@ -22,12 +22,21 @@ export type DuduScannerTargetRecord = {
   placeholderSrc: string;
 };
 
+const GEMINI_PRODUCTION_TARGET_IDS: ReadonlySet<DuduScannerTargetId> = new Set([
+  "boba-bubbles",
+  "sleepy-bug",
+]);
+
+function productionAssetStem(targetId: DuduScannerTargetId) {
+  return GEMINI_PRODUCTION_TARGET_IDS.has(targetId) ? `${targetId}-gemini` : targetId;
+}
+
 function characterAssetPath(targetId: DuduScannerTargetId) {
-  return `/dudu-scanner/characters/${targetId}.png`;
+  return `/dudu-scanner/characters/${productionAssetStem(targetId)}.png`;
 }
 
 function placeholderAssetPath(targetId: DuduScannerTargetId) {
-  return `/dudu-scanner/placeholders/${targetId}.svg`;
+  return `/dudu-scanner/placeholders/${productionAssetStem(targetId)}.svg`;
 }
 
 const TARGETS: Record<DuduScannerTargetId, DuduScannerTargetRecord> = {

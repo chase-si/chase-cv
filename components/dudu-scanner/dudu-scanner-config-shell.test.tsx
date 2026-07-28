@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DuduScannerConfigShell } from "@/components/dudu-scanner/dudu-scanner-config-shell";
 import { DUDU_SCANNER_CONFIG_STORAGE_KEY } from "@/lib/dudu-scanner/config-persistence";
+import { DuduScannerConfigProvider } from "@/lib/dudu-scanner/dudu-scanner-config-provider";
 import enMessages from "@/messages/en.json";
 import zhMessages from "@/messages/zh.json";
 
@@ -18,7 +19,9 @@ function renderShell(locale: "en" | "zh") {
   const messages = locale === "zh" ? zhMessages : enMessages;
   return render(
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <DuduScannerConfigShell />
+      <DuduScannerConfigProvider>
+        <DuduScannerConfigShell />
+      </DuduScannerConfigProvider>
     </NextIntlClientProvider>,
   );
 }

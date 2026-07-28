@@ -3,7 +3,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DuduScannerResultView } from "@/components/dudu-scanner/dudu-scanner-result-view";
-import { DUDU_SCANNER_TARGET_IDS } from "@/lib/dudu-scanner/catalog";
+import { getTargetRecord, DUDU_SCANNER_TARGET_IDS } from "@/lib/dudu-scanner/catalog";
 import { DUDU_SCANNER_TARGET_MESSAGE_KEY } from "@/lib/dudu-scanner/i18n-keys";
 import { resolveTargetDisplaySrc } from "@/lib/dudu-scanner/target-asset";
 import enMessages from "@/messages/en.json";
@@ -53,7 +53,7 @@ describe("DuduScanner result combinations", () => {
       expect(screen.getByText(copy.suggestion)).toBeInTheDocument();
       expect(screen.getByTestId("dudu-scanner-result-target")).toHaveAttribute(
         "src",
-        `/dudu-scanner/characters/${targetId}.png`,
+        getTargetRecord(targetId).imageSrc,
       );
     });
   }

@@ -3,7 +3,9 @@ import { NextIntlClientProvider } from "next-intl";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DuduScannerApp } from "@/components/dudu-scanner/dudu-scanner-app";
+import { getTargetRecord } from "@/lib/dudu-scanner/catalog";
 import { DUDU_SCANNER_CONFIG_STORAGE_KEY } from "@/lib/dudu-scanner/config-persistence";
+import { resetTargetImageCacheForTests } from "@/lib/dudu-scanner/target-asset";
 import { TOUCH_OPERATOR_CONTROLS_MEDIA_QUERY } from "@/lib/dudu-scanner/touch-environment";
 import enMessages from "@/messages/en.json";
 
@@ -39,6 +41,7 @@ async function startScan() {
 
 describe("DuduScannerApp controls", () => {
   beforeEach(() => {
+    resetTargetImageCacheForTests();
     window.localStorage.clear();
     window.sessionStorage.clear();
     class OkImage {
@@ -174,7 +177,31 @@ describe("DuduScannerApp controls", () => {
     expect(window.sessionStorage.getItem("dudu-scanner-immersive-v1")).toBeNull();
   });
 
-  it("keeps the selection and uses the shared silhouette when preload fails", async () => {
+  it("preloads the selected target after changing options on the config screen", async () => {
+    const assignedSources: string[] = [];
+    class TrackingImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      decode = vi.fn().mockResolvedValue(undefined);
+
+      set src(value: string) {
+        assignedSources.push(value);
+        queueMicrotask(() => {
+          this.onload?.();
+        });
+      }
+    }
+
+    vi.stubGlobal("Image", TrackingImage as unknown as typeof Image);
+
+    renderApp();
+    fireEvent.click(screen.getByRole("button", { name: "Boba Bubbles" }));
+    await startScan();
+
+    expect(assignedSources[0]).toBe(getTargetRecord("boba-bubbles").imageSrc);
+  });
+
+  it("uses the target placeholder silhouette when production art fails to preload", async () => {
     const assignedSources: string[] = [];
     class FailImage {
       onload: (() => void) | null = null;
