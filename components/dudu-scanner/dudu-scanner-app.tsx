@@ -7,12 +7,26 @@ import { DuduScannerResultView } from "@/components/dudu-scanner/dudu-scanner-re
 import { DuduScannerScanView } from "@/components/dudu-scanner/dudu-scanner-scan-view";
 import { exitAppFullscreen, requestAppFullscreen } from "@/lib/dudu-scanner/fullscreen";
 import {
+  clearImmersiveHistoryEntry,
+  clearImmersiveSessionMarker,
+  pushImmersiveHistoryEntry,
+  shouldHandleScannerPopState,
+  syncImmersiveSessionMarker,
+} from "@/lib/dudu-scanner/round-session";
+import {
   createInitialRoundState,
   DUDU_SCANNER_LOCK_DURATION_MS,
   DUDU_SCANNER_REVEAL_DURATION_MS,
   DUDU_SCANNER_TRANSIENT_DURATION_MS,
   duduScannerRoundReducer,
+  type DuduScannerRoundAction,
 } from "@/lib/dudu-scanner/round-state";
+import {
+  isDomainCommandAllowedInPhase,
+  keyboardEventToDomainCommand,
+  shouldPreventDefaultForScannerKey,
+  type DuduScannerDomainCommand,
+} from "@/lib/dudu-scanner/scanner-commands";
 import { useDuduScannerConfig } from "@/lib/dudu-scanner/use-dudu-scanner-config";
 import { cn } from "@/lib/utils";
 
@@ -39,9 +53,32 @@ function playScannerChime(enabled: boolean) {
   }
 }
 
+function domainCommandToRoundAction(command: DuduScannerDomainCommand): DuduScannerRoundAction | null {
+  switch (command.type) {
+    case "TOGGLE_PAUSE":
+      return { type: "TOGGLE_PAUSE" };
+    case "REVEAL_TARGET":
+      return { type: "REVEAL_TARGET" };
+    case "LOCK_SIGNAL":
+      return { type: "LOCK_SIGNAL" };
+    case "CANCEL_TARGET":
+      return { type: "CANCEL_TARGET" };
+    case "RESTART_SCAN":
+      return { type: "RESTART_SCAN" };
+    case "TOGGLE_SOUND":
+    case "RETRY_FULLSCREEN":
+      return null;
+    default: {
+      const _exhaustive: never = command;
+      return _exhaustive;
+    }
+  }
+}
+
 export function DuduScannerApp() {
   const rootRef = useRef<HTMLDivElement>(null);
-  const { config } = useDuduScannerConfig();
+  const revealEpochRef = useRef(0);
+  const { config, setSoundEnabled } = useDuduScannerConfig();
   const [round, dispatch] = useReducer(duduScannerRoundReducer, undefined, createInitialRoundState);
   const [revealProgress, setRevealProgress] = useState(0);
   const immersive = round.phase === "scan" || round.phase === "result";
@@ -54,36 +91,116 @@ export function DuduScannerApp() {
     return ok;
   }, [round.phase]);
 
-  const handleStartScan = useCallback(async () => {
+  const resetRevealProgress = useCallback(() => {
+    revealEpochRef.current += 1;
     setRevealProgress(0);
+  }, []);
+
+  const enterImmersiveHistory = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    pushImmersiveHistoryEntry(window.history, window.location.href);
+  }, []);
+
+  const leaveImmersiveHistory = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    clearImmersiveHistoryEntry(window.history, window.location.href);
+  }, []);
+
+  const handleStartScan = useCallback(async () => {
+    resetRevealProgress();
     dispatch({ type: "START_SCAN" });
+    enterImmersiveHistory();
     const ok = await requestAppFullscreen(rootRef.current);
     if (!ok) {
       dispatch({ type: "FULLSCREEN_UNAVAILABLE" });
     }
     playScannerChime(config.soundEnabled);
-  }, [config.soundEnabled]);
+  }, [config.soundEnabled, enterImmersiveHistory, resetRevealProgress]);
 
   const handleScanAgain = useCallback(async () => {
     dispatch({ type: "SCAN_AGAIN" });
-    setRevealProgress(0);
+    resetRevealProgress();
     await requestAppFullscreen(rootRef.current);
     playScannerChime(config.soundEnabled);
-  }, [config.soundEnabled]);
+  }, [config.soundEnabled, resetRevealProgress]);
 
   const handleChangeTarget = useCallback(async () => {
     dispatch({ type: "CHANGE_TARGET" });
-    setRevealProgress(0);
+    resetRevealProgress();
+    leaveImmersiveHistory();
     await exitAppFullscreen();
+  }, [leaveImmersiveHistory, resetRevealProgress]);
+
+  const returnToConfigFromSession = useCallback(async () => {
+    dispatch({ type: "RETURN_TO_CONFIG" });
+    resetRevealProgress();
+    await exitAppFullscreen();
+  }, [resetRevealProgress]);
+
+  const applyDomainCommand = useCallback(
+    (command: DuduScannerDomainCommand) => {
+      if (!isDomainCommandAllowedInPhase(command, round.phase)) {
+        return;
+      }
+
+      if (command.type === "TOGGLE_SOUND") {
+        setSoundEnabled(!config.soundEnabled);
+        return;
+      }
+
+      if (command.type === "RETRY_FULLSCREEN") {
+        void attemptFullscreen();
+        return;
+      }
+
+      const action = domainCommandToRoundAction(command);
+      if (!action) {
+        return;
+      }
+
+      if (command.type === "RESTART_SCAN") {
+        resetRevealProgress();
+        playScannerChime(config.soundEnabled);
+      }
+
+      if (command.type === "CANCEL_TARGET") {
+        resetRevealProgress();
+      }
+
+      dispatch(action);
+    },
+    [attemptFullscreen, config.soundEnabled, resetRevealProgress, round.phase, setSoundEnabled],
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    clearImmersiveSessionMarker(window.sessionStorage);
   }, []);
 
   useEffect(() => {
-    if (!round.scan.targetRevealed || round.scan.locking) {
+    if (typeof window === "undefined") {
       return;
     }
+    syncImmersiveSessionMarker(window.sessionStorage, round.phase);
+  }, [round.phase]);
+
+  useEffect(() => {
+    if (!round.scan.targetRevealed || round.scan.locking || round.scan.paused) {
+      return;
+    }
+    const epoch = revealEpochRef.current;
     const started = performance.now();
     let raf = 0;
     const tick = (now: number) => {
+      if (epoch !== revealEpochRef.current) {
+        return;
+      }
       const progress = Math.min(1, (now - started) / DUDU_SCANNER_REVEAL_DURATION_MS);
       setRevealProgress(progress);
       if (progress < 1) {
@@ -92,7 +209,7 @@ export function DuduScannerApp() {
     };
     raf = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(raf);
-  }, [round.scan.targetRevealed, round.scan.locking, round.phase]);
+  }, [round.scan.targetRevealed, round.scan.locking, round.scan.paused, round.phase]);
 
   const effectiveRevealProgress = round.scan.targetRevealed
     ? round.scan.locking
@@ -121,36 +238,56 @@ export function DuduScannerApp() {
   }, [round.transient]);
 
   useEffect(() => {
-    if (round.phase !== "scan" && round.phase !== "result") {
+    if (typeof document === "undefined") {
       return;
     }
+    const onFullscreenChange = () => {
+      if (!document.fullscreenElement && round.phase === "scan") {
+        dispatch({ type: "FULLSCREEN_UNAVAILABLE" });
+      }
+    };
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, [round.phase]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const onPopState = () => {
+      if (shouldHandleScannerPopState(round.phase)) {
+        void returnToConfigFromSession();
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [returnToConfigFromSession, round.phase]);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
       }
 
-      if (event.key === "1") {
-        event.preventDefault();
-        dispatch({ type: "REVEAL_TARGET" });
+      const command = keyboardEventToDomainCommand(event.key);
+      if (!command) {
         return;
       }
 
-      if (event.key === "Enter") {
-        event.preventDefault();
-        dispatch({ type: "LOCK_SIGNAL" });
+      if (!isDomainCommandAllowedInPhase(command, round.phase)) {
         return;
       }
 
-      if (event.key === "f" || event.key === "F") {
+      if (shouldPreventDefaultForScannerKey(event.key)) {
         event.preventDefault();
-        void attemptFullscreen();
       }
+
+      applyDomainCommand(command);
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [attemptFullscreen, round.phase]);
+  }, [applyDomainCommand, round.phase]);
 
   const statusKey = round.scan.locking
     ? "locking"
@@ -174,6 +311,7 @@ export function DuduScannerApp() {
           targetRevealed={round.scan.targetRevealed}
           revealProgress={effectiveRevealProgress}
           locking={round.scan.locking}
+          paused={round.scan.paused}
           transient={round.transient}
           statusKey={statusKey}
         />

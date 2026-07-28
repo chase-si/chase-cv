@@ -5,6 +5,7 @@ export type DuduScannerRoundTransient = "no-signal" | "fullscreen-hint";
 export type DuduScannerScanFlags = {
   targetRevealed: boolean;
   locking: boolean;
+  paused: boolean;
 };
 
 export type DuduScannerRoundState = {
@@ -21,11 +22,16 @@ export type DuduScannerRoundAction =
   | { type: "SCAN_AGAIN" }
   | { type: "CHANGE_TARGET" }
   | { type: "FULLSCREEN_UNAVAILABLE" }
-  | { type: "CLEAR_TRANSIENT" };
+  | { type: "CLEAR_TRANSIENT" }
+  | { type: "TOGGLE_PAUSE" }
+  | { type: "CANCEL_TARGET" }
+  | { type: "RESTART_SCAN" }
+  | { type: "RETURN_TO_CONFIG" };
 
 const initialScanFlags: DuduScannerScanFlags = {
   targetRevealed: false,
   locking: false,
+  paused: false,
 };
 
 export function createInitialRoundState(): DuduScannerRoundState {
@@ -55,18 +61,28 @@ export function duduScannerRoundReducer(
       }
       return freshScanState();
 
+    case "TOGGLE_PAUSE":
+      if (state.phase !== "scan" || state.scan.locking) {
+        return state;
+      }
+      return {
+        ...state,
+        scan: { ...state.scan, paused: !state.scan.paused },
+        transient: null,
+      };
+
     case "REVEAL_TARGET":
       if (state.phase !== "scan" || state.scan.locking) {
         return state;
       }
       return {
         ...state,
-        scan: { ...state.scan, targetRevealed: true },
+        scan: { ...state.scan, targetRevealed: true, paused: false },
         transient: null,
       };
 
     case "LOCK_SIGNAL":
-      if (state.phase !== "scan" || state.scan.locking) {
+      if (state.phase !== "scan" || state.scan.locking || state.scan.paused) {
         return state;
       }
       if (!state.scan.targetRevealed) {
@@ -87,6 +103,28 @@ export function duduScannerRoundReducer(
         scan: { ...initialScanFlags },
         transient: null,
       };
+
+    case "CANCEL_TARGET":
+      if (state.phase !== "scan") {
+        return state;
+      }
+      return {
+        ...state,
+        scan: { ...initialScanFlags },
+        transient: "no-signal",
+      };
+
+    case "RESTART_SCAN":
+      if (state.phase !== "scan") {
+        return state;
+      }
+      return freshScanState();
+
+    case "RETURN_TO_CONFIG":
+      if (state.phase === "config") {
+        return state;
+      }
+      return createInitialRoundState();
 
     case "SCAN_AGAIN":
       if (state.phase !== "result") {
