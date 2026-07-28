@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DuduScannerFanCanvas } from "@/components/dudu-scanner/dudu-scanner-fan-canvas";
@@ -51,5 +51,33 @@ describe("DuduScannerFanCanvas", () => {
     });
 
     expect(onLockRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it("aligns the lock frame with the renderer target position while locking", async () => {
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue(stageRect);
+    const placementSeed = 11;
+    const target = placeTargetInSafeRegion(
+      placementSeed,
+      computeFanGeometry(stageRect.width, stageRect.height),
+      28,
+    );
+
+    render(
+      <DuduScannerFanCanvas
+        showLockFrame
+        locking
+        targetRevealed
+        revealProgress={1}
+        placementSeed={placementSeed}
+      />,
+    );
+
+    await waitFor(() => {
+      const frame = screen.getByTestId("dudu-scanner-lock-frame");
+      expect(frame).toHaveStyle({
+        left: `${target.x}px`,
+        top: `${target.y}px`,
+      });
+    });
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getCachedTargetImage } from "@/lib/dudu-scanner/target-asset";
 import {
@@ -14,6 +14,33 @@ import {
   type ScannerPoint,
 } from "@/lib/dudu-scanner/scanner-visual/exploration-model";
 import { cn } from "@/lib/utils";
+
+function getStageContentRect(stage: HTMLElement): DOMRect {
+  const borderBox = stage.getBoundingClientRect();
+  const width = stage.clientWidth || borderBox.width;
+  const height = stage.clientHeight || borderBox.height;
+  return new DOMRect(
+    borderBox.left + stage.clientLeft,
+    borderBox.top + stage.clientTop,
+    width,
+    height,
+  );
+}
+
+function toStageLockFramePosition(
+  stage: HTMLElement,
+  canvas: HTMLCanvasElement,
+  target: ScannerPoint,
+): ScannerPoint {
+  const stageRect = stage.getBoundingClientRect();
+  const canvasRect = canvas.getBoundingClientRect();
+  const originX = canvasRect.left - stageRect.left - stage.clientLeft;
+  const originY = canvasRect.top - stageRect.top - stage.clientTop;
+  return {
+    x: originX + target.x,
+    y: originY + target.y,
+  };
+}
 
 type DuduScannerFanCanvasProps = {
   className?: string;
@@ -53,6 +80,7 @@ export function DuduScannerFanCanvas({
   const onDiscoveryRef = useRef(onDiscovery);
   const onLockRequestRef = useRef(onLockRequest);
   const targetRevealedRef = useRef(targetRevealed);
+  const showLockFrameRef = useRef(showLockFrame);
   const targetImageRef = useRef<HTMLImageElement | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [lockTargetPosition, setLockTargetPosition] =
@@ -73,6 +101,34 @@ export function DuduScannerFanCanvas({
   useEffect(() => {
     targetRevealedRef.current = targetRevealed;
   }, [targetRevealed]);
+
+  useEffect(() => {
+    showLockFrameRef.current = showLockFrame;
+  }, [showLockFrame]);
+
+  const syncLockTargetPosition = useCallback(() => {
+    const stage = stageRef.current;
+    const canvas = canvasRef.current;
+    const renderer = rendererRef.current;
+    const target = renderer?.getTargetPosition() ?? null;
+
+    if (!showLockFrameRef.current || !stage || !canvas || !target) {
+      return;
+    }
+
+    const next = toStageLockFramePosition(stage, canvas, target);
+    setLockTargetPosition((previous) => {
+      if (previous && Math.hypot(previous.x - next.x, previous.y - next.y) < 0.25) {
+        return previous;
+      }
+      return next;
+    });
+  }, []);
+
+  const syncLockTargetPositionRef = useRef(syncLockTargetPosition);
+  useEffect(() => {
+    syncLockTargetPositionRef.current = syncLockTargetPosition;
+  }, [syncLockTargetPosition]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) {
@@ -135,7 +191,7 @@ export function DuduScannerFanCanvas({
     const primary = styles.getPropertyValue("--primary").trim() || "Highlight";
     const renderer = createScannerVisualRenderer({
       canvas,
-      getStageRect: () => stage.getBoundingClientRect(),
+      getStageRect: () => getStageContentRect(stage),
       getTargetImage: () => targetImageRef.current,
       spotlightRadius: window.matchMedia?.("(pointer: coarse)").matches
         ? DUDU_SCANNER_MOBILE_SPOTLIGHT_RADIUS
@@ -146,7 +202,10 @@ export function DuduScannerFanCanvas({
         spotlightAccent: `color-mix(in oklab, ${primary} 72%, transparent)`,
         spotlightParticle: `color-mix(in oklab, ${primary} 50%, transparent)`,
       },
-      onMetrics: (metrics) => onMetricsRef.current?.(metrics),
+      onMetrics: (metrics) => {
+        onMetricsRef.current?.(metrics);
+        syncLockTargetPositionRef.current();
+      },
       onDiscovery: () => onDiscoveryRef.current?.(),
     });
     rendererRef.current = renderer;
@@ -217,7 +276,6 @@ export function DuduScannerFanCanvas({
       reducedMotion,
       placementSeed,
     });
-    setLockTargetPosition(locking ? renderer?.getTargetPosition() ?? null : null);
   }, [
     active,
     explorationEnabled,
@@ -228,6 +286,17 @@ export function DuduScannerFanCanvas({
     reducedMotion,
     placementSeed,
   ]);
+
+  useEffect(() => {
+    if (!showLockFrame) {
+      return;
+    }
+
+    const raf = requestAnimationFrame(() => {
+      syncLockTargetPositionRef.current();
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [showLockFrame, placementSeed]);
 
   return (
     <div

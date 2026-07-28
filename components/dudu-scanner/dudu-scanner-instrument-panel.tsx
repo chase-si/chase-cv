@@ -118,7 +118,7 @@ export function DuduScannerInstrumentPanel({
                 {t("scan.hud.signal")}
               </span>
               <span
-                className="font-mono text-2xl font-black text-primary tabular-nums"
+                className={cn("font-mono text-2xl font-black text-primary tabular-nums", strongSignal && "text-chart-2")}
                 data-testid="dudu-scanner-hud-signal"
               >
                 {signalPercent}%
@@ -128,8 +128,8 @@ export function DuduScannerInstrumentPanel({
               value={signalPercent}
               data-testid="dudu-scanner-signal-progress"
               className={cn(
-                "[&_[data-slot=progress-track]]:h-2",
-                strongSignal && "[&_[data-slot=progress-indicator]]:bg-chart-2",
+                "**:data-[slot=progress-track]:h-2",
+                strongSignal && "**:data-[slot=progress-indicator]:bg-chart-2",
               )}
             />
           </div>
