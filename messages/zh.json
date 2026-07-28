@@ -415,18 +415,43 @@
     "shortcutsHeading": "操作者快捷键",
     "shortcutsHint": "以下按键在扫描过程中可用，正式表演前可以先记一下。",
     "startScan": "开始扫描",
+    "assetLoadWarning": "这个角色图没加载成功，扫描时会先用备用轮廓。可以换别的角色或稍后再试一次。",
     "disclaimer": "仅供娱乐，非医疗工具。",
     "themes": {
       "snackScan": "零食扫描",
       "tummyCreatures": "肚肚生物"
     },
     "targets": {
-      "frySprite": "薯条精灵",
-      "candyCritter": "糖果怪",
-      "bobaBubbles": "奶茶泡泡",
-      "sleepyBug": "瞌睡虫",
-      "rumbleMonster": "咕噜小怪兽",
-      "riceBallSprite": "饭团精灵"
+      "frySprite": {
+        "name": "薯条精灵",
+        "description": "薯条精灵正在肚肚里找失踪的番茄酱。",
+        "suggestion": "今天给青菜也留一个位置吧。"
+      },
+      "candyCritter": {
+        "name": "糖果怪",
+        "description": "甜甜能量太多，正开心地转圈。",
+        "suggestion": "喝一点水，让它慢慢停下来。"
+      },
+      "bobaBubbles": {
+        "name": "奶茶泡泡",
+        "description": "圆滚滚的泡泡正在排队。",
+        "suggestion": "今天先让珍珠们放个假。"
+      },
+      "sleepyBug": {
+        "name": "瞌睡虫",
+        "description": "昨晚没睡够，它就在这里打哈欠。",
+        "suggestion": "今晚早点钻进被窝。"
+      },
+      "rumbleMonster": {
+        "name": "咕噜小怪兽",
+        "description": "它敲着小鼓提醒肚肚到饭点了。",
+        "suggestion": "按时吃饭，别让小鼓一直响。"
+      },
+      "riceBallSprite": {
+        "name": "饭团精灵",
+        "description": "它正在寻找认真吃饭的新朋友。",
+        "suggestion": "下一顿慢慢吃，它会更开心。"
+      }
     },
     "shortcuts": {
       "space": "暂停或继续扫描",

@@ -21,7 +21,13 @@ import {
 import { useDuduScannerConfig } from "@/lib/dudu-scanner/use-dudu-scanner-config";
 import { cn } from "@/lib/utils";
 
-export function DuduScannerConfigShell({ onStartScan }: { onStartScan?: () => void }) {
+export function DuduScannerConfigShell({
+  onStartScan,
+  assetLoadWarning = false,
+}: {
+  onStartScan?: () => void;
+  assetLoadWarning?: boolean;
+}) {
   const t = useTranslations("duduScanner");
   const { config, setThemeId, setTargetId, setSoundEnabled } = useDuduScannerConfig();
   const visibleTargets = getTargetIdsForTheme(config.themeId);
@@ -31,6 +37,15 @@ export function DuduScannerConfigShell({ onStartScan }: { onStartScan?: () => vo
       <div className="space-y-2 text-center sm:text-left">
         <h1 className="text-3xl font-semibold tracking-tight text-foreground">{t("title")}</h1>
         <p className="max-w-2xl text-muted-foreground">{t("subtitle")}</p>
+        {assetLoadWarning ? (
+          <p
+            className="max-w-2xl rounded-xl border border-border bg-muted/50 px-4 py-3 text-sm text-foreground"
+            role="status"
+            data-testid="dudu-scanner-asset-warning"
+          >
+            {t("assetLoadWarning")}
+          </p>
+        ) : null}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
@@ -85,7 +100,7 @@ export function DuduScannerConfigShell({ onStartScan }: { onStartScan?: () => vo
                       />
                     </div>
                     <span className="w-full text-center text-sm font-medium text-foreground">
-                      {t(`targets.${messageKey}`)}
+                      {t(`targets.${messageKey}.name`)}
                     </span>
                   </button>
                 );

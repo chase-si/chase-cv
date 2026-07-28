@@ -415,18 +415,43 @@
     "shortcutsHeading": "Operator shortcuts",
     "shortcutsHint": "These keys work during the scan. Keep this list handy before you go live.",
     "startScan": "Start scan",
+    "assetLoadWarning": "We couldn't load this character's art. A standby silhouette will show during the scan—you can try again or pick another target.",
     "disclaimer": "For entertainment only — not a medical device.",
     "themes": {
       "snackScan": "Snack Scan",
       "tummyCreatures": "Tummy Creatures"
     },
     "targets": {
-      "frySprite": "Fry Sprite",
-      "candyCritter": "Candy Critter",
-      "bobaBubbles": "Boba Bubbles",
-      "sleepyBug": "Sleepy Bug",
-      "rumbleMonster": "Rumble Monster",
-      "riceBallSprite": "Rice Ball Sprite"
+      "frySprite": {
+        "name": "Fry Sprite",
+        "description": "A tiny fry friend is combing the belly for missing ketchup.",
+        "suggestion": "Leave a little room for veggies today—they love a seat at the table too."
+      },
+      "candyCritter": {
+        "name": "Candy Critter",
+        "description": "Sweet energy is spinning happy circles in there.",
+        "suggestion": "Sip some water and let the sugar parade slow down."
+      },
+      "bobaBubbles": {
+        "name": "Boba Bubbles",
+        "description": "Round bubbles are lining up for a gentle wobble.",
+        "suggestion": "Give the pearls a mini vacation today."
+      },
+      "sleepyBug": {
+        "name": "Sleepy Bug",
+        "description": "Last night ran short, so a dreamy buddy is yawning here.",
+        "suggestion": "Hop into bed a bit earlier tonight."
+      },
+      "rumbleMonster": {
+        "name": "Rumble Monster",
+        "description": "A cuddly monster is tapping a tiny drum—mealtime is near.",
+        "suggestion": "Eat on schedule so the drum can take a nap."
+      },
+      "riceBallSprite": {
+        "name": "Rice Ball Sprite",
+        "description": "A cheerful rice-ball pal is scouting for careful eaters.",
+        "suggestion": "Take the next bite slowly—it makes them extra happy."
+      }
     },
     "shortcuts": {
       "space": "Pause or resume scanning",
