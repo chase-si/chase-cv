@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 
+import { DuduScannerShortcutDeck } from "@/components/dudu-scanner/dudu-scanner-shortcut-deck";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -13,8 +14,6 @@ import {
   type DuduScannerThemeId,
 } from "@/lib/dudu-scanner/catalog";
 import {
-  DUDU_SCANNER_SHORTCUT_KEYS,
-  DUDU_SCANNER_SHORTCUT_LABEL,
   DUDU_SCANNER_TARGET_MESSAGE_KEY,
   DUDU_SCANNER_THEME_MESSAGE_KEY,
 } from "@/lib/dudu-scanner/i18n-keys";
@@ -140,19 +139,8 @@ export function DuduScannerConfigShell({
               <CardTitle className="text-base">{t("shortcutsHeading")}</CardTitle>
               <p className="text-xs text-muted-foreground">{t("shortcutsHint")}</p>
             </CardHeader>
-            <CardContent className="px-4 py-3">
-              <dl className="grid gap-x-4 gap-y-2 sm:grid-cols-2">
-                {DUDU_SCANNER_SHORTCUT_KEYS.map((shortcutKey) => (
-                  <div key={shortcutKey} className="flex items-start justify-between gap-3 text-sm">
-                    <dt className="font-mono text-xs font-medium text-foreground sm:text-sm">
-                      {DUDU_SCANNER_SHORTCUT_LABEL[shortcutKey]}
-                    </dt>
-                    <dd className="text-right text-xs text-muted-foreground sm:text-sm">
-                      {t(`shortcuts.${shortcutKey}`)}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
+            <CardContent className="min-w-0 px-4 py-3">
+              <DuduScannerShortcutDeck />
             </CardContent>
           </Card>
         </div>

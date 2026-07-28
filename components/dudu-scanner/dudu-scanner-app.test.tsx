@@ -99,6 +99,7 @@ describe("DuduScannerApp controls", () => {
       expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent(
         "Initializing scanner…",
       );
+      expect(screen.getByTestId("dudu-scanner-hud-signal")).toHaveTextContent("0%");
 
       await act(async () => {
         await vi.advanceTimersByTimeAsync(4_000);
