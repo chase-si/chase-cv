@@ -17,6 +17,10 @@
       "title": "流程编辑器 | Chase's CV",
       "description": "可视化查看与编辑 SFC 流程结构的实验工具。"
     },
+    "duduScanner": {
+      "title": "肚肚扫描仪 | Chase's CV",
+      "description": "亲子向的趣味肚肚扫描控制台：先选好主题、角色和声音，再开始现场表演。"
+    },
     "notFound": {
       "title": "页面未找到 | Chase's CV",
       "description": "你正在查找的页面不存在。"
@@ -399,6 +403,40 @@
       "startTrial": "开始试用",
       "watchDemo": "观看演示",
       "featureAria": "产品功能亮点"
+    }
+  },
+  "duduScanner": {
+    "title": "肚肚扫描仪",
+    "subtitle": "选好主题和角色，调好声音，就可以开始好玩的肚肚扫描啦。",
+    "themesHeading": "扫描主题",
+    "targetsHeading": "扫描目标",
+    "soundLabel": "音效",
+    "soundDescription": "开始扫描后会有轻柔的扫描音和揭晓提示音。",
+    "shortcutsHeading": "操作者快捷键",
+    "shortcutsHint": "以下按键在扫描过程中可用，正式表演前可以先记一下。",
+    "startScan": "开始扫描",
+    "disclaimer": "仅供娱乐，非医疗工具。",
+    "themes": {
+      "snackScan": "零食扫描",
+      "tummyCreatures": "肚肚生物"
+    },
+    "targets": {
+      "frySprite": "薯条精灵",
+      "candyCritter": "糖果怪",
+      "bobaBubbles": "奶茶泡泡",
+      "sleepyBug": "瞌睡虫",
+      "rumbleMonster": "咕噜小怪兽",
+      "riceBallSprite": "饭团精灵"
+    },
+    "shortcuts": {
+      "space": "暂停或继续扫描",
+      "one": "显示目标",
+      "enter": "锁定信号",
+      "r": "重新扫描",
+      "m": "切换声音",
+      "x": "隐藏目标",
+      "esc": "退出全屏",
+      "f": "再次尝试全屏"
     }
   }
 }

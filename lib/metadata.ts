@@ -18,6 +18,7 @@ type MetadataNamespace =
   | "metadata.magicCursor"
   | "metadata.imageToUi"
   | "metadata.flow"
+  | "metadata.duduScanner"
   | "metadata.notFound";
 
 export async function buildLocalizedMetadata({
