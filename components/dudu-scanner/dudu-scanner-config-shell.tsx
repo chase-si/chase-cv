@@ -140,7 +140,7 @@ export function DuduScannerConfigShell({
               <p className="text-xs text-muted-foreground">{t("shortcutsHint")}</p>
             </CardHeader>
             <CardContent className="min-w-0 px-4 py-3">
-              <DuduScannerShortcutDeck />
+              <DuduScannerShortcutDeck layout="vertical" />
             </CardContent>
           </Card>
         </div>
