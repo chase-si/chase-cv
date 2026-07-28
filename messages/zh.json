@@ -17,6 +17,10 @@
       "title": "流程编辑器 | Chase's CV",
       "description": "可视化查看与编辑 SFC 流程结构的实验工具。"
     },
+    "duduScanner": {
+      "title": "肚肚扫描仪 | Chase's CV",
+      "description": "亲子向的趣味肚肚扫描控制台：先选好主题、角色和声音，再开始现场表演。"
+    },
     "notFound": {
       "title": "页面未找到 | Chase's CV",
       "description": "你正在查找的页面不存在。"
@@ -399,6 +403,106 @@
       "startTrial": "开始试用",
       "watchDemo": "观看演示",
       "featureAria": "产品功能亮点"
+    }
+  },
+  "duduScanner": {
+    "title": "肚肚扫描仪",
+    "subtitle": "选好主题和角色，调好声音，就可以开始好玩的肚肚扫描啦。",
+    "themesHeading": "扫描主题",
+    "targetsHeading": "扫描目标",
+    "soundLabel": "音效",
+    "soundDescription": "开始扫描后会有轻柔的扫描音和揭晓提示音。",
+    "shortcutsHeading": "操作者快捷键",
+    "shortcutsHint": "以下按键在扫描过程中可用，正式表演前可以先记一下。",
+    "startScan": "开始扫描",
+    "backToConfig": "返回设置",
+    "assetLoadWarning": "这个角色图没加载成功，扫描时会先用备用轮廓。可以换别的角色或稍后再试一次。",
+    "disclaimer": "仅供娱乐，非医疗工具。",
+    "themes": {
+      "snackScan": "零食扫描",
+      "tummyCreatures": "肚肚生物"
+    },
+    "targets": {
+      "frySprite": {
+        "name": "薯条精灵",
+        "description": "薯条精灵正在肚肚里找失踪的番茄酱。",
+        "suggestion": "今天给青菜也留一个位置吧。"
+      },
+      "candyCritter": {
+        "name": "糖果怪",
+        "description": "甜甜能量太多，正开心地转圈。",
+        "suggestion": "喝一点水，让它慢慢停下来。"
+      },
+      "bobaBubbles": {
+        "name": "奶茶泡泡",
+        "description": "圆滚滚的泡泡正在排队。",
+        "suggestion": "今天先让珍珠们放个假。"
+      },
+      "sleepyBug": {
+        "name": "瞌睡虫",
+        "description": "昨晚没睡够，它就在这里打哈欠。",
+        "suggestion": "今晚早点钻进被窝。"
+      },
+      "rumbleMonster": {
+        "name": "咕噜小怪兽",
+        "description": "它敲着小鼓提醒肚肚到饭点了。",
+        "suggestion": "按时吃饭，别让小鼓一直响。"
+      },
+      "riceBallSprite": {
+        "name": "饭团精灵",
+        "description": "它正在寻找认真吃饭的新朋友。",
+        "suggestion": "下一顿慢慢吃，它会更开心。"
+      }
+    },
+    "shortcuts": {
+      "space": "强制发现目标",
+      "enter": "锁定信号",
+      "r": "重新扫描",
+      "m": "切换声音",
+      "x": "隐藏目标",
+      "esc": "退出全屏",
+      "f": "再次尝试全屏"
+    },
+    "operatorBar": {
+      "label": "扫描控制",
+      "pauseResume": "暂停扫描",
+      "resume": "继续扫描",
+      "reveal": "强制发现",
+      "lock": "锁定信号",
+      "hide": "隐藏目标",
+      "reset": "重新扫描"
+    },
+    "scan": {
+      "hudLabel": "扫描仪",
+      "hudHint": "扇形光束已锁定，留意肚皮波段。",
+      "targetHidden": "屏幕上还没有目标。",
+      "noSignal": "没有可锁定的信号——请移动探头，或按空格强制发现。",
+      "fullscreenHint": "无法进入全屏——按 F 可再试一次。",
+      "doubleClickLockHint": "按 Enter 锁定；信号高于 90% 时，也可以双击目标锁定。",
+      "status": {
+        "initializing": "正在初始化扫描仪…",
+        "moveProbe": "移动探头寻找信号",
+        "probeOutside": "探头已离开扫描区域",
+        "signalWeak": "信号微弱——继续寻找",
+        "signalMedium": "信号正在增强",
+        "signalStrong": "信号强烈——请保持探头稳定",
+        "signalDetected": "已检测到信号",
+        "targetReady": "目标已显形——可以锁定",
+        "locking": "正在锁定画面…"
+      },
+      "hud": {
+        "signal": "信号",
+        "gain": "增益",
+        "frequency": "扫描频率",
+        "timestamp": "时间戳"
+      }
+    },
+    "result": {
+      "eyebrow": "扫描完成",
+      "title": "目标已锁定！",
+      "body": "肚肚扫描找到了你选的角色。要再来一轮吗？",
+      "scanAgain": "再扫一次",
+      "changeTarget": "更换目标"
     }
   }
 }

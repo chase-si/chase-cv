@@ -17,6 +17,10 @@
       "title": "Flow editor | Chase's CV",
       "description": "Visualize and edit SFC flow structure in an experimental editor."
     },
+    "duduScanner": {
+      "title": "Dudu Scanner | Chase's CV",
+      "description": "A playful belly-scan console for family-friendly reveals. Configure themes, characters, and sound before the show begins."
+    },
     "notFound": {
       "title": "Page not found | Chase's CV",
       "description": "The page you are looking for could not be found."
@@ -399,6 +403,106 @@
       "startTrial": "Start trial",
       "watchDemo": "Watch demo",
       "featureAria": "Product feature highlights"
+    }
+  },
+  "duduScanner": {
+    "title": "Dudu Scanner",
+    "subtitle": "Pick a theme, choose a character, and get ready for a silly belly-scan reveal.",
+    "themesHeading": "Scan theme",
+    "targetsHeading": "Scan target",
+    "soundLabel": "Sound effects",
+    "soundDescription": "Soft scanner tones and gentle reveal cues when scanning starts.",
+    "shortcutsHeading": "Operator shortcuts",
+    "shortcutsHint": "These keys work during the scan. Keep this list handy before you go live.",
+    "startScan": "Start scan",
+    "backToConfig": "Back to setup",
+    "assetLoadWarning": "We couldn't load this character's art. A standby silhouette will show during the scan—you can try again or pick another target.",
+    "disclaimer": "For entertainment only — not a medical device.",
+    "themes": {
+      "snackScan": "Snack Scan",
+      "tummyCreatures": "Tummy Creatures"
+    },
+    "targets": {
+      "frySprite": {
+        "name": "Fry Sprite",
+        "description": "A tiny fry friend is combing the belly for missing ketchup.",
+        "suggestion": "Leave a little room for veggies today—they love a seat at the table too."
+      },
+      "candyCritter": {
+        "name": "Candy Critter",
+        "description": "Sweet energy is spinning happy circles in there.",
+        "suggestion": "Sip some water and let the sugar parade slow down."
+      },
+      "bobaBubbles": {
+        "name": "Boba Bubbles",
+        "description": "Round bubbles are lining up for a gentle wobble.",
+        "suggestion": "Give the pearls a mini vacation today."
+      },
+      "sleepyBug": {
+        "name": "Sleepy Bug",
+        "description": "Last night ran short, so a dreamy buddy is yawning here.",
+        "suggestion": "Hop into bed a bit earlier tonight."
+      },
+      "rumbleMonster": {
+        "name": "Rumble Monster",
+        "description": "A cuddly monster is tapping a tiny drum—mealtime is near.",
+        "suggestion": "Eat on schedule so the drum can take a nap."
+      },
+      "riceBallSprite": {
+        "name": "Rice Ball Sprite",
+        "description": "A cheerful rice-ball pal is scouting for careful eaters.",
+        "suggestion": "Take the next bite slowly—it makes them extra happy."
+      }
+    },
+    "shortcuts": {
+      "space": "Force target discovery",
+      "enter": "Lock the signal",
+      "r": "Restart the scan",
+      "m": "Toggle sound",
+      "x": "Hide the target",
+      "esc": "Exit fullscreen",
+      "f": "Try fullscreen again"
+    },
+    "operatorBar": {
+      "label": "Scanner controls",
+      "pauseResume": "Pause scan",
+      "resume": "Resume scan",
+      "reveal": "Force discovery",
+      "lock": "Lock signal",
+      "hide": "Hide target",
+      "reset": "Reset scan"
+    },
+    "scan": {
+      "hudLabel": "Scanner",
+      "hudHint": "Fan sweep locked — watch the belly band.",
+      "targetHidden": "No target on screen yet.",
+      "noSignal": "No signal to lock — move the probe or press Space to force discovery.",
+      "fullscreenHint": "Fullscreen unavailable — press F to try again.",
+      "doubleClickLockHint": "Press Enter to lock. Above 90% signal, you can also double-click the target.",
+      "status": {
+        "initializing": "Initializing scanner…",
+        "moveProbe": "Move the probe to find a signal",
+        "probeOutside": "Probe outside scan area",
+        "signalWeak": "Weak signal — keep searching",
+        "signalMedium": "Signal strengthening",
+        "signalStrong": "Strong signal — hold the probe steady",
+        "signalDetected": "Signal detected",
+        "targetReady": "Target revealed — ready to lock",
+        "locking": "Locking frame…"
+      },
+      "hud": {
+        "signal": "Signal",
+        "gain": "Gain",
+        "frequency": "Scan freq.",
+        "timestamp": "Timestamp"
+      }
+    },
+    "result": {
+      "eyebrow": "Scan complete",
+      "title": "Target locked!",
+      "body": "Your silly belly-scan found the character you picked. Ready for another round?",
+      "scanAgain": "Scan again",
+      "changeTarget": "Change target"
     }
   }
 }
