@@ -27,6 +27,7 @@ import {
   shouldPreventDefaultForScannerKey,
   type DuduScannerDomainCommand,
 } from "@/lib/dudu-scanner/scanner-commands";
+import { useDuduScannerScanSoundscape } from "@/lib/dudu-scanner/scan-soundscape/use-dudu-scanner-scan-soundscape";
 import { useDuduScannerConfig } from "@/lib/dudu-scanner/use-dudu-scanner-config";
 import { getTargetRecord, type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
 import {
@@ -34,29 +35,6 @@ import {
   resolveTargetDisplaySrc,
 } from "@/lib/dudu-scanner/target-asset";
 import { cn } from "@/lib/utils";
-
-function playScannerChime(enabled: boolean) {
-  if (!enabled || typeof window === "undefined") {
-    return;
-  }
-  try {
-    const context = new AudioContext();
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.value = 520;
-    gain.gain.value = 0.04;
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start();
-    oscillator.stop(context.currentTime + 0.12);
-    oscillator.onended = () => {
-      void context.close();
-    };
-  } catch {
-    // audio optional
-  }
-}
 
 function domainCommandToRoundAction(command: DuduScannerDomainCommand): DuduScannerRoundAction | null {
   switch (command.type) {
@@ -92,6 +70,16 @@ export function DuduScannerApp() {
   const immersive = round.phase === "scan" || round.phase === "result";
   const assetLoadWarning = failedPreloadTargetId === config.targetId;
   const roundTargetImageSrc = resolveTargetDisplaySrc(config.targetId, roundUseFallback);
+
+  const { unlockFromUserGesture, handleScanMetrics } = useDuduScannerScanSoundscape({
+    soundEnabled: config.soundEnabled,
+    phase: round.phase,
+    scanPaused: round.scan.paused,
+    targetRevealed: round.scan.targetRevealed,
+    locking: round.scan.locking,
+    targetRevealedKey: `${round.phase}-${round.scan.targetRevealed}`,
+    lockingKey: `${round.phase}-${round.scan.locking}`,
+  });
 
   const attemptFullscreen = useCallback(async () => {
     const ok = await requestAppFullscreen(rootRef.current);
@@ -132,8 +120,8 @@ export function DuduScannerApp() {
     if (!ok) {
       dispatch({ type: "FULLSCREEN_UNAVAILABLE" });
     }
-    playScannerChime(config.soundEnabled);
-  }, [config.soundEnabled, config.targetId, enterImmersiveHistory, resetRevealProgress]);
+    void unlockFromUserGesture();
+  }, [config.targetId, enterImmersiveHistory, resetRevealProgress, unlockFromUserGesture]);
 
   const handleScanAgain = useCallback(async () => {
     const { imageSrc } = getTargetRecord(config.targetId);
@@ -143,8 +131,8 @@ export function DuduScannerApp() {
     dispatch({ type: "SCAN_AGAIN" });
     resetRevealProgress();
     await requestAppFullscreen(rootRef.current);
-    playScannerChime(config.soundEnabled);
-  }, [config.soundEnabled, config.targetId, resetRevealProgress]);
+    void unlockFromUserGesture();
+  }, [config.targetId, resetRevealProgress, unlockFromUserGesture]);
 
   const handleChangeTarget = useCallback(async () => {
     dispatch({ type: "CHANGE_TARGET" });
@@ -184,7 +172,7 @@ export function DuduScannerApp() {
 
       if (command.type === "RESTART_SCAN") {
         resetRevealProgress();
-        playScannerChime(config.soundEnabled);
+        void unlockFromUserGesture();
       }
 
       if (command.type === "CANCEL_TARGET") {
@@ -193,7 +181,7 @@ export function DuduScannerApp() {
 
       dispatch(action);
     },
-    [attemptFullscreen, config.soundEnabled, resetRevealProgress, round.phase, setSoundEnabled],
+    [attemptFullscreen, config.soundEnabled, resetRevealProgress, round.phase, setSoundEnabled, unlockFromUserGesture],
   );
 
   useEffect(() => {
@@ -340,6 +328,7 @@ export function DuduScannerApp() {
           paused={round.scan.paused}
           transient={round.transient}
           statusKey={statusKey}
+          onScanMetrics={handleScanMetrics}
         />
       ) : null}
       {round.phase === "result" ? (

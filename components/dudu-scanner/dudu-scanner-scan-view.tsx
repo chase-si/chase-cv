@@ -23,6 +23,7 @@ type DuduScannerScanViewProps = {
   paused: boolean;
   transient: DuduScannerRoundTransient | null;
   statusKey: "scanning" | "signalDetected" | "locking";
+  onScanMetrics?: (metrics: ScannerVisualMetrics) => void;
 };
 
 function hashTargetSeed(targetId: string): number {
@@ -56,6 +57,7 @@ export function DuduScannerScanView({
   paused,
   transient,
   statusKey,
+  onScanMetrics,
 }: DuduScannerScanViewProps) {
   const t = useTranslations("duduScanner");
   const showTarget = targetRevealed || revealProgress > 0;
@@ -118,6 +120,7 @@ export function DuduScannerScanView({
           onMetricsChange={(next) => {
             setMetrics(next);
             setTimestamp(formatHudTimestamp(new Date()));
+            onScanMetrics?.(next);
           }}
         />
 
