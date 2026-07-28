@@ -71,3 +71,35 @@ export function shouldPreventDefaultForScannerKey(key: string): boolean {
   }
   return command.type === "TOGGLE_PAUSE" || key === " ";
 }
+
+export const DUDU_SCANNER_OPERATOR_TOUCH_CONTROLS = [
+  "pause-resume",
+  "reveal",
+  "lock",
+  "hide",
+  "reset",
+] as const;
+
+export type DuduScannerOperatorTouchControlId =
+  (typeof DUDU_SCANNER_OPERATOR_TOUCH_CONTROLS)[number];
+
+export function touchControlIdToDomainCommand(
+  controlId: DuduScannerOperatorTouchControlId,
+): DuduScannerDomainCommand {
+  switch (controlId) {
+    case "pause-resume":
+      return { type: "TOGGLE_PAUSE" };
+    case "reveal":
+      return { type: "REVEAL_TARGET" };
+    case "lock":
+      return { type: "LOCK_SIGNAL" };
+    case "hide":
+      return { type: "CANCEL_TARGET" };
+    case "reset":
+      return { type: "RESTART_SCAN" };
+    default: {
+      const _exhaustive: never = controlId;
+      return _exhaustive;
+    }
+  }
+}

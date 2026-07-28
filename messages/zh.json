@@ -463,6 +463,15 @@
       "esc": "退出全屏",
       "f": "再次尝试全屏"
     },
+    "operatorBar": {
+      "label": "扫描控制",
+      "pauseResume": "暂停扫描",
+      "resume": "继续扫描",
+      "reveal": "显示目标",
+      "lock": "锁定信号",
+      "hide": "隐藏目标",
+      "reset": "重新扫描"
+    },
     "scan": {
       "hudLabel": "扫描仪",
       "hudHint": "扇形光束已锁定，留意肚皮波段。",

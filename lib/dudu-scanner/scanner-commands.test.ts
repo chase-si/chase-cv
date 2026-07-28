@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  DUDU_SCANNER_OPERATOR_TOUCH_CONTROLS,
   isDomainCommandAllowedInPhase,
   keyboardEventToDomainCommand,
   shouldPreventDefaultForScannerKey,
+  touchControlIdToDomainCommand,
 } from "@/lib/dudu-scanner/scanner-commands";
 
 describe("keyboardEventToDomainCommand", () => {
@@ -46,5 +48,24 @@ describe("shouldPreventDefaultForScannerKey", () => {
   it("prevents space from scrolling during scanner handling", () => {
     expect(shouldPreventDefaultForScannerKey(" ")).toBe(true);
     expect(shouldPreventDefaultForScannerKey("1")).toBe(false);
+  });
+});
+
+describe("touchControlIdToDomainCommand", () => {
+  it("maps every operator touch control to the keyboard-equivalent domain command", () => {
+    expect(touchControlIdToDomainCommand("pause-resume")).toEqual({ type: "TOGGLE_PAUSE" });
+    expect(touchControlIdToDomainCommand("reveal")).toEqual({ type: "REVEAL_TARGET" });
+    expect(touchControlIdToDomainCommand("lock")).toEqual({ type: "LOCK_SIGNAL" });
+    expect(touchControlIdToDomainCommand("hide")).toEqual({ type: "CANCEL_TARGET" });
+    expect(touchControlIdToDomainCommand("reset")).toEqual({ type: "RESTART_SCAN" });
+    expect(DUDU_SCANNER_OPERATOR_TOUCH_CONTROLS).toHaveLength(5);
+  });
+
+  it("uses the same phase guards as keyboard commands", () => {
+    for (const controlId of DUDU_SCANNER_OPERATOR_TOUCH_CONTROLS) {
+      const command = touchControlIdToDomainCommand(controlId);
+      expect(isDomainCommandAllowedInPhase(command, "scan")).toBe(true);
+      expect(isDomainCommandAllowedInPhase(command, "config")).toBe(false);
+    }
   });
 });
