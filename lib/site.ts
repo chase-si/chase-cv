@@ -14,6 +14,7 @@ export const indexedPathnames = [
   "/magic-cursor",
   "/image-to-ui",
   "/flow",
+  "/dudu-scanner",
 ] as const;
 
 export type IndexedPathname = (typeof indexedPathnames)[number];

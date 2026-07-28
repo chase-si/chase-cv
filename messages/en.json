@@ -17,6 +17,10 @@
       "title": "Flow editor | Chase's CV",
       "description": "Visualize and edit SFC flow structure in an experimental editor."
     },
+    "duduScanner": {
+      "title": "Dudu Scanner | Chase's CV",
+      "description": "A playful belly-scan console for family-friendly reveals. Configure themes, characters, and sound before the show begins."
+    },
     "notFound": {
       "title": "Page not found | Chase's CV",
       "description": "The page you are looking for could not be found."
@@ -399,6 +403,40 @@
       "startTrial": "Start trial",
       "watchDemo": "Watch demo",
       "featureAria": "Product feature highlights"
+    }
+  },
+  "duduScanner": {
+    "title": "Dudu Scanner",
+    "subtitle": "Pick a theme, choose a character, and get ready for a silly belly-scan reveal.",
+    "themesHeading": "Scan theme",
+    "targetsHeading": "Scan target",
+    "soundLabel": "Sound effects",
+    "soundDescription": "Soft scanner tones and gentle reveal cues when scanning starts.",
+    "shortcutsHeading": "Operator shortcuts",
+    "shortcutsHint": "These keys work during the scan. Keep this list handy before you go live.",
+    "startScan": "Start scan",
+    "disclaimer": "For entertainment only — not a medical device.",
+    "themes": {
+      "snackScan": "Snack Scan",
+      "tummyCreatures": "Tummy Creatures"
+    },
+    "targets": {
+      "frySprite": "Fry Sprite",
+      "candyCritter": "Candy Critter",
+      "bobaBubbles": "Boba Bubbles",
+      "sleepyBug": "Sleepy Bug",
+      "rumbleMonster": "Rumble Monster",
+      "riceBallSprite": "Rice Ball Sprite"
+    },
+    "shortcuts": {
+      "space": "Pause or resume scanning",
+      "one": "Reveal the target",
+      "enter": "Lock the signal",
+      "r": "Restart the scan",
+      "m": "Toggle sound",
+      "x": "Hide the target",
+      "esc": "Exit fullscreen",
+      "f": "Try fullscreen again"
     }
   }
 }
