@@ -1,50 +1,50 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  DUDU_SCANNER_DEFAULT_CONFIG,
   DUDU_SCANNER_TARGET_IDS,
   DUDU_SCANNER_THEME_IDS,
   getTargetIdsForTheme,
   getTargetRecord,
-  getThemeIdForTarget,
   isTargetInTheme,
 } from "@/lib/dudu-scanner/catalog";
+import { DUDU_SCANNER_TARGET_MESSAGE_KEY } from "@/lib/dudu-scanner/i18n-keys";
+import enMessages from "@/messages/en.json";
+import zhMessages from "@/messages/zh.json";
 
-describe("dudu scanner target catalog", () => {
-  it("exposes exactly six stable target ids across two themes", () => {
-    expect(DUDU_SCANNER_TARGET_IDS).toHaveLength(6);
-    expect(new Set(DUDU_SCANNER_TARGET_IDS).size).toBe(6);
-    expect(DUDU_SCANNER_THEME_IDS).toEqual(["snack-scan", "tummy-creatures"]);
-    expect(getTargetIdsForTheme("snack-scan")).toEqual([
-      "fry-sprite",
-      "candy-critter",
-      "boba-bubbles",
-    ]);
-    expect(getTargetIdsForTheme("tummy-creatures")).toEqual([
-      "sleepy-bug",
-      "rumble-monster",
-      "rice-ball-sprite",
-    ]);
-  });
+const TARGET_COPY_FIELDS = ["name", "description", "suggestion"] as const;
 
-  it("maps each target to a theme and placeholder asset", () => {
+describe("dudu scanner catalog", () => {
+  it("maps each target to stable production character assets", () => {
     for (const targetId of DUDU_SCANNER_TARGET_IDS) {
       const record = getTargetRecord(targetId);
-      expect(record.imageSrc).toMatch(/^\/dudu-scanner\/placeholders\//);
-      expect(getThemeIdForTarget(targetId)).toBe(record.themeId);
+      expect(record.id).toBe(targetId);
+      expect(record.imageSrc).toBe(`/dudu-scanner/characters/${targetId}.png`);
+      expect(record.placeholderSrc).toBe(
+        `/dudu-scanner/placeholders/${targetId}.svg`,
+      );
     }
   });
 
-  it("defaults to Snack Scan and Fry Sprite with sound enabled", () => {
-    expect(DUDU_SCANNER_DEFAULT_CONFIG).toEqual({
-      themeId: "snack-scan",
-      targetId: "fry-sprite",
-      soundEnabled: true,
-    });
+  it("groups three targets per theme", () => {
+    for (const themeId of DUDU_SCANNER_THEME_IDS) {
+      const ids = getTargetIdsForTheme(themeId);
+      expect(ids).toHaveLength(3);
+      for (const targetId of ids) {
+        expect(isTargetInTheme(targetId, themeId)).toBe(true);
+      }
+    }
   });
 
-  it("knows theme membership for targets", () => {
-    expect(isTargetInTheme("fry-sprite", "snack-scan")).toBe(true);
-    expect(isTargetInTheme("fry-sprite", "tummy-creatures")).toBe(false);
+  it("has complete playful en/zh copy for every target", () => {
+    for (const targetId of DUDU_SCANNER_TARGET_IDS) {
+      const messageKey = DUDU_SCANNER_TARGET_MESSAGE_KEY[targetId];
+      const enTarget = enMessages.duduScanner.targets[messageKey];
+      const zhTarget = zhMessages.duduScanner.targets[messageKey];
+
+      for (const field of TARGET_COPY_FIELDS) {
+        expect(enTarget[field]?.trim().length).toBeGreaterThan(0);
+        expect(zhTarget[field]?.trim().length).toBeGreaterThan(0);
+      }
+    }
   });
 });

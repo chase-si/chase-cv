@@ -30,6 +30,18 @@ describe("DuduScannerApp controls", () => {
   beforeEach(() => {
     window.localStorage.clear();
     window.sessionStorage.clear();
+    class OkImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      decode = vi.fn().mockResolvedValue(undefined);
+
+      set src(_value: string) {
+        queueMicrotask(() => {
+          this.onload?.();
+        });
+      }
+    }
+    vi.stubGlobal("Image", OkImage as unknown as typeof Image);
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
       return window.setTimeout(() => callback(performance.now()), 0) as unknown as number;
     });
@@ -131,5 +143,31 @@ describe("DuduScannerApp controls", () => {
     expect(screen.getByRole("button", { name: "Tummy Creatures", pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Rumble Monster", pressed: true })).toBeInTheDocument();
     expect(window.sessionStorage.getItem("dudu-scanner-immersive-v1")).toBeNull();
+  });
+
+  it("keeps the selection and uses the shared silhouette when preload fails", async () => {
+    class FailImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+
+      set src(_value: string) {
+        queueMicrotask(() => {
+          this.onerror?.();
+        });
+      }
+    }
+
+    vi.stubGlobal("Image", FailImage as unknown as typeof Image);
+
+    renderApp();
+    await startScan();
+    fireEvent.keyDown(window, { key: "1" });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("dudu-scanner-target-preview")).toBeInTheDocument();
+    });
+
+    const preview = screen.getByTestId("dudu-scanner-target-preview").querySelector("img");
+    expect(preview).toHaveAttribute("src", "/dudu-scanner/placeholders/fry-sprite.svg");
   });
 });

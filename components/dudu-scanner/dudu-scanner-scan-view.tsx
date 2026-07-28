@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { DuduScannerFanCanvas } from "@/components/dudu-scanner/dudu-scanner-fan-canvas";
-import { getTargetRecord, type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
+import { type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
 import {
   DUDU_SCANNER_SHORTCUT_KEYS,
   DUDU_SCANNER_SHORTCUT_LABEL,
@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 
 type DuduScannerScanViewProps = {
   targetId: DuduScannerTargetId;
+  targetImageSrc: string;
   targetRevealed: boolean;
   revealProgress: number;
   locking: boolean;
@@ -48,6 +49,7 @@ const initialMetrics: ScannerVisualMetrics = {
 
 export function DuduScannerScanView({
   targetId,
+  targetImageSrc,
   targetRevealed,
   revealProgress,
   locking,
@@ -56,7 +58,6 @@ export function DuduScannerScanView({
   statusKey,
 }: DuduScannerScanViewProps) {
   const t = useTranslations("duduScanner");
-  const { imageSrc } = getTargetRecord(targetId);
   const showTarget = targetRevealed || revealProgress > 0;
   const placementSeed = useMemo(() => hashTargetSeed(targetId), [targetId]);
   const [metrics, setMetrics] = useState<ScannerVisualMetrics>(initialMetrics);
@@ -111,7 +112,7 @@ export function DuduScannerScanView({
           revealProgress={revealProgress}
           locking={locking}
           placementSeed={placementSeed}
-          targetImageSrc={imageSrc}
+          targetImageSrc={targetImageSrc}
           hideCursor
           className="min-h-[220px] lg:min-h-0"
           onMetricsChange={(next) => {
@@ -131,7 +132,7 @@ export function DuduScannerScanView({
               style={{ opacity: Math.max(0.15, revealProgress) }}
             >
               <Image
-                src={imageSrc}
+                src={targetImageSrc}
                 alt=""
                 width={120}
                 height={120}

@@ -4,22 +4,23 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
-import { getTargetRecord, type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
+import { type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
 import { DUDU_SCANNER_TARGET_MESSAGE_KEY } from "@/lib/dudu-scanner/i18n-keys";
 
 type DuduScannerResultViewProps = {
   targetId: DuduScannerTargetId;
+  targetImageSrc: string;
   onScanAgain: () => void;
   onChangeTarget: () => void;
 };
 
 export function DuduScannerResultView({
   targetId,
+  targetImageSrc,
   onScanAgain,
   onChangeTarget,
 }: DuduScannerResultViewProps) {
   const t = useTranslations("duduScanner");
-  const { imageSrc } = getTargetRecord(targetId);
   const targetMessageKey = DUDU_SCANNER_TARGET_MESSAGE_KEY[targetId];
 
   return (
@@ -38,7 +39,7 @@ export function DuduScannerResultView({
       <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-8 py-6 shadow-xs">
         <div className="relative flex size-40 items-center justify-center rounded-2xl border border-primary/30 bg-muted/30">
           <Image
-            src={imageSrc}
+            src={targetImageSrc}
             alt=""
             width={140}
             height={140}
@@ -46,7 +47,15 @@ export function DuduScannerResultView({
             data-testid="dudu-scanner-result-target"
           />
         </div>
-        <p className="text-lg font-medium text-foreground">{t(`targets.${targetMessageKey}`)}</p>
+        <p className="text-lg font-medium text-foreground">
+          {t(`targets.${targetMessageKey}.name`)}
+        </p>
+        <p className="max-w-sm text-sm text-muted-foreground">
+          {t(`targets.${targetMessageKey}.description`)}
+        </p>
+        <p className="max-w-sm text-sm font-medium text-foreground">
+          {t(`targets.${targetMessageKey}.suggestion`)}
+        </p>
       </div>
 
       <p className="text-sm text-muted-foreground">{t("disclaimer")}</p>

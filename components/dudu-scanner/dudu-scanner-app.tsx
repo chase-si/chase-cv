@@ -28,6 +28,11 @@ import {
   type DuduScannerDomainCommand,
 } from "@/lib/dudu-scanner/scanner-commands";
 import { useDuduScannerConfig } from "@/lib/dudu-scanner/use-dudu-scanner-config";
+import { getTargetRecord, type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
+import {
+  preloadTargetImage,
+  resolveTargetDisplaySrc,
+} from "@/lib/dudu-scanner/target-asset";
 import { cn } from "@/lib/utils";
 
 function playScannerChime(enabled: boolean) {
@@ -81,7 +86,12 @@ export function DuduScannerApp() {
   const { config, setSoundEnabled } = useDuduScannerConfig();
   const [round, dispatch] = useReducer(duduScannerRoundReducer, undefined, createInitialRoundState);
   const [revealProgress, setRevealProgress] = useState(0);
+  const [roundUseFallback, setRoundUseFallback] = useState(false);
+  const [failedPreloadTargetId, setFailedPreloadTargetId] =
+    useState<DuduScannerTargetId | null>(null);
   const immersive = round.phase === "scan" || round.phase === "result";
+  const assetLoadWarning = failedPreloadTargetId === config.targetId;
+  const roundTargetImageSrc = resolveTargetDisplaySrc(config.targetId, roundUseFallback);
 
   const attemptFullscreen = useCallback(async () => {
     const ok = await requestAppFullscreen(rootRef.current);
@@ -112,6 +122,10 @@ export function DuduScannerApp() {
 
   const handleStartScan = useCallback(async () => {
     resetRevealProgress();
+    const { imageSrc } = getTargetRecord(config.targetId);
+    const loaded = await preloadTargetImage(imageSrc);
+    setRoundUseFallback(!loaded);
+    setFailedPreloadTargetId(loaded ? null : config.targetId);
     dispatch({ type: "START_SCAN" });
     enterImmersiveHistory();
     const ok = await requestAppFullscreen(rootRef.current);
@@ -119,18 +133,24 @@ export function DuduScannerApp() {
       dispatch({ type: "FULLSCREEN_UNAVAILABLE" });
     }
     playScannerChime(config.soundEnabled);
-  }, [config.soundEnabled, enterImmersiveHistory, resetRevealProgress]);
+  }, [config.soundEnabled, config.targetId, enterImmersiveHistory, resetRevealProgress]);
 
   const handleScanAgain = useCallback(async () => {
+    const { imageSrc } = getTargetRecord(config.targetId);
+    const loaded = await preloadTargetImage(imageSrc);
+    setRoundUseFallback(!loaded);
+    setFailedPreloadTargetId(loaded ? null : config.targetId);
     dispatch({ type: "SCAN_AGAIN" });
     resetRevealProgress();
     await requestAppFullscreen(rootRef.current);
     playScannerChime(config.soundEnabled);
-  }, [config.soundEnabled, resetRevealProgress]);
+  }, [config.soundEnabled, config.targetId, resetRevealProgress]);
 
   const handleChangeTarget = useCallback(async () => {
     dispatch({ type: "CHANGE_TARGET" });
     resetRevealProgress();
+    setRoundUseFallback(false);
+    setFailedPreloadTargetId(null);
     leaveImmersiveHistory();
     await exitAppFullscreen();
   }, [leaveImmersiveHistory, resetRevealProgress]);
@@ -304,10 +324,16 @@ export function DuduScannerApp() {
         immersive && "fixed inset-0 z-50 overflow-hidden bg-background",
       )}
     >
-      {round.phase === "config" ? <DuduScannerConfigShell onStartScan={handleStartScan} /> : null}
+      {round.phase === "config" ? (
+        <DuduScannerConfigShell
+          onStartScan={handleStartScan}
+          assetLoadWarning={assetLoadWarning}
+        />
+      ) : null}
       {round.phase === "scan" ? (
         <DuduScannerScanView
           targetId={config.targetId}
+          targetImageSrc={roundTargetImageSrc}
           targetRevealed={round.scan.targetRevealed}
           revealProgress={effectiveRevealProgress}
           locking={round.scan.locking}
@@ -319,6 +345,7 @@ export function DuduScannerApp() {
       {round.phase === "result" ? (
         <DuduScannerResultView
           targetId={config.targetId}
+          targetImageSrc={roundTargetImageSrc}
           onScanAgain={() => void handleScanAgain()}
           onChangeTarget={() => void handleChangeTarget()}
         />

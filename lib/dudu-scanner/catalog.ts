@@ -16,39 +16,56 @@ export type DuduScannerTargetId = (typeof DUDU_SCANNER_TARGET_IDS)[number];
 export type DuduScannerTargetRecord = {
   id: DuduScannerTargetId;
   themeId: DuduScannerThemeId;
+  /** Production transparent PNG for previews and scan reveals. */
   imageSrc: string;
+  /** Per-target vector silhouette used in catalog metadata. */
+  placeholderSrc: string;
 };
+
+function characterAssetPath(targetId: DuduScannerTargetId) {
+  return `/dudu-scanner/characters/${targetId}.png`;
+}
+
+function placeholderAssetPath(targetId: DuduScannerTargetId) {
+  return `/dudu-scanner/placeholders/${targetId}.svg`;
+}
 
 const TARGETS: Record<DuduScannerTargetId, DuduScannerTargetRecord> = {
   "fry-sprite": {
     id: "fry-sprite",
     themeId: "snack-scan",
-    imageSrc: "/dudu-scanner/placeholders/fry-sprite.svg",
+    imageSrc: characterAssetPath("fry-sprite"),
+    placeholderSrc: placeholderAssetPath("fry-sprite"),
   },
   "candy-critter": {
     id: "candy-critter",
     themeId: "snack-scan",
-    imageSrc: "/dudu-scanner/placeholders/candy-critter.svg",
+    imageSrc: characterAssetPath("candy-critter"),
+    placeholderSrc: placeholderAssetPath("candy-critter"),
   },
   "boba-bubbles": {
     id: "boba-bubbles",
     themeId: "snack-scan",
-    imageSrc: "/dudu-scanner/placeholders/boba-bubbles.svg",
+    imageSrc: characterAssetPath("boba-bubbles"),
+    placeholderSrc: placeholderAssetPath("boba-bubbles"),
   },
   "sleepy-bug": {
     id: "sleepy-bug",
     themeId: "tummy-creatures",
-    imageSrc: "/dudu-scanner/placeholders/sleepy-bug.svg",
+    imageSrc: characterAssetPath("sleepy-bug"),
+    placeholderSrc: placeholderAssetPath("sleepy-bug"),
   },
   "rumble-monster": {
     id: "rumble-monster",
     themeId: "tummy-creatures",
-    imageSrc: "/dudu-scanner/placeholders/rumble-monster.svg",
+    imageSrc: characterAssetPath("rumble-monster"),
+    placeholderSrc: placeholderAssetPath("rumble-monster"),
   },
   "rice-ball-sprite": {
     id: "rice-ball-sprite",
     themeId: "tummy-creatures",
-    imageSrc: "/dudu-scanner/placeholders/rice-ball-sprite.svg",
+    imageSrc: characterAssetPath("rice-ball-sprite"),
+    placeholderSrc: placeholderAssetPath("rice-ball-sprite"),
   },
 };
 
