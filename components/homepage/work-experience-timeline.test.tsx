@@ -78,6 +78,8 @@ describe("HomepageWorkExperienceTimeline", () => {
     expect(
       within(section).getByText("约 8 年 Web、桌面与移动端产品交付；按雇主归纳，项目卡以截图佐证。"),
     ).toBeInTheDocument();
+    expect(within(section).getByText("一段由真实交付构筑的职业旅程。")).toBeInTheDocument();
+    expect(within(section).getByText("项目实证 / 滚动浏览")).toBeInTheDocument();
   });
 
   it("does not include fabricated employers, date ranges, or metric-style achievements", () => {

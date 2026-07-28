@@ -46,6 +46,14 @@ export const homepageWorkExperienceContent = {
       en: "Eight years of shipping web, desktop, and mobile product work—summarized by employer with project evidence on the cards.",
       zh: "约 8 年 Web、桌面与移动端产品交付；按雇主归纳，项目卡以截图佐证。",
     },
+    archiveStatement: {
+      en: "A career built in shipped interfaces.",
+      zh: "一段由真实交付构筑的职业旅程。",
+    },
+    projectEvidenceLabel: {
+      en: "Project evidence / scroll to explore",
+      zh: "项目实证 / 滚动浏览",
+    },
     fields: {
       period: { en: "Period", zh: "时间段" },
       role: { en: "Role", zh: "角色" },
@@ -158,7 +166,7 @@ export const homepageWorkExperienceContent = {
           title: { en: "Systems architecture", zh: "系统架构" },
           blurb: {
             en: "Architecture reference for ChuTian and ZhongJi flow-chart control projects.",
-            zh: "楚天、中集流程图控制项目的架构参考。",
+            zh: "楚天、中机流程图控制项目的架构参考。",
           },
         },
         {
@@ -182,7 +190,7 @@ export const homepageWorkExperienceContent = {
         {
           id: "red-creation-flow-zhongji-demo",
           image: "/imgs/work-experience/red-creation/flow-zhongji-demo.png",
-          title: { en: "ZhongJi flow chart", zh: "中集流程图" },
+          title: { en: "ZhongJi flow chart", zh: "中机流程图" },
           blurb: {
             en: "Flow-chart interactions for industrial equipment control.",
             zh: "工业设备控制场景的流程图交互。",
@@ -256,6 +264,8 @@ export const homepageWorkExperienceContent = {
   section: {
     sectionAria: LocalizedString;
     supportingLine: LocalizedString;
+    archiveStatement: LocalizedString;
+    projectEvidenceLabel: LocalizedString;
     fields: Record<"period" | "role" | "scope" | "outcomes", LocalizedString>;
   };
   entries: readonly WorkExperienceEntryContent[];

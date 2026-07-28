@@ -27,6 +27,8 @@ export type PatchedHomeExperienceMessages = {
   experience: {
     sectionAria: string;
     supportingLine: string;
+    archiveStatement: string;
+    projectEvidenceLabel: string;
     fields: {
       period: string;
       role: string;

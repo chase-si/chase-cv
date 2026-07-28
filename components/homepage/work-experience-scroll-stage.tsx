@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
+import { Card, CardContent } from "@/components/ui/card";
 import { useHomepageMotionCapabilities } from "@/hooks/use-homepage-motion-capabilities";
 import {
   HOMEPAGE_EXPERIENCE_S_PATH,
@@ -26,21 +27,21 @@ function ExperienceProjectCard({
   blurb,
   imageSrc,
   company,
-  className,
   testId,
+  containImage,
 }: {
   title: string;
   blurb: string;
   imageSrc: string;
   company: string;
-  className?: string;
   testId: string;
+  containImage: boolean;
 }) {
   return (
-    <div className={cn("min-w-0", className)}>
-      <article
+    <div className="min-w-0">
+      <Card
         data-testid={testId}
-        className="overflow-hidden rounded-3xl border-2 border-border bg-card shadow-[5px_5px_0_0] shadow-foreground/50"
+        className="gap-0 overflow-hidden rounded-[2rem] border-2 py-0 shadow-[8px_8px_0_0] shadow-foreground/45"
       >
         <div className="relative aspect-16/10 w-full border-b-2 border-border bg-muted/30">
           <Image
@@ -48,12 +49,18 @@ function ExperienceProjectCard({
             alt=""
             fill
             data-testid={`${testId}-image`}
-            className="object-cover object-top"
+            className={cn(
+              "object-center",
+              containImage ? "object-contain p-3 sm:p-4" : "object-cover",
+            )}
             sizes="(max-width: 768px) 100vw, 32rem"
           />
+          <span className="absolute top-3 left-3 rounded-full border border-border bg-background/90 px-3 py-1 font-mono text-[10px] font-bold backdrop-blur">
+            {company}
+          </span>
         </div>
-        <div className="p-4 sm:p-5">
-          <h3 className="text-lg font-black tracking-tight text-foreground">{title}</h3>
+        <CardContent className="p-5 sm:p-6">
+          <h3 className="text-xl font-black tracking-tight text-foreground">{title}</h3>
           <p
             data-testid={`${testId}-blurb`}
             data-field="blurb"
@@ -61,9 +68,8 @@ function ExperienceProjectCard({
           >
             {blurb}
           </p>
-        </div>
-      </article>
-      <p className="mt-1 font-mono text-[10px] text-muted-foreground">{company}</p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -122,10 +128,12 @@ function ExperienceCurveSvg({
   );
 }
 
-function StaticExperienceDetails({
+function ExperienceEntryDetails({
   entryId,
+  index,
 }: {
   entryId: HomepageWorkExperienceEntryId;
+  index: number;
 }) {
   const t = useTranslations("home");
   const fields = [
@@ -135,31 +143,59 @@ function StaticExperienceDetails({
   ];
 
   return (
-    <dl className="mt-3 grid gap-3 rounded-2xl border border-border bg-muted/20 p-4 text-sm">
-      {fields.map(({ key, label }) => (
-        <div key={key}>
-          <dt className="font-mono text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-            {label}
-          </dt>
-          <dd
-            data-testid={`work-experience-field-${key}`}
-            data-field={key}
-            className="mt-1 font-semibold leading-relaxed text-foreground"
-          >
-            {t(`experience.entries.${entryId}.${key}`)}
-          </dd>
-        </div>
-      ))}
-    </dl>
+    <article
+      data-testid={`work-experience-entry-${entryId}`}
+      data-timeline-entry={entryId}
+      className="min-w-0 border-l-2 border-border pl-4"
+    >
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="truncate text-base font-black tracking-tight">
+          {t(`experience.entries.${entryId}.company`)}
+        </p>
+        <span className="font-mono text-[10px] text-muted-foreground">0{index + 1}</span>
+      </div>
+      <dl className="mt-3 space-y-3">
+        {fields.map(({ key, label }) => (
+          <div key={key} className={cn(key === "scope" && "lg:hidden")}>
+            <dt className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              {label}
+            </dt>
+            <dd
+              data-testid={`work-experience-field-${key}`}
+              data-field={key}
+              className={cn(
+                "mt-1 font-semibold text-foreground",
+                key === "scope" ? "text-xs leading-relaxed" : "text-sm",
+              )}
+            >
+              {t(`experience.entries.${entryId}.${key}`)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </article>
   );
 }
 
+function ExperienceIndex() {
+  return (
+    <div className="space-y-4">
+      {homepageWorkExperienceEntryIds.map((entryId, index) => (
+        <ExperienceEntryDetails key={entryId} entryId={entryId} index={index} />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Editorial archive layout selected from the homepage work-experience exploration:
+ * it keeps career context, the drawn timeline, and project evidence visible together.
+ */
 export function WorkExperienceScrollStage() {
   const t = useTranslations("home");
   const scopeRef = useRef<HTMLDivElement>(null);
   const pinRef = useRef<HTMLElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
-  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [pathNodes, setPathNodes] = useState<ExperiencePathNode[]>([]);
   const { animate: motionEnabled } = useHomepageMotionCapabilities();
 
@@ -176,11 +212,7 @@ export function WorkExperienceScrollStage() {
     let globalIndex = 0;
     for (const entryId of homepageWorkExperienceEntryIds) {
       for (const projectId of homepageWorkExperienceProjectIds[entryId]) {
-        items.push({
-          entryId,
-          projectId,
-          globalIndex,
-        });
+        items.push({ entryId, projectId, globalIndex });
         globalIndex += 1;
       }
     }
@@ -204,110 +236,110 @@ export function WorkExperienceScrollStage() {
       return;
     }
 
+    const projectCards = new Map<string, HTMLDivElement>();
+    scope.querySelectorAll<HTMLDivElement>("[data-experience-project]").forEach((node) => {
+      const projectId = node.dataset.experienceProject;
+      if (projectId) {
+        projectCards.set(projectId, node);
+      }
+    });
+
     return registerHomepageExperienceScroll({
       scope,
       pin,
       path,
-      cardRefs: cardRefs.current,
+      cardRefs: projectCards,
       flatProjects,
       onPathNodes: setPathNodes,
     });
   }, [flatProjects, motionEnabled]);
+
+  const cards = flatProjects.map(({ entryId, projectId, globalIndex }) => {
+    const card = (
+      <ExperienceProjectCard
+        testId={`work-experience-project-${projectId}`}
+        title={t(`experience.entries.${entryId}.projects.${projectId}.title`)}
+        blurb={t(`experience.entries.${entryId}.projects.${projectId}.blurb`)}
+        imageSrc={t(`experience.entries.${entryId}.projects.${projectId}.image`)}
+        company={t(`experience.entries.${entryId}.company`)}
+        containImage={projectId === "aladia-mobile"}
+      />
+    );
+
+    if (!motionEnabled) {
+      const pose = stackPoseForExperienceCard(projectId);
+      return (
+        <div
+          key={projectId}
+          className="relative"
+          style={{
+            transform: `translate(${pose.x}px, ${pose.y}px) rotate(${pose.rotation}deg)`,
+            zIndex: 10 + globalIndex,
+          }}
+        >
+          {card}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={projectId}
+        data-experience-project={projectId}
+        data-timeline-entry={entryId}
+        className="absolute inset-x-0 top-1/2 -translate-y-1/2 will-change-transform"
+      >
+        {card}
+      </div>
+    );
+  });
 
   return (
     <div ref={scopeRef} data-testid="work-experience-timeline" className="relative">
       <section
         ref={pinRef}
         className={cn(
-          motionEnabled && "min-h-[calc(100dvh-4rem)]",
           "flex flex-col justify-center",
+          motionEnabled && "min-h-[calc(100dvh-4rem)]",
         )}
       >
-        <div className="grid gap-8 md:grid-cols-2 md:items-center md:gap-10">
-          <div className="flex justify-center md:justify-start">
-            <ExperienceCurveSvg pathRef={pathRef} nodes={pathNodes} yearLabels={yearLabels} />
-          </div>
-
-          <div
-            className={cn(
-              "relative mx-auto w-full max-w-lg md:mx-0",
-              motionEnabled
-                ? "h-[min(42vh,22rem)] md:h-[min(52vh,28rem)]"
-                : "space-y-6",
-            )}
-          >
-            {flatProjects.map(({ entryId, projectId, globalIndex }) => {
-              const company = t(`experience.entries.${entryId}.company`);
-              const title = t(`experience.entries.${entryId}.projects.${projectId}.title`);
-              const blurb = t(`experience.entries.${entryId}.projects.${projectId}.blurb`);
-              const imageSrc = t(`experience.entries.${entryId}.projects.${projectId}.image`);
-              const testId = `work-experience-project-${projectId}`;
-
-              if (!motionEnabled) {
-                const pose = stackPoseForExperienceCard(projectId);
-                return (
-                  <div
-                    key={projectId}
-                    className="relative"
-                    style={{
-                      transform: `translate(${pose.x}px, ${pose.y}px) rotate(${pose.rotation}deg)`,
-                      zIndex: 10 + globalIndex,
-                    }}
-                  >
-                    <ExperienceProjectCard
-                      testId={testId}
-                      title={title}
-                      blurb={blurb}
-                      imageSrc={imageSrc}
-                      company={company}
-                    />
-                  </div>
-                );
-              }
-
-              return (
-                <div
-                  key={projectId}
-                  ref={(node) => {
-                    if (node) {
-                      cardRefs.current.set(projectId, node);
-                    } else {
-                      cardRefs.current.delete(projectId);
-                    }
-                  }}
-                  data-timeline-entry={entryId}
-                  className="absolute inset-x-0 top-8 will-change-transform"
-                >
-                  <ExperienceProjectCard
-                    testId={testId}
-                    title={title}
-                    blurb={blurb}
-                    imageSrc={imageSrc}
-                    company={company}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {!motionEnabled ? (
-          <div className="mt-10 space-y-8">
-            {homepageWorkExperienceEntryIds.map((entryId) => (
-              <div key={entryId} data-testid={`work-experience-entry-${entryId}`} data-timeline-entry={entryId}>
-                <StaticExperienceDetails entryId={entryId} />
+        <Card className="gap-0 rounded-[2rem] border-2 py-0 shadow-[10px_10px_0_0] shadow-foreground/45">
+          <div className="grid min-h-0 lg:grid-cols-[minmax(14rem,0.65fr)_minmax(9rem,0.45fr)_minmax(0,1.35fr)]">
+            <aside className="order-2 border-t-2 border-border bg-muted/15 p-5 lg:order-1 lg:border-t-0 lg:border-r-2 lg:p-7">
+              <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-primary">
+                2018 — 2026
+              </p>
+              <p className="mt-3 text-2xl font-black tracking-[-0.04em]">
+                {t("experience.archiveStatement")}
+              </p>
+              <div className="mt-8">
+                <ExperienceIndex />
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="sr-only">
-            {homepageWorkExperienceEntryIds.map((entryId) => (
-              <div key={entryId} data-testid={`work-experience-entry-${entryId}`} data-timeline-entry={entryId}>
-                <StaticExperienceDetails entryId={entryId} />
+            </aside>
+
+            <div className="order-1 hidden items-center justify-center border-r-2 border-border bg-background lg:flex">
+              <ExperienceCurveSvg
+                pathRef={pathRef}
+                nodes={pathNodes}
+                yearLabels={yearLabels}
+              />
+            </div>
+
+            <div className="order-3 p-4 sm:p-7">
+              <p className="relative z-40 mb-5 inline-flex min-h-7 items-center rounded-full border border-border bg-background/90 px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-foreground shadow-xs backdrop-blur">
+                {t("experience.projectEvidenceLabel")}
+              </p>
+              <div
+                className={cn(
+                  "relative mx-auto w-full max-w-2xl",
+                  motionEnabled ? "h-[min(52vh,30rem)]" : "space-y-6",
+                )}
+              >
+                {cards}
               </div>
-            ))}
+            </div>
           </div>
-        )}
+        </Card>
       </section>
     </div>
   );

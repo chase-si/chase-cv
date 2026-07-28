@@ -56,6 +56,8 @@ export function patchHomeMessagesWithWorkExperience<M extends JsonMessages>(
       experience: {
         sectionAria: pick(locale, section.sectionAria),
         supportingLine: pick(locale, section.supportingLine),
+        archiveStatement: pick(locale, section.archiveStatement),
+        projectEvidenceLabel: pick(locale, section.projectEvidenceLabel),
         fields: {
           period: pick(locale, section.fields.period),
           role: pick(locale, section.fields.role),

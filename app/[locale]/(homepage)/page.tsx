@@ -1,4 +1,4 @@
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { setRequestLocale } from "next-intl/server";
 
 import { HomepageContact } from "@/components/homepage/homepage-contact";
 import { HomepageHero } from "@/components/homepage/hero";

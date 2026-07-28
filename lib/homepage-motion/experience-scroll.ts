@@ -55,7 +55,7 @@ export function stackPoseForExperienceCard(
 }
 
 function cardRevealThreshold(globalIndex: number, total: number) {
-  return (globalIndex + 1) / (total + 1);
+  return globalIndex / total;
 }
 
 export function targetVisibleExperienceCardCount(progress: number, total: number) {
@@ -202,6 +202,7 @@ export function registerHomepageExperienceScroll({
       }
     });
     displayedCountRef.current = 0;
+    syncStackToTarget(targetVisibleExperienceCardCount(0, totalCards));
 
     ScrollTrigger.create({
       trigger: pin,
