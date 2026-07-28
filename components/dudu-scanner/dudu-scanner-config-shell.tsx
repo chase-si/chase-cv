@@ -21,7 +21,7 @@ import {
 import { useDuduScannerConfig } from "@/lib/dudu-scanner/use-dudu-scanner-config";
 import { cn } from "@/lib/utils";
 
-export function DuduScannerConfigShell() {
+export function DuduScannerConfigShell({ onStartScan }: { onStartScan?: () => void }) {
   const t = useTranslations("duduScanner");
   const { config, setThemeId, setTargetId, setSoundEnabled } = useDuduScannerConfig();
   const visibleTargets = getTargetIdsForTheme(config.themeId);
@@ -140,7 +140,7 @@ export function DuduScannerConfigShell() {
       <Card className="overflow-hidden">
         <CardContent className="flex flex-col items-center gap-4 py-8 text-center sm:flex-row sm:justify-between sm:text-left">
           <p className="text-sm text-muted-foreground">{t("disclaimer")}</p>
-          <Button type="button" size="lg">
+          <Button type="button" size="lg" onClick={onStartScan}>
             {t("startScan")}
           </Button>
         </CardContent>

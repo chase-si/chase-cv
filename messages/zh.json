@@ -437,6 +437,25 @@
       "x": "隐藏目标",
       "esc": "退出全屏",
       "f": "再次尝试全屏"
+    },
+    "scan": {
+      "hudLabel": "扫描仪",
+      "hudHint": "扇形光束已锁定，留意肚皮波段。",
+      "targetHidden": "屏幕上还没有目标。",
+      "noSignal": "没有可锁定的信号——请先按 1 显示目标。",
+      "fullscreenHint": "无法进入全屏——按 F 可再试一次。",
+      "status": {
+        "scanning": "扫描中…",
+        "signalDetected": "已检测到信号",
+        "locking": "正在锁定画面…"
+      }
+    },
+    "result": {
+      "eyebrow": "扫描完成",
+      "title": "目标已锁定！",
+      "body": "肚肚扫描找到了你选的角色。要再来一轮吗？",
+      "scanAgain": "再扫一次",
+      "changeTarget": "更换目标"
     }
   }
 }
