@@ -11,7 +11,7 @@ test.describe("image-to-ui themed preview e2e", () => {
     const selectedSwatches = await preparePreviewStep(page);
 
     await expect(page).toHaveURL(/\/image-to-ui$/);
-    await expect(page.getByLabel("Tool steps")).toContainText("Render interface");
+    await expect(page.getByLabel("Tool steps")).toContainText("Generate interface preview");
     await expect(page.getByTestId("render-input-summary")).toBeVisible();
     await expect(page.getByTestId("saas-preview-surface")).toBeVisible();
     await expect(
@@ -61,7 +61,7 @@ test.describe("image-to-ui themed preview e2e", () => {
     await page.getByTestId("render-back-to-edit").click();
 
     await expect(page).toHaveURL(/\/image-to-ui$/);
-    await expect(page.getByLabel("Tool steps")).toContainText("Choose image and colors");
+    await expect(page.getByLabel("Tool steps")).toContainText("Choose painting and colors");
     await expect(page.locator(`[data-sample-id="${SAMPLE_IMAGE_ID}"]`)).toHaveAttribute("aria-pressed", "true");
 
     for (let index = 0; index < selectedSwatches.length; index += 1) {

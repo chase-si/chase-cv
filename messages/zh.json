@@ -17,6 +17,10 @@
       "title": "流程编辑器 | Chase's CV",
       "description": "可视化查看与编辑 SFC 流程结构的实验工具。"
     },
+    "duduScanner": {
+      "title": "肚肚扫描仪 | Chase's CV",
+      "description": "亲子向的趣味肚肚扫描控制台：先选好主题、角色和声音，再开始现场表演。"
+    },
     "notFound": {
       "title": "页面未找到 | Chase's CV",
       "description": "你正在查找的页面不存在。"
@@ -24,8 +28,26 @@
   },
   "siteNav": {
     "logoAlt": "Chase",
-    "works": "作品",
-    "flowEditor": "流程编辑器",
+    "primaryAria": "主导航",
+    "mobileAria": "移动端导航",
+    "menu": "菜单",
+    "projects": {
+      "label": "游乐场",
+      "items": {
+        "magicCursor": {
+          "name": "Magic Cursor",
+          "description": "探索可配置的鼠标特效。"
+        },
+        "imageToUi": {
+          "name": "Image to UI",
+          "description": "把名画配色变成界面主题。"
+        },
+        "flowEditor": {
+          "name": "Flow Editor",
+          "description": "可视化编辑结构化流程。"
+        }
+      }
+    },
     "blog": "博客",
     "github": "GitHub",
     "languageLabel": "切换语言"
@@ -34,31 +56,125 @@
     "english": "EN",
     "chinese": "中文"
   },
+  "flowEditor": {
+    "title": "流程编辑器",
+    "description": "查看并编辑 SFC 流程结构的可视化草稿；使用左侧工具栏缩放画布并增删分支与顺序步。",
+    "toolbarAria": "流程编辑器工具栏",
+    "canvasAria": "流程图画布",
+    "propertiesAria": "节点属性",
+    "demo": {
+      "dirty": "已修改",
+      "reset": "重置示例",
+      "runningHighlight": "运行态高亮"
+    },
+    "toolbar": {
+      "title": "编辑工具",
+      "zoomHeading": "画布缩放",
+      "zoomOut": "缩小",
+      "zoomIn": "放大",
+      "zoomReset": "重置为 100%",
+      "nodeActions": "节点操作",
+      "selected": "已选：{id}",
+      "selectionHint": "选择节点后进行编辑",
+      "selectAlert": "请先在画布中选择节点",
+      "addStep": "增加顺序步",
+      "addBranch": "增加分支",
+      "expandBranch": "扩展分支",
+      "deleteNode": "删除节点"
+    },
+    "properties": {
+      "title": "属性",
+      "description": "选中节点后在此编辑参数",
+      "emptyTitle": "尚未选中节点",
+      "emptyDescription": "在画布中选择节点后，可在这里查看和编辑属性。",
+      "cancelSelection": "取消选择",
+      "id": "ID",
+      "number": "编号",
+      "descriptionLabel": "描述",
+      "expression": "条件表达式",
+      "type": "类型",
+      "branchCount": "分支数",
+      "conditionNode": "条件节点",
+      "parallelNode": "并行节点",
+      "endNode": "结束节点",
+      "structuralHelp": "在画布中选中该节点后，可使用工具栏「扩展分支」查看并编辑各分支内的子节点。",
+      "structuralReadonly": "此节点为结构节点，属性只读。"
+    },
+    "feedback": {
+      "selectNode": "请先在流程图中选中一个节点",
+      "zoomMax": "已达到最大缩放 200%",
+      "zoomMin": "已达到最小缩放 50%",
+      "addStepError": "增加顺序步失败",
+      "addBranchError": "增加分支失败",
+      "expandBranchError": "扩展分支失败",
+      "deleteError": "当前节点不可删除"
+    },
+    "dialog": {
+      "deleteTitle": "删除所选节点？",
+      "resetTitle": "重置示例？",
+      "deleteDescription": "节点 {id} 将从流程中移除，此操作无法撤销。",
+      "resetDescription": "当前流程包含尚未保留的修改。重置后将恢复示例内容，此操作无法撤销。",
+      "confirmDelete": "确认删除",
+      "confirmReset": "确认重置"
+    }
+  },
   "themeToggle": {
     "toLight": "切换为浅色",
     "toDark": "切换为深色"
   },
   "home": {
-    "eyebrow": "以「影子」做视觉语言的个人主页",
-    "headlinePrefix": "把",
-    "headlineHighlight": "shadow",
-    "headlineSuffix": "变成你的品牌质感",
-    "intro": "我是 Chase，专注把产品做得更「顺滑」：更清晰的信息层级、更克制的动效、更舒服的阴影与空间感。这里会展示我的项目、经历与思考。",
-    "primaryCta": "看看作品",
-    "secondaryCta": "了解我",
-    "stack": "Next.js · Tailwind · shadcn",
-    "nowLabel": "现在在做",
-    "nowValue": "个人作品集 + Supabase 登录/数据",
-    "focusLabel": "我关注",
-    "focusValue": "视觉一致性 · 交互节奏 · 组件化",
-    "expectLabel": "你可以期待",
-    "expectValue": "一个更像「产品」的简历首页",
-    "workTitle": "作品",
-    "workDescription": "这里先占位，后续我可以把你的项目卡片做成同一套 shadow 体系。",
-    "aboutTitle": "关于",
-    "aboutDescription": "这里先占位，后续可以补充经历、技能栈、时间线等模块。",
-    "contactTitle": "联系",
-    "contactDescription": "这里先占位，后续可以放邮箱/微信/表单。"
+    "eyebrow": "Brutalist Product Lab",
+    "introLeadPrefix": "我是 ",
+    "introLeadName": "Chase",
+    "introLeadSuffix": "，一名从古法编程走来的程序员。",
+    "introPresent": "8 年工程经验，现在我用",
+    "introPresentDetailLead": "AI",
+    "introPresentDetailRest": " , 更好的coding。",
+    "primaryCta": "探索游乐场",
+    "secondaryCta": "工作经历",
+    "workbenchLabel": "混合工作台预览",
+    "projectsSectionTitle": "游乐场",
+    "projectsSectionAria": "游乐场",
+    "projects": {
+      "items": {
+        "imageToUi": {
+          "problem": "名画配色如何映射成可读的界面层级，而不是一堆好看的色块？",
+          "tag1": "配色映射",
+          "tag2": "实时预览",
+          "entry": "进入 Image to UI"
+        },
+        "magicCursor": {
+          "problem": "鼠标特效上线前，怎样在真实布局里试参数、看手感？",
+          "tag1": "交互实验",
+          "tag2": "可配置",
+          "entry": "进入 Magic Cursor"
+        },
+        "flowEditor": {
+          "problem": "结构化流程一复杂，树形关系就容易在脑子里打结。",
+          "tag1": "流程结构",
+          "tag2": "可视化编辑",
+          "entry": "进入 Flow Editor"
+        }
+      }
+    },
+    "contactTitle": "联系我",
+    "contact": {
+      "upwork": "upwork",
+      "channels": {
+        "email": {
+          "label": "邮件",
+          "action": "发送邮件"
+        },
+        "upwork": {
+          "label": "Upwork",
+          "action": "打开主页"
+        },
+        "github": {
+          "label": "GitHub",
+          "action": "查看仓库"
+        }
+      }
+    }
   },
   "notFound": {
     "title": "页面未找到",
@@ -68,6 +184,8 @@
   "magicCursor": {
     "title": "Magic Cursor",
     "description": "切换不同鼠标效果，并实时调参预览。",
+    "effectsTitle": "效果选择",
+    "effectsDescription": "选择要预览或配置的鼠标效果。",
     "effectLabel": "效果",
     "paramsLabel": "参数",
     "all": "All",
@@ -285,6 +403,106 @@
       "startTrial": "开始试用",
       "watchDemo": "观看演示",
       "featureAria": "产品功能亮点"
+    }
+  },
+  "duduScanner": {
+    "title": "肚肚扫描仪",
+    "subtitle": "选好主题和角色，调好声音，就可以开始好玩的肚肚扫描啦。",
+    "themesHeading": "扫描主题",
+    "targetsHeading": "扫描目标",
+    "soundLabel": "音效",
+    "soundDescription": "开始扫描后会有轻柔的扫描音和揭晓提示音。",
+    "shortcutsHeading": "操作者快捷键",
+    "shortcutsHint": "以下按键在扫描过程中可用，正式表演前可以先记一下。",
+    "startScan": "开始扫描",
+    "backToConfig": "返回设置",
+    "assetLoadWarning": "这个角色图没加载成功，扫描时会先用备用轮廓。可以换别的角色或稍后再试一次。",
+    "disclaimer": "仅供娱乐，非医疗工具。",
+    "themes": {
+      "snackScan": "零食扫描",
+      "tummyCreatures": "肚肚生物"
+    },
+    "targets": {
+      "frySprite": {
+        "name": "薯条精灵",
+        "description": "薯条精灵正在肚肚里找失踪的番茄酱。",
+        "suggestion": "今天给青菜也留一个位置吧。"
+      },
+      "candyCritter": {
+        "name": "糖果怪",
+        "description": "甜甜能量太多，正开心地转圈。",
+        "suggestion": "喝一点水，让它慢慢停下来。"
+      },
+      "bobaBubbles": {
+        "name": "奶茶泡泡",
+        "description": "圆滚滚的泡泡正在排队。",
+        "suggestion": "今天先让珍珠们放个假。"
+      },
+      "sleepyBug": {
+        "name": "瞌睡虫",
+        "description": "昨晚没睡够，它就在这里打哈欠。",
+        "suggestion": "今晚早点钻进被窝。"
+      },
+      "rumbleMonster": {
+        "name": "咕噜小怪兽",
+        "description": "它敲着小鼓提醒肚肚到饭点了。",
+        "suggestion": "按时吃饭，别让小鼓一直响。"
+      },
+      "riceBallSprite": {
+        "name": "饭团精灵",
+        "description": "它正在寻找认真吃饭的新朋友。",
+        "suggestion": "下一顿慢慢吃，它会更开心。"
+      }
+    },
+    "shortcuts": {
+      "space": "强制发现目标",
+      "enter": "锁定信号",
+      "r": "重新扫描",
+      "m": "切换声音",
+      "x": "隐藏目标",
+      "esc": "退出全屏",
+      "f": "再次尝试全屏"
+    },
+    "operatorBar": {
+      "label": "扫描控制",
+      "pauseResume": "暂停扫描",
+      "resume": "继续扫描",
+      "reveal": "强制发现",
+      "lock": "锁定信号",
+      "hide": "隐藏目标",
+      "reset": "重新扫描"
+    },
+    "scan": {
+      "hudLabel": "扫描仪",
+      "hudHint": "扇形光束已锁定，留意肚皮波段。",
+      "targetHidden": "屏幕上还没有目标。",
+      "noSignal": "没有可锁定的信号——请移动探头，或按空格强制发现。",
+      "fullscreenHint": "无法进入全屏——按 F 可再试一次。",
+      "doubleClickLockHint": "按 Enter 锁定；信号高于 90% 时，也可以双击目标锁定。",
+      "status": {
+        "initializing": "正在初始化扫描仪…",
+        "moveProbe": "移动探头寻找信号",
+        "probeOutside": "探头已离开扫描区域",
+        "signalWeak": "信号微弱——继续寻找",
+        "signalMedium": "信号正在增强",
+        "signalStrong": "信号强烈——请保持探头稳定",
+        "signalDetected": "已检测到信号",
+        "targetReady": "目标已显形——可以锁定",
+        "locking": "正在锁定画面…"
+      },
+      "hud": {
+        "signal": "信号",
+        "gain": "增益",
+        "frequency": "扫描频率",
+        "timestamp": "时间戳"
+      }
+    },
+    "result": {
+      "eyebrow": "扫描完成",
+      "title": "目标已锁定！",
+      "body": "肚肚扫描找到了你选的角色。要再来一轮吗？",
+      "scanAgain": "再扫一次",
+      "changeTarget": "更换目标"
     }
   }
 }

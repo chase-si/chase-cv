@@ -16,18 +16,30 @@ import {
 test.describe("flow editor e2e", () => {
   test("case 1: navigation opens the flow editor page", async ({ page }) => {
     await navigateToFlowEditorFromHome(page);
-    await expect(page.getByRole("heading", { level: 1, name: "流程编辑器" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Flow Editor" })).toBeVisible();
     await expect(flowCanvas(page).getByTestId("flow-read-only-surface")).toBeVisible();
     await expect(flowCanvas(page).getByTestId("flow-read-only-svg")).toBeVisible();
     await expect(flowProperties(page).getByTestId("flow-properties-empty")).toBeVisible();
-    await expect(flowProperties(page)).toContainText("尚未选中节点");
+    await expect(flowProperties(page)).toContainText("No node selected");
   });
 
   test("case 1b: Chinese locale route serves flow editor", async ({ page }) => {
     await openFlowEditorZh(page);
-    await expect(
-      page.getByRole("navigation").getByRole("button", { name: "流程编辑器" }),
-    ).toBeVisible();
+    const nav = page.getByRole("navigation", { name: "主导航" });
+
+    await nav.getByRole("button", { name: "游乐场" }).click();
+    await expect(nav.getByRole("menuitem", { name: /Flow Editor/ })).toBeVisible();
+  });
+
+  test("case 1c: language switch localizes the flow editor", async ({ page }) => {
+    await openFlowEditor(page);
+
+    await page.getByRole("button", { name: "中文" }).click();
+
+    await expect(page).toHaveURL(/\/zh\/flow$/);
+    await expect(page.getByRole("heading", { level: 1, name: "流程编辑器" })).toBeVisible();
+    await expect(flowToolbar(page).getByRole("button", { name: "增加顺序步" })).toBeVisible();
+    await expect(flowProperties(page)).toContainText("尚未选中节点");
   });
 
   test("case 2: select a demo step and edit its visible description", async ({ page }) => {
@@ -35,7 +47,7 @@ test.describe("flow editor e2e", () => {
 
     await selectFlowNode(page, DEMO_STEP_NODE_ID);
 
-    const descField = flowProperties(page).getByLabel("描述");
+    const descField = flowProperties(page).getByLabel("Description");
     await expect(descField).toHaveValue(DEMO_STEP_DESC);
 
     const editedDesc = "e2e-live-description";
@@ -54,7 +66,7 @@ test.describe("flow editor e2e", () => {
 
     await selectFlowNode(page, DEMO_TRANSFER_NODE_ID);
 
-    await flowToolbar(page).getByRole("button", { name: "增加顺序步" }).click();
+    await flowToolbar(page).getByRole("button", { name: "Add sequential step" }).click();
 
     const properties = flowProperties(page);
     await expect(properties.getByTestId("flow-properties-form")).toBeVisible();
@@ -67,7 +79,7 @@ test.describe("flow editor e2e", () => {
     expect(newNodeId).not.toBe(DEMO_TRANSFER_NODE_ID);
     await expect(properties).toContainText(newNodeId!);
 
-    const numberField = properties.getByLabel("编号");
+    const numberField = properties.getByLabel("Number");
     await expect(numberField).toBeEditable();
     const numberValue = await numberField.inputValue();
     expect(numberValue).toMatch(/^\d{3}$/);
@@ -76,7 +88,7 @@ test.describe("flow editor e2e", () => {
   test("case 4: running-state highlight toggle affects display only", async ({ page }) => {
     await openFlowEditor(page);
 
-    const highlightSwitch = page.getByRole("switch", { name: "运行态高亮" });
+    const highlightSwitch = page.getByRole("switch", { name: "Runtime highlight" });
     await highlightSwitch.click();
     await expect(highlightSwitch).toHaveAttribute("aria-checked", "true");
 
@@ -87,7 +99,7 @@ test.describe("flow editor e2e", () => {
     await selectFlowNode(page, DEMO_STEP_NODE_ID);
 
     const editedDesc = "highlight-edit-e2e";
-    await flowProperties(page).getByLabel("描述").fill(editedDesc);
+    await flowProperties(page).getByLabel("Description").fill(editedDesc);
 
     await expect(flowCanvas(page)).toContainText(editedDesc);
     await expect(
@@ -99,13 +111,17 @@ test.describe("flow editor e2e", () => {
     await openFlowEditor(page);
 
     await selectFlowNode(page, DEMO_STEP_NODE_ID);
-    await flowProperties(page).getByLabel("描述").fill("mutated-before-reset");
+    await flowProperties(page).getByLabel("Description").fill("mutated-before-reset");
 
-    const highlightSwitch = page.getByRole("switch", { name: "运行态高亮" });
+    const highlightSwitch = page.getByRole("switch", { name: "Runtime highlight" });
     await highlightSwitch.click();
     await expect(highlightSwitch).toHaveAttribute("aria-checked", "true");
 
     await page.getByTestId("flow-demo-reset").click();
+    await page
+      .getByRole("alertdialog", { name: "Reset the example?" })
+      .getByRole("button", { name: "Reset example" })
+      .click();
 
     await expect(flowProperties(page).getByTestId("flow-properties-empty")).toBeVisible();
     await expect(flowCanvas(page)).toContainText(DEMO_STEP_DESC);

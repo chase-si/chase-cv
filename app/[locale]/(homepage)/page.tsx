@@ -1,6 +1,9 @@
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { setRequestLocale } from "next-intl/server";
 
+import { HomepageContact } from "@/components/homepage/homepage-contact";
 import { HomepageHero } from "@/components/homepage/hero";
+import { HomepageProjectShowcase } from "@/components/homepage/project-showcase";
+import { HomepageWorkExperienceTimeline } from "@/components/homepage/work-experience-timeline";
 import type { AppLocale } from "@/i18n/routing";
 import { buildLocalizedMetadata } from "@/lib/metadata";
 
@@ -20,34 +23,17 @@ export async function generateMetadata({ params }: Props) {
 export default async function Page({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations({ locale, namespace: "home" });
-
   return (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-14 sm:px-6 sm:py-20">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
         <HomepageHero />
 
-        <div className="mt-20 grid gap-16">
-          <section id="work" className="scroll-mt-24">
-            <h2 className="text-lg font-semibold tracking-tight">{t("workTitle")}</h2>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-              {t("workDescription")}
-            </p>
-          </section>
+        <div className="mt-14 grid gap-16 sm:mt-16">
+          <HomepageProjectShowcase />
 
-          <section id="about" className="scroll-mt-24">
-            <h2 className="text-lg font-semibold tracking-tight">{t("aboutTitle")}</h2>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-              {t("aboutDescription")}
-            </p>
-          </section>
+          <HomepageWorkExperienceTimeline />
 
-          <section id="contact" className="scroll-mt-24">
-            <h2 className="text-lg font-semibold tracking-tight">{t("contactTitle")}</h2>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-              {t("contactDescription")}
-            </p>
-          </section>
+          <HomepageContact />
         </div>
       </main>
     </div>

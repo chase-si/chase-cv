@@ -14,7 +14,7 @@ test.describe("image-to-ui browser history", () => {
     await expect(page.getByLabel("Image source")).toBeVisible();
     await expect(page.getByText("Source", { exact: true })).toBeVisible();
     await expect(page.getByTestId("render-input-summary")).toHaveCount(0);
-    await expect(page.getByLabel("Tool steps")).toContainText("Choose image and colors");
+    await expect(page.getByLabel("Tool steps")).toContainText("Choose painting and colors");
 
     await page.locator(`[data-sample-id="${SAMPLE_IMAGE_ID}"]`).click();
     await expect(page.getByTestId("palette-swatch-Dominant1")).toBeVisible();

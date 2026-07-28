@@ -77,7 +77,7 @@ export function SaasPreviewDashboard() {
               );
             })}
           </nav>
-          <Card size="sm" className="mt-auto shadow-sm">
+          <Card size="sm" className="mt-auto">
             <CardHeader className="pb-2">
               <Badge variant="accent" data-testid="saas-accent-badge">
                 {t("watchBadge")}
@@ -90,7 +90,7 @@ export function SaasPreviewDashboard() {
         </aside>
 
         <div className="flex min-w-0 flex-col gap-4">
-          <Card size="sm" className="shadow-sm" data-testid="saas-dashboard-toolbar">
+          <Card size="sm" data-testid="saas-dashboard-toolbar">
             <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="min-w-0 space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -132,7 +132,7 @@ export function SaasPreviewDashboard() {
             </AlertDescription>
           </Alert>
 
-          <Card size="sm" className="shadow-sm">
+          <Card size="sm">
             <CardContent className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-col gap-1">
                 <p className="text-sm font-medium text-foreground">{t("responseTeam")}</p>
@@ -168,7 +168,7 @@ export function SaasPreviewDashboard() {
 
           <SaasPreviewCustomerPipelineTable />
 
-          <Card size="sm" data-testid="saas-accent-section" className="shadow-sm" aria-label={t("accentActionsAria")}>
+          <Card size="sm" data-testid="saas-accent-section" aria-label={t("accentActionsAria")}>
             <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="min-w-0">
                 <p className="text-xs font-medium uppercase text-muted-foreground">{t("accentSpotlight")}</p>

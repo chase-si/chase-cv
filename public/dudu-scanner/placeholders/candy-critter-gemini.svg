@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" role="img" aria-hidden="true">
+  <defs>
+    <mask id="character-silhouette">
+      <image width="96" height="96" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAAAAADH8yjkAAADNElEQVR42u1ZPZPTMBBdh+s4SbScnKHOAC13oeZ+AL/3qC93NYEeLF2tD5fMLIXtxB+ytY5FwYy3SGYsRU8rP719UgDWWGONNdZYHlm0B88A0M1rmROyMMYUcqzlt1g4vigQEbEQIy0mjwywiSGw1megRRzEQgDaBP4hACwF8GMTZZ32JSyyiIhKBt+xDfJrXvBchXiUG0RUOU+xjFIN+SiKUFqLELop5IawB+iRG0Qj+gkUlF18RQLwLfUBAHTAAOzeJgOoRgd2qLjp9xmZoXQAccSs5oz4AWT2XNH1gLeTAQDgy7W6sxMGkWKXtfZyKJJsBKlwPBIgTI5PQMgihVY+R0bQt3pWja5K8EnDIvNv58Dz0eo9LMENPwjjNwgNFSL6kZv2r2q4WBSiNRUjCAk0CCe46TD5q3OqZABUkpgAot5ppAF05qx3lgiADkcBrsK6DABw88xguXfZLLA8aWxLKLcFAKOTdndUaeZ8AkA+iaUZiONRjAJEhYeWARsDEE9JCkjXcG8m30BrXa5L8loxMotab5Z/+/LSeuYT0bQ1zuvyVgOAc34Wp7oAg3md1gVAHOBOOfX+A2AsA09SoqEcqW2+zd/kChHt1k6J66gWed/bBtdQnreNPAJAZb7K66kE/IwKrz/pkCHa6UttQGCRdEj/LXGBBiwaZFeTp0Pel6/f+KWqKAZFUm13yvYe6Kn6KWaaX3n09+Ujr/yuQyjv4eHm8ssQ8Ssgp3qPkD1yALf32dsHNmnd7Ts7GwAcuM+YAWCJLCaIfYD+EtU7wbP2Fwd+rM5OkA2n3+3rKV7XqoqHk3zvcdbulLF/CEcGWZgi5xWbjIh7RyWbvlzIn5JwtOKCN3Q1IupOlTz3neNDKlPXMZ2junDuO/cmrZCRE5RtekzY9mziLrA+THB+4MGl1XfO9fpeahS2hiBrC87JLrvcKs24SgCHp4WlXxPNOOnbj2eP8V0kBaitlOvdrjCbzF2z/pL7dEYQgIut6ZOmKq1pruxkYeygVNWVL8V1yOkkGAIgKMSGbGV9cA+wZBn07E6jgYWAJH8gDMVs5PEF/4BUV41DMRt5vMYaa6yxxn8ZfwEVmOGa0tgKEwAAAABJRU5ErkJggg=="/>
+    </mask>
+  </defs>
+  <rect width="96" height="96" rx="24" fill="currentColor" opacity="0.08"/>
+  <rect width="96" height="96" fill="currentColor" opacity="0.22" mask="url(#character-silhouette)"/>
+</svg>

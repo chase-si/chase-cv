@@ -1,15 +1,19 @@
 "use client";
 
+import { MousePointerClick } from "lucide-react";
+
 import type { FlowLeafNode } from "@/lib/flow/types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { defaultFlowUiCopy, type FlowUiCopy } from "@/components/flow/flow-ui-copy";
 import { cn } from "@/lib/utils";
 
 export type FlowNodePropertiesPanelProps = {
   selectedNode: FlowLeafNode | null;
   onPatchNode: (id: string, patch: Partial<FlowLeafNode>) => void;
   onClearSelection?: () => void;
+  copy?: FlowUiCopy["properties"];
   className?: string;
 };
 
@@ -24,31 +28,33 @@ function ReadOnlyRow({ label, value }: { label: string; value: string }) {
 
 function StructuralSummary({
   node,
+  copy,
 }: {
   node: Extract<FlowLeafNode, { type: "cond" | "para" | "end" }>;
+  copy: FlowUiCopy["properties"];
 }) {
   const typeLabel =
     node.type === "cond"
-      ? "条件节点"
+      ? copy.conditionNode
       : node.type === "para"
-        ? "并行节点"
-        : "结束节点";
+        ? copy.parallelNode
+        : copy.endNode;
 
   const branchCount =
     node.type === "cond" || node.type === "para" ? node.steps.length : null;
 
   return (
     <div className="space-y-4" data-testid="flow-properties-readonly">
-      <ReadOnlyRow label="类型" value={typeLabel} />
+      <ReadOnlyRow label={copy.type} value={typeLabel} />
       {branchCount !== null ? (
         <>
-          <ReadOnlyRow label="分支数" value={String(branchCount)} />
+          <ReadOnlyRow label={copy.branchCount} value={String(branchCount)} />
           <p className="text-xs text-muted-foreground">
-            在画布中选中该节点后，可使用工具栏「扩展分支」查看并编辑各分支内的子节点。
+            {copy.structuralHelp}
           </p>
         </>
       ) : null}
-      <p className="text-xs text-muted-foreground">此节点为结构节点，属性只读。</p>
+      <p className="text-xs text-muted-foreground">{copy.structuralReadonly}</p>
     </div>
   );
 }
@@ -57,16 +63,28 @@ export function FlowNodePropertiesPanel({
   selectedNode,
   onPatchNode,
   onClearSelection,
+  copy = defaultFlowUiCopy.properties,
   className,
 }: FlowNodePropertiesPanelProps) {
   if (!selectedNode?.id) {
     return (
-      <p
+      <div
         data-testid="flow-properties-empty"
-        className={cn("text-sm text-muted-foreground", className)}
+        className={cn(
+          "flex min-h-40 flex-col items-center justify-center gap-3 border border-dashed border-border bg-muted/20 p-5 text-center",
+          className,
+        )}
       >
-        尚未选中节点
-      </p>
+        <span className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          <MousePointerClick aria-hidden className="size-5" />
+        </span>
+        <div className="flex flex-col gap-1">
+          <p className="text-sm font-medium text-foreground">{copy.emptyTitle}</p>
+          <p className="text-xs leading-5 text-muted-foreground">
+            {copy.emptyDescription}
+          </p>
+        </div>
+      </div>
     );
   }
 
@@ -75,7 +93,7 @@ export function FlowNodePropertiesPanel({
   return (
     <div className={cn("space-y-4", className)} data-testid="flow-properties-form">
       <div className="flex items-center justify-between gap-2">
-        <ReadOnlyRow label="ID" value={nodeId} />
+        <ReadOnlyRow label={copy.id} value={nodeId} />
         {onClearSelection ? (
           <Button
             type="button"
@@ -83,7 +101,7 @@ export function FlowNodePropertiesPanel({
             size="sm"
             onClick={onClearSelection}
           >
-            取消选择
+            {copy.cancelSelection}
           </Button>
         ) : null}
       </div>
@@ -91,7 +109,7 @@ export function FlowNodePropertiesPanel({
       {selectedNode.type === "step" ? (
         <>
           <div className="space-y-1">
-            <Label htmlFor="flow-prop-text">编号</Label>
+            <Label htmlFor="flow-prop-text">{copy.number}</Label>
             <Input
               id="flow-prop-text"
               value={selectedNode.text ?? ""}
@@ -99,7 +117,7 @@ export function FlowNodePropertiesPanel({
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="flow-prop-desc">描述</Label>
+            <Label htmlFor="flow-prop-desc">{copy.descriptionLabel}</Label>
             <Input
               id="flow-prop-desc"
               value={selectedNode.descStr ?? ""}
@@ -112,21 +130,21 @@ export function FlowNodePropertiesPanel({
       {selectedNode.type === "start" ? (
         <>
           <div className="space-y-1">
-            <Label htmlFor="flow-prop-text">编号</Label>
+            <Label htmlFor="flow-prop-text">{copy.number}</Label>
             <Input
               id="flow-prop-text"
               value={selectedNode.text ?? ""}
               onChange={(e) => onPatchNode(nodeId, { text: e.target.value })}
             />
           </div>
-          <ReadOnlyRow label="描述" value={selectedNode.descStr ?? "—"} />
+          <ReadOnlyRow label={copy.descriptionLabel} value={selectedNode.descStr ?? "—"} />
         </>
       ) : null}
 
       {selectedNode.type === "transfer" ? (
         <>
           <div className="space-y-1">
-            <Label htmlFor="flow-prop-text">编号</Label>
+            <Label htmlFor="flow-prop-text">{copy.number}</Label>
             <Input
               id="flow-prop-text"
               value={selectedNode.text ?? ""}
@@ -134,7 +152,7 @@ export function FlowNodePropertiesPanel({
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="flow-prop-expr">条件表达式</Label>
+            <Label htmlFor="flow-prop-expr">{copy.expression}</Label>
             <Input
               id="flow-prop-expr"
               value={
@@ -151,7 +169,7 @@ export function FlowNodePropertiesPanel({
       {selectedNode.type === "cond" ||
       selectedNode.type === "para" ||
       selectedNode.type === "end" ? (
-        <StructuralSummary node={selectedNode} />
+        <StructuralSummary node={selectedNode} copy={copy} />
       ) : null}
     </div>
   );

@@ -7,7 +7,13 @@ import { FlowReadOnlySurface } from "@/components/flow/flow-read-only-surface";
 import { FlowNodePropertiesPanel } from "@/components/flow/flow-node-properties-panel";
 import { FlowDemoControls } from "@/components/flow/flow-demo-controls";
 import { FlowStructureToolbar } from "@/components/flow/flow-structure-toolbar";
+import {
+  defaultFlowUiCopy,
+  interpolateFlowCopy,
+  type FlowUiCopy,
+} from "@/components/flow/flow-ui-copy";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { cloneDemoFlowRoot } from "@/lib/flow/clone-demo-flow-root";
 import { getDemoRuntimeHighlightPresentation } from "@/lib/flow/demo-runtime-highlight";
 import { findFlowNodeById } from "@/lib/flow/find-flow-node";
@@ -24,11 +30,13 @@ import { updateFlowNodeById } from "@/lib/flow/update-flow-node";
 import type { FlowLeafNode, FlowRoot } from "@/lib/flow/types";
 import { cn } from "@/lib/utils";
 
-export function FlowToolShell() {
+export function FlowToolShell({ copy = defaultFlowUiCopy }: { copy?: FlowUiCopy }) {
   const [flowData, setFlowData] = useState<FlowRoot>(() => cloneDemoFlowRoot());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(FLOW_ZOOM_DEFAULT);
   const [runningHighlight, setRunningHighlight] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const [confirmation, setConfirmation] = useState<"delete" | "reset" | null>(null);
 
   const runtimeHighlight = useMemo(
     () => getDemoRuntimeHighlightPresentation(runningHighlight),
@@ -54,6 +62,7 @@ export function FlowToolShell() {
   }, []);
 
   const handlePatchNode = useCallback((id: string, patch: Partial<FlowLeafNode>) => {
+    setIsDirty(true);
     setFlowData((prev) =>
       updateFlowNodeById(prev, id, (node) => ({ ...node, ...patch }) as FlowLeafNode),
     );
@@ -61,11 +70,11 @@ export function FlowToolShell() {
 
   const requireSelection = useCallback(() => {
     if (!selectedId) {
-      toast.info("请先在流程图中选中一个节点");
+      toast.info(copy.feedback.selectNode);
       return false;
     }
     return true;
-  }, [selectedId]);
+  }, [copy.feedback.selectNode, selectedId]);
 
   const applyZoom = useCallback((direction: "in" | "out" | "reset") => {
     setZoom((current) => {
@@ -73,13 +82,13 @@ export function FlowToolShell() {
       if (clamped) {
         toast.info(
           direction === "in"
-            ? "已达到最大缩放 200%"
-            : "已达到最小缩放 50%",
+            ? copy.feedback.zoomMax
+            : copy.feedback.zoomMin,
         );
       }
       return nextZoom;
     });
-  }, []);
+  }, [copy.feedback.zoomMax, copy.feedback.zoomMin]);
 
   const handleAddSequentialStep = useCallback(() => {
     if (!requireSelection() || !selectedId) {
@@ -93,10 +102,11 @@ export function FlowToolShell() {
       });
       setFlowData(result.newFlowData);
       setSelectedId(result.selectedNodeId);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "增加顺序步失败");
+      setIsDirty(true);
+    } catch {
+      toast.error(copy.feedback.addStepError);
     }
-  }, [flowData, requireSelection, selectedId]);
+  }, [copy.feedback.addStepError, flowData, requireSelection, selectedId]);
 
   const handleAddBranch = useCallback(() => {
     if (!requireSelection() || !selectedId) {
@@ -110,10 +120,11 @@ export function FlowToolShell() {
       });
       setFlowData(result.newFlowData);
       setSelectedId(result.selectedNodeId);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "增加分支失败");
+      setIsDirty(true);
+    } catch {
+      toast.error(copy.feedback.addBranchError);
     }
-  }, [flowData, requireSelection, selectedId]);
+  }, [copy.feedback.addBranchError, flowData, requireSelection, selectedId]);
 
   const handleExpandBranch = useCallback(() => {
     if (!requireSelection() || !selectedId) {
@@ -127,12 +138,13 @@ export function FlowToolShell() {
       });
       setFlowData(result.newFlowData);
       setSelectedId(result.selectedNodeId);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "扩展分支失败");
+      setIsDirty(true);
+    } catch {
+      toast.error(copy.feedback.expandBranchError);
     }
-  }, [flowData, requireSelection, selectedId]);
+  }, [copy.feedback.expandBranchError, flowData, requireSelection, selectedId]);
 
-  const handleDelete = useCallback(() => {
+  const executeDelete = useCallback(() => {
     if (!requireSelection() || !selectedId) {
       return;
     }
@@ -143,42 +155,73 @@ export function FlowToolShell() {
       });
       setFlowData(result.newFlowData);
       setSelectedId(result.selectedNodeId);
-    } catch (error) {
-      toast.info(error instanceof Error ? error.message : "当前节点不可删除");
+      setIsDirty(true);
+    } catch {
+      toast.info(copy.feedback.deleteError);
     }
-  }, [flowData, requireSelection, selectedId]);
+  }, [copy.feedback.deleteError, flowData, requireSelection, selectedId]);
 
   const handleResetDemo = useCallback(() => {
     setFlowData(cloneDemoFlowRoot());
     setSelectedId(null);
+    setIsDirty(false);
   }, []);
+
+  const requestResetDemo = useCallback(() => {
+    if (isDirty) {
+      setConfirmation("reset");
+      return;
+    }
+    handleResetDemo();
+  }, [handleResetDemo, isDirty]);
+
+  const requestDelete = useCallback(() => {
+    if (!selectedNode || !toolbarCapabilities.canDelete) {
+      return;
+    }
+    setConfirmation("delete");
+  }, [selectedNode, toolbarCapabilities.canDelete]);
+
+  const handleConfirm = useCallback(() => {
+    if (confirmation === "delete") {
+      executeDelete();
+    } else if (confirmation === "reset") {
+      handleResetDemo();
+    }
+    setConfirmation(null);
+  }, [confirmation, executeDelete, handleResetDemo]);
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-8 sm:px-6 sm:py-10">
-        <header className="mb-6 space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            流程编辑器
-          </h1>
-          <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-            查看并编辑 SFC 流程结构的可视化草稿；使用左侧工具栏缩放画布并增删分支与顺序步。
-          </p>
+      <main className="mx-auto flex w-full flex-1 flex-col px-4 py-8 sm:px-6 sm:py-10">
+        <header className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex min-w-0 flex-col gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              {copy.title}
+            </h1>
+            <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
+              {copy.description}
+            </p>
+          </div>
           <FlowDemoControls
             runningHighlight={runningHighlight}
             onRunningHighlightChange={setRunningHighlight}
-            onReset={handleResetDemo}
+            onReset={requestResetDemo}
+            dirty={isDirty}
+            copy={copy.demo}
+            className="shrink-0"
           />
         </header>
 
         <div
           className={cn(
-            "flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:items-stretch",
+            "grid min-h-0 flex-1 grid-cols-[9rem_minmax(0,1fr)] items-stretch gap-3 sm:grid-cols-[10.5rem_minmax(0,1fr)] sm:gap-4 lg:h-[clamp(30rem,calc(70vh-1.5rem),48rem)] lg:flex-none lg:grid-cols-[12rem_minmax(0,1fr)_18rem] lg:grid-rows-1",
           )}
         >
           <aside
             data-testid="flow-editor-toolbar"
-            className="shrink-0 lg:w-14"
-            aria-label="流程编辑器工具栏"
+            className="min-h-0 min-w-0"
+            aria-label={copy.toolbarAria}
           >
             <FlowStructureToolbar
               zoom={zoom}
@@ -189,18 +232,20 @@ export function FlowToolShell() {
               onAddSequentialStep={handleAddSequentialStep}
               onAddBranch={handleAddBranch}
               onExpandBranch={handleExpandBranch}
-              onDelete={handleDelete}
+              onDelete={requestDelete}
+              selectedNodeId={selectedId}
+              copy={copy.toolbar}
             />
           </aside>
 
           <section
             data-testid="flow-editor-canvas"
-            className="min-h-[min(480px,60vh)] min-w-0 flex-1"
-            aria-label="流程图画布"
+            className="h-[clamp(30rem,70vh,48rem)] min-w-0 lg:h-full lg:min-h-0"
+            aria-label={copy.canvasAria}
           >
             <FlowReadOnlySurface
               datas={flowData}
-              className="min-h-[min(480px,60vh)]"
+              className="h-full min-h-0"
               activeId={selectedId}
               shrinksFactor={zoom}
               svgDomOnClick={handleSelectNode}
@@ -211,25 +256,49 @@ export function FlowToolShell() {
 
           <aside
             data-testid="flow-editor-properties"
-            className="min-w-0 shrink-0 lg:w-72"
-            aria-label="节点属性"
+            className="col-span-2 min-h-0 min-w-0 lg:col-span-1"
+            aria-label={copy.propertiesAria}
           >
-            <Card className="h-full shadow-sm">
+            <Card className="h-full">
               <CardHeader className="border-b border-border">
-                <CardTitle className="text-sm">属性</CardTitle>
-                <CardDescription>选中节点后在此编辑参数</CardDescription>
+                <CardTitle className="text-sm">{copy.properties.title}</CardTitle>
+                <CardDescription>{copy.properties.description}</CardDescription>
               </CardHeader>
               <CardContent className="py-4">
                 <FlowNodePropertiesPanel
                   selectedNode={selectedNode}
                   onPatchNode={handlePatchNode}
                   onClearSelection={handleClearSelection}
+                  copy={copy.properties}
                 />
               </CardContent>
             </Card>
           </aside>
         </div>
       </main>
+      <ConfirmationDialog
+        open={confirmation !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setConfirmation(null);
+          }
+        }}
+        title={
+          confirmation === "delete" ? copy.dialog.deleteTitle : copy.dialog.resetTitle
+        }
+        description={
+          confirmation === "delete"
+            ? interpolateFlowCopy(copy.dialog.deleteDescription, {
+                id: selectedNode?.id ?? "",
+              })
+            : copy.dialog.resetDescription
+        }
+        confirmLabel={
+          confirmation === "delete" ? copy.dialog.confirmDelete : copy.dialog.confirmReset
+        }
+        destructive
+        onConfirm={handleConfirm}
+      />
     </div>
   );
 }

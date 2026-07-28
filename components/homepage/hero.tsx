@@ -1,91 +1,76 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 
+import { HomepageHeroWorkbenchPreview } from "@/components/homepage/hero-workbench-preview";
+import { HomepageMotion } from "@/components/homepage/homepage-motion";
 import { Link } from "@/i18n/navigation";
+import { Button } from "@/components/ui/button";
 
 export function HomepageHero() {
   const t = useTranslations("home");
 
   return (
-    <section className="grid items-center gap-10 lg:grid-cols-12">
-      <div className="lg:col-span-7">
-        <div className="inline-flex items-center gap-2 border border-zinc-900/10 bg-white/70 px-3 py-1 text-xs text-zinc-700 shadow-sm dark:border-white/10 dark:bg-black/40 dark:text-zinc-200">
-          <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.20)]" />
+    <section className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-12">
+      <div>
+        <HomepageMotion
+          kind="hero"
+          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-[2px_2px_0_0] shadow-foreground/50"
+        >
+          <span className="inline-block size-2 rounded-full bg-chart-2" />
           {t("eyebrow")}
+        </HomepageMotion>
+
+        <div className="mt-6 space-y-5 text-pretty text-lg font-semibold leading-8 text-foreground sm:text-2xl sm:leading-10">
+          <HomepageMotion as="p" kind="hero" className="text-4xl font-black tracking-tight sm:text-6xl">
+            {t("introLeadPrefix")}
+            <span className="text-primary">{t("introLeadName")}</span>
+            {t("introLeadSuffix")}
+          </HomepageMotion>
+          <HomepageMotion as="p" kind="hero">
+            {t("introPresent")}{" "}
+            <span className="text-primary">{t("introPresentDetailLead")}</span>
+            {t("introPresentDetailRest")}
+          </HomepageMotion>
         </div>
 
-        <h1 className="mt-6 text-balance text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
-          {t("headlinePrefix")}
-          <span className="relative mx-2 inline-block">
-            <span className="absolute -inset-1 -z-10 bg-linear-to-r from-indigo-500/25 via-fuchsia-500/20 to-sky-500/25 blur-xl" />
-            <span className="bg-linear-to-r from-indigo-600 via-fuchsia-600 to-sky-600 bg-clip-text text-transparent">
-              {t("headlineHighlight")}
-            </span>
-          </span>
-          {t("headlineSuffix")}
-        </h1>
+        <div className="mt-6 flex flex-wrap gap-2">
+          {["Product frontend", "AI-assisted builder", "Interaction tools"].map((label) => (
+            <HomepageMotion
+              key={label}
+              kind="hero"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 font-mono text-xs shadow-[2px_2px_0_0] shadow-foreground/50"
+            >
+              <span className="size-1.5 rounded-full bg-chart-2" />
+              {label}
+            </HomepageMotion>
+          ))}
+        </div>
 
-        <p className="mt-6 max-w-xl text-pretty text-base leading-7 text-zinc-600 dark:text-zinc-300 sm:text-lg">
-          {t("intro")}
-        </p>
-
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Link
-            href="#work"
-            className="inline-flex h-11 items-center justify-center bg-zinc-950 px-5 text-sm font-medium text-white shadow-[0_18px_60px_rgba(0,0,0,0.22)] transition hover:-translate-y-px hover:shadow-[0_22px_70px_rgba(0,0,0,0.28)] dark:bg-white dark:text-black dark:shadow-[0_22px_80px_rgba(0,0,0,0.45)]"
+        <HomepageMotion kind="hero" className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <Button
+            render={<Link href="#projects" />}
+            nativeButton={false}
+            size="lg"
+            className="min-w-40 rounded-xl shadow-xs"
           >
             {t("primaryCta")}
-          </Link>
-          <Link
-            href="#about"
-            className="inline-flex h-11 items-center justify-center border border-zinc-900/10 bg-white/70 px-5 text-sm font-medium text-zinc-900 shadow-sm transition hover:bg-white hover:shadow-md dark:border-white/10 dark:bg-black/40 dark:text-white dark:hover:bg-black/50"
+          </Button>
+          <Button
+            render={<Link href="#experience" />}
+            nativeButton={false}
+            variant="outline"
+            size="lg"
+            className="min-w-40 rounded-xl bg-card shadow-xs"
           >
             {t("secondaryCta")}
-          </Link>
-          <div className="text-xs text-zinc-500 dark:text-zinc-400 sm:pl-2">
-            {t("stack")}
-          </div>
-        </div>
+          </Button>
+        </HomepageMotion>
       </div>
 
-      <div className="lg:col-span-5">
-        <div className="relative">
-          <div
-            aria-hidden
-            className="absolute -inset-4 -z-10 bg-linear-to-b from-white/90 via-white/40 to-white/80 blur-2xl dark:from-black/60 dark:via-black/30 dark:to-black/60"
-          />
-
-          <div className="border border-zinc-900/10 bg-white/70 p-5 shadow-[0_20px_80px_rgba(0,0,0,0.10)] backdrop-blur-xl dark:border-white/10 dark:bg-black/40 dark:shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
-            <div className="grid gap-4">
-              <div className="border border-zinc-900/10 bg-white/80 p-4 shadow-[0_18px_55px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black/40 dark:shadow-[0_22px_70px_rgba(0,0,0,0.50)]">
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {t("nowLabel")}
-                </div>
-                <div className="mt-1 text-sm font-medium">
-                  {t("nowValue")}
-                </div>
-              </div>
-
-              <div className="border border-zinc-900/10 bg-white/80 p-4 shadow-[0_18px_55px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black/40 dark:shadow-[0_22px_70px_rgba(0,0,0,0.50)]">
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {t("focusLabel")}
-                </div>
-                <div className="mt-1 text-sm font-medium">
-                  {t("focusValue")}
-                </div>
-              </div>
-
-              <div className="border border-zinc-900/10 bg-white/80 p-4 shadow-[0_18px_55px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black/40 dark:shadow-[0_22px_70px_rgba(0,0,0,0.50)]">
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {t("expectLabel")}
-                </div>
-                <div className="mt-1 text-sm font-medium">
-                  {t("expectValue")}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <HomepageMotion kind="hero">
+        <HomepageHeroWorkbenchPreview />
+      </HomepageMotion>
     </section>
   );
 }

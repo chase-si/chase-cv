@@ -26,7 +26,7 @@ export function SaasPreviewSettings() {
       data-testid="saas-settings-form"
       aria-label={t("settingsAria")}
     >
-      <Card size="sm" data-testid="saas-settings-upgrade" className="shadow-sm">
+      <Card size="sm" data-testid="saas-settings-upgrade">
         <CardHeader>
           <CardTitle>{t("upgradeTitle")}</CardTitle>
           <CardDescription>
@@ -41,7 +41,7 @@ export function SaasPreviewSettings() {
         </CardFooter>
       </Card>
 
-      <Card size="sm" data-testid="saas-settings-team" className="shadow-sm">
+      <Card size="sm" data-testid="saas-settings-team">
         <CardHeader>
           <CardTitle>Team Members</CardTitle>
           <CardDescription>Invite your team members to collaborate.</CardDescription>
@@ -64,7 +64,7 @@ export function SaasPreviewSettings() {
         </CardContent>
       </Card>
 
-      <Card size="sm" data-testid="saas-settings-create-account" className="shadow-sm">
+      <Card size="sm" data-testid="saas-settings-create-account">
         <CardHeader>
           <CardTitle>Create an account</CardTitle>
           <CardDescription>Enter your email below to create your account</CardDescription>
@@ -99,7 +99,7 @@ export function SaasPreviewSettings() {
         </CardContent>
       </Card>
 
-      <Card size="sm" className="shadow-sm">
+      <Card size="sm">
         <CardHeader>
           <CardTitle>Workspace</CardTitle>
           <CardDescription>Name, plan, and operational defaults.</CardDescription>
@@ -146,7 +146,7 @@ export function SaasPreviewSettings() {
         </CardFooter>
       </Card>
 
-      <Card size="sm" data-testid="saas-settings-cookies" className="shadow-sm">
+      <Card size="sm" data-testid="saas-settings-cookies">
         <CardHeader>
           <CardTitle>Cookie Settings</CardTitle>
           <CardDescription>Manage your cookie settings here.</CardDescription>

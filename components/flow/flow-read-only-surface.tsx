@@ -2,7 +2,11 @@
 
 import type { FlowRoot } from "@/lib/flow/types";
 import { FlowRenderSvg, type FlowRenderSvgProps } from "@/components/flow/flow-render-svg";
+import { Card, CardScrollArea } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+
+const flowReadOnlyScrollClassName =
+  "h-full p-4";
 
 export type FlowReadOnlySurfaceProps = {
   datas: FlowRoot;
@@ -15,14 +19,16 @@ export function FlowReadOnlySurface({
   ...renderProps
 }: FlowReadOnlySurfaceProps) {
   return (
-    <div
+    <Card
       data-testid="flow-read-only-surface"
       className={cn(
-        "overflow-auto rounded-2xl border border-border bg-card p-4",
+        "gap-0 bg-muted/20 p-0 shadow-inner",
         className,
       )}
     >
-      <FlowRenderSvg datas={datas} {...renderProps} />
-    </div>
+      <CardScrollArea className={flowReadOnlyScrollClassName}>
+        <FlowRenderSvg datas={datas} {...renderProps} />
+      </CardScrollArea>
+    </Card>
   );
 }
