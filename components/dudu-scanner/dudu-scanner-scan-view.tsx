@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
 
 import { DuduScannerFanCanvas } from "@/components/dudu-scanner/dudu-scanner-fan-canvas";
 import { getTargetRecord, type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
@@ -10,6 +11,7 @@ import {
   DUDU_SCANNER_SHORTCUT_LABEL,
 } from "@/lib/dudu-scanner/i18n-keys";
 import type { DuduScannerRoundTransient } from "@/lib/dudu-scanner/round-state";
+import type { ScannerVisualMetrics } from "@/lib/dudu-scanner/scanner-visual/renderer";
 import { cn } from "@/lib/utils";
 
 type DuduScannerScanViewProps = {
@@ -20,6 +22,28 @@ type DuduScannerScanViewProps = {
   paused: boolean;
   transient: DuduScannerRoundTransient | null;
   statusKey: "scanning" | "signalDetected" | "locking";
+};
+
+function hashTargetSeed(targetId: string): number {
+  let hash = 0;
+  for (let index = 0; index < targetId.length; index += 1) {
+    hash = (hash << 5) - hash + targetId.charCodeAt(index);
+    hash |= 0;
+  }
+  return Math.abs(hash) + 1;
+}
+
+function formatHudTimestamp(now: Date): string {
+  return now.toISOString().slice(11, 19);
+}
+
+const initialMetrics: ScannerVisualMetrics = {
+  signalStrength: 0.22,
+  textureOffsetX: 0,
+  textureOffsetY: 0,
+  scanLineBias: 0,
+  gain: 0.5,
+  scanFrequencyHz: 0.9,
 };
 
 export function DuduScannerScanView({
@@ -34,13 +58,16 @@ export function DuduScannerScanView({
   const t = useTranslations("duduScanner");
   const { imageSrc } = getTargetRecord(targetId);
   const showTarget = targetRevealed || revealProgress > 0;
+  const placementSeed = useMemo(() => hashTargetSeed(targetId), [targetId]);
+  const [metrics, setMetrics] = useState<ScannerVisualMetrics>(initialMetrics);
+  const [timestamp, setTimestamp] = useState(() => formatHudTimestamp(new Date()));
 
   return (
     <div
       className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 sm:p-6"
       data-testid="dudu-scanner-scan-view"
     >
-      <header className="flex shrink-0 items-center justify-between gap-4 border-b border-border/70 pb-3">
+      <header className="flex shrink-0 flex-col gap-3 border-b border-border/70 pb-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {t("scan.hudLabel")}
@@ -49,14 +76,48 @@ export function DuduScannerScanView({
             {t(`scan.status.${statusKey}`)}
           </p>
         </div>
-        <p className="max-w-[12rem] text-right text-xs text-muted-foreground">{t("scan.hudHint")}</p>
+        <dl
+          className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground sm:grid-cols-4"
+          data-testid="dudu-scanner-instrument-hud"
+        >
+          <div>
+            <dt>{t("scan.hud.signal")}</dt>
+            <dd className="font-mono text-foreground" data-testid="dudu-scanner-hud-signal">
+              {Math.round(metrics.signalStrength * 100)}%
+            </dd>
+          </div>
+          <div>
+            <dt>{t("scan.hud.gain")}</dt>
+            <dd className="font-mono text-foreground">{metrics.gain.toFixed(2)}</dd>
+          </div>
+          <div>
+            <dt>{t("scan.hud.frequency")}</dt>
+            <dd className="font-mono text-foreground">{metrics.scanFrequencyHz.toFixed(2)} Hz</dd>
+          </div>
+          <div>
+            <dt>{t("scan.hud.timestamp")}</dt>
+            <dd className="font-mono text-foreground" data-testid="dudu-scanner-hud-timestamp">
+              {timestamp}
+            </dd>
+          </div>
+        </dl>
       </header>
 
       <div className="relative flex min-h-0 flex-1 flex-col gap-4 lg:flex-row">
         <DuduScannerFanCanvas
           active={!locking && !paused}
           showLockFrame={locking}
+          targetRevealed={targetRevealed}
+          revealProgress={revealProgress}
+          locking={locking}
+          placementSeed={placementSeed}
+          targetImageSrc={imageSrc}
+          hideCursor
           className="min-h-[220px] lg:min-h-0"
+          onMetricsChange={(next) => {
+            setMetrics(next);
+            setTimestamp(formatHudTimestamp(new Date()));
+          }}
         />
 
         <div className="relative flex w-full shrink-0 items-center justify-center lg:w-48">
@@ -69,7 +130,13 @@ export function DuduScannerScanView({
               data-testid="dudu-scanner-target-preview"
               style={{ opacity: Math.max(0.15, revealProgress) }}
             >
-              <Image src={imageSrc} alt="" width={120} height={120} className="size-24 object-contain sm:size-28" />
+              <Image
+                src={imageSrc}
+                alt=""
+                width={120}
+                height={120}
+                className="size-24 object-contain grayscale contrast-75 sm:size-28"
+              />
             </div>
           ) : (
             <p className="text-center text-sm text-muted-foreground">{t("scan.targetHidden")}</p>

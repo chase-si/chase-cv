@@ -1,113 +1,133 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import {
+  createScannerVisualRenderer,
+  type ScannerVisualMetrics,
+} from "@/lib/dudu-scanner/scanner-visual/renderer";
 import { cn } from "@/lib/utils";
 
 type DuduScannerFanCanvasProps = {
   className?: string;
   active?: boolean;
   showLockFrame?: boolean;
+  targetRevealed?: boolean;
+  revealProgress?: number;
+  locking?: boolean;
+  placementSeed?: number;
+  targetImageSrc?: string | null;
+  onMetricsChange?: (metrics: ScannerVisualMetrics) => void;
+  hideCursor?: boolean;
 };
 
 export function DuduScannerFanCanvas({
   className,
   active = true,
   showLockFrame = false,
+  targetRevealed = false,
+  revealProgress = 0,
+  locking = false,
+  placementSeed = 1,
+  targetImageSrc = null,
+  onMetricsChange,
+  hideCursor = false,
 }: DuduScannerFanCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const rendererRef = useRef<ReturnType<typeof createScannerVisualRenderer> | null>(null);
+  const onMetricsRef = useRef(onMetricsChange);
+  const targetImageRef = useRef<HTMLImageElement | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    onMetricsRef.current = onMetricsChange;
+  }, [onMetricsChange]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) {
+      return;
+    }
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReducedMotion(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (!targetImageSrc) {
+      targetImageRef.current = null;
+      return;
+    }
+    const image = new Image();
+    image.src = targetImageSrc;
+    image.onload = () => {
+      targetImageRef.current = image;
+    };
+    return () => {
+      targetImageRef.current = null;
+    };
+  }, [targetImageSrc]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
-    const context = canvas.getContext("2d");
-    if (!context) {
+    const stage = stageRef.current;
+    if (!canvas || !stage) {
       return;
     }
 
-    let frame = 0;
-    let raf = 0;
+    const renderer = createScannerVisualRenderer({
+      canvas,
+      getStageRect: () => stage.getBoundingClientRect(),
+      getTargetImage: () => targetImageRef.current,
+      onMetrics: (metrics) => onMetricsRef.current?.(metrics),
+    });
+    rendererRef.current = renderer;
 
-    const draw = () => {
-      const { width, height } = canvas;
-      context.clearRect(0, 0, width, height);
+    const observer = new ResizeObserver(() => renderer.resize());
+    observer.observe(stage);
 
-      const cx = width * 0.5;
-      const cy = height * 0.92;
-      const radius = Math.min(width, height) * 0.78;
-      const sweep = (Math.PI * 5) / 6;
-      const start = -Math.PI / 2 - sweep / 2;
-
-      context.save();
-      context.beginPath();
-      context.moveTo(cx, cy);
-      context.arc(cx, cy, radius, start, start + sweep);
-      context.closePath();
-      const gradient = context.createRadialGradient(cx, cy, radius * 0.1, cx, cy, radius);
-      gradient.addColorStop(0, "rgba(34, 197, 94, 0.35)");
-      gradient.addColorStop(0.55, "rgba(34, 197, 94, 0.12)");
-      gradient.addColorStop(1, "rgba(34, 197, 94, 0.02)");
-      context.fillStyle = gradient;
-      context.fill();
-      context.strokeStyle = "rgba(34, 197, 94, 0.55)";
-      context.lineWidth = 2;
-      context.stroke();
-      context.restore();
-
-      if (active) {
-        const beamAngle = start + sweep * 0.5 + Math.sin(frame * 0.04) * (sweep * 0.35);
-        context.save();
-        context.translate(cx, cy);
-        context.rotate(beamAngle);
-        context.beginPath();
-        context.moveTo(0, 0);
-        context.lineTo(0, -radius);
-        context.strokeStyle = "rgba(74, 222, 128, 0.85)";
-        context.lineWidth = 3;
-        context.stroke();
-        context.restore();
-      }
-
-      frame += 1;
-      raf = window.requestAnimationFrame(draw);
+    const handlePointer = (event: PointerEvent) => {
+      renderer.updateInput(event.clientX, event.clientY, event.timeStamp);
     };
+    stage.addEventListener("pointermove", handlePointer);
+    stage.addEventListener("pointerdown", handlePointer);
 
-    const resize = () => {
-      const parent = canvas.parentElement;
-      if (!parent) {
-        return;
-      }
-      const rect = parent.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = Math.floor(rect.width * dpr);
-      canvas.height = Math.floor(rect.height * dpr);
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
-      context.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-
-    resize();
-    const observer = new ResizeObserver(resize);
-    observer.observe(canvas.parentElement ?? canvas);
-    raf = window.requestAnimationFrame(draw);
+    renderer.start();
 
     return () => {
-      window.cancelAnimationFrame(raf);
+      stage.removeEventListener("pointermove", handlePointer);
+      stage.removeEventListener("pointerdown", handlePointer);
       observer.disconnect();
+      renderer.destroy();
+      rendererRef.current = null;
     };
-  }, [active]);
+  }, []);
+
+  useEffect(() => {
+    rendererRef.current?.setState({
+      active,
+      showLockFrame,
+      targetRevealed,
+      revealProgress,
+      locking,
+      reducedMotion,
+      placementSeed,
+    });
+  }, [active, showLockFrame, targetRevealed, revealProgress, locking, reducedMotion, placementSeed]);
 
   return (
     <div
+      ref={stageRef}
       className={cn(
         "relative flex min-h-0 flex-1 items-stretch justify-center overflow-hidden rounded-2xl border border-border bg-card/80",
+        hideCursor && "cursor-none",
         className,
       )}
       data-testid="dudu-scanner-fan-stage"
     >
-      <canvas ref={canvasRef} className="size-full" aria-hidden />
+      <canvas ref={canvasRef} className="size-full touch-none" aria-hidden />
       {showLockFrame ? (
         <div
           className="pointer-events-none absolute inset-[12%] rounded-2xl border-4 border-primary shadow-[0_0_24px_rgba(34,197,94,0.45)]"

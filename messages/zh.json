@@ -448,6 +448,12 @@
         "scanning": "扫描中…",
         "signalDetected": "已检测到信号",
         "locking": "正在锁定画面…"
+      },
+      "hud": {
+        "signal": "信号",
+        "gain": "增益",
+        "frequency": "扫描频率",
+        "timestamp": "时间戳"
       }
     },
     "result": {
