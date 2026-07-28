@@ -16,7 +16,6 @@ export function SaasPreviewCustomerPipelineTable() {
     <Card
       size="sm"
       data-testid="saas-data-table-section"
-      className="shadow-sm"
       aria-label={t("tableSectionAria")}
     >
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

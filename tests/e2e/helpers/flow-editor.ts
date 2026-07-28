@@ -19,17 +19,16 @@ export function flowToolbar(page: Page): Locator {
 export async function openFlowEditor(page: Page): Promise<void> {
   await page.goto("/flow");
   await expect(page).toHaveURL(/\/flow$/);
-  await expect(page.getByRole("heading", { level: 1, name: "流程编辑器" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Flow Editor" })).toBeVisible();
   await expect(flowCanvas(page).getByTestId("flow-read-only-svg")).toBeVisible();
 }
 
 export async function navigateToFlowEditorFromHome(page: Page): Promise<void> {
   await page.goto("/");
   await expect(page).toHaveURL(/\/$/);
-  await page
-    .getByRole("navigation")
-    .getByRole("button", { name: "Flow editor" })
-    .click();
+  const nav = page.getByRole("navigation", { name: "Primary navigation" });
+  await nav.getByRole("button", { name: "Playground" }).click();
+  await nav.getByRole("menuitem", { name: /Flow Editor/ }).click();
   await expect(page).toHaveURL(/\/flow$/);
 }
 

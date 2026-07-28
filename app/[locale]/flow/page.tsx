@@ -1,6 +1,7 @@
-import { setRequestLocale } from "next-intl/server";
+import { getMessages, setRequestLocale } from "next-intl/server";
 
 import { FlowToolShell } from "@/components/flow/flow-tool-shell";
+import type { FlowUiCopy } from "@/components/flow/flow-ui-copy";
 import type { AppLocale } from "@/i18n/routing";
 import { buildLocalizedMetadata } from "@/lib/metadata";
 
@@ -20,6 +21,7 @@ export async function generateMetadata({ params }: Props) {
 export default async function FlowPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const messages = await getMessages({ locale });
 
-  return <FlowToolShell />;
+  return <FlowToolShell copy={messages.flowEditor as FlowUiCopy} />;
 }

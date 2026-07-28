@@ -25,7 +25,7 @@ export function SaasPreviewSegmentChartSection() {
     <Card
       size="sm"
       data-testid="saas-segment-chart-section"
-      className="min-h-80 shadow-sm"
+      className="min-h-80"
       aria-label={t("segmentChartAria")}
     >
       <CardHeader>

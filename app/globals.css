@@ -45,16 +45,16 @@
   --shadow-y: 4px;
   --shadow-blur: 0px;
   --shadow-spread: 0px;
-  --shadow-opacity: 1.0;
+  --shadow-opacity: 0.5;
   --shadow-color: #000000;
-  --shadow-2xs: 4px 4px 0px 0px hsl(0 0% 0% / 0.50);
+  --shadow-2xs: 4px 4px 0px 0px hsl(0 0% 0% / 0.35);
   --shadow-xs: 4px 4px 0px 0px hsl(0 0% 0% / 0.50);
-  --shadow-sm: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 1px 2px -1px hsl(0 0% 0% / 1.00);
-  --shadow: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 1px 2px -1px hsl(0 0% 0% / 1.00);
-  --shadow-md: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 2px 4px -1px hsl(0 0% 0% / 1.00);
-  --shadow-lg: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 4px 6px -1px hsl(0 0% 0% / 1.00);
-  --shadow-xl: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 8px 10px -1px hsl(0 0% 0% / 1.00);
-  --shadow-2xl: 4px 4px 0px 0px hsl(0 0% 0% / 2.50);
+  --shadow-sm: 4px 4px 0px 0px hsl(0 0% 0% / 0.50), 4px 1px 2px -1px hsl(0 0% 0% / 0.35);
+  --shadow: 4px 4px 0px 0px hsl(0 0% 0% / 0.50), 4px 1px 2px -1px hsl(0 0% 0% / 0.35);
+  --shadow-md: 4px 4px 0px 0px hsl(0 0% 0% / 0.50), 4px 2px 4px -1px hsl(0 0% 0% / 0.40);
+  --shadow-lg: 4px 4px 0px 0px hsl(0 0% 0% / 0.50), 4px 4px 6px -1px hsl(0 0% 0% / 0.45);
+  --shadow-xl: 4px 4px 0px 0px hsl(0 0% 0% / 0.50), 4px 8px 10px -1px hsl(0 0% 0% / 0.50);
+  --shadow-2xl: 4px 4px 0px 0px hsl(0 0% 0% / 0.55), 4px 12px 16px -4px hsl(0 0% 0% / 0.45);
   --tracking-normal: -0.01em;
   --spacing: 0.25rem;
 }
@@ -100,16 +100,16 @@
   --shadow-y: 4px;
   --shadow-blur: 0px;
   --shadow-spread: 0px;
-  --shadow-opacity: 1.0;
+  --shadow-opacity: 0.5;
   --shadow-color: #000000;
-  --shadow-2xs: 4px 4px 0px 0px hsl(0 0% 0% / 0.50);
+  --shadow-2xs: 4px 4px 0px 0px hsl(0 0% 0% / 0.35);
   --shadow-xs: 4px 4px 0px 0px hsl(0 0% 0% / 0.50);
-  --shadow-sm: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 1px 2px -1px hsl(0 0% 0% / 1.00);
-  --shadow: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 1px 2px -1px hsl(0 0% 0% / 1.00);
-  --shadow-md: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 2px 4px -1px hsl(0 0% 0% / 1.00);
-  --shadow-lg: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 4px 6px -1px hsl(0 0% 0% / 1.00);
-  --shadow-xl: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 8px 10px -1px hsl(0 0% 0% / 1.00);
-  --shadow-2xl: 4px 4px 0px 0px hsl(0 0% 0% / 2.50);
+  --shadow-sm: 4px 4px 0px 0px hsl(0 0% 0% / 0.50), 4px 1px 2px -1px hsl(0 0% 0% / 0.35);
+  --shadow: 4px 4px 0px 0px hsl(0 0% 0% / 0.50), 4px 1px 2px -1px hsl(0 0% 0% / 0.35);
+  --shadow-md: 4px 4px 0px 0px hsl(0 0% 0% / 0.50), 4px 2px 4px -1px hsl(0 0% 0% / 0.40);
+  --shadow-lg: 4px 4px 0px 0px hsl(0 0% 0% / 0.50), 4px 4px 6px -1px hsl(0 0% 0% / 0.45);
+  --shadow-xl: 4px 4px 0px 0px hsl(0 0% 0% / 0.50), 4px 8px 10px -1px hsl(0 0% 0% / 0.50);
+  --shadow-2xl: 4px 4px 0px 0px hsl(0 0% 0% / 0.55), 4px 12px 16px -4px hsl(0 0% 0% / 0.45);
 }
 
 @theme inline {
@@ -206,7 +206,7 @@ html {
 :is(html, body, div, section, aside, main, article, textarea)::-webkit-scrollbar-thumb {
   background: var(--foreground);
   border: 1px solid var(--border);
-  box-shadow: 1px 1px 0 0 var(--border);
+  box-shadow: 1px 1px 0 0 color-mix(in srgb, var(--foreground) 50%, transparent);
 }
 
 :is(html, body, div, section, aside, main, article, textarea)::-webkit-scrollbar-thumb:hover {

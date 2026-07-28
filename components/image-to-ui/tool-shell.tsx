@@ -10,7 +10,14 @@ import { ImageUploadZone } from "@/components/image-to-ui/image-upload-zone";
 import { ImageToUiStepIndicator } from "@/components/image-to-ui/step-indicator";
 import { RenderInputSummaryPanel } from "@/components/image-to-ui/render-input-summary-panel";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardScrollArea,
+  CardTitle,
+} from "@/components/ui/card";
 import { IMAGE_TO_UI_SAMPLE_IMAGES } from "@/lib/constants/image-to-ui-samples";
 import type { ActiveImage } from "@/lib/image-to-ui/active-image-types";
 import { useImageToUiToolSession } from "@/lib/image-to-ui/use-image-to-ui-tool-session";
@@ -100,7 +107,7 @@ export function ImageToUiToolShell() {
                 type="button"
                 variant="ghost"
                 data-testid="render-back-to-edit"
-                className='shadow-sm hover:shadow-md'
+                className="hover:shadow-md"
                 onClick={backToEdit}
               >
                 {t("backToEdit")}
@@ -112,7 +119,7 @@ export function ImageToUiToolShell() {
         {displayStep === 1 ? (
           <div className="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)] xl:items-start xl:gap-8">
             <aside className="space-y-4 xl:sticky xl:top-24" aria-label={t("sourceAria")}>
-              <Card className="shadow-md">
+              <Card>
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
                     <PanelLeft className="size-4 text-primary" aria-hidden />
@@ -129,23 +136,25 @@ export function ImageToUiToolShell() {
                       uploadHelp: t("uploadHelp"),
                     }}
                   />
-                  <div className="max-h-112 space-y-2 overflow-y-auto pr-1">
-                    {IMAGE_TO_UI_SAMPLE_IMAGES.map((sample) => (
-                      <SampleListButton
-                        key={sample.id}
-                        id={sample.id}
-                        imagePath={sample.imagePath}
-                        title={sampleMessages[sample.id]?.title ?? sample.title}
-                        description={
-                          sampleMessages[sample.id]?.description ?? sample.description
-                        }
-                        selected={
-                          activeImage?.type === "sample" && activeImage.sampleId === sample.id
-                        }
-                        onSelect={() => selectSample(sample.id, sample.imagePath)}
-                      />
-                    ))}
-                  </div>
+                  <CardScrollArea className="max-h-112 pr-1">
+                    <div className="space-y-2">
+                      {IMAGE_TO_UI_SAMPLE_IMAGES.map((sample) => (
+                        <SampleListButton
+                          key={sample.id}
+                          id={sample.id}
+                          imagePath={sample.imagePath}
+                          title={sampleMessages[sample.id]?.title ?? sample.title}
+                          description={
+                            sampleMessages[sample.id]?.description ?? sample.description
+                          }
+                          selected={
+                            activeImage?.type === "sample" && activeImage.sampleId === sample.id
+                          }
+                          onSelect={() => selectSample(sample.id, sample.imagePath)}
+                        />
+                      ))}
+                    </div>
+                  </CardScrollArea>
                 </CardContent>
               </Card>
             </aside>
@@ -224,7 +233,7 @@ function PreviewCard({
   };
 }) {
   return (
-    <Card className="shadow-md">
+    <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base">{useTranslations("imageToUi")("previewTitle")}</CardTitle>
         <CardDescription>{useTranslations("imageToUi")("previewDescription")}</CardDescription>
@@ -267,7 +276,7 @@ function PaletteCard({
   };
 }) {
   return (
-    <Card className="shadow-md">
+    <Card>
       <CardHeader>
         <CardTitle className="text-base">{labels.paletteTitle}</CardTitle>
         <CardDescription>{labels.paletteDescription}</CardDescription>

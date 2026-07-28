@@ -1,10 +1,25 @@
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { FlowReadOnlySurface } from "@/components/flow/flow-read-only-surface";
 import { DEMO_FLOW_ROOT, listDemoTransferLabels } from "@/lib/flow/demo-flow-data";
 
+afterEach(() => {
+  cleanup();
+});
+
 describe("FlowReadOnlySurface", () => {
+  it("allows keyboard users to select a flow node", () => {
+    const onSelect = vi.fn();
+    render(<FlowReadOnlySurface datas={DEMO_FLOW_ROOT} svgDomOnClick={onSelect} />);
+
+    const node = document.querySelector('[data-flow-node-id="step001"]');
+    expect(node).toHaveAttribute("tabindex", "0");
+
+    fireEvent.keyDown(node!, { key: "Enter" });
+    expect(onSelect).toHaveBeenCalledWith("step001");
+  });
+
   it("renders seeded demo with descStr visible for steps and start", () => {
     render(<FlowReadOnlySurface datas={DEMO_FLOW_ROOT} />);
 
@@ -79,6 +94,7 @@ describe("FlowReadOnlySurface", () => {
     render(<FlowReadOnlySurface datas={DEMO_FLOW_ROOT} />);
     const svg = document.querySelector('[data-testid="flow-read-only-svg"]');
     expect(svg).toBeTruthy();
+    expect(svg).toHaveClass("[&_text]:fill-current");
     expect(Number(svg!.getAttribute("width"))).toBeGreaterThan(0);
     expect(Number(svg!.getAttribute("height"))).toBeGreaterThan(0);
   });

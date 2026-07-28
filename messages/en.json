@@ -24,8 +24,26 @@
   },
   "siteNav": {
     "logoAlt": "Chase",
-    "works": "Works",
-    "flowEditor": "Flow editor",
+    "primaryAria": "Primary navigation",
+    "mobileAria": "Mobile navigation",
+    "menu": "Menu",
+    "projects": {
+      "label": "Playground",
+      "items": {
+        "magicCursor": {
+          "name": "Magic Cursor",
+          "description": "Explore configurable cursor effects."
+        },
+        "imageToUi": {
+          "name": "Image to UI",
+          "description": "Turn painting palettes into interface themes."
+        },
+        "flowEditor": {
+          "name": "Flow Editor",
+          "description": "Visualize and edit structured flows."
+        }
+      }
+    },
     "blog": "Blog",
     "github": "GitHub",
     "languageLabel": "Switch language"
@@ -34,29 +52,107 @@
     "english": "EN",
     "chinese": "中文"
   },
+  "flowEditor": {
+    "title": "Flow Editor",
+    "description": "View and edit a visual draft of an SFC flow. Use the left toolbar to zoom the canvas and add or remove branches and sequential steps.",
+    "toolbarAria": "Flow editor toolbar",
+    "canvasAria": "Flow diagram canvas",
+    "propertiesAria": "Node properties",
+    "demo": {
+      "dirty": "Modified",
+      "reset": "Reset example",
+      "runningHighlight": "Runtime highlight"
+    },
+    "toolbar": {
+      "title": "Editing tools",
+      "zoomHeading": "Canvas zoom",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "zoomReset": "Reset to 100%",
+      "nodeActions": "Node actions",
+      "selected": "Selected: {id}",
+      "selectionHint": "Select a node to edit",
+      "selectAlert": "Select a node on the canvas first",
+      "addStep": "Add sequential step",
+      "addBranch": "Add branch",
+      "expandBranch": "Expand branch",
+      "deleteNode": "Delete node"
+    },
+    "properties": {
+      "title": "Properties",
+      "description": "Select a node to edit its parameters",
+      "emptyTitle": "No node selected",
+      "emptyDescription": "Select a node on the canvas to view and edit its properties here.",
+      "cancelSelection": "Clear selection",
+      "id": "ID",
+      "number": "Number",
+      "descriptionLabel": "Description",
+      "expression": "Condition expression",
+      "type": "Type",
+      "branchCount": "Branches",
+      "conditionNode": "Condition node",
+      "parallelNode": "Parallel node",
+      "endNode": "End node",
+      "structuralHelp": "With this node selected, use “Expand branch” in the toolbar to view and edit child nodes in each branch.",
+      "structuralReadonly": "This is a structural node. Its properties are read-only."
+    },
+    "feedback": {
+      "selectNode": "Select a node in the flow diagram first",
+      "zoomMax": "Maximum zoom reached: 200%",
+      "zoomMin": "Minimum zoom reached: 50%",
+      "addStepError": "Could not add a sequential step",
+      "addBranchError": "Could not add a branch",
+      "expandBranchError": "Could not expand the branch",
+      "deleteError": "This node cannot be deleted"
+    },
+    "dialog": {
+      "deleteTitle": "Delete selected node?",
+      "resetTitle": "Reset the example?",
+      "deleteDescription": "Node {id} will be removed from the flow. This action cannot be undone.",
+      "resetDescription": "The current flow contains unsaved changes. Resetting restores the example and cannot be undone.",
+      "confirmDelete": "Delete node",
+      "confirmReset": "Reset example"
+    }
+  },
   "themeToggle": {
     "toLight": "Switch to light mode",
     "toDark": "Switch to dark mode"
   },
   "home": {
-    "eyebrow": "A personal site built around shadow as a visual language",
-    "headlinePrefix": "Turning",
-    "headlineHighlight": "shadow",
-    "headlineSuffix": "into product polish",
-    "intro": "I'm Chase. I focus on making products feel smoother: clearer hierarchy, calmer motion, better shadows, and more intentional spacing. This site collects my projects, experience, and notes.",
-    "primaryCta": "View work",
-    "secondaryCta": "About me",
-    "stack": "Next.js · Tailwind · shadcn",
-    "nowLabel": "Now building",
-    "nowValue": "Personal portfolio + Supabase auth/data",
-    "focusLabel": "I care about",
-    "focusValue": "Visual consistency · Interaction rhythm · Components",
-    "expectLabel": "Expect",
-    "expectValue": "A resume homepage that feels more like a product",
-    "workTitle": "Work",
-    "workDescription": "Placeholder for project cards using the same shadow system.",
-    "aboutTitle": "About",
-    "aboutDescription": "Placeholder for experience, skills, and a timeline.",
+    "eyebrow": "Brutalist Product Lab",
+    "introLeadPrefix": "I’m ",
+    "introLeadName": "Chase",
+    "introLeadSuffix": ", an AI-powered builder shaped by eight years of old-school coding.",
+    "introPresent": "Now, I use",
+    "introPresentDetailLead": "AI",
+    "introPresentDetailRest": " to build with the capabilities of an entire team.",
+    "primaryCta": "Explore the playground",
+    "secondaryCta": "Work experience",
+    "workbenchLabel": "Mixed workbench preview",
+    "projectsSectionTitle": "Playground",
+    "projectsSectionAria": "Playground",
+    "projects": {
+      "items": {
+        "imageToUi": {
+          "problem": "How do painting palettes map into readable UI roles instead of decorative swatches?",
+          "tag1": "Color roles",
+          "tag2": "Live preview",
+          "entry": "Open Image to UI"
+        },
+        "magicCursor": {
+          "problem": "How do you tune cursor effects in a real layout before shipping them?",
+          "tag1": "Interaction lab",
+          "tag2": "Configurable",
+          "entry": "Open Magic Cursor"
+        },
+        "flowEditor": {
+          "problem": "Complex structured flows are hard to hold in your head without a visual tree.",
+          "tag1": "Flow structure",
+          "tag2": "Visual editing",
+          "entry": "Open Flow Editor"
+        }
+      }
+    },
     "contactTitle": "Contact",
     "contactDescription": "Placeholder for email, WeChat, or a contact form."
   },
@@ -68,6 +164,8 @@
   "magicCursor": {
     "title": "Magic Cursor",
     "description": "Switch between cursor effects and tune parameters in real time.",
+    "effectsTitle": "Effects",
+    "effectsDescription": "Choose an effect to preview or configure.",
     "effectLabel": "Effect",
     "paramsLabel": "Parameters",
     "all": "All",

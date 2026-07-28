@@ -96,10 +96,10 @@ export function MagicCursorSidebar(props: Props) {
   const options = detail ? detail.optionsByEffect[detail.activeEffect] : null;
 
   return (
-    <Card className="border-border/80 bg-card/80 shadow-lg backdrop-blur-xl">
+    <Card>
       <CardHeader className="pb-2">
-        <CardTitle>Magic Cursor</CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
+        <CardTitle>{t("effectsTitle")}</CardTitle>
+        <CardDescription>{t("effectsDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4 pt-0">
         <div className="grid gap-2">
@@ -107,7 +107,7 @@ export function MagicCursorSidebar(props: Props) {
           <Button
             variant={effect === null ? "default" : "outline"}
             size="lg"
-            className={effect === null ? "shadow-sm border-none" : "shadow-sm"}
+            className={effect === null ? "shadow-xs border-none" : "shadow-xs"}
             onClick={() => router.push("/magic-cursor")}
           >
             {t("all")}
@@ -121,7 +121,7 @@ export function MagicCursorSidebar(props: Props) {
                   type="button"
                   variant={active ? "default" : "outline"}
                   size="lg"
-                  className={active ? "shadow-sm border-none" : "shadow-sm"}
+                  className={active ? "shadow-xs border-none" : "shadow-xs"}
                   onClick={() => router.push(`/magic-cursor/${name}`)}
                 >
                   {name}
