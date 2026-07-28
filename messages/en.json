@@ -448,6 +448,12 @@
         "scanning": "Scanning…",
         "signalDetected": "Signal detected",
         "locking": "Locking frame…"
+      },
+      "hud": {
+        "signal": "Signal",
+        "gain": "Gain",
+        "frequency": "Scan freq.",
+        "timestamp": "Timestamp"
       }
     },
     "result": {
