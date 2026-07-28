@@ -14,6 +14,7 @@ import {
   computeProximitySignal,
   DUDU_SCANNER_DESKTOP_SPOTLIGHT_RADIUS,
   DUDU_SCANNER_DISCOVERY_DWELL_MS,
+  DUDU_SCANNER_MIN_DISCOVERY_ELAPSED_MS,
   signalBandForStrength,
   type ScannerSignalBand,
 } from "@/lib/dudu-scanner/scanner-visual/exploration-model";
@@ -69,6 +70,13 @@ export type ScannerVisualRenderer = {
   getTargetPosition: () => { x: number; y: number } | null;
 };
 
+export type ScannerVisualPalette = {
+  spotlightOverlay: string;
+  spotlightFeather: string;
+  spotlightAccent: string;
+  spotlightParticle: string;
+};
+
 export type CreateScannerVisualRendererOptions = {
   canvas: HTMLCanvasElement;
   getStageRect: () => DOMRectReadOnly;
@@ -82,6 +90,7 @@ export type CreateScannerVisualRendererOptions = {
   getTargetImage?: () => CanvasImageSource | null;
   targetDisplayRadius?: number;
   spotlightRadius?: number;
+  palette?: ScannerVisualPalette;
   onDiscovery?: () => void;
   metricsIntervalMs?: number;
 };
@@ -95,6 +104,13 @@ const defaultState: ScannerVisualRenderState = {
   locking: false,
   reducedMotion: false,
   placementSeed: 1,
+};
+
+const defaultPalette: ScannerVisualPalette = {
+  spotlightOverlay: "Canvas",
+  spotlightFeather: "Canvas",
+  spotlightAccent: "Highlight",
+  spotlightParticle: "Highlight",
 };
 
 function hashNoise(x: number, y: number, frame: number): number {
@@ -123,6 +139,7 @@ export function createScannerVisualRenderer(
     getTargetImage = () => null,
     targetDisplayRadius = 28,
     spotlightRadius = DUDU_SCANNER_DESKTOP_SPOTLIGHT_RADIUS,
+    palette = defaultPalette,
     onDiscovery,
     metricsIntervalMs = 80,
   } = options;
@@ -271,7 +288,7 @@ export function createScannerVisualRenderer(
     fan: ReturnType<typeof computeFanGeometry>,
     motionScale: number,
   ) => {
-    context.fillStyle = "rgba(0, 0, 0, 0.7)";
+    context.fillStyle = palette.spotlightOverlay;
     context.fillRect(
       fan.cx - fan.radius,
       fan.cy - fan.radius,
@@ -285,10 +302,12 @@ export function createScannerVisualRenderer(
 
     const probeX = probe.x * cssWidth;
     const probeY = probe.y * cssHeight;
+    const signalStrength = getProximity()?.strength ?? probe.signalStrength;
     context.save();
     context.beginPath();
     context.arc(probeX, probeY, spotlightRadius, 0, Math.PI * 2);
     context.clip();
+    context.globalAlpha = 0.65 + signalStrength * 0.35;
     drawNoiseLayer(
       fan,
       motionScale,
@@ -309,8 +328,8 @@ export function createScannerVisualRenderer(
       probeY,
       spotlightRadius,
     );
-    feather.addColorStop(0, "rgba(0, 0, 0, 0)");
-    feather.addColorStop(1, "rgba(0, 0, 0, 0.75)");
+    feather.addColorStop(0, "transparent");
+    feather.addColorStop(1, palette.spotlightFeather);
     context.fillStyle = feather;
     context.fillRect(
       probeX - spotlightRadius,
@@ -321,9 +340,11 @@ export function createScannerVisualRenderer(
     context.restore();
 
     context.save();
-    const pulse = state.reducedMotion ? 0 : Math.sin(frame * 0.08) * 3;
-    context.strokeStyle = "rgba(134, 239, 172, 0.72)";
-    context.lineWidth = 2;
+    const pulse = state.reducedMotion
+      ? 0
+      : Math.sin(frame * (0.06 + signalStrength * 0.08)) * (2 + signalStrength * 5);
+    context.strokeStyle = palette.spotlightAccent;
+    context.lineWidth = 1.5 + signalStrength * 1.5;
     context.beginPath();
     context.arc(probeX, probeY, spotlightRadius + 8 + pulse, 0, Math.PI * 2);
     context.stroke();
@@ -335,7 +356,7 @@ export function createScannerVisualRenderer(
     context.stroke();
 
     if (!state.reducedMotion) {
-      context.fillStyle = "rgba(187, 247, 208, 0.5)";
+      context.fillStyle = palette.spotlightParticle;
       for (let index = 0; index < 6; index += 1) {
         const angle = frame * 0.018 + (index / 6) * Math.PI * 2;
         const radius = spotlightRadius + 15 + (index % 2) * 7;
@@ -400,7 +421,11 @@ export function createScannerVisualRenderer(
         insideRevealRadius: proximity?.insideRevealRadius ?? false,
       });
       dwellMs = dwell.dwellMs;
-      if (dwell.discovered && !discoveryNotified) {
+      if (
+        now - startedAt >= DUDU_SCANNER_MIN_DISCOVERY_ELAPSED_MS &&
+        dwell.discovered &&
+        !discoveryNotified
+      ) {
         discoveryNotified = true;
         onDiscovery?.();
       }
@@ -592,6 +617,8 @@ export function createScannerVisualRenderer(
         discoveryNotified = false;
       }
       if (seedChanged) {
+        smoother.reset();
+        probe = neutralProbeInput();
         probeHasEntered = false;
         probeInside = false;
       }

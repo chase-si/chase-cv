@@ -90,6 +90,9 @@ export function DuduScannerFanCanvas({
       return;
     }
 
+    const styles = window.getComputedStyle(stage);
+    const background = styles.getPropertyValue("--background").trim() || "Canvas";
+    const primary = styles.getPropertyValue("--primary").trim() || "Highlight";
     const renderer = createScannerVisualRenderer({
       canvas,
       getStageRect: () => stage.getBoundingClientRect(),
@@ -97,6 +100,12 @@ export function DuduScannerFanCanvas({
       spotlightRadius: window.matchMedia?.("(pointer: coarse)").matches
         ? DUDU_SCANNER_MOBILE_SPOTLIGHT_RADIUS
         : DUDU_SCANNER_DESKTOP_SPOTLIGHT_RADIUS,
+      palette: {
+        spotlightOverlay: `color-mix(in oklab, ${background} 70%, transparent)`,
+        spotlightFeather: `color-mix(in oklab, ${background} 75%, transparent)`,
+        spotlightAccent: `color-mix(in oklab, ${primary} 72%, transparent)`,
+        spotlightParticle: `color-mix(in oklab, ${primary} 50%, transparent)`,
+      },
       onMetrics: (metrics) => onMetricsRef.current?.(metrics),
       onDiscovery: () => onDiscoveryRef.current?.(),
     });

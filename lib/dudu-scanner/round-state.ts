@@ -2,7 +2,13 @@ export type DuduScannerRoundPhase = "config" | "scan" | "result";
 
 export type DuduScannerRoundTransient = "no-signal" | "fullscreen-hint";
 
-export type DuduScannerScanStage = "idle" | "auto-scan" | "search" | "target-reveal" | "locking";
+export type DuduScannerScanStage =
+  | "idle"
+  | "auto-scan"
+  | "search"
+  | "signal-found"
+  | "target-reveal"
+  | "locking";
 
 export type DuduScannerScanFlags = {
   stage: DuduScannerScanStage;
@@ -23,6 +29,7 @@ export type DuduScannerRoundAction =
   | { type: "START_SCAN" }
   | { type: "AUTO_SCAN_COMPLETE" }
   | { type: "DISCOVER_TARGET" }
+  | { type: "BEGIN_TARGET_REVEAL" }
   | { type: "REVEAL_COMPLETE" }
   | { type: "LOCK_SIGNAL" }
   | { type: "LOCK_COMPLETE" }
@@ -95,12 +102,24 @@ export function duduScannerRoundReducer(
         ...state,
         scan: {
           ...state.scan,
-          stage: "target-reveal",
-          targetRevealed: true,
+          stage: "signal-found",
+          targetRevealed: false,
           revealComplete: false,
           paused: false,
         },
         transient: null,
+      };
+
+    case "BEGIN_TARGET_REVEAL":
+      if (
+        state.phase !== "scan" ||
+        state.scan.stage !== "signal-found"
+      ) {
+        return state;
+      }
+      return {
+        ...state,
+        scan: { ...state.scan, stage: "target-reveal", targetRevealed: true },
       };
 
     case "REVEAL_COMPLETE":

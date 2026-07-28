@@ -169,6 +169,60 @@ describe("scanner visual renderer lifecycle", () => {
     renderer.destroy();
   });
 
+  it("preserves dwell while outside and resumes it after probe re-entry", () => {
+    const { canvas } = createTestCanvas();
+    const rect = {
+      left: 0,
+      top: 0,
+      right: 400,
+      bottom: 300,
+      width: 400,
+      height: 300,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    };
+    let now = 0;
+    let nextFrame: FrameRequestCallback | null = null;
+    const renderer = createScannerVisualRenderer({
+      canvas,
+      getStageRect: () => rect,
+      requestFrame: (callback) => {
+        nextFrame = callback;
+        return 1;
+      },
+      cancelFrame: () => {},
+      getNow: () => now,
+    });
+    renderer.setState({ placementSeed: 11, explorationEnabled: true });
+    renderer.start();
+    const target = renderer.getTargetPosition()!;
+    renderer.updateInput(target.x, target.y, now);
+
+    now = 9_999;
+    expect(renderer.getMetrics().roundElapsedMs).toBe(9_999);
+    nextFrame!(now);
+    now = 10_400;
+    nextFrame!(now);
+    const dwellBeforeExit = renderer.getMetrics().dwellProgress;
+    expect(dwellBeforeExit).toBeGreaterThan(0);
+
+    renderer.updateInput(rect.right, rect.bottom, now);
+    now = 10_600;
+    nextFrame!(now);
+    expect(renderer.getMetrics().dwellProgress).toBe(dwellBeforeExit);
+
+    renderer.updateInput(target.x, target.y, now);
+    now = 11_000;
+    nextFrame!(now);
+    expect(renderer.getMetrics()).toMatchObject({
+      probeInside: true,
+      signalStrength: 1,
+      dwellProgress: 1,
+    });
+    renderer.destroy();
+  });
+
   it("supports the smaller mobile spotlight radius", () => {
     const { canvas, stage } = createTestCanvas();
     const renderer = createScannerVisualRenderer({
@@ -214,8 +268,10 @@ describe("scanner visual renderer lifecycle", () => {
     renderer.start();
     const target = renderer.getTargetPosition()!;
     renderer.updateInput(target.x, target.y, 0);
+    expect(onDiscovery).not.toHaveBeenCalled();
 
     now = 9_999;
+    expect(renderer.getMetrics().roundElapsedMs).toBe(9_999);
     nextFrame!(now);
     expect(onDiscovery).not.toHaveBeenCalled();
 

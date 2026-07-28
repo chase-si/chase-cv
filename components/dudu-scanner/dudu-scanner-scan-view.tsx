@@ -89,6 +89,8 @@ export function DuduScannerScanView({
   const statusKey =
     scanStage === "auto-scan"
       ? "initializing"
+      : scanStage === "signal-found"
+        ? "signalDetected"
       : locking
         ? "locking"
         : targetRevealed

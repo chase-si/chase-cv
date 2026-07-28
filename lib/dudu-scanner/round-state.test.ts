@@ -44,6 +44,7 @@ describe("duduScannerRoundReducer", () => {
     expect(state.scan.targetRevealed).toBe(false);
 
     state = reduce(state, { type: "DISCOVER_TARGET" });
+    state = reduce(state, { type: "BEGIN_TARGET_REVEAL" });
     expect(state.phase).toBe("scan");
     expect(state.scan.targetRevealed).toBe(true);
 
@@ -79,6 +80,10 @@ describe("duduScannerRoundReducer", () => {
     state = reduce(state, { type: "AUTO_SCAN_COMPLETE" });
 
     state = reduce(state, { type: "DISCOVER_TARGET" });
+    expect(state.scan.stage).toBe("signal-found");
+    expect(state.scan.targetRevealed).toBe(false);
+
+    state = reduce(state, { type: "BEGIN_TARGET_REVEAL" });
 
     expect(state.scan.stage).toBe("target-reveal");
     expect(state.scan.targetRevealed).toBe(true);
@@ -89,6 +94,7 @@ describe("duduScannerRoundReducer", () => {
     let state = createInitialRoundState();
     state = reduce(state, { type: "START_SCAN" });
     state = reduce(state, { type: "DISCOVER_TARGET" });
+    state = reduce(state, { type: "BEGIN_TARGET_REVEAL" });
 
     expect(reduce(state, { type: "LOCK_SIGNAL" })).toEqual(state);
 
@@ -101,6 +107,7 @@ describe("duduScannerRoundReducer", () => {
     let state = createInitialRoundState();
     state = reduce(state, { type: "START_SCAN" });
     state = reduce(state, { type: "DISCOVER_TARGET" });
+    state = reduce(state, { type: "BEGIN_TARGET_REVEAL" });
     state = reduce(state, { type: "REVEAL_COMPLETE" });
     state = reduce(state, { type: "LOCK_SIGNAL" });
     state = reduce(state, { type: "LOCK_COMPLETE" });
@@ -136,6 +143,7 @@ describe("duduScannerRoundReducer", () => {
     let state = createInitialRoundState();
     state = reduce(state, { type: "START_SCAN" });
     state = reduce(state, { type: "DISCOVER_TARGET" });
+    state = reduce(state, { type: "BEGIN_TARGET_REVEAL" });
     state = reduce(state, { type: "REVEAL_COMPLETE" });
     state = reduce(state, { type: "LOCK_SIGNAL" });
     state = reduce(state, { type: "LOCK_COMPLETE" });
@@ -146,6 +154,7 @@ describe("duduScannerRoundReducer", () => {
     let state = createInitialRoundState();
     state = reduce(state, { type: "START_SCAN" });
     state = reduce(state, { type: "DISCOVER_TARGET" });
+    state = reduce(state, { type: "BEGIN_TARGET_REVEAL" });
     state = reduce(state, { type: "REVEAL_COMPLETE" });
     state = reduce(state, { type: "LOCK_SIGNAL" });
     const locking = state;
@@ -168,6 +177,7 @@ describe("duduScannerRoundReducer", () => {
   it("ignores round actions that do not apply to config", () => {
     const configState = createInitialRoundState();
     expect(reduce(configState, { type: "LOCK_SIGNAL" })).toEqual(configState);
+    expect(reduce(configState, { type: "BEGIN_TARGET_REVEAL" })).toEqual(configState);
     expect(reduce(configState, { type: "SCAN_AGAIN" })).toEqual(configState);
     expect(reduce(configState, { type: "CHANGE_TARGET" })).toEqual(configState);
     expect(reduce(configState, { type: "LOCK_COMPLETE" })).toEqual(configState);
@@ -196,6 +206,7 @@ describe("duduScannerRoundReducer", () => {
     let state = createInitialRoundState();
     state = reduce(state, { type: "START_SCAN" });
     state = reduce(state, { type: "DISCOVER_TARGET" });
+    state = reduce(state, { type: "BEGIN_TARGET_REVEAL" });
     state = reduce(state, { type: "REVEAL_COMPLETE" });
     state = reduce(state, { type: "LOCK_SIGNAL" });
 
@@ -209,6 +220,7 @@ describe("duduScannerRoundReducer", () => {
     expect(state.scan.paused).toBe(true);
 
     state = reduce(state, { type: "DISCOVER_TARGET" });
+    state = reduce(state, { type: "BEGIN_TARGET_REVEAL" });
     expect(state.scan.paused).toBe(false);
     expect(state.scan.targetRevealed).toBe(true);
   });
@@ -217,6 +229,7 @@ describe("duduScannerRoundReducer", () => {
     let state = createInitialRoundState();
     state = reduce(state, { type: "START_SCAN" });
     state = reduce(state, { type: "DISCOVER_TARGET" });
+    state = reduce(state, { type: "BEGIN_TARGET_REVEAL" });
 
     state = reduce(state, { type: "CANCEL_TARGET" });
     expect(state.phase).toBe("scan");
@@ -230,6 +243,7 @@ describe("duduScannerRoundReducer", () => {
     let state = createInitialRoundState();
     state = reduce(state, { type: "START_SCAN" });
     state = reduce(state, { type: "DISCOVER_TARGET" });
+    state = reduce(state, { type: "BEGIN_TARGET_REVEAL" });
     state = reduce(state, { type: "REVEAL_COMPLETE" });
     state = reduce(state, { type: "LOCK_SIGNAL" });
 
@@ -242,6 +256,7 @@ describe("duduScannerRoundReducer", () => {
     let state = createInitialRoundState();
     state = reduce(state, { type: "START_SCAN" });
     state = reduce(state, { type: "DISCOVER_TARGET" });
+    state = reduce(state, { type: "BEGIN_TARGET_REVEAL" });
     state = reduce(state, { type: "TOGGLE_PAUSE" });
 
     state = reduce(state, { type: "RESTART_SCAN" });
@@ -264,6 +279,7 @@ describe("duduScannerRoundReducer", () => {
     let state = createInitialRoundState();
     state = reduce(state, { type: "START_SCAN" });
     state = reduce(state, { type: "DISCOVER_TARGET" });
+    state = reduce(state, { type: "BEGIN_TARGET_REVEAL" });
     state = reduce(state, { type: "REVEAL_COMPLETE" });
     state = reduce(state, { type: "LOCK_SIGNAL" });
     state = reduce(state, { type: "LOCK_COMPLETE" });
@@ -278,6 +294,7 @@ describe("duduScannerRoundReducer", () => {
 
     state = reduce(state, { type: "START_SCAN" });
     state = reduce(state, { type: "DISCOVER_TARGET" });
+    state = reduce(state, { type: "BEGIN_TARGET_REVEAL" });
     state = reduce(state, { type: "REVEAL_COMPLETE" });
     state = reduce(state, { type: "LOCK_SIGNAL" });
     state = reduce(state, { type: "LOCK_COMPLETE" });
@@ -289,6 +306,7 @@ describe("duduScannerRoundReducer", () => {
     let state = createInitialRoundState();
     state = reduce(state, { type: "START_SCAN" });
     state = reduce(state, { type: "DISCOVER_TARGET" });
+    state = reduce(state, { type: "BEGIN_TARGET_REVEAL" });
     state = reduce(state, { type: "TOGGLE_PAUSE" });
 
     expect(reduce(state, { type: "LOCK_SIGNAL" })).toEqual(state);

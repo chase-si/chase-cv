@@ -211,6 +211,12 @@ export function DuduScannerApp() {
   }, [round.phase, round.scan.placementVersion, round.scan.stage]);
 
   useEffect(() => {
+    if (round.phase === "scan" && round.scan.stage === "signal-found") {
+      dispatch({ type: "BEGIN_TARGET_REVEAL" });
+    }
+  }, [round.phase, round.scan.stage]);
+
+  useEffect(() => {
     if (!round.scan.targetRevealed || round.scan.locking || round.scan.paused) {
       return;
     }

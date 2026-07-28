@@ -1,6 +1,20 @@
 import { expect, test } from "@playwright/test";
 
+import {
+  computeFanGeometry,
+  placeTargetInSafeRegion,
+} from "../../lib/dudu-scanner/scanner-visual/geometry";
+
 const DUDU_SCANNER_PATH = "/en/dudu-scanner";
+
+function hashTargetSeed(targetId: string): number {
+  let hash = 0;
+  for (let index = 0; index < targetId.length; index += 1) {
+    hash = (hash << 5) - hash + targetId.charCodeAt(index);
+    hash |= 0;
+  }
+  return Math.abs(hash) + 1;
+}
 
 async function startScanRound(page: import("@playwright/test").Page) {
   await page.goto(DUDU_SCANNER_PATH);
@@ -103,11 +117,32 @@ test.describe("dudu scanner round", () => {
     await expect(page.getByTestId("dudu-scanner-status")).toHaveText("Signal detected");
   });
 
-  test("R restarts scan without leaving immersive view", async ({ page }) => {
+  test("R restarts scan and regenerates the hidden target", async ({ page }) => {
     await startScanRound(page);
-    await page.keyboard.press("Space");
+    await expect(page.getByTestId("dudu-scanner-status")).toHaveText(
+      "Move the probe to find a signal",
+      { timeout: 5000 },
+    );
+    const stage = page.getByTestId("dudu-scanner-fan-stage");
+    const box = await stage.boundingBox();
+    expect(box).not.toBeNull();
+    const fan = computeFanGeometry(box!.width, box!.height);
+    const initialSeed = hashTargetSeed("fry-sprite");
+    const initialTarget = placeTargetInSafeRegion(initialSeed, fan, 28);
+    const restartedTarget = placeTargetInSafeRegion(initialSeed + 97, fan, 28);
+    expect(restartedTarget).not.toEqual(initialTarget);
+
+    await page.mouse.move(box!.x + initialTarget.x, box!.y + initialTarget.y);
+    await expect(page.getByTestId("dudu-scanner-hud-signal")).toHaveText("100%");
+
     await page.keyboard.press("r");
     await expect(page.getByTestId("dudu-scanner-status")).toHaveText("Initializing scanner…");
+    await expect(page.getByTestId("dudu-scanner-status")).toHaveText(
+      "Move the probe to find a signal",
+      { timeout: 5000 },
+    );
+    await page.mouse.move(box!.x + restartedTarget.x, box!.y + restartedTarget.y);
+    await expect(page.getByTestId("dudu-scanner-hud-signal")).toHaveText("100%");
   });
 
   test("browser back from scan returns to config before leaving app", async ({ page }) => {

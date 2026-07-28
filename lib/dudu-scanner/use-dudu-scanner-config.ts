@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { startTransition, useCallback, useEffect, useState } from "react";
 
 import {
   DUDU_SCANNER_DEFAULT_CONFIG,
@@ -15,19 +15,25 @@ import {
   applyThemeChange,
 } from "@/lib/dudu-scanner/config-state";
 
-function readInitialConfig(): DuduScannerConfigShape {
-  if (typeof window === "undefined") {
-    return { ...DUDU_SCANNER_DEFAULT_CONFIG };
-  }
-  return readDuduScannerConfig(window.localStorage);
-}
-
 export function useDuduScannerConfig() {
-  const [config, setConfig] = useState<DuduScannerConfigShape>(readInitialConfig);
+  const [config, setConfig] = useState<DuduScannerConfigShape>(() => ({
+    ...DUDU_SCANNER_DEFAULT_CONFIG,
+  }));
+  const [hydratedFromStorage, setHydratedFromStorage] = useState(false);
 
   useEffect(() => {
+    startTransition(() => {
+      setConfig(readDuduScannerConfig(window.localStorage));
+      setHydratedFromStorage(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!hydratedFromStorage) {
+      return;
+    }
     writeDuduScannerConfig(window.localStorage, config);
-  }, [config]);
+  }, [config, hydratedFromStorage]);
 
   const setThemeId = useCallback((themeId: DuduScannerThemeId) => {
     setConfig((current) => applyThemeChange(current, themeId));
