@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
+import { DuduScannerBackButton } from "@/components/dudu-scanner/dudu-scanner-back-button";
 import { type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
 import { DUDU_SCANNER_TARGET_MESSAGE_KEY } from "@/lib/dudu-scanner/i18n-keys";
 
@@ -12,6 +13,7 @@ type DuduScannerResultViewProps = {
   targetImageSrc: string;
   onScanAgain: () => void;
   onChangeTarget: () => void;
+  onBack?: () => void;
 };
 
 export function DuduScannerResultView({
@@ -19,15 +21,21 @@ export function DuduScannerResultView({
   targetImageSrc,
   onScanAgain,
   onChangeTarget,
+  onBack,
 }: DuduScannerResultViewProps) {
   const t = useTranslations("duduScanner");
   const targetMessageKey = DUDU_SCANNER_TARGET_MESSAGE_KEY[targetId];
 
   return (
     <div
-      className="flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-4 overflow-hidden p-4 text-center sm:gap-6 sm:p-6"
+      className="relative flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-4 overflow-hidden p-4 text-center sm:gap-6 sm:p-6"
       data-testid="dudu-scanner-result-view"
     >
+      {onBack ? (
+        <div className="absolute left-3 top-3 z-10 sm:left-4 sm:top-4">
+          <DuduScannerBackButton onClick={onBack} />
+        </div>
+      ) : null}
       <div className="space-y-2">
         <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
           {t("result.eyebrow")}

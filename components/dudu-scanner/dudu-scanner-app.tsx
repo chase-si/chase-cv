@@ -145,11 +145,18 @@ export function DuduScannerApp() {
     await exitAppFullscreen();
   }, [leaveImmersiveHistory, resetRevealProgress]);
 
-  const returnToConfigFromSession = useCallback(async () => {
+  const handleBackToConfig = useCallback(async () => {
     dispatch({ type: "RETURN_TO_CONFIG" });
     resetRevealProgress();
+    setRoundUseFallback(false);
+    setFailedPreloadTargetId(null);
+    leaveImmersiveHistory();
     await exitAppFullscreen();
-  }, [resetRevealProgress]);
+  }, [leaveImmersiveHistory, resetRevealProgress]);
+
+  const returnToConfigFromSession = useCallback(async () => {
+    await handleBackToConfig();
+  }, [handleBackToConfig]);
 
   const applyDomainCommand = useCallback(
     (command: DuduScannerDomainCommand) => {
@@ -323,6 +330,7 @@ export function DuduScannerApp() {
       data-testid="dudu-scanner-app-root"
       className={cn(
         "flex min-h-0 flex-1 flex-col",
+        round.phase === "config" && "max-h-[calc(100dvh-4rem)]",
         immersive && "fixed inset-0 z-50 overflow-hidden bg-background",
       )}
     >
@@ -347,6 +355,7 @@ export function DuduScannerApp() {
           onScanMetrics={handleScanMetrics}
           onDiscovery={() => dispatch({ type: "DISCOVER_TARGET" })}
           onDomainCommand={applyDomainCommand}
+          onBack={() => void handleBackToConfig()}
         />
       ) : null}
       {round.phase === "result" ? (
@@ -355,6 +364,7 @@ export function DuduScannerApp() {
           targetImageSrc={roundTargetImageSrc}
           onScanAgain={() => void handleScanAgain()}
           onChangeTarget={() => void handleChangeTarget()}
+          onBack={() => void handleBackToConfig()}
         />
       ) : null}
     </div>

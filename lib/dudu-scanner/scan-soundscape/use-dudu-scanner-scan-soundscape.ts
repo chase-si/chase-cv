@@ -58,14 +58,19 @@ export function useDuduScannerScanSoundscape({
 
   useEffect(() => {
     const engine = getEngine();
-    const immersive = phase === "scan" || phase === "result";
-    engine.setScanActive(immersive);
-    if (!immersive) {
+    if (locking && !prevLockingRef.current) {
+      engine.notifyLock();
+    }
+    prevLockingRef.current = locking;
+
+    const scanSoundActive = phase === "scan" && !locking;
+    engine.setScanActive(scanSoundActive);
+    if (phase !== "scan") {
       engine.setProbeVelocity(0);
       prevRevealedRef.current = false;
       prevLockingRef.current = false;
     }
-  }, [getEngine, phase]);
+  }, [getEngine, locking, lockingKey, phase]);
 
   useEffect(() => {
     getEngine().setScanPaused(scanPaused);
@@ -81,14 +86,6 @@ export function useDuduScannerScanSoundscape({
     }
     prevRevealedRef.current = targetRevealed;
   }, [getEngine, targetRevealed, targetRevealedKey]);
-
-  useEffect(() => {
-    const engine = getEngine();
-    if (locking && !prevLockingRef.current) {
-      engine.notifyLock();
-    }
-    prevLockingRef.current = locking;
-  }, [getEngine, locking, lockingKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") {

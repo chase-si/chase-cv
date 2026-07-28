@@ -415,6 +415,7 @@
     "shortcutsHeading": "操作者快捷键",
     "shortcutsHint": "以下按键在扫描过程中可用，正式表演前可以先记一下。",
     "startScan": "开始扫描",
+    "backToConfig": "返回设置",
     "assetLoadWarning": "这个角色图没加载成功，扫描时会先用备用轮廓。可以换别的角色或稍后再试一次。",
     "disclaimer": "仅供娱乐，非医疗工具。",
     "themes": {

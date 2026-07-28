@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
+import { DuduScannerBackButton } from "@/components/dudu-scanner/dudu-scanner-back-button";
 import { DuduScannerFanCanvas } from "@/components/dudu-scanner/dudu-scanner-fan-canvas";
 import { DuduScannerOperatorControlBar } from "@/components/dudu-scanner/dudu-scanner-operator-control-bar";
 import { type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
@@ -31,6 +32,7 @@ type DuduScannerScanViewProps = {
   onScanMetrics?: (metrics: ScannerVisualMetrics) => void;
   onDiscovery?: () => void;
   onDomainCommand?: (command: DuduScannerDomainCommand) => void;
+  onBack?: () => void;
 };
 
 function hashTargetSeed(targetId: string): number {
@@ -77,6 +79,7 @@ export function DuduScannerScanView({
   onScanMetrics,
   onDiscovery,
   onDomainCommand,
+  onBack,
 }: DuduScannerScanViewProps) {
   const t = useTranslations("duduScanner");
   const prefersTouchControls = usePrefersTouchOperatorControls();
@@ -112,7 +115,9 @@ export function DuduScannerScanView({
       className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden p-3 sm:gap-4 sm:p-6"
       data-testid="dudu-scanner-scan-view"
     >
-      <header className="flex shrink-0 flex-col gap-2 border-b border-border/70 pb-2 sm:gap-3 sm:pb-3 md:flex-row md:items-end md:justify-between">
+      <header className="flex shrink-0 flex-col gap-2 border-b border-border/70 pb-2 sm:gap-3 sm:pb-3">
+        {onBack ? <DuduScannerBackButton onClick={onBack} /> : null}
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {t("scan.hudLabel")}
@@ -149,6 +154,7 @@ export function DuduScannerScanView({
             </dd>
           </div>
         </dl>
+        </div>
       </header>
 
       <div className="relative flex min-h-0 min-w-0 flex-1 flex-col gap-3 lg:flex-row lg:gap-4">

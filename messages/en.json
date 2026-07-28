@@ -415,6 +415,7 @@
     "shortcutsHeading": "Operator shortcuts",
     "shortcutsHint": "These keys work during the scan. Keep this list handy before you go live.",
     "startScan": "Start scan",
+    "backToConfig": "Back to setup",
     "assetLoadWarning": "We couldn't load this character's art. A standby silhouette will show during the scan—you can try again or pick another target.",
     "disclaimer": "For entertainment only — not a medical device.",
     "themes": {

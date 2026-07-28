@@ -33,7 +33,7 @@ afterEach(() => {
 });
 
 describe("LocaleChrome", () => {
-  it("hides site navigation on the dudu scanner route", () => {
+  it("shows site navigation on the dudu scanner route", () => {
     mockUsePathname.mockReturnValue("/dudu-scanner");
     render(
       <NextIntlClientProvider locale="en" messages={enMessages}>
@@ -43,7 +43,7 @@ describe("LocaleChrome", () => {
       </NextIntlClientProvider>,
     );
 
-    expect(screen.queryByTestId("site-nav")).not.toBeInTheDocument();
+    expect(screen.getByTestId("site-nav")).toBeInTheDocument();
     expect(screen.getByText("Scanner")).toBeInTheDocument();
   });
 
