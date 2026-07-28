@@ -27,7 +27,6 @@ export const DUDU_SCANNER_TARGET_MESSAGE_KEY: Record<
 
 export const DUDU_SCANNER_SHORTCUT_KEYS = [
   "space",
-  "one",
   "enter",
   "r",
   "m",
@@ -40,7 +39,6 @@ export type DuduScannerShortcutKey = (typeof DUDU_SCANNER_SHORTCUT_KEYS)[number]
 
 export const DUDU_SCANNER_SHORTCUT_LABEL: Record<DuduScannerShortcutKey, string> = {
   space: "Space",
-  one: "1",
   enter: "Enter",
   r: "R",
   m: "M",

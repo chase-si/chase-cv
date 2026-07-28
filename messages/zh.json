@@ -454,8 +454,7 @@
       }
     },
     "shortcuts": {
-      "space": "暂停或继续扫描",
-      "one": "显示目标",
+      "space": "强制发现目标",
       "enter": "锁定信号",
       "r": "重新扫描",
       "m": "切换声音",
@@ -467,7 +466,7 @@
       "label": "扫描控制",
       "pauseResume": "暂停扫描",
       "resume": "继续扫描",
-      "reveal": "显示目标",
+      "reveal": "强制发现",
       "lock": "锁定信号",
       "hide": "隐藏目标",
       "reset": "重新扫描"
@@ -476,11 +475,17 @@
       "hudLabel": "扫描仪",
       "hudHint": "扇形光束已锁定，留意肚皮波段。",
       "targetHidden": "屏幕上还没有目标。",
-      "noSignal": "没有可锁定的信号——请先按 1 显示目标。",
+      "noSignal": "没有可锁定的信号——请移动探头，或按空格强制发现。",
       "fullscreenHint": "无法进入全屏——按 F 可再试一次。",
       "status": {
-        "scanning": "扫描中…",
+        "initializing": "正在初始化扫描仪…",
+        "moveProbe": "移动探头寻找信号",
+        "probeOutside": "探头已离开扫描区域",
+        "signalWeak": "信号微弱——继续寻找",
+        "signalMedium": "信号正在增强",
+        "signalStrong": "信号强烈——请保持探头稳定",
         "signalDetected": "已检测到信号",
+        "targetReady": "目标已显形——可以锁定",
         "locking": "正在锁定画面…"
       },
       "hud": {

@@ -34,14 +34,15 @@ import {
   preloadTargetImage,
   resolveTargetDisplaySrc,
 } from "@/lib/dudu-scanner/target-asset";
+import { DUDU_SCANNER_AUTO_SCAN_DURATION_MS } from "@/lib/dudu-scanner/scanner-visual/exploration-model";
 import { cn } from "@/lib/utils";
 
 function domainCommandToRoundAction(command: DuduScannerDomainCommand): DuduScannerRoundAction | null {
   switch (command.type) {
     case "TOGGLE_PAUSE":
       return { type: "TOGGLE_PAUSE" };
-    case "REVEAL_TARGET":
-      return { type: "REVEAL_TARGET" };
+    case "FORCE_DISCOVERY":
+      return { type: "DISCOVER_TARGET" };
     case "LOCK_SIGNAL":
       return { type: "LOCK_SIGNAL" };
     case "CANCEL_TARGET":
@@ -75,6 +76,7 @@ export function DuduScannerApp() {
     soundEnabled: config.soundEnabled,
     phase: round.phase,
     scanPaused: round.scan.paused,
+    scanStage: round.scan.stage,
     targetRevealed: round.scan.targetRevealed,
     locking: round.scan.locking,
     targetRevealedKey: `${round.phase}-${round.scan.targetRevealed}`,
@@ -199,6 +201,16 @@ export function DuduScannerApp() {
   }, [round.phase]);
 
   useEffect(() => {
+    if (round.phase !== "scan" || round.scan.stage !== "auto-scan") {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      dispatch({ type: "AUTO_SCAN_COMPLETE" });
+    }, DUDU_SCANNER_AUTO_SCAN_DURATION_MS);
+    return () => window.clearTimeout(timer);
+  }, [round.phase, round.scan.placementVersion, round.scan.stage]);
+
+  useEffect(() => {
     if (!round.scan.targetRevealed || round.scan.locking || round.scan.paused) {
       return;
     }
@@ -213,6 +225,8 @@ export function DuduScannerApp() {
       setRevealProgress(progress);
       if (progress < 1) {
         raf = window.requestAnimationFrame(tick);
+      } else {
+        dispatch({ type: "REVEAL_COMPLETE" });
       }
     };
     raf = window.requestAnimationFrame(tick);
@@ -297,12 +311,6 @@ export function DuduScannerApp() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [applyDomainCommand, round.phase]);
 
-  const statusKey = round.scan.locking
-    ? "locking"
-    : round.scan.targetRevealed
-      ? "signalDetected"
-      : "scanning";
-
   return (
     <div
       ref={rootRef}
@@ -323,12 +331,15 @@ export function DuduScannerApp() {
           targetId={config.targetId}
           targetImageSrc={roundTargetImageSrc}
           targetRevealed={round.scan.targetRevealed}
+          revealComplete={round.scan.revealComplete}
           revealProgress={effectiveRevealProgress}
           locking={round.scan.locking}
           paused={round.scan.paused}
+          scanStage={round.scan.stage}
+          placementVersion={round.scan.placementVersion}
           transient={round.transient}
-          statusKey={statusKey}
           onScanMetrics={handleScanMetrics}
+          onDiscovery={() => dispatch({ type: "DISCOVER_TARGET" })}
           onDomainCommand={applyDomainCommand}
         />
       ) : null}

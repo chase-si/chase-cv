@@ -5,16 +5,17 @@ import { useCallback, useEffect, useRef } from "react";
 import {
   createBrowserAudioContextPort,
   createScanSoundscape,
-  signalStrengthToProbeVelocity,
   type ScanSoundscape,
 } from "@/lib/dudu-scanner/scan-soundscape";
 import type { DuduScannerRoundPhase } from "@/lib/dudu-scanner/round-state";
+import type { DuduScannerScanStage } from "@/lib/dudu-scanner/round-state";
 import type { ScannerVisualMetrics } from "@/lib/dudu-scanner/scanner-visual/renderer";
 
 type UseDuduScannerScanSoundscapeArgs = {
   soundEnabled: boolean;
   phase: DuduScannerRoundPhase;
   scanPaused: boolean;
+  scanStage: DuduScannerScanStage;
   targetRevealed: boolean;
   locking: boolean;
   targetRevealedKey: string;
@@ -25,6 +26,7 @@ export function useDuduScannerScanSoundscape({
   soundEnabled,
   phase,
   scanPaused,
+  scanStage,
   targetRevealed,
   locking,
   targetRevealedKey,
@@ -74,6 +76,9 @@ export function useDuduScannerScanSoundscape({
     if (targetRevealed && !prevRevealedRef.current) {
       engine.notifyReveal();
     }
+    if (!targetRevealed && prevRevealedRef.current) {
+      engine.cancelTargetCues();
+    }
     prevRevealedRef.current = targetRevealed;
   }, [getEngine, targetRevealed, targetRevealedKey]);
 
@@ -91,11 +96,20 @@ export function useDuduScannerScanSoundscape({
     }
     const onBlur = () => getEngine().handleWindowBlur();
     const onFocus = () => getEngine().handleWindowFocus();
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        onBlur();
+      } else {
+        onFocus();
+      }
+    };
     window.addEventListener("blur", onBlur);
     window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       window.removeEventListener("blur", onBlur);
       window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [getEngine]);
 
@@ -108,9 +122,12 @@ export function useDuduScannerScanSoundscape({
       if (phase !== "scan" || scanPaused || locking) {
         return;
       }
-      getEngine().setProbeVelocity(signalStrengthToProbeVelocity(metrics.signalStrength));
+      getEngine().setProbeVelocity(metrics.probeVelocity);
+      if (scanStage === "search" && metrics.probeInside) {
+        getEngine().setProximitySignal(metrics.signalStrength);
+      }
     },
-    [getEngine, locking, phase, scanPaused],
+    [getEngine, locking, phase, scanPaused, scanStage],
   );
 
   return { unlockFromUserGesture, handleScanMetrics };

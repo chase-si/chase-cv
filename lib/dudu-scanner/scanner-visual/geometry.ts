@@ -48,6 +48,18 @@ export function computeFanAxisAlignedBounds(fan: FanGeometry): FanBounds {
 
 export type NormalizedPoint = { x: number; y: number };
 
+export function isPointInFan(point: NormalizedPoint, fan: FanGeometry): boolean {
+  const dx = point.x - fan.cx;
+  const dy = point.y - fan.cy;
+  const distance = Math.hypot(dx, dy);
+  if (distance > fan.radius) {
+    return false;
+  }
+
+  const angle = Math.atan2(dy, dx);
+  return angle >= fan.startAngle && angle <= fan.startAngle + fan.sweep;
+}
+
 export function placeTargetInSafeRegion(
   seed: number,
   fan: FanGeometry,

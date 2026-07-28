@@ -2,7 +2,7 @@ import type { DuduScannerRoundPhase } from "@/lib/dudu-scanner/round-state";
 
 export type DuduScannerDomainCommand =
   | { type: "TOGGLE_PAUSE" }
-  | { type: "REVEAL_TARGET" }
+  | { type: "FORCE_DISCOVERY" }
   | { type: "LOCK_SIGNAL" }
   | { type: "CANCEL_TARGET" }
   | { type: "RESTART_SCAN" }
@@ -14,9 +14,7 @@ export function keyboardEventToDomainCommand(
 ): DuduScannerDomainCommand | null {
   switch (key) {
     case " ":
-      return { type: "TOGGLE_PAUSE" };
-    case "1":
-      return { type: "REVEAL_TARGET" };
+      return { type: "FORCE_DISCOVERY" };
     case "Enter":
       return { type: "LOCK_SIGNAL" };
     case "x":
@@ -38,7 +36,7 @@ export function keyboardEventToDomainCommand(
 
 const SCAN_PHASE_COMMANDS = new Set<DuduScannerDomainCommand["type"]>([
   "TOGGLE_PAUSE",
-  "REVEAL_TARGET",
+  "FORCE_DISCOVERY",
   "LOCK_SIGNAL",
   "CANCEL_TARGET",
   "RESTART_SCAN",
@@ -90,7 +88,7 @@ export function touchControlIdToDomainCommand(
     case "pause-resume":
       return { type: "TOGGLE_PAUSE" };
     case "reveal":
-      return { type: "REVEAL_TARGET" };
+      return { type: "FORCE_DISCOVERY" };
     case "lock":
       return { type: "LOCK_SIGNAL" };
     case "hide":

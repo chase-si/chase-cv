@@ -2,8 +2,13 @@ export type DuduScannerRoundPhase = "config" | "scan" | "result";
 
 export type DuduScannerRoundTransient = "no-signal" | "fullscreen-hint";
 
+export type DuduScannerScanStage = "idle" | "auto-scan" | "search" | "target-reveal" | "locking";
+
 export type DuduScannerScanFlags = {
+  stage: DuduScannerScanStage;
+  placementVersion: number;
   targetRevealed: boolean;
+  revealComplete: boolean;
   locking: boolean;
   paused: boolean;
 };
@@ -16,7 +21,9 @@ export type DuduScannerRoundState = {
 
 export type DuduScannerRoundAction =
   | { type: "START_SCAN" }
-  | { type: "REVEAL_TARGET" }
+  | { type: "AUTO_SCAN_COMPLETE" }
+  | { type: "DISCOVER_TARGET" }
+  | { type: "REVEAL_COMPLETE" }
   | { type: "LOCK_SIGNAL" }
   | { type: "LOCK_COMPLETE" }
   | { type: "SCAN_AGAIN" }
@@ -29,7 +36,10 @@ export type DuduScannerRoundAction =
   | { type: "RETURN_TO_CONFIG" };
 
 const initialScanFlags: DuduScannerScanFlags = {
+  stage: "idle",
+  placementVersion: 0,
   targetRevealed: false,
+  revealComplete: false,
   locking: false,
   paused: false,
 };
@@ -42,10 +52,13 @@ export function createInitialRoundState(): DuduScannerRoundState {
   };
 }
 
-function freshScanState(transient: DuduScannerRoundTransient | null = null): DuduScannerRoundState {
+function freshScanState(
+  transient: DuduScannerRoundTransient | null = null,
+  placementVersion = 0,
+): DuduScannerRoundState {
   return {
     phase: "scan",
-    scan: { ...initialScanFlags },
+    scan: { ...initialScanFlags, stage: "auto-scan", placementVersion },
     transient,
   };
 }
@@ -61,6 +74,48 @@ export function duduScannerRoundReducer(
       }
       return freshScanState();
 
+    case "AUTO_SCAN_COMPLETE":
+      if (state.phase !== "scan" || state.scan.stage !== "auto-scan") {
+        return state;
+      }
+      return {
+        ...state,
+        scan: { ...state.scan, stage: "search" },
+        transient: null,
+      };
+
+    case "DISCOVER_TARGET":
+      if (
+        state.phase !== "scan" ||
+        (state.scan.stage !== "auto-scan" && state.scan.stage !== "search")
+      ) {
+        return state;
+      }
+      return {
+        ...state,
+        scan: {
+          ...state.scan,
+          stage: "target-reveal",
+          targetRevealed: true,
+          revealComplete: false,
+          paused: false,
+        },
+        transient: null,
+      };
+
+    case "REVEAL_COMPLETE":
+      if (
+        state.phase !== "scan" ||
+        state.scan.stage !== "target-reveal" ||
+        !state.scan.targetRevealed
+      ) {
+        return state;
+      }
+      return {
+        ...state,
+        scan: { ...state.scan, revealComplete: true },
+      };
+
     case "TOGGLE_PAUSE":
       if (state.phase !== "scan" || state.scan.locking) {
         return state;
@@ -71,16 +126,6 @@ export function duduScannerRoundReducer(
         transient: null,
       };
 
-    case "REVEAL_TARGET":
-      if (state.phase !== "scan" || state.scan.locking) {
-        return state;
-      }
-      return {
-        ...state,
-        scan: { ...state.scan, targetRevealed: true, paused: false },
-        transient: null,
-      };
-
     case "LOCK_SIGNAL":
       if (state.phase !== "scan" || state.scan.locking || state.scan.paused) {
         return state;
@@ -88,9 +133,12 @@ export function duduScannerRoundReducer(
       if (!state.scan.targetRevealed) {
         return { ...state, transient: "no-signal" };
       }
+      if (!state.scan.revealComplete) {
+        return state;
+      }
       return {
         ...state,
-        scan: { ...state.scan, locking: true },
+        scan: { ...state.scan, stage: "locking", locking: true },
         transient: null,
       };
 
@@ -100,7 +148,10 @@ export function duduScannerRoundReducer(
       }
       return {
         phase: "result",
-        scan: { ...initialScanFlags },
+        scan: {
+          ...initialScanFlags,
+          placementVersion: state.scan.placementVersion,
+        },
         transient: null,
       };
 
@@ -110,7 +161,11 @@ export function duduScannerRoundReducer(
       }
       return {
         ...state,
-        scan: { ...initialScanFlags },
+        scan: {
+          ...initialScanFlags,
+          stage: "search",
+          placementVersion: state.scan.placementVersion,
+        },
         transient: "no-signal",
       };
 
@@ -118,7 +173,7 @@ export function duduScannerRoundReducer(
       if (state.phase !== "scan") {
         return state;
       }
-      return freshScanState();
+      return freshScanState(null, state.scan.placementVersion + 1);
 
     case "RETURN_TO_CONFIG":
       if (state.phase === "config") {
@@ -130,7 +185,7 @@ export function duduScannerRoundReducer(
       if (state.phase !== "result") {
         return state;
       }
-      return freshScanState();
+      return freshScanState(null, state.scan.placementVersion + 1);
 
     case "CHANGE_TARGET":
       if (state.phase !== "result") {
