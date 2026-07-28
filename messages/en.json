@@ -463,6 +463,15 @@
       "esc": "Exit fullscreen",
       "f": "Try fullscreen again"
     },
+    "operatorBar": {
+      "label": "Scanner controls",
+      "pauseResume": "Pause scan",
+      "resume": "Resume scan",
+      "reveal": "Reveal target",
+      "lock": "Lock signal",
+      "hide": "Hide target",
+      "reset": "Reset scan"
+    },
     "scan": {
       "hudLabel": "Scanner",
       "hudHint": "Fan sweep locked — watch the belly band.",

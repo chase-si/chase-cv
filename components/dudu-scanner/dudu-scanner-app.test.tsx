@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DuduScannerApp } from "@/components/dudu-scanner/dudu-scanner-app";
 import { DUDU_SCANNER_CONFIG_STORAGE_KEY } from "@/lib/dudu-scanner/config-persistence";
+import { TOUCH_OPERATOR_CONTROLS_MEDIA_QUERY } from "@/lib/dudu-scanner/touch-environment";
 import enMessages from "@/messages/en.json";
 
 vi.mock("next/image", () => ({
@@ -19,6 +20,16 @@ function renderApp() {
       <DuduScannerApp />
     </NextIntlClientProvider>,
   );
+}
+
+function mockTouchOperatorEnvironment() {
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: query === TOUCH_OPERATOR_CONTROLS_MEDIA_QUERY,
+    media: query,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
 }
 
 async function startScan() {
@@ -169,5 +180,24 @@ describe("DuduScannerApp controls", () => {
 
     const preview = screen.getByTestId("dudu-scanner-target-preview").querySelector("img");
     expect(preview).toHaveAttribute("src", "/dudu-scanner/placeholders/fry-sprite.svg");
+  });
+
+  it("reveals and locks through the touch operator bar", async () => {
+    mockTouchOperatorEnvironment();
+    renderApp();
+    await startScan();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("dudu-scanner-operator-bar")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByTestId("dudu-scanner-operator-bar-toggle"));
+    fireEvent.click(screen.getByTestId("dudu-scanner-operator-reveal"));
+    await waitFor(() => {
+      expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent("Signal detected");
+    });
+    fireEvent.click(screen.getByTestId("dudu-scanner-operator-lock"));
+    await waitFor(() => {
+      expect(screen.getByTestId("dudu-scanner-lock-frame")).toBeInTheDocument();
+    });
   });
 });

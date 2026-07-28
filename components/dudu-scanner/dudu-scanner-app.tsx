@@ -329,6 +329,7 @@ export function DuduScannerApp() {
           transient={round.transient}
           statusKey={statusKey}
           onScanMetrics={handleScanMetrics}
+          onDomainCommand={applyDomainCommand}
         />
       ) : null}
       {round.phase === "result" ? (

@@ -88,17 +88,32 @@ export function DuduScannerFanCanvas({
     const observer = new ResizeObserver(() => renderer.resize());
     observer.observe(stage);
 
-    const handlePointer = (event: PointerEvent) => {
+    const handlePointerMove = (event: PointerEvent) => {
       renderer.updateInput(event.clientX, event.clientY, event.timeStamp);
     };
-    stage.addEventListener("pointermove", handlePointer);
-    stage.addEventListener("pointerdown", handlePointer);
+    const handlePointerDown = (event: PointerEvent) => {
+      if (stage.setPointerCapture) {
+        stage.setPointerCapture(event.pointerId);
+      }
+      renderer.updateInput(event.clientX, event.clientY, event.timeStamp);
+    };
+    const handlePointerUp = (event: PointerEvent) => {
+      if (stage.hasPointerCapture(event.pointerId)) {
+        stage.releasePointerCapture(event.pointerId);
+      }
+    };
+    stage.addEventListener("pointermove", handlePointerMove);
+    stage.addEventListener("pointerdown", handlePointerDown);
+    stage.addEventListener("pointerup", handlePointerUp);
+    stage.addEventListener("pointercancel", handlePointerUp);
 
     renderer.start();
 
     return () => {
-      stage.removeEventListener("pointermove", handlePointer);
-      stage.removeEventListener("pointerdown", handlePointer);
+      stage.removeEventListener("pointermove", handlePointerMove);
+      stage.removeEventListener("pointerdown", handlePointerDown);
+      stage.removeEventListener("pointerup", handlePointerUp);
+      stage.removeEventListener("pointercancel", handlePointerUp);
       observer.disconnect();
       renderer.destroy();
       rendererRef.current = null;
