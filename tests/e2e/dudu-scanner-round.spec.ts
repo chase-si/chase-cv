@@ -53,4 +53,58 @@ test.describe("dudu scanner round", () => {
       timeout: 5000,
     });
   });
+
+  test("space pauses and 1 reveals after pause", async ({ page }) => {
+    await startScanRound(page);
+    await page.keyboard.press("Space");
+    await page.keyboard.press("1");
+    await expect(page.getByTestId("dudu-scanner-status")).toHaveText("Signal detected", {
+      timeout: 3000,
+    });
+  });
+
+  test("X hides target and returns to scanning", async ({ page }) => {
+    await startScanRound(page);
+    await page.keyboard.press("1");
+    await expect(page.getByTestId("dudu-scanner-target-preview")).toBeVisible({ timeout: 2000 });
+    await page.keyboard.press("x");
+    await expect(page.getByTestId("dudu-scanner-transient")).toContainText("No signal to lock");
+    await expect(page.getByTestId("dudu-scanner-target-preview")).toHaveCount(0);
+    await page.keyboard.press("1");
+    await expect(page.getByTestId("dudu-scanner-target-preview")).toBeVisible({ timeout: 2000 });
+  });
+
+  test("R restarts scan without leaving immersive view", async ({ page }) => {
+    await startScanRound(page);
+    await page.keyboard.press("1");
+    await page.keyboard.press("r");
+    await expect(page.getByTestId("dudu-scanner-status")).toHaveText("Scanning…");
+    await expect(page.getByTestId("dudu-scanner-target-preview")).toHaveCount(0);
+  });
+
+  test("browser back from scan returns to config before leaving app", async ({ page }) => {
+    await page.goto(DUDU_SCANNER_PATH);
+    await page.getByRole("button", { name: "Start scan" }).click();
+    await expect(page.getByTestId("dudu-scanner-scan-view")).toBeVisible();
+
+    await page.goBack();
+    await expect(page.getByRole("heading", { name: "Dudu Scanner" })).toBeVisible();
+    await expect(page.getByTestId("dudu-scanner-scan-view")).toHaveCount(0);
+
+    await page.goBack();
+    await expect(page).not.toHaveURL(new RegExp(`${DUDU_SCANNER_PATH}$`));
+  });
+
+  test("refresh during scan returns to config with persisted preferences", async ({ page }) => {
+    await page.goto(DUDU_SCANNER_PATH);
+    await page.getByRole("button", { name: "Tummy Creatures" }).click();
+    await page.getByRole("button", { name: "Rumble Monster" }).click();
+    await page.getByRole("button", { name: "Start scan" }).click();
+    await expect(page.getByTestId("dudu-scanner-scan-view")).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Dudu Scanner" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Tummy Creatures", pressed: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Rumble Monster", pressed: true })).toBeVisible();
+  });
 });

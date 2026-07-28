@@ -1,0 +1,50 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  isDomainCommandAllowedInPhase,
+  keyboardEventToDomainCommand,
+  shouldPreventDefaultForScannerKey,
+} from "@/lib/dudu-scanner/scanner-commands";
+
+describe("keyboardEventToDomainCommand", () => {
+  it("maps operator keys to domain commands", () => {
+    expect(keyboardEventToDomainCommand(" ")).toEqual({ type: "TOGGLE_PAUSE" });
+    expect(keyboardEventToDomainCommand("1")).toEqual({ type: "REVEAL_TARGET" });
+    expect(keyboardEventToDomainCommand("Enter")).toEqual({ type: "LOCK_SIGNAL" });
+    expect(keyboardEventToDomainCommand("x")).toEqual({ type: "CANCEL_TARGET" });
+    expect(keyboardEventToDomainCommand("R")).toEqual({ type: "RESTART_SCAN" });
+    expect(keyboardEventToDomainCommand("m")).toEqual({ type: "TOGGLE_SOUND" });
+    expect(keyboardEventToDomainCommand("F")).toEqual({ type: "RETRY_FULLSCREEN" });
+  });
+
+  it("returns null for unrelated keys", () => {
+    expect(keyboardEventToDomainCommand("Escape")).toBeNull();
+    expect(keyboardEventToDomainCommand("a")).toBeNull();
+  });
+});
+
+describe("isDomainCommandAllowedInPhase", () => {
+  it("allows scan commands only while scanning", () => {
+    expect(isDomainCommandAllowedInPhase({ type: "TOGGLE_PAUSE" }, "scan")).toBe(true);
+    expect(isDomainCommandAllowedInPhase({ type: "TOGGLE_PAUSE" }, "config")).toBe(false);
+    expect(isDomainCommandAllowedInPhase({ type: "TOGGLE_PAUSE" }, "result")).toBe(false);
+  });
+
+  it("allows sound and fullscreen retry on result", () => {
+    expect(isDomainCommandAllowedInPhase({ type: "TOGGLE_SOUND" }, "result")).toBe(true);
+    expect(isDomainCommandAllowedInPhase({ type: "RETRY_FULLSCREEN" }, "result")).toBe(true);
+    expect(isDomainCommandAllowedInPhase({ type: "REVEAL_TARGET" }, "result")).toBe(false);
+  });
+
+  it("allows sound and fullscreen on config", () => {
+    expect(isDomainCommandAllowedInPhase({ type: "TOGGLE_SOUND" }, "config")).toBe(true);
+    expect(isDomainCommandAllowedInPhase({ type: "RESTART_SCAN" }, "config")).toBe(false);
+  });
+});
+
+describe("shouldPreventDefaultForScannerKey", () => {
+  it("prevents space from scrolling during scanner handling", () => {
+    expect(shouldPreventDefaultForScannerKey(" ")).toBe(true);
+    expect(shouldPreventDefaultForScannerKey("1")).toBe(false);
+  });
+});

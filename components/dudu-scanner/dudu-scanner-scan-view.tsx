@@ -17,6 +17,7 @@ type DuduScannerScanViewProps = {
   targetRevealed: boolean;
   revealProgress: number;
   locking: boolean;
+  paused: boolean;
   transient: DuduScannerRoundTransient | null;
   statusKey: "scanning" | "signalDetected" | "locking";
 };
@@ -26,6 +27,7 @@ export function DuduScannerScanView({
   targetRevealed,
   revealProgress,
   locking,
+  paused,
   transient,
   statusKey,
 }: DuduScannerScanViewProps) {
@@ -51,7 +53,11 @@ export function DuduScannerScanView({
       </header>
 
       <div className="relative flex min-h-0 flex-1 flex-col gap-4 lg:flex-row">
-        <DuduScannerFanCanvas active={!locking} showLockFrame={locking} className="min-h-[220px] lg:min-h-0" />
+        <DuduScannerFanCanvas
+          active={!locking && !paused}
+          showLockFrame={locking}
+          className="min-h-[220px] lg:min-h-0"
+        />
 
         <div className="relative flex w-full shrink-0 items-center justify-center lg:w-48">
           {showTarget ? (

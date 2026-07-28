@@ -26,6 +26,7 @@ describe("duduScannerRoundReducer", () => {
       scan: {
         targetRevealed: false,
         locking: false,
+        paused: false,
       },
       transient: null,
     });
@@ -131,5 +132,114 @@ describe("duduScannerRoundReducer", () => {
 
   it("does not use config in reducer (config is external)", () => {
     expect(config.themeId).toBe("snack-scan");
+  });
+
+  it("toggles pause only during active scan", () => {
+    let state = createInitialRoundState();
+    state = reduce(state, { type: "START_SCAN" });
+
+    state = reduce(state, { type: "TOGGLE_PAUSE" });
+    expect(state.scan.paused).toBe(true);
+
+    state = reduce(state, { type: "TOGGLE_PAUSE" });
+    expect(state.scan.paused).toBe(false);
+
+    expect(reduce(createInitialRoundState(), { type: "TOGGLE_PAUSE" })).toEqual(
+      createInitialRoundState(),
+    );
+  });
+
+  it("rejects pause while locking", () => {
+    let state = createInitialRoundState();
+    state = reduce(state, { type: "START_SCAN" });
+    state = reduce(state, { type: "REVEAL_TARGET" });
+    state = reduce(state, { type: "LOCK_SIGNAL" });
+
+    expect(reduce(state, { type: "TOGGLE_PAUSE" })).toEqual(state);
+  });
+
+  it("reveal while paused resumes scanning and reveals target", () => {
+    let state = createInitialRoundState();
+    state = reduce(state, { type: "START_SCAN" });
+    state = reduce(state, { type: "TOGGLE_PAUSE" });
+    expect(state.scan.paused).toBe(true);
+
+    state = reduce(state, { type: "REVEAL_TARGET" });
+    expect(state.scan.paused).toBe(false);
+    expect(state.scan.targetRevealed).toBe(true);
+  });
+
+  it("cancel target clears reveal and reports no signal", () => {
+    let state = createInitialRoundState();
+    state = reduce(state, { type: "START_SCAN" });
+    state = reduce(state, { type: "REVEAL_TARGET" });
+
+    state = reduce(state, { type: "CANCEL_TARGET" });
+    expect(state.phase).toBe("scan");
+    expect(state.scan.targetRevealed).toBe(false);
+    expect(state.scan.locking).toBe(false);
+    expect(state.transient).toBe("no-signal");
+  });
+
+  it("cancel target also aborts locking", () => {
+    let state = createInitialRoundState();
+    state = reduce(state, { type: "START_SCAN" });
+    state = reduce(state, { type: "REVEAL_TARGET" });
+    state = reduce(state, { type: "LOCK_SIGNAL" });
+
+    state = reduce(state, { type: "CANCEL_TARGET" });
+    expect(state.scan.locking).toBe(false);
+    expect(state.transient).toBe("no-signal");
+  });
+
+  it("restart scan clears flags and stays in scan phase", () => {
+    let state = createInitialRoundState();
+    state = reduce(state, { type: "START_SCAN" });
+    state = reduce(state, { type: "REVEAL_TARGET" });
+    state = reduce(state, { type: "TOGGLE_PAUSE" });
+
+    state = reduce(state, { type: "RESTART_SCAN" });
+    expect(state.phase).toBe("scan");
+    expect(state.scan).toEqual({
+      targetRevealed: false,
+      locking: false,
+      paused: false,
+    });
+    expect(state.transient).toBeNull();
+  });
+
+  it("rejects restart outside scan", () => {
+    const configState = createInitialRoundState();
+    expect(reduce(configState, { type: "RESTART_SCAN" })).toEqual(configState);
+
+    let state = createInitialRoundState();
+    state = reduce(state, { type: "START_SCAN" });
+    state = reduce(state, { type: "REVEAL_TARGET" });
+    state = reduce(state, { type: "LOCK_SIGNAL" });
+    state = reduce(state, { type: "LOCK_COMPLETE" });
+    expect(reduce(state, { type: "RESTART_SCAN" })).toEqual(state);
+  });
+
+  it("return to config from scan or result", () => {
+    let state = createInitialRoundState();
+    state = reduce(state, { type: "START_SCAN" });
+    state = reduce(state, { type: "RETURN_TO_CONFIG" });
+    expect(state.phase).toBe("config");
+
+    state = reduce(state, { type: "START_SCAN" });
+    state = reduce(state, { type: "REVEAL_TARGET" });
+    state = reduce(state, { type: "LOCK_SIGNAL" });
+    state = reduce(state, { type: "LOCK_COMPLETE" });
+    state = reduce(state, { type: "RETURN_TO_CONFIG" });
+    expect(state.phase).toBe("config");
+  });
+
+  it("rejects lock while paused", () => {
+    let state = createInitialRoundState();
+    state = reduce(state, { type: "START_SCAN" });
+    state = reduce(state, { type: "REVEAL_TARGET" });
+    state = reduce(state, { type: "TOGGLE_PAUSE" });
+
+    expect(reduce(state, { type: "LOCK_SIGNAL" })).toEqual(state);
   });
 });
