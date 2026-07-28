@@ -1,6 +1,6 @@
 import { getMessages, setRequestLocale } from "next-intl/server";
 
-import { DuduScannerConfigShell } from "@/components/dudu-scanner/dudu-scanner-config-shell";
+import { DuduScannerApp } from "@/components/dudu-scanner/dudu-scanner-app";
 import type { AppLocale } from "@/i18n/routing";
 import { buildLocalizedMetadata } from "@/lib/metadata";
 import { DUDU_SCANNER_PATHNAME } from "@/lib/dudu-scanner/routes";
@@ -23,5 +23,5 @@ export default async function DuduScannerPage({ params }: Props) {
   setRequestLocale(locale);
   await getMessages({ locale });
 
-  return <DuduScannerConfigShell />;
+  return <DuduScannerApp />;
 }

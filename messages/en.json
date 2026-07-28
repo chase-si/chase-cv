@@ -437,6 +437,25 @@
       "x": "Hide the target",
       "esc": "Exit fullscreen",
       "f": "Try fullscreen again"
+    },
+    "scan": {
+      "hudLabel": "Scanner",
+      "hudHint": "Fan sweep locked — watch the belly band.",
+      "targetHidden": "No target on screen yet.",
+      "noSignal": "No signal to lock — press 1 to reveal a target first.",
+      "fullscreenHint": "Fullscreen unavailable — press F to try again.",
+      "status": {
+        "scanning": "Scanning…",
+        "signalDetected": "Signal detected",
+        "locking": "Locking frame…"
+      }
+    },
+    "result": {
+      "eyebrow": "Scan complete",
+      "title": "Target locked!",
+      "body": "Your silly belly-scan found the character you picked. Ready for another round?",
+      "scanAgain": "Scan again",
+      "changeTarget": "Change target"
     }
   }
 }
