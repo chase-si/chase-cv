@@ -15,7 +15,6 @@ import {
 } from "@/lib/dudu-scanner/round-session";
 import {
   createInitialRoundState,
-  DUDU_SCANNER_LOCK_DURATION_MS,
   DUDU_SCANNER_REVEAL_DURATION_MS,
   DUDU_SCANNER_TRANSIENT_DURATION_MS,
   duduScannerRoundReducer,
@@ -34,7 +33,10 @@ import {
   preloadTargetImage,
   resolveTargetDisplaySrc,
 } from "@/lib/dudu-scanner/target-asset";
-import { DUDU_SCANNER_AUTO_SCAN_DURATION_MS } from "@/lib/dudu-scanner/scanner-visual/exploration-model";
+import {
+  DUDU_SCANNER_AUTO_SCAN_DURATION_MS,
+  DUDU_SCANNER_LOCK_RESULT_DELAY_MS,
+} from "@/lib/dudu-scanner/scanner-visual/exploration-model";
 import { cn } from "@/lib/utils";
 
 function domainCommandToRoundAction(command: DuduScannerDomainCommand): DuduScannerRoundAction | null {
@@ -258,7 +260,7 @@ export function DuduScannerApp() {
     }
     const timer = window.setTimeout(() => {
       dispatch({ type: "LOCK_COMPLETE" });
-    }, DUDU_SCANNER_LOCK_DURATION_MS);
+    }, DUDU_SCANNER_LOCK_RESULT_DELAY_MS);
     return () => window.clearTimeout(timer);
   }, [round.scan.locking]);
 

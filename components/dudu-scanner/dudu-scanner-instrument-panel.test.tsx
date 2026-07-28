@@ -64,4 +64,23 @@ describe("DuduScannerInstrumentPanel", () => {
       "[&_[data-slot=progress-indicator]]:bg-chart-2",
     );
   });
+
+  it("shows the double-click lock instruction when supplied", () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={enMessages}>
+        <DuduScannerInstrumentPanel
+          backButton={null}
+          canvas={<div>Canvas</div>}
+          metrics={{ ...baseMetrics, signalStrength: 0.91 }}
+          status="Target revealed"
+          timestamp="00:00:00"
+          interactionHint="Press Enter to lock. Above 90% signal, you can also double-click the target."
+        />
+      </NextIntlClientProvider>,
+    );
+
+    expect(screen.getByTestId("dudu-scanner-lock-hint")).toHaveTextContent(
+      "Above 90% signal",
+    );
+  });
 });

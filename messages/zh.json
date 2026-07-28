@@ -478,6 +478,7 @@
       "targetHidden": "屏幕上还没有目标。",
       "noSignal": "没有可锁定的信号——请移动探头，或按空格强制发现。",
       "fullscreenHint": "无法进入全屏——按 F 可再试一次。",
+      "doubleClickLockHint": "按 Enter 锁定；信号高于 90% 时，也可以双击目标锁定。",
       "status": {
         "initializing": "正在初始化扫描仪…",
         "moveProbe": "移动探头寻找信号",

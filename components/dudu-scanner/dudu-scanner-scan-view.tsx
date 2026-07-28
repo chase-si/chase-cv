@@ -121,6 +121,7 @@ export function DuduScannerScanView({
       hideCursor
       className="min-h-[220px] w-full lg:min-h-0"
       onDiscovery={onDiscovery}
+      onLockRequest={() => onDomainCommand?.({ type: "LOCK_SIGNAL" })}
       onMetricsChange={(next) => {
         setMetrics(next);
         setTimestamp(formatHudTimestamp(new Date()));
@@ -144,6 +145,11 @@ export function DuduScannerScanView({
         metrics={displayMetrics}
         status={t(`scan.status.${statusKey}`)}
         timestamp={timestamp}
+        interactionHint={
+          targetRevealed && revealComplete && !locking && !prefersTouchControls
+            ? t("scan.doubleClickLockHint")
+            : null
+        }
       />
 
       {transient ? (

@@ -478,6 +478,7 @@
       "targetHidden": "No target on screen yet.",
       "noSignal": "No signal to lock — move the probe or press Space to force discovery.",
       "fullscreenHint": "Fullscreen unavailable — press F to try again.",
+      "doubleClickLockHint": "Press Enter to lock. Above 90% signal, you can also double-click the target.",
       "status": {
         "initializing": "Initializing scanner…",
         "moveProbe": "Move the probe to find a signal",

@@ -20,6 +20,8 @@ export type ProximitySignalOptions = {
 export const DUDU_SCANNER_AUTO_SCAN_DURATION_MS = 4000;
 export const DUDU_SCANNER_MIN_DISCOVERY_ELAPSED_MS = 10000;
 export const DUDU_SCANNER_DISCOVERY_DWELL_MS = 800;
+export const DUDU_SCANNER_LOCK_RESULT_DELAY_MS = 1800;
+export const DUDU_SCANNER_DOUBLE_CLICK_LOCK_SIGNAL_THRESHOLD = 0.9;
 export const DUDU_SCANNER_DESKTOP_SPOTLIGHT_RADIUS = 100;
 export const DUDU_SCANNER_MOBILE_SPOTLIGHT_RADIUS = 70;
 export const DUDU_SCANNER_DISCOVERY_DECAY_RATE = 1.5;
@@ -39,6 +41,16 @@ export type DiscoveryDwellResult = {
 
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));
+}
+
+export function isDoubleClickLockEligible(
+  targetRevealed: boolean,
+  signalStrength: number,
+): boolean {
+  return (
+    targetRevealed &&
+    signalStrength > DUDU_SCANNER_DOUBLE_CLICK_LOCK_SIGNAL_THRESHOLD
+  );
 }
 
 export function signalBandForStrength(strength: number): ScannerSignalBand {

@@ -52,12 +52,14 @@ export function DuduScannerInstrumentPanel({
   metrics,
   status,
   timestamp,
+  interactionHint,
 }: {
   backButton: ReactNode;
   canvas: ReactNode;
   metrics: ScannerVisualMetrics;
   status: string;
   timestamp: string;
+  interactionHint?: string | null;
 }) {
   const t = useTranslations("duduScanner");
   const signalPercent = Math.round(metrics.signalStrength * 100);
@@ -80,7 +82,18 @@ export function DuduScannerInstrumentPanel({
         </div>
       </header>
 
-      <div className="relative flex min-h-[220px] min-w-0 flex-1">{canvas}</div>
+      <div className="relative flex min-h-[220px] min-w-0 flex-1">
+        {canvas}
+        {interactionHint ? (
+          <p
+            className="pointer-events-none absolute inset-x-3 bottom-3 rounded-xl border border-primary/60 bg-background/90 px-3 py-2 text-center text-xs font-semibold text-foreground shadow-sm backdrop-blur"
+            data-testid="dudu-scanner-lock-hint"
+            role="status"
+          >
+            {interactionHint}
+          </p>
+        ) : null}
+      </div>
 
       <Card
         size="sm"

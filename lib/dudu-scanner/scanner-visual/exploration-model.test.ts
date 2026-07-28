@@ -4,7 +4,9 @@ import {
   advanceDiscoveryDwell,
   computeProximitySignal,
   DUDU_SCANNER_DISCOVERY_DWELL_MS,
+  DUDU_SCANNER_LOCK_RESULT_DELAY_MS,
   DUDU_SCANNER_MIN_DISCOVERY_ELAPSED_MS,
+  isDoubleClickLockEligible,
 } from "@/lib/dudu-scanner/scanner-visual/exploration-model";
 
 describe("computeProximitySignal", () => {
@@ -30,6 +32,18 @@ describe("computeProximitySignal", () => {
       band: "strong",
       insideRevealRadius: true,
     });
+  });
+});
+
+describe("scanner lock timing", () => {
+  it("keeps the target-focused lock state visible before showing the result", () => {
+    expect(DUDU_SCANNER_LOCK_RESULT_DELAY_MS).toBe(1800);
+  });
+
+  it("allows a revealed target to lock by double-click only above 90% signal", () => {
+    expect(isDoubleClickLockEligible(false, 1)).toBe(false);
+    expect(isDoubleClickLockEligible(true, 0.9)).toBe(false);
+    expect(isDoubleClickLockEligible(true, 0.901)).toBe(true);
   });
 });
 

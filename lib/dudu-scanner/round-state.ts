@@ -232,5 +232,4 @@ export function duduScannerRoundReducer(
 }
 
 export const DUDU_SCANNER_REVEAL_DURATION_MS = 1500;
-export const DUDU_SCANNER_LOCK_DURATION_MS = 1000;
 export const DUDU_SCANNER_TRANSIENT_DURATION_MS = 2800;

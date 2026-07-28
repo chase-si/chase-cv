@@ -9,6 +9,8 @@ import {
 import {
   DUDU_SCANNER_DESKTOP_SPOTLIGHT_RADIUS,
   DUDU_SCANNER_MOBILE_SPOTLIGHT_RADIUS,
+  isDoubleClickLockEligible,
+  type ScannerPoint,
 } from "@/lib/dudu-scanner/scanner-visual/exploration-model";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +25,7 @@ type DuduScannerFanCanvasProps = {
   targetImageSrc?: string | null;
   onMetricsChange?: (metrics: ScannerVisualMetrics) => void;
   onDiscovery?: () => void;
+  onLockRequest?: () => void;
   explorationEnabled?: boolean;
   hideCursor?: boolean;
 };
@@ -38,6 +41,7 @@ export function DuduScannerFanCanvas({
   targetImageSrc = null,
   onMetricsChange,
   onDiscovery,
+  onLockRequest,
   explorationEnabled = false,
   hideCursor = false,
 }: DuduScannerFanCanvasProps) {
@@ -46,8 +50,12 @@ export function DuduScannerFanCanvas({
   const rendererRef = useRef<ReturnType<typeof createScannerVisualRenderer> | null>(null);
   const onMetricsRef = useRef(onMetricsChange);
   const onDiscoveryRef = useRef(onDiscovery);
+  const onLockRequestRef = useRef(onLockRequest);
+  const targetRevealedRef = useRef(targetRevealed);
   const targetImageRef = useRef<HTMLImageElement | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [lockTargetPosition, setLockTargetPosition] =
+    useState<ScannerPoint | null>(null);
 
   useEffect(() => {
     onMetricsRef.current = onMetricsChange;
@@ -56,6 +64,14 @@ export function DuduScannerFanCanvas({
   useEffect(() => {
     onDiscoveryRef.current = onDiscovery;
   }, [onDiscovery]);
+
+  useEffect(() => {
+    onLockRequestRef.current = onLockRequest;
+  }, [onLockRequest]);
+
+  useEffect(() => {
+    targetRevealedRef.current = targetRevealed;
+  }, [targetRevealed]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) {
@@ -128,10 +144,22 @@ export function DuduScannerFanCanvas({
         stage.releasePointerCapture(event.pointerId);
       }
     };
+    const handleDoubleClick = (event: MouseEvent) => {
+      renderer.updateInput(event.clientX, event.clientY, event.timeStamp);
+      if (
+        isDoubleClickLockEligible(
+          targetRevealedRef.current,
+          renderer.getMetrics().signalStrength,
+        )
+      ) {
+        onLockRequestRef.current?.();
+      }
+    };
     stage.addEventListener("pointermove", handlePointerMove);
     stage.addEventListener("pointerdown", handlePointerDown);
     stage.addEventListener("pointerup", handlePointerUp);
     stage.addEventListener("pointercancel", handlePointerUp);
+    stage.addEventListener("dblclick", handleDoubleClick);
     const handleVisibilityChange = () => {
       renderer.setPageVisible(!document.hidden);
     };
@@ -145,6 +173,7 @@ export function DuduScannerFanCanvas({
       stage.removeEventListener("pointerdown", handlePointerDown);
       stage.removeEventListener("pointerup", handlePointerUp);
       stage.removeEventListener("pointercancel", handlePointerUp);
+      stage.removeEventListener("dblclick", handleDoubleClick);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       observer.disconnect();
       renderer.destroy();
@@ -153,7 +182,8 @@ export function DuduScannerFanCanvas({
   }, []);
 
   useEffect(() => {
-    rendererRef.current?.setState({
+    const renderer = rendererRef.current;
+    renderer?.setState({
       active,
       explorationEnabled,
       showLockFrame,
@@ -163,6 +193,7 @@ export function DuduScannerFanCanvas({
       reducedMotion,
       placementSeed,
     });
+    setLockTargetPosition(locking ? renderer?.getTargetPosition() ?? null : null);
   }, [
     active,
     explorationEnabled,
@@ -185,9 +216,13 @@ export function DuduScannerFanCanvas({
       data-testid="dudu-scanner-fan-stage"
     >
       <canvas ref={canvasRef} className="size-full touch-none" aria-hidden />
-      {showLockFrame ? (
+      {showLockFrame && lockTargetPosition ? (
         <div
-          className="pointer-events-none absolute inset-[12%] rounded-2xl border-4 border-primary shadow-[0_0_24px_rgba(34,197,94,0.45)]"
+          className="pointer-events-none absolute size-17 -translate-x-1/2 -translate-y-1/2 rounded-xl border-3 border-primary shadow-[0_0_24px] shadow-primary/45"
+          style={{
+            left: lockTargetPosition.x,
+            top: lockTargetPosition.y,
+          }}
           data-testid="dudu-scanner-lock-frame"
         />
       ) : null}

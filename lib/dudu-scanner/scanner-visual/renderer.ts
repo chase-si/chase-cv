@@ -378,6 +378,7 @@ export function createScannerVisualRenderer(
     fan: ReturnType<typeof computeFanGeometry>,
     motion: TargetMotionState,
     reveal: number,
+    spotlightHovered: boolean,
   ) => {
     if (!state.targetRevealed || reveal <= 0) {
       return;
@@ -386,10 +387,14 @@ export function createScannerVisualRenderer(
     const size = targetDisplayRadius * 2 * (0.8 + clarity * 0.2);
     context.save();
     context.translate(motion.position.x, motion.position.y);
-    context.globalAlpha = 0.12 + clarity * 0.78;
+    context.globalAlpha = spotlightHovered
+      ? 0.35 + clarity * 0.65
+      : 0.12 + clarity * 0.45;
     const targetImage = getTargetImage();
     if (targetImage) {
-      context.filter = `grayscale(1) contrast(${0.65 + clarity * 0.25}) blur(${(1 - clarity) * 4}px)`;
+      context.filter = spotlightHovered
+        ? `grayscale(0) saturate(1.12) contrast(${0.85 + clarity * 0.25}) blur(${(1 - clarity) * 4}px)`
+        : `grayscale(1) contrast(${0.65 + clarity * 0.25}) blur(${(1 - clarity) * 4}px)`;
       context.drawImage(targetImage, -size / 2, -size / 2, size, size);
     } else {
       context.fillStyle = "rgba(180, 190, 180, 0.35)";
@@ -431,7 +436,7 @@ export function createScannerVisualRenderer(
       }
     }
 
-    if (targetMotion && state.targetRevealed) {
+    if (targetMotion && state.targetRevealed && !state.locking) {
       targetMotion = advanceTargetMotion(
         targetMotion,
         fan,
@@ -486,7 +491,13 @@ export function createScannerVisualRenderer(
       const reveal =
         state.revealProgress / motionPolicy.revealDurationScale +
         (state.locking ? 0.25 : 0);
-      drawTarget(fan, targetMotion, Math.min(1, reveal));
+      const proximity = getProximity();
+      const spotlightHovered =
+        state.locking ||
+        (probeInside &&
+          proximity !== null &&
+          proximity.distance <= spotlightRadius);
+      drawTarget(fan, targetMotion, Math.min(1, reveal), spotlightHovered);
     }
 
     context.restore();
@@ -514,16 +525,16 @@ export function createScannerVisualRenderer(
     context.stroke();
     context.restore();
 
-    if (state.showLockFrame) {
+    if (state.showLockFrame && targetMotion) {
       context.save();
       drawFanMask(fan);
       context.strokeStyle = "rgba(74, 222, 128, 0.9)";
-      context.lineWidth = 4;
+      context.lineWidth = 3;
       context.strokeRect(
-        fan.cx - fan.radius * 0.35,
-        fan.cy - fan.radius * 0.55,
-        fan.radius * 0.7,
-        fan.radius * 0.45,
+        targetMotion.position.x - targetDisplayRadius - 6,
+        targetMotion.position.y - targetDisplayRadius - 6,
+        targetDisplayRadius * 2 + 12,
+        targetDisplayRadius * 2 + 12,
       );
       context.restore();
     }
