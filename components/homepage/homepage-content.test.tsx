@@ -48,10 +48,10 @@ describe("Homepage content", () => {
     renderHomepage("zh");
 
     expect(
-      getByExactTextContent("我是 Chase，一名从古法编程走来的 AI 构建者。"),
+      getByExactTextContent("我是 Chase，一名从古法编程走来的程序员。"),
     ).toBeInTheDocument();
     expect(
-      getByExactTextContent("8 年工程经验，现在我用 AI 把一个人的能力，扩展成一支团队。"),
+      getByExactTextContent("8 年工程经验，现在我用 AI , 更好的coding。"),
     ).toBeInTheDocument();
   });
 

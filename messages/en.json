@@ -153,8 +153,24 @@
         }
       }
     },
-    "contactTitle": "Contact",
-    "contactDescription": "Placeholder for email, WeChat, or a contact form."
+    "contactTitle": "Contact me",
+    "contact": {
+      "upwork": "upwork",
+      "channels": {
+        "email": {
+          "label": "Email",
+          "action": "Send email"
+        },
+        "upwork": {
+          "label": "Upwork",
+          "action": "Open profile"
+        },
+        "github": {
+          "label": "GitHub",
+          "action": "View repos"
+        }
+      }
+    }
   },
   "notFound": {
     "title": "Page not found",

@@ -96,7 +96,7 @@ function ExperienceCurveSvg({
         stroke="currentColor"
         strokeWidth="3"
         strokeLinecap="round"
-        className="text-border"
+        className="text-primary"
       />
       {yearLabels.map((label, index) => {
         const point = nodes[index];

@@ -153,8 +153,24 @@
         }
       }
     },
-    "contactTitle": "联系",
-    "contactDescription": "这里先占位，后续可以放邮箱/微信/表单。"
+    "contactTitle": "联系我",
+    "contact": {
+      "upwork": "upwork",
+      "channels": {
+        "email": {
+          "label": "邮件",
+          "action": "发送邮件"
+        },
+        "upwork": {
+          "label": "Upwork",
+          "action": "打开主页"
+        },
+        "github": {
+          "label": "GitHub",
+          "action": "查看仓库"
+        }
+      }
+    }
   },
   "notFound": {
     "title": "页面未找到",
