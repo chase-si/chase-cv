@@ -56,12 +56,14 @@ export function useDuduScannerScanSoundscape({
 
   useEffect(() => {
     const engine = getEngine();
-    const immersive = phase === "scan" || phase === "result";
-    engine.setScanActive(immersive);
-    if (!immersive) {
+    const scanActive = phase === "scan";
+    engine.setScanActive(scanActive);
+    if (!scanActive) {
       engine.setProbeVelocity(0);
-      prevRevealedRef.current = false;
-      prevLockingRef.current = false;
+      if (phase !== "result") {
+        prevRevealedRef.current = false;
+        prevLockingRef.current = false;
+      }
     }
   }, [getEngine, phase]);
 
@@ -86,17 +88,19 @@ export function useDuduScannerScanSoundscape({
   }, [getEngine, locking, lockingKey]);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
+    if (typeof document === "undefined") {
       return;
     }
-    const onBlur = () => getEngine().handleWindowBlur();
-    const onFocus = () => getEngine().handleWindowFocus();
-    window.addEventListener("blur", onBlur);
-    window.addEventListener("focus", onFocus);
-    return () => {
-      window.removeEventListener("blur", onBlur);
-      window.removeEventListener("focus", onFocus);
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        getEngine().handleWindowBlur();
+      } else {
+        getEngine().handleWindowFocus();
+      }
     };
+    document.addEventListener("visibilitychange", onVisibility);
+    onVisibility();
+    return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [getEngine]);
 
   const unlockFromUserGesture = useCallback(() => {
