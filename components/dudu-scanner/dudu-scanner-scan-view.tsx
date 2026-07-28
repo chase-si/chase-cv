@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
@@ -12,22 +11,25 @@ import {
   DUDU_SCANNER_SHORTCUT_LABEL,
 } from "@/lib/dudu-scanner/i18n-keys";
 import type { DuduScannerRoundTransient } from "@/lib/dudu-scanner/round-state";
+import type { DuduScannerScanStage } from "@/lib/dudu-scanner/round-state";
 import type { DuduScannerDomainCommand } from "@/lib/dudu-scanner/scanner-commands";
 import type { ScannerVisualMetrics } from "@/lib/dudu-scanner/scanner-visual/renderer";
 import { usePrefersTouchOperatorControls } from "@/lib/dudu-scanner/use-prefers-touch-operator-controls";
 import { Card, CardScrollArea } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 
 type DuduScannerScanViewProps = {
   targetId: DuduScannerTargetId;
   targetImageSrc: string;
   targetRevealed: boolean;
+  revealComplete: boolean;
   revealProgress: number;
   locking: boolean;
   paused: boolean;
+  scanStage: DuduScannerScanStage;
+  placementVersion: number;
   transient: DuduScannerRoundTransient | null;
-  statusKey: "scanning" | "signalDetected" | "locking";
   onScanMetrics?: (metrics: ScannerVisualMetrics) => void;
+  onDiscovery?: () => void;
   onDomainCommand?: (command: DuduScannerDomainCommand) => void;
 };
 
@@ -46,6 +48,14 @@ function formatHudTimestamp(now: Date): string {
 
 const initialMetrics: ScannerVisualMetrics = {
   signalStrength: 0.22,
+  signalBand: "weak",
+  probeInside: false,
+  probeHasEntered: false,
+  dwellProgress: 0,
+  roundElapsedMs: 0,
+  spotlightVisible: false,
+  spotlightRadius: 100,
+  probeVelocity: 0,
   textureOffsetX: 0,
   textureOffsetY: 0,
   scanLineBias: 0,
@@ -57,20 +67,45 @@ export function DuduScannerScanView({
   targetId,
   targetImageSrc,
   targetRevealed,
+  revealComplete,
   revealProgress,
   locking,
   paused,
+  scanStage,
+  placementVersion,
   transient,
-  statusKey,
   onScanMetrics,
+  onDiscovery,
   onDomainCommand,
 }: DuduScannerScanViewProps) {
   const t = useTranslations("duduScanner");
   const prefersTouchControls = usePrefersTouchOperatorControls();
-  const showTarget = targetRevealed || revealProgress > 0;
-  const placementSeed = useMemo(() => hashTargetSeed(targetId), [targetId]);
+  const placementSeed = useMemo(
+    () => hashTargetSeed(targetId) + placementVersion * 97,
+    [placementVersion, targetId],
+  );
   const [metrics, setMetrics] = useState<ScannerVisualMetrics>(initialMetrics);
   const [timestamp, setTimestamp] = useState(() => formatHudTimestamp(new Date()));
+  const statusKey =
+    scanStage === "auto-scan"
+      ? "initializing"
+      : scanStage === "signal-found"
+        ? "signalDetected"
+      : locking
+        ? "locking"
+        : targetRevealed
+          ? revealComplete
+            ? "targetReady"
+            : "signalDetected"
+          : !metrics.probeInside
+            ? metrics.probeHasEntered
+              ? "probeOutside"
+              : "moveProbe"
+            : metrics.signalBand === "strong"
+              ? "signalStrong"
+              : metrics.signalBand === "medium"
+                ? "signalMedium"
+                : "signalWeak";
 
   return (
     <div
@@ -124,9 +159,13 @@ export function DuduScannerScanView({
           revealProgress={revealProgress}
           locking={locking}
           placementSeed={placementSeed}
+          explorationEnabled={
+            scanStage !== "auto-scan" && scanStage !== "idle" && !paused && !locking
+          }
           targetImageSrc={targetImageSrc}
           hideCursor
           className="min-h-[220px] lg:min-h-0"
+          onDiscovery={onDiscovery}
           onMetricsChange={(next) => {
             setMetrics(next);
             setTimestamp(formatHudTimestamp(new Date()));
@@ -134,28 +173,6 @@ export function DuduScannerScanView({
           }}
         />
 
-        <div className="relative flex w-full shrink-0 items-center justify-center lg:w-48">
-          {showTarget ? (
-            <div
-              className={cn(
-                "relative flex size-36 items-center justify-center rounded-2xl border border-primary/40 bg-card shadow-sm transition-opacity duration-300 sm:size-44",
-                targetRevealed ? "opacity-100" : "opacity-70",
-              )}
-              data-testid="dudu-scanner-target-preview"
-              style={{ opacity: Math.max(0.15, revealProgress) }}
-            >
-              <Image
-                src={targetImageSrc}
-                alt=""
-                width={120}
-                height={120}
-                className="size-24 object-contain grayscale contrast-75 sm:size-28"
-              />
-            </div>
-          ) : (
-            <p className="text-center text-sm text-muted-foreground">{t("scan.targetHidden")}</p>
-          )}
-        </div>
       </div>
 
       {transient ? (

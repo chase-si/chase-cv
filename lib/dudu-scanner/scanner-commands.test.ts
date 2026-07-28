@@ -10,8 +10,8 @@ import {
 
 describe("keyboardEventToDomainCommand", () => {
   it("maps operator keys to domain commands", () => {
-    expect(keyboardEventToDomainCommand(" ")).toEqual({ type: "TOGGLE_PAUSE" });
-    expect(keyboardEventToDomainCommand("1")).toEqual({ type: "REVEAL_TARGET" });
+    expect(keyboardEventToDomainCommand(" ")).toEqual({ type: "FORCE_DISCOVERY" });
+    expect(keyboardEventToDomainCommand("1")).toBeNull();
     expect(keyboardEventToDomainCommand("Enter")).toEqual({ type: "LOCK_SIGNAL" });
     expect(keyboardEventToDomainCommand("x")).toEqual({ type: "CANCEL_TARGET" });
     expect(keyboardEventToDomainCommand("R")).toEqual({ type: "RESTART_SCAN" });
@@ -35,7 +35,7 @@ describe("isDomainCommandAllowedInPhase", () => {
   it("allows sound and fullscreen retry on result", () => {
     expect(isDomainCommandAllowedInPhase({ type: "TOGGLE_SOUND" }, "result")).toBe(true);
     expect(isDomainCommandAllowedInPhase({ type: "RETRY_FULLSCREEN" }, "result")).toBe(true);
-    expect(isDomainCommandAllowedInPhase({ type: "REVEAL_TARGET" }, "result")).toBe(false);
+    expect(isDomainCommandAllowedInPhase({ type: "FORCE_DISCOVERY" }, "result")).toBe(false);
   });
 
   it("allows sound and fullscreen on config", () => {
@@ -54,7 +54,7 @@ describe("shouldPreventDefaultForScannerKey", () => {
 describe("touchControlIdToDomainCommand", () => {
   it("maps every operator touch control to the keyboard-equivalent domain command", () => {
     expect(touchControlIdToDomainCommand("pause-resume")).toEqual({ type: "TOGGLE_PAUSE" });
-    expect(touchControlIdToDomainCommand("reveal")).toEqual({ type: "REVEAL_TARGET" });
+    expect(touchControlIdToDomainCommand("reveal")).toEqual({ type: "FORCE_DISCOVERY" });
     expect(touchControlIdToDomainCommand("lock")).toEqual({ type: "LOCK_SIGNAL" });
     expect(touchControlIdToDomainCommand("hide")).toEqual({ type: "CANCEL_TARGET" });
     expect(touchControlIdToDomainCommand("reset")).toEqual({ type: "RESTART_SCAN" });

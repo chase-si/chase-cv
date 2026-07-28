@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ScanSoundscapeAudioContext } from "@/lib/dudu-scanner/scan-soundscape/audio-context-port";
 import {
   createScanSoundscape,
+  proximitySignalToBeepProfile,
   SCAN_SOUNDSCAPE_MASTER_LEVEL,
   signalStrengthToProbeVelocity,
 } from "@/lib/dudu-scanner/scan-soundscape/create-scan-soundscape";
@@ -190,6 +191,25 @@ describe("createScanSoundscape", () => {
     engine.dispose();
   });
 
+  it("cancels target cues when the director hides the target", async () => {
+    const context = createMockContext("running");
+    const engine = createScanSoundscape({ port: createTestPort(context) });
+    await engine.unlockFromUserGesture();
+    engine.setScanActive(true);
+    const gainCountBeforeCue = context.createGain.mock.calls.length;
+    engine.notifyReveal();
+    const cueGain = context.createGain.mock.results[gainCountBeforeCue]?.value as MockNode;
+    cueGain.gain.linearRampToValueAtTime.mockClear();
+
+    engine.cancelTargetCues();
+
+    expect(cueGain.gain.linearRampToValueAtTime).toHaveBeenCalledWith(
+      0,
+      expect.any(Number),
+    );
+    engine.dispose();
+  });
+
   it("stops scan layers and closes context on dispose", async () => {
     const context = createMockContext("running");
     const engine = createScanSoundscape({ port: createTestPort(context) });
@@ -202,5 +222,38 @@ describe("createScanSoundscape", () => {
   it("maps signal strength to normalized probe velocity", () => {
     expect(signalStrengthToProbeVelocity(0.22)).toBe(0);
     expect(signalStrengthToProbeVelocity(1)).toBe(1);
+  });
+
+  it("maps proximity to a restrained accelerating beep profile", () => {
+    expect(proximitySignalToBeepProfile(0)).toEqual({
+      intervalSeconds: 1.2,
+      frequencyHz: 440,
+    });
+    expect(proximitySignalToBeepProfile(1)).toEqual({
+      intervalSeconds: 0.2,
+      frequencyHz: 600,
+    });
+  });
+
+  it("schedules proximity beeps no faster than the signal cadence", async () => {
+    const context = createMockContext("running");
+    const engine = createScanSoundscape({ port: createTestPort(context) });
+    await engine.unlockFromUserGesture();
+    engine.setSoundEnabled(true);
+    engine.setScanActive(true);
+
+    const baselineOscillators = context.createOscillator.mock.calls.length;
+    engine.setProximitySignal(1);
+    expect(context.createOscillator).toHaveBeenCalledTimes(baselineOscillators + 1);
+    const beep = context.createOscillator.mock.results.at(-1)?.value as MockNode;
+    expect(beep.frequency.value).toBe(600);
+
+    engine.setProximitySignal(1);
+    expect(context.createOscillator).toHaveBeenCalledTimes(baselineOscillators + 1);
+
+    context.currentTime = 0.2;
+    engine.setProximitySignal(1);
+    expect(context.createOscillator).toHaveBeenCalledTimes(baselineOscillators + 2);
+    engine.dispose();
   });
 });

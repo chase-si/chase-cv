@@ -100,6 +100,6 @@ describe("DuduScannerConfigShell", () => {
   it("lists localized shortcut guidance", () => {
     renderShell("en");
     expect(screen.getByText("Operator shortcuts")).toBeInTheDocument();
-    expect(screen.getByText("Reveal the target")).toBeInTheDocument();
+    expect(screen.getByText("Force target discovery")).toBeInTheDocument();
   });
 });

@@ -4,7 +4,20 @@ import {
   DEFAULT_RESIZE_THROTTLE_MS,
   shouldThrottleResize,
 } from "@/lib/dudu-scanner/scanner-visual/canvas-size";
-import { computeFanGeometry, placeTargetInSafeRegion } from "@/lib/dudu-scanner/scanner-visual/geometry";
+import {
+  computeFanGeometry,
+  isPointInFan,
+  placeTargetInSafeRegion,
+} from "@/lib/dudu-scanner/scanner-visual/geometry";
+import {
+  advanceDiscoveryDwell,
+  computeProximitySignal,
+  DUDU_SCANNER_DESKTOP_SPOTLIGHT_RADIUS,
+  DUDU_SCANNER_DISCOVERY_DWELL_MS,
+  DUDU_SCANNER_MIN_DISCOVERY_ELAPSED_MS,
+  signalBandForStrength,
+  type ScannerSignalBand,
+} from "@/lib/dudu-scanner/scanner-visual/exploration-model";
 import { resolveScannerMotionPolicy } from "@/lib/dudu-scanner/scanner-visual/motion-policy";
 import {
   createPointerSmoother,
@@ -20,6 +33,7 @@ import {
 
 export type ScannerVisualRenderState = {
   active: boolean;
+  explorationEnabled: boolean;
   showLockFrame: boolean;
   targetRevealed: boolean;
   revealProgress: number;
@@ -34,10 +48,19 @@ export type ScannerVisualMetrics = Pick<
 > & {
   gain: number;
   scanFrequencyHz: number;
+  signalBand: ScannerSignalBand;
+  probeInside: boolean;
+  probeHasEntered: boolean;
+  dwellProgress: number;
+  roundElapsedMs: number;
+  spotlightVisible: boolean;
+  spotlightRadius: number;
+  probeVelocity: number;
 };
 
 export type ScannerVisualRenderer = {
   start: () => void;
+  setPageVisible: (visible: boolean) => void;
   updateInput: (clientX: number, clientY: number, timestamp?: number) => void;
   clearInput: () => void;
   setState: (patch: Partial<ScannerVisualRenderState>) => void;
@@ -45,6 +68,13 @@ export type ScannerVisualRenderer = {
   destroy: () => void;
   getMetrics: () => ScannerVisualMetrics;
   getTargetPosition: () => { x: number; y: number } | null;
+};
+
+export type ScannerVisualPalette = {
+  spotlightOverlay: string;
+  spotlightFeather: string;
+  spotlightAccent: string;
+  spotlightParticle: string;
 };
 
 export type CreateScannerVisualRendererOptions = {
@@ -59,16 +89,28 @@ export type CreateScannerVisualRendererOptions = {
   resizeThrottleMs?: number;
   getTargetImage?: () => CanvasImageSource | null;
   targetDisplayRadius?: number;
+  spotlightRadius?: number;
+  palette?: ScannerVisualPalette;
+  onDiscovery?: () => void;
+  metricsIntervalMs?: number;
 };
 
 const defaultState: ScannerVisualRenderState = {
   active: true,
+  explorationEnabled: false,
   showLockFrame: false,
   targetRevealed: false,
   revealProgress: 0,
   locking: false,
   reducedMotion: false,
   placementSeed: 1,
+};
+
+const defaultPalette: ScannerVisualPalette = {
+  spotlightOverlay: "Canvas",
+  spotlightFeather: "Canvas",
+  spotlightAccent: "Highlight",
+  spotlightParticle: "Highlight",
 };
 
 function hashNoise(x: number, y: number, frame: number): number {
@@ -96,6 +138,10 @@ export function createScannerVisualRenderer(
     resizeThrottleMs = DEFAULT_RESIZE_THROTTLE_MS,
     getTargetImage = () => null,
     targetDisplayRadius = 28,
+    spotlightRadius = DUDU_SCANNER_DESKTOP_SPOTLIGHT_RADIUS,
+    palette = defaultPalette,
+    onDiscovery,
+    metricsIntervalMs = 80,
   } = options;
 
   const context = canvas.getContext("2d");
@@ -105,12 +151,21 @@ export function createScannerVisualRenderer(
 
   let state: ScannerVisualRenderState = { ...defaultState };
   let rafId = 0;
+  let started = false;
+  let pageVisible = true;
+  let hiddenAt: number | null = null;
   let frame = 0;
   let startedAt = getNow();
+  let lastFrameAt = startedAt;
+  let dwellMs = 0;
+  let discoveryNotified = false;
+  let lastMetricsAt = Number.NEGATIVE_INFINITY;
   let lastResizeAt = 0;
   let destroyed = false;
   const smoother = createPointerSmoother();
   let probe: SmoothedProbeInput = neutralProbeInput();
+  let probeInside = false;
+  let probeHasEntered = false;
   let targetMotion: TargetMotionState | null = null;
   let cssWidth = 1;
   let cssHeight = 1;
@@ -148,14 +203,40 @@ export function createScannerVisualRenderer(
     applyCanvasSize(layout);
   };
 
-  const getMetrics = (): ScannerVisualMetrics => ({
-    signalStrength: probe.signalStrength,
-    textureOffsetX: probe.textureOffsetX,
-    textureOffsetY: probe.textureOffsetY,
-    scanLineBias: probe.scanLineBias,
-    gain: 0.42 + probe.signalStrength * 0.35,
-    scanFrequencyHz: 0.9 + probe.signalStrength * 0.25,
-  });
+  const getProximity = () => {
+    if (!state.explorationEnabled || !targetMotion) {
+      return null;
+    }
+    return computeProximitySignal(
+      { x: probe.x * cssWidth, y: probe.y * cssHeight },
+      targetMotion.position,
+      {
+        revealRadius: 120,
+        signalRadius: Math.max(spotlightRadius * 4.2, 1),
+      },
+    );
+  };
+
+  const getMetrics = (): ScannerVisualMetrics => {
+    const proximity = getProximity();
+    const signalStrength = proximity?.strength ?? probe.signalStrength;
+    return {
+      signalStrength,
+      signalBand: proximity?.band ?? signalBandForStrength(signalStrength),
+      probeInside,
+      probeHasEntered,
+      dwellProgress: dwellMs / DUDU_SCANNER_DISCOVERY_DWELL_MS,
+      roundElapsedMs: Math.max(0, getNow() - startedAt),
+      spotlightVisible: state.explorationEnabled && probeInside,
+      spotlightRadius,
+      probeVelocity: Math.min(1, Math.hypot(probe.vx, probe.vy) * 4200),
+      textureOffsetX: probe.textureOffsetX,
+      textureOffsetY: probe.textureOffsetY,
+      scanLineBias: probe.scanLineBias,
+      gain: 0.42 + signalStrength * 0.35,
+      scanFrequencyHz: 0.9 + signalStrength * 0.25,
+    };
+  };
 
   const drawFanMask = (fan: ReturnType<typeof computeFanGeometry>) => {
     const { cx, cy, radius, sweep, startAngle } = fan;
@@ -203,6 +284,96 @@ export function createScannerVisualRenderer(
     }
   };
 
+  const drawSpotlight = (
+    fan: ReturnType<typeof computeFanGeometry>,
+    motionScale: number,
+  ) => {
+    context.fillStyle = palette.spotlightOverlay;
+    context.fillRect(
+      fan.cx - fan.radius,
+      fan.cy - fan.radius,
+      fan.radius * 2,
+      fan.radius * 2,
+    );
+
+    if (!probeInside) {
+      return;
+    }
+
+    const probeX = probe.x * cssWidth;
+    const probeY = probe.y * cssHeight;
+    const signalStrength = getProximity()?.strength ?? probe.signalStrength;
+    context.save();
+    context.beginPath();
+    context.arc(probeX, probeY, spotlightRadius, 0, Math.PI * 2);
+    context.clip();
+    context.globalAlpha = 0.65 + signalStrength * 0.35;
+    drawNoiseLayer(
+      fan,
+      motionScale,
+      probe.textureOffsetX * fan.radius,
+      probe.textureOffsetY * fan.radius,
+    );
+    drawTextureLayer(
+      fan,
+      motionScale,
+      probe.textureOffsetX,
+      probe.textureOffsetY,
+    );
+    const feather = context.createRadialGradient(
+      probeX,
+      probeY,
+      spotlightRadius * 0.55,
+      probeX,
+      probeY,
+      spotlightRadius,
+    );
+    feather.addColorStop(0, "transparent");
+    feather.addColorStop(1, palette.spotlightFeather);
+    context.fillStyle = feather;
+    context.fillRect(
+      probeX - spotlightRadius,
+      probeY - spotlightRadius,
+      spotlightRadius * 2,
+      spotlightRadius * 2,
+    );
+    context.restore();
+
+    context.save();
+    const pulse = state.reducedMotion
+      ? 0
+      : Math.sin(frame * (0.06 + signalStrength * 0.08)) * (2 + signalStrength * 5);
+    context.strokeStyle = palette.spotlightAccent;
+    context.lineWidth = 1.5 + signalStrength * 1.5;
+    context.beginPath();
+    context.arc(probeX, probeY, spotlightRadius + 8 + pulse, 0, Math.PI * 2);
+    context.stroke();
+    context.beginPath();
+    context.moveTo(probeX - 12, probeY);
+    context.lineTo(probeX + 12, probeY);
+    context.moveTo(probeX, probeY - 12);
+    context.lineTo(probeX, probeY + 12);
+    context.stroke();
+
+    if (!state.reducedMotion) {
+      context.fillStyle = palette.spotlightParticle;
+      for (let index = 0; index < 6; index += 1) {
+        const angle = frame * 0.018 + (index / 6) * Math.PI * 2;
+        const radius = spotlightRadius + 15 + (index % 2) * 7;
+        context.beginPath();
+        context.arc(
+          probeX + Math.cos(angle) * radius,
+          probeY + Math.sin(angle) * radius,
+          1.5,
+          0,
+          Math.PI * 2,
+        );
+        context.fill();
+      }
+    }
+    context.restore();
+  };
+
   const drawTarget = (
     fan: ReturnType<typeof computeFanGeometry>,
     motion: TargetMotionState,
@@ -212,13 +383,13 @@ export function createScannerVisualRenderer(
       return;
     }
     const clarity = Math.min(1, reveal * 0.55 + motion.clarityBoost * 0.45);
-    const size = targetDisplayRadius * 2 * (0.65 + clarity * 0.35);
+    const size = targetDisplayRadius * 2 * (0.8 + clarity * 0.2);
     context.save();
     context.translate(motion.position.x, motion.position.y);
-    context.globalAlpha = 0.18 + clarity * 0.42;
+    context.globalAlpha = 0.12 + clarity * 0.78;
     const targetImage = getTargetImage();
     if (targetImage) {
-      context.filter = "grayscale(1) contrast(0.75)";
+      context.filter = `grayscale(1) contrast(${0.65 + clarity * 0.25}) blur(${(1 - clarity) * 4}px)`;
       context.drawImage(targetImage, -size / 2, -size / 2, size, size);
     } else {
       context.fillStyle = "rgba(180, 190, 180, 0.35)";
@@ -230,14 +401,37 @@ export function createScannerVisualRenderer(
   };
 
   const draw = () => {
-    if (destroyed) {
+    if (destroyed || !pageVisible) {
+      rafId = 0;
       return;
     }
+    const now = getNow();
+    const deltaMs = Math.max(0, now - lastFrameAt);
+    lastFrameAt = now;
     const fan = computeFanGeometry(cssWidth, cssHeight);
     const motionPolicy = resolveScannerMotionPolicy(state.reducedMotion);
-    const elapsedSeconds = (getNow() - startedAt) / 1000;
+    const elapsedSeconds = (now - startedAt) / 1000;
 
-    if (targetMotion) {
+    if (state.explorationEnabled && !state.targetRevealed && targetMotion) {
+      const proximity = getProximity();
+      const dwell = advanceDiscoveryDwell(dwellMs, {
+        deltaMs,
+        roundElapsedMs: now - startedAt,
+        probeInside,
+        insideRevealRadius: proximity?.insideRevealRadius ?? false,
+      });
+      dwellMs = dwell.dwellMs;
+      if (
+        now - startedAt >= DUDU_SCANNER_MIN_DISCOVERY_ELAPSED_MS &&
+        dwell.discovered &&
+        !discoveryNotified
+      ) {
+        discoveryNotified = true;
+        onDiscovery?.();
+      }
+    }
+
+    if (targetMotion && state.targetRevealed) {
       targetMotion = advanceTargetMotion(
         targetMotion,
         fan,
@@ -265,6 +459,10 @@ export function createScannerVisualRenderer(
       probe.textureOffsetY,
     );
 
+    if (state.explorationEnabled) {
+      drawSpotlight(fan, motionPolicy.textureMotion);
+    }
+
     const beamBase = fan.startAngle + fan.sweep * 0.5;
     const beamWobble = Math.sin(frame * 0.04 * motionPolicy.textureMotion) * (fan.sweep * 0.35);
     const beamAngle = beamBase + beamWobble + probe.scanLineBias * fan.sweep * 0.25;
@@ -286,7 +484,7 @@ export function createScannerVisualRenderer(
       const boost = scanLineCrossBoost(beamAngle, targetMotion.position, fan);
       targetMotion = applyScanLineClarity(targetMotion, boost);
       const reveal =
-        state.revealProgress * motionPolicy.revealDurationScale +
+        state.revealProgress / motionPolicy.revealDurationScale +
         (state.locking ? 0.25 : 0);
       drawTarget(fan, targetMotion, Math.min(1, reveal));
     }
@@ -330,26 +528,65 @@ export function createScannerVisualRenderer(
       context.restore();
     }
 
-    onMetrics?.(getMetrics());
+    if (now - lastMetricsAt >= metricsIntervalMs) {
+      lastMetricsAt = now;
+      onMetrics?.(getMetrics());
+    }
     frame += 1;
     rafId = requestFrame(draw);
   };
 
   return {
     start() {
-      if (destroyed || rafId) {
+      if (destroyed || started) {
         return;
       }
+      started = true;
       startedAt = getNow();
+      lastFrameAt = startedAt;
       resize(true);
-      rafId = requestFrame(draw);
+      if (pageVisible) {
+        rafId = requestFrame(draw);
+      }
+    },
+    setPageVisible(visible) {
+      if (destroyed || pageVisible === visible) {
+        return;
+      }
+      pageVisible = visible;
+      if (!visible) {
+        hiddenAt = getNow();
+        if (rafId) {
+          cancelFrame(rafId);
+          rafId = 0;
+        }
+        return;
+      }
+      const resumedAt = getNow();
+      if (hiddenAt != null) {
+        startedAt += Math.max(0, resumedAt - hiddenAt);
+        hiddenAt = null;
+      }
+      lastFrameAt = resumedAt;
+      if (started && !rafId) {
+        rafId = requestFrame(draw);
+      }
     },
     updateInput(clientX, clientY, timestamp = getNow()) {
       const rect = getStageRect();
+      const localPoint = {
+        x: clientX - rect.left,
+        y: clientY - rect.top,
+      };
+      if (!isPointInFan(localPoint, computeFanGeometry(cssWidth, cssHeight))) {
+        probeInside = false;
+        return;
+      }
+      probeInside = true;
+      probeHasEntered = true;
       probe = smoother.push(
         {
-          x: clientX - rect.left,
-          y: clientY - rect.top,
+          ...localPoint,
           timestamp,
         },
         rect.width,
@@ -359,18 +596,37 @@ export function createScannerVisualRenderer(
     clearInput() {
       smoother.reset();
       probe = neutralProbeInput();
+      probeInside = false;
+      probeHasEntered = false;
     },
     setState(patch) {
       const seedChanged =
         patch.placementSeed !== undefined && patch.placementSeed !== state.placementSeed;
+      const targetWasCancelled =
+        state.targetRevealed && patch.targetRevealed === false;
       state = { ...state, ...patch };
-      if (seedChanged || patch.targetRevealed === false) {
+      if (seedChanged || targetWasCancelled) {
         resetTargetMotion();
+      }
+      if (seedChanged) {
+        startedAt = getNow();
+        lastFrameAt = startedAt;
+      }
+      if (seedChanged || targetWasCancelled) {
+        dwellMs = 0;
+        discoveryNotified = false;
+      }
+      if (seedChanged) {
+        smoother.reset();
+        probe = neutralProbeInput();
+        probeHasEntered = false;
+        probeInside = false;
       }
     },
     resize,
     destroy() {
       destroyed = true;
+      started = false;
       if (rafId) {
         cancelFrame(rafId);
         rafId = 0;

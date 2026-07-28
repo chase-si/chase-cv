@@ -13,8 +13,10 @@ export type ScanSoundscape = {
   setScanActive(active: boolean): void;
   setScanPaused(paused: boolean): void;
   setProbeVelocity(normalized: number): void;
+  setProximitySignal(normalized: number): void;
   notifyReveal(): void;
   notifyLock(): void;
+  cancelTargetCues(): void;
   handleWindowBlur(): void;
   handleWindowFocus(): void;
   dispose(): void;
@@ -34,6 +36,14 @@ type ScanLayerNodes = {
 
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));
+}
+
+export function proximitySignalToBeepProfile(signalStrength: number) {
+  const strength = clamp01(signalStrength);
+  return {
+    intervalSeconds: 0.2 + (1 - strength),
+    frequencyHz: 440 + strength * 160,
+  };
 }
 
 function rampGain(
@@ -63,6 +73,8 @@ export function createScanSoundscape(
   let scanPaused = false;
   let focusMuted = false;
   let probeVelocity = 0;
+  let lastProximityBeepAt = Number.NEGATIVE_INFINITY;
+  let targetCueGains: GainNode[] = [];
 
   const noop: ScanSoundscape = {
     async unlockFromUserGesture() {
@@ -72,8 +84,10 @@ export function createScanSoundscape(
     setScanActive() {},
     setScanPaused() {},
     setProbeVelocity() {},
+    setProximitySignal() {},
     notifyReveal() {},
     notifyLock() {},
+    cancelTargetCues() {},
     handleWindowBlur() {},
     handleWindowFocus() {},
     dispose() {},
@@ -186,7 +200,12 @@ export function createScanSoundscape(
     scanLayers.probeOsc.frequency.setTargetAtTime(frequency, context.currentTime, 0.05);
   };
 
-  const playCue = (frequencies: number[], durationSeconds: number, peakGain: number) => {
+  const playCue = (
+    frequencies: number[],
+    durationSeconds: number,
+    peakGain: number,
+    trackAsTargetCue = true,
+  ) => {
     const ctx = ensureContext();
     if (!ctx || !focusGain || !effectiveAudible()) {
       return;
@@ -197,6 +216,9 @@ export function createScanSoundscape(
     cueMaster.gain.linearRampToValueAtTime(peakGain, now + SCAN_SOUNDSCAPE_RAMP_SECONDS);
     cueMaster.gain.linearRampToValueAtTime(0, now + durationSeconds);
     cueMaster.connect(focusGain);
+    if (trackAsTargetCue) {
+      targetCueGains.push(cueMaster);
+    }
 
     frequencies.forEach((frequency, index) => {
       const osc = ctx.createOscillator();
@@ -258,11 +280,32 @@ export function createScanSoundscape(
       probeVelocity = clamp01(normalized);
       applyProbeVelocity();
     },
+    setProximitySignal(normalized: number) {
+      if (!context || !effectiveAudible()) {
+        return;
+      }
+      const profile = proximitySignalToBeepProfile(normalized);
+      if (context.currentTime - lastProximityBeepAt + Number.EPSILON < profile.intervalSeconds) {
+        return;
+      }
+      lastProximityBeepAt = context.currentTime;
+      playCue([profile.frequencyHz], 0.1, 0.045, false);
+    },
     notifyReveal() {
       playCue([523.25, 659.25], 0.28, 0.12);
     },
     notifyLock() {
       playCue([392, 523.25, 659.25], 0.36, 0.1);
+    },
+    cancelTargetCues() {
+      if (!context) {
+        targetCueGains = [];
+        return;
+      }
+      for (const gain of targetCueGains) {
+        rampGain(gain, context, 0);
+      }
+      targetCueGains = [];
     },
     handleWindowBlur() {
       focusMuted = true;
@@ -291,6 +334,8 @@ export function createScanSoundscape(
       scanPaused = false;
       focusMuted = false;
       probeVelocity = 0;
+      lastProximityBeepAt = Number.NEGATIVE_INFINITY;
+      targetCueGains = [];
     },
   };
 }

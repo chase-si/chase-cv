@@ -454,8 +454,7 @@
       }
     },
     "shortcuts": {
-      "space": "Pause or resume scanning",
-      "one": "Reveal the target",
+      "space": "Force target discovery",
       "enter": "Lock the signal",
       "r": "Restart the scan",
       "m": "Toggle sound",
@@ -467,7 +466,7 @@
       "label": "Scanner controls",
       "pauseResume": "Pause scan",
       "resume": "Resume scan",
-      "reveal": "Reveal target",
+      "reveal": "Force discovery",
       "lock": "Lock signal",
       "hide": "Hide target",
       "reset": "Reset scan"
@@ -476,11 +475,17 @@
       "hudLabel": "Scanner",
       "hudHint": "Fan sweep locked — watch the belly band.",
       "targetHidden": "No target on screen yet.",
-      "noSignal": "No signal to lock — press 1 to reveal a target first.",
+      "noSignal": "No signal to lock — move the probe or press Space to force discovery.",
       "fullscreenHint": "Fullscreen unavailable — press F to try again.",
       "status": {
-        "scanning": "Scanning…",
+        "initializing": "Initializing scanner…",
+        "moveProbe": "Move the probe to find a signal",
+        "probeOutside": "Probe outside scan area",
+        "signalWeak": "Weak signal — keep searching",
+        "signalMedium": "Signal strengthening",
+        "signalStrong": "Strong signal — hold the probe steady",
         "signalDetected": "Signal detected",
+        "targetReady": "Target revealed — ready to lock",
         "locking": "Locking frame…"
       },
       "hud": {

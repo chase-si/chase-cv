@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -71,58 +71,75 @@ describe("DuduScannerApp controls", () => {
     cleanup();
     window.localStorage.clear();
     window.sessionStorage.clear();
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 
-  it("pauses and resumes scanning with space", async () => {
+  it("uses space as a director override during initialization", async () => {
     renderApp();
     await startScan();
 
     fireEvent.keyDown(window, { key: " " });
-    expect(screen.getByTestId("dudu-scanner-fan-stage")).toBeInTheDocument();
-
-    fireEvent.keyDown(window, { key: " " });
-    expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent("Scanning…");
-  });
-
-  it("reveals after pause when pressing 1", async () => {
-    renderApp();
-    await startScan();
-
-    fireEvent.keyDown(window, { key: " " });
-    fireEvent.keyDown(window, { key: "1" });
     await waitFor(() => {
       expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent("Signal detected");
     });
+  });
+
+  it("shows instrument initialization before entering manual search", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("requestAnimationFrame", vi.fn(() => 1));
+    try {
+      renderApp();
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Start scan" }));
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent(
+        "Initializing scanner…",
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(4_000);
+      });
+
+      expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent(
+        "Move the probe to find a signal",
+      );
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("cancels a reveal with X and shows no signal", async () => {
     renderApp();
     await startScan();
 
-    fireEvent.keyDown(window, { key: "1" });
+    fireEvent.keyDown(window, { key: " " });
     await waitFor(() => {
-      expect(screen.getByTestId("dudu-scanner-target-preview")).toBeInTheDocument();
+      expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent("Signal detected");
     });
 
     fireEvent.keyDown(window, { key: "x" });
     expect(screen.getByTestId("dudu-scanner-transient")).toHaveTextContent("No signal to lock");
-    expect(screen.queryByTestId("dudu-scanner-target-preview")).not.toBeInTheDocument();
+    expect(screen.getByTestId("dudu-scanner-fan-stage")).toBeInTheDocument();
   });
 
   it("restarts scan with R", async () => {
     renderApp();
     await startScan();
 
-    fireEvent.keyDown(window, { key: "1" });
+    fireEvent.keyDown(window, { key: " " });
     fireEvent.keyDown(window, { key: "r" });
-    expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent("Scanning…");
-    expect(screen.queryByTestId("dudu-scanner-target-preview")).not.toBeInTheDocument();
+    expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent(
+      "Initializing scanner…",
+    );
   });
 
   it("ignores scan shortcuts on config", async () => {
     renderApp();
-    fireEvent.keyDown(window, { key: "1" });
+    fireEvent.keyDown(window, { key: " " });
     expect(screen.getByRole("heading", { name: "Dudu Scanner" })).toBeInTheDocument();
   });
 
@@ -157,11 +174,13 @@ describe("DuduScannerApp controls", () => {
   });
 
   it("keeps the selection and uses the shared silhouette when preload fails", async () => {
+    const assignedSources: string[] = [];
     class FailImage {
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
 
-      set src(_value: string) {
+      set src(value: string) {
+        assignedSources.push(value);
         queueMicrotask(() => {
           this.onerror?.();
         });
@@ -172,17 +191,20 @@ describe("DuduScannerApp controls", () => {
 
     renderApp();
     await startScan();
-    fireEvent.keyDown(window, { key: "1" });
+    fireEvent.keyDown(window, { key: " " });
 
     await waitFor(() => {
-      expect(screen.getByTestId("dudu-scanner-target-preview")).toBeInTheDocument();
+      expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent("Signal detected");
     });
-
-    const preview = screen.getByTestId("dudu-scanner-target-preview").querySelector("img");
-    expect(preview).toHaveAttribute("src", "/dudu-scanner/placeholders/fry-sprite.svg");
+    expect(assignedSources).toContain("/dudu-scanner/placeholders/fry-sprite.svg");
   });
 
   it("reveals and locks through the touch operator bar", async () => {
+    let now = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => {
+      now += 600;
+      return now;
+    });
     mockTouchOperatorEnvironment();
     renderApp();
     await startScan();
