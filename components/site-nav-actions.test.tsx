@@ -69,12 +69,17 @@ describe("SiteNavActions", () => {
       "href",
       "/image-to-ui",
     );
+    expect(within(projects).getByRole("menuitem", { name: /Dudu Scanner/i })).toHaveAttribute(
+      "href",
+      "/dudu-scanner",
+    );
     expect(within(projects).getByRole("menuitem", { name: /Flow Editor/i })).toHaveAttribute(
       "href",
       "/flow",
     );
     expect(screen.getByText("Explore configurable cursor effects.")).toBeInTheDocument();
     expect(screen.getByText("Turn painting palettes into interface themes.")).toBeInTheDocument();
+    expect(screen.getByText("Scan for a hidden character in a playful family reveal.")).toBeInTheDocument();
     expect(screen.getByText("Visualize and edit structured flows.")).toBeInTheDocument();
 
     fireEvent.keyDown(projectsButton, { key: "Escape" });
@@ -91,13 +96,14 @@ describe("SiteNavActions", () => {
     const projects = within(nav).getByRole("menu", { name: "游乐场" });
     expect(within(projects).getByText("探索可配置的鼠标特效。")).toBeInTheDocument();
     expect(within(projects).getByText("把名画配色变成界面主题。")).toBeInTheDocument();
+    expect(within(projects).getByText("扫描寻找藏起来的角色，开启亲子惊喜揭晓。")).toBeInTheDocument();
     expect(within(projects).getByText("可视化编辑结构化流程。")).toBeInTheDocument();
 
-    fireEvent.click(within(projects).getByRole("menuitem", { name: /Image to UI/i }));
+    fireEvent.click(within(projects).getByRole("menuitem", { name: /Dudu Scanner/i }));
 
     expect(trackEvent).toHaveBeenCalledWith("nav_click", {
-      target: "image_to_ui",
-      href: "/image-to-ui",
+      target: "dudu_scanner",
+      href: "/dudu-scanner",
     });
     expect(within(nav).getByRole("link", { name: "博客" })).toHaveAttribute(
       "href",
@@ -135,6 +141,10 @@ describe("SiteNavActions", () => {
     expect(within(menu).getByRole("menuitem", { name: /Image to UI/i })).toHaveAttribute(
       "href",
       "/image-to-ui",
+    );
+    expect(within(menu).getByRole("menuitem", { name: /Dudu Scanner/i })).toHaveAttribute(
+      "href",
+      "/dudu-scanner",
     );
     expect(within(menu).getByRole("menuitem", { name: /Flow Editor/i })).toHaveAttribute(
       "href",

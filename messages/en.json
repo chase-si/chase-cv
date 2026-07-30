@@ -42,6 +42,10 @@
           "name": "Image to UI",
           "description": "Turn painting palettes into interface themes."
         },
+        "duduScanner": {
+          "name": "Dudu Scanner",
+          "description": "Scan for a hidden character in a playful family reveal."
+        },
         "flowEditor": {
           "name": "Flow Editor",
           "description": "Visualize and edit structured flows."

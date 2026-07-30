@@ -7,6 +7,7 @@ import {
   ImageIcon,
   Menu,
   MousePointer2,
+  ScanSearch,
   Workflow,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -22,6 +23,7 @@ const GITHUB_URL = "https://github.com/chase-si";
 const projectIcons = {
   magicCursor: MousePointer2,
   imageToUi: ImageIcon,
+  duduScanner: ScanSearch,
   flowEditor: Workflow,
 } satisfies Record<ProjectId, React.ComponentType<React.SVGProps<SVGSVGElement>>>;
 

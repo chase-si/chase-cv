@@ -1,9 +1,9 @@
-export type ProjectId = "magicCursor" | "imageToUi" | "flowEditor";
+export type ProjectId = "magicCursor" | "imageToUi" | "duduScanner" | "flowEditor";
 
 export type ProjectNavigationItem = {
   id: ProjectId;
-  href: "/magic-cursor" | "/image-to-ui" | "/flow";
-  analyticsTarget: "magic_cursor" | "image_to_ui" | "flow_editor";
+  href: "/magic-cursor" | "/image-to-ui" | "/dudu-scanner" | "/flow";
+  analyticsTarget: "magic_cursor" | "image_to_ui" | "dudu_scanner" | "flow_editor";
 };
 
 export const projectNavigationItems: ProjectNavigationItem[] = [
@@ -16,6 +16,11 @@ export const projectNavigationItems: ProjectNavigationItem[] = [
     id: "imageToUi",
     href: "/image-to-ui",
     analyticsTarget: "image_to_ui",
+  },
+  {
+    id: "duduScanner",
+    href: "/dudu-scanner",
+    analyticsTarget: "dudu_scanner",
   },
   {
     id: "flowEditor",

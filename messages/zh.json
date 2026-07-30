@@ -42,6 +42,10 @@
           "name": "Image to UI",
           "description": "把名画配色变成界面主题。"
         },
+        "duduScanner": {
+          "name": "Dudu Scanner",
+          "description": "扫描寻找肚子里藏起来的角色。"
+        },
         "flowEditor": {
           "name": "Flow Editor",
           "description": "可视化编辑结构化流程。"
