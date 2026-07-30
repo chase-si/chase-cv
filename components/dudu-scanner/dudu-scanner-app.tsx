@@ -33,6 +33,7 @@ import {
 } from "@/lib/dudu-scanner/dudu-scanner-config-provider";
 import { type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
 import { prepareTargetRoundAsset } from "@/lib/dudu-scanner/target-asset";
+import { resolveRoundTarget } from "@/lib/dudu-scanner/round-target";
 import {
   DUDU_SCANNER_AUTO_SCAN_DURATION_MS,
   DUDU_SCANNER_LOCK_RESULT_DELAY_MS,
@@ -82,7 +83,7 @@ function DuduScannerAppInner() {
   const [failedPreloadTargetId, setFailedPreloadTargetId] =
     useState<DuduScannerTargetId | null>(null);
   const immersive = round.phase === "scan" || round.phase === "result";
-  const assetLoadWarning = failedPreloadTargetId === config.targetId;
+  const assetLoadWarning = failedPreloadTargetId !== null;
   const immersiveTargetId = roundAsset?.targetId ?? config.targetId;
   const roundTargetImageSrc = roundAsset?.displaySrc ?? "";
 
@@ -95,6 +96,8 @@ function DuduScannerAppInner() {
     locking: round.scan.locking,
     targetRevealedKey: `${round.phase}-${round.scan.targetRevealed}`,
     lockingKey: `${round.phase}-${round.scan.locking}`,
+    targetId: immersiveTargetId,
+    mysteryMode: config.scanMode === "mystery",
   });
 
   const attemptFullscreen = useCallback(async () => {
@@ -126,7 +129,8 @@ function DuduScannerAppInner() {
 
   const handleStartScan = useCallback(async () => {
     resetRevealProgress();
-    const prepared = await prepareTargetRoundAsset(config.targetId);
+    const targetId = resolveRoundTarget(config);
+    const prepared = await prepareTargetRoundAsset(targetId);
     setRoundAsset({
       targetId: prepared.targetId,
       displaySrc: prepared.displaySrc,
@@ -139,10 +143,11 @@ function DuduScannerAppInner() {
       dispatch({ type: "FULLSCREEN_UNAVAILABLE" });
     }
     void unlockFromUserGesture();
-  }, [config.targetId, enterImmersiveHistory, resetRevealProgress, unlockFromUserGesture]);
+  }, [config, enterImmersiveHistory, resetRevealProgress, unlockFromUserGesture]);
 
   const handleScanAgain = useCallback(async () => {
-    const prepared = await prepareTargetRoundAsset(config.targetId);
+    const targetId = resolveRoundTarget(config, Math.random, roundAsset?.targetId);
+    const prepared = await prepareTargetRoundAsset(targetId);
     setRoundAsset({
       targetId: prepared.targetId,
       displaySrc: prepared.displaySrc,
@@ -152,7 +157,7 @@ function DuduScannerAppInner() {
     resetRevealProgress();
     await requestAppFullscreen(rootRef.current);
     void unlockFromUserGesture();
-  }, [config.targetId, resetRevealProgress, unlockFromUserGesture]);
+  }, [config, resetRevealProgress, roundAsset?.targetId, unlockFromUserGesture]);
 
   const handleChangeTarget = useCallback(async () => {
     dispatch({ type: "CHANGE_TARGET" });
@@ -362,6 +367,7 @@ function DuduScannerAppInner() {
         <DuduScannerScanView
           targetId={immersiveTargetId}
           targetImageSrc={roundTargetImageSrc}
+          mysteryMode={config.scanMode === "mystery"}
           targetRevealed={round.scan.targetRevealed}
           revealComplete={round.scan.revealComplete}
           revealProgress={effectiveRevealProgress}

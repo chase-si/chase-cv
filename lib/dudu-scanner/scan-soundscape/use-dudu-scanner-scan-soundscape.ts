@@ -10,6 +10,7 @@ import {
 import type { DuduScannerRoundPhase } from "@/lib/dudu-scanner/round-state";
 import type { DuduScannerScanStage } from "@/lib/dudu-scanner/round-state";
 import type { ScannerVisualMetrics } from "@/lib/dudu-scanner/scanner-visual/renderer";
+import type { DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
 
 type UseDuduScannerScanSoundscapeArgs = {
   soundEnabled: boolean;
@@ -20,6 +21,8 @@ type UseDuduScannerScanSoundscapeArgs = {
   locking: boolean;
   targetRevealedKey: string;
   lockingKey: string;
+  targetId: DuduScannerTargetId;
+  mysteryMode: boolean;
 };
 
 export function useDuduScannerScanSoundscape({
@@ -31,6 +34,8 @@ export function useDuduScannerScanSoundscape({
   locking,
   targetRevealedKey,
   lockingKey,
+  targetId,
+  mysteryMode,
 }: UseDuduScannerScanSoundscapeArgs) {
   const engineRef = useRef<ScanSoundscape | null>(null);
   const prevRevealedRef = useRef(false);
@@ -59,7 +64,7 @@ export function useDuduScannerScanSoundscape({
   useEffect(() => {
     const engine = getEngine();
     if (locking && !prevLockingRef.current) {
-      engine.notifyLock();
+      engine.notifyLock(targetId);
     }
     prevLockingRef.current = locking;
 
@@ -70,7 +75,7 @@ export function useDuduScannerScanSoundscape({
       prevRevealedRef.current = false;
       prevLockingRef.current = false;
     }
-  }, [getEngine, locking, lockingKey, phase]);
+  }, [getEngine, locking, lockingKey, phase, targetId]);
 
   useEffect(() => {
     getEngine().setScanPaused(scanPaused);
@@ -78,14 +83,14 @@ export function useDuduScannerScanSoundscape({
 
   useEffect(() => {
     const engine = getEngine();
-    if (targetRevealed && !prevRevealedRef.current) {
+    if (targetRevealed && !prevRevealedRef.current && !mysteryMode) {
       engine.notifyReveal();
     }
     if (!targetRevealed && prevRevealedRef.current) {
       engine.cancelTargetCues();
     }
     prevRevealedRef.current = targetRevealed;
-  }, [getEngine, targetRevealed, targetRevealedKey]);
+  }, [getEngine, mysteryMode, targetRevealed, targetRevealedKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") {

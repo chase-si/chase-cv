@@ -8,6 +8,7 @@ import { DuduScannerFanCanvas } from "@/components/dudu-scanner/dudu-scanner-fan
 import { DuduScannerInstrumentPanel } from "@/components/dudu-scanner/dudu-scanner-instrument-panel";
 import { DuduScannerOperatorControlBar } from "@/components/dudu-scanner/dudu-scanner-operator-control-bar";
 import { type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
+import { DUDU_SCANNER_TARGET_MESSAGE_KEY } from "@/lib/dudu-scanner/i18n-keys";
 import type { DuduScannerRoundTransient } from "@/lib/dudu-scanner/round-state";
 import type { DuduScannerScanStage } from "@/lib/dudu-scanner/round-state";
 import type { DuduScannerDomainCommand } from "@/lib/dudu-scanner/scanner-commands";
@@ -17,6 +18,7 @@ import { usePrefersTouchOperatorControls } from "@/lib/dudu-scanner/use-prefers-
 type DuduScannerScanViewProps = {
   targetId: DuduScannerTargetId;
   targetImageSrc: string;
+  mysteryMode: boolean;
   targetRevealed: boolean;
   revealComplete: boolean;
   revealProgress: number;
@@ -64,6 +66,7 @@ const initialMetrics: ScannerVisualMetrics = {
 export function DuduScannerScanView({
   targetId,
   targetImageSrc,
+  mysteryMode,
   targetRevealed,
   revealComplete,
   revealProgress,
@@ -79,6 +82,7 @@ export function DuduScannerScanView({
 }: DuduScannerScanViewProps) {
   const t = useTranslations("duduScanner");
   const prefersTouchControls = usePrefersTouchOperatorControls();
+  const targetMessageKey = DUDU_SCANNER_TARGET_MESSAGE_KEY[targetId];
   const placementSeed = useMemo(
     () => hashTargetSeed(targetId) + placementVersion * 97,
     [placementVersion, targetId],
@@ -94,7 +98,9 @@ export function DuduScannerScanView({
         ? "locking"
         : targetRevealed
           ? revealComplete
-            ? "targetReady"
+            ? mysteryMode
+              ? "mysteryReady"
+              : "targetReady"
             : "signalDetected"
           : !metrics.probeInside
             ? metrics.probeHasEntered
@@ -118,6 +124,10 @@ export function DuduScannerScanView({
         scanStage !== "auto-scan" && scanStage !== "idle" && !paused && !locking
       }
       targetImageSrc={targetImageSrc}
+      mysteryMode={mysteryMode}
+      finaleEyebrow={t("scan.finaleEyebrow")}
+      finaleName={t(`targets.${targetMessageKey}.name`)}
+      finaleLine={t(`targets.${targetMessageKey}.revealLine`)}
       hideCursor
       className="min-h-[220px] w-full lg:min-h-0"
       onDiscovery={onDiscovery}

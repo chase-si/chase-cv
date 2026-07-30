@@ -37,7 +37,7 @@ describe("computeProximitySignal", () => {
 
 describe("scanner lock timing", () => {
   it("keeps the target-focused lock state visible before showing the result", () => {
-    expect(DUDU_SCANNER_LOCK_RESULT_DELAY_MS).toBe(1800);
+    expect(DUDU_SCANNER_LOCK_RESULT_DELAY_MS).toBe(2600);
   });
 
   it("allows a revealed target to lock by double-click only above 90% signal", () => {

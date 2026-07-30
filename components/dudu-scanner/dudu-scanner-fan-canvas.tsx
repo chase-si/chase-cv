@@ -51,6 +51,10 @@ type DuduScannerFanCanvasProps = {
   locking?: boolean;
   placementSeed?: number;
   targetImageSrc?: string | null;
+  mysteryMode?: boolean;
+  finaleEyebrow?: string;
+  finaleName?: string;
+  finaleLine?: string;
   onMetricsChange?: (metrics: ScannerVisualMetrics) => void;
   onDiscovery?: () => void;
   onLockRequest?: () => void;
@@ -67,6 +71,10 @@ export function DuduScannerFanCanvas({
   locking = false,
   placementSeed = 1,
   targetImageSrc = null,
+  mysteryMode = false,
+  finaleEyebrow,
+  finaleName,
+  finaleLine,
   onMetricsChange,
   onDiscovery,
   onLockRequest,
@@ -83,8 +91,11 @@ export function DuduScannerFanCanvas({
   const showLockFrameRef = useRef(showLockFrame);
   const targetImageRef = useRef<HTMLImageElement | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [showFinaleCopy, setShowFinaleCopy] = useState(false);
+  const [lockFrameVisible, setLockFrameVisible] = useState(showLockFrame);
   const [lockTargetPosition, setLockTargetPosition] =
     useState<ScannerPoint | null>(null);
+  const effectiveLockFrameVisible = showLockFrame && lockFrameVisible;
 
   useEffect(() => {
     onMetricsRef.current = onMetricsChange;
@@ -103,8 +114,8 @@ export function DuduScannerFanCanvas({
   }, [targetRevealed]);
 
   useEffect(() => {
-    showLockFrameRef.current = showLockFrame;
-  }, [showLockFrame]);
+    showLockFrameRef.current = effectiveLockFrameVisible;
+  }, [effectiveLockFrameVisible]);
 
   const syncLockTargetPosition = useCallback(() => {
     const stage = stageRef.current;
@@ -124,6 +135,36 @@ export function DuduScannerFanCanvas({
       return next;
     });
   }, []);
+
+  useEffect(() => {
+    if (!locking) {
+      const resetTimer = window.setTimeout(() => setShowFinaleCopy(false), 0);
+      return () => window.clearTimeout(resetTimer);
+    }
+    if (reducedMotion) {
+      const revealTimer = window.setTimeout(() => setShowFinaleCopy(true), 0);
+      return () => window.clearTimeout(revealTimer);
+    }
+    const timer = window.setTimeout(() => setShowFinaleCopy(true), 1100);
+    return () => window.clearTimeout(timer);
+  }, [locking, reducedMotion]);
+
+  useEffect(() => {
+    if (!showLockFrame) {
+      const hideTimer = window.setTimeout(() => setLockFrameVisible(false), 0);
+      return () => window.clearTimeout(hideTimer);
+    }
+    const showTimer = window.setTimeout(() => setLockFrameVisible(true), 0);
+    const hideTimer = locking
+      ? window.setTimeout(() => setLockFrameVisible(false), 650)
+      : null;
+    return () => {
+      window.clearTimeout(showTimer);
+      if (hideTimer !== null) {
+        window.clearTimeout(hideTimer);
+      }
+    };
+  }, [locking, showLockFrame]);
 
   const syncLockTargetPositionRef = useRef(syncLockTargetPosition);
   useEffect(() => {
@@ -269,26 +310,28 @@ export function DuduScannerFanCanvas({
     renderer?.setState({
       active,
       explorationEnabled,
-      showLockFrame,
+      showLockFrame: effectiveLockFrameVisible,
       targetRevealed,
       revealProgress,
       locking,
+      mysteryMode,
       reducedMotion,
       placementSeed,
     });
   }, [
     active,
     explorationEnabled,
-    showLockFrame,
+    effectiveLockFrameVisible,
     targetRevealed,
     revealProgress,
     locking,
+    mysteryMode,
     reducedMotion,
     placementSeed,
   ]);
 
   useEffect(() => {
-    if (!showLockFrame) {
+    if (!effectiveLockFrameVisible) {
       return;
     }
 
@@ -296,7 +339,7 @@ export function DuduScannerFanCanvas({
       syncLockTargetPositionRef.current();
     });
     return () => cancelAnimationFrame(raf);
-  }, [showLockFrame, placementSeed]);
+  }, [effectiveLockFrameVisible, placementSeed]);
 
   return (
     <div
@@ -309,7 +352,7 @@ export function DuduScannerFanCanvas({
       data-testid="dudu-scanner-fan-stage"
     >
       <canvas ref={canvasRef} className="size-full touch-none" aria-hidden />
-      {showLockFrame && lockTargetPosition ? (
+      {effectiveLockFrameVisible && lockTargetPosition ? (
         <div
           className="pointer-events-none absolute size-17 -translate-x-1/2 -translate-y-1/2 rounded-xl border-3 border-primary shadow-[0_0_24px] shadow-primary/45"
           style={{
@@ -318,6 +361,26 @@ export function DuduScannerFanCanvas({
           }}
           data-testid="dudu-scanner-lock-frame"
         />
+      ) : null}
+      {locking && showFinaleCopy && finaleName ? (
+        <div
+          className="pointer-events-none absolute inset-x-4 bottom-5 z-10 mx-auto max-w-lg rounded-2xl border border-primary/50 bg-background/85 px-4 py-3 text-center shadow-lg backdrop-blur-md motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500"
+          data-testid="dudu-scanner-reveal-finale"
+          role="status"
+          aria-live="polite"
+        >
+          {finaleEyebrow ? (
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">
+              {finaleEyebrow}
+            </p>
+          ) : null}
+          <p className="mt-1 text-xl font-black text-foreground sm:text-2xl">{finaleName}</p>
+          {finaleLine ? (
+            <p className="mt-1 text-sm font-medium text-muted-foreground sm:text-base">
+              “{finaleLine}”
+            </p>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

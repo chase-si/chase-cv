@@ -12,12 +12,14 @@ describe("dudu scanner config persistence", () => {
   it("round-trips a valid stored configuration", () => {
     const storage = createMemoryStorage();
     writeDuduScannerConfig(storage, {
+      scanMode: "operator",
       themeId: "tummy-creatures",
       targetId: "sleepy-bug",
       soundEnabled: false,
     });
 
     expect(readDuduScannerConfig(storage)).toEqual({
+      scanMode: "operator",
       themeId: "tummy-creatures",
       targetId: "sleepy-bug",
       soundEnabled: false,
@@ -47,14 +49,32 @@ describe("dudu scanner config persistence", () => {
   it("recovers valid stored preferences after reload", () => {
     const storage = createMemoryStorage();
     writeDuduScannerConfig(storage, {
+      scanMode: "mystery",
       themeId: "tummy-creatures",
       targetId: "rice-ball-sprite",
       soundEnabled: false,
     });
     expect(readDuduScannerConfig(storage)).toEqual({
+      scanMode: "mystery",
       themeId: "tummy-creatures",
       targetId: "rice-ball-sprite",
       soundEnabled: false,
+    });
+  });
+
+  it("migrates stored target selections to operator mode", () => {
+    expect(
+      parseStoredDuduScannerConfig(
+        JSON.stringify({
+          version: 1,
+          themeId: "snack-scan",
+          targetId: "candy-critter",
+          soundEnabled: true,
+        }),
+      ),
+    ).toMatchObject({
+      scanMode: "operator",
+      targetId: "candy-critter",
     });
   });
 

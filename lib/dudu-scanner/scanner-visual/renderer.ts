@@ -14,6 +14,7 @@ import {
   computeProximitySignal,
   DUDU_SCANNER_DESKTOP_SPOTLIGHT_RADIUS,
   DUDU_SCANNER_DISCOVERY_DWELL_MS,
+  DUDU_SCANNER_LOCK_RESULT_DELAY_MS,
   DUDU_SCANNER_MIN_DISCOVERY_ELAPSED_MS,
   signalBandForStrength,
   type ScannerSignalBand,
@@ -38,6 +39,7 @@ export type ScannerVisualRenderState = {
   targetRevealed: boolean;
   revealProgress: number;
   locking: boolean;
+  mysteryMode: boolean;
   reducedMotion: boolean;
   placementSeed: number;
 };
@@ -102,6 +104,7 @@ const defaultState: ScannerVisualRenderState = {
   targetRevealed: false,
   revealProgress: 0,
   locking: false,
+  mysteryMode: false,
   reducedMotion: false,
   placementSeed: 1,
 };
@@ -116,6 +119,68 @@ const defaultPalette: ScannerVisualPalette = {
 function hashNoise(x: number, y: number, frame: number): number {
   const value = Math.sin(x * 12.9898 + y * 78.233 + frame * 0.17) * 43758.5453;
   return value - Math.floor(value);
+}
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
+
+function easeOutCubic(value: number): number {
+  const inverse = 1 - clamp01(value);
+  return 1 - inverse * inverse * inverse;
+}
+
+function easeInOutCubic(value: number): number {
+  const progress = clamp01(value);
+  return progress < 0.5
+    ? 4 * progress * progress * progress
+    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+}
+
+function lerp(start: number, end: number, progress: number): number {
+  return start + (end - start) * progress;
+}
+
+export function resolveMysteryTargetPresentation({
+  clarity,
+  spotlightHovered,
+  reducedMotion,
+  frame,
+}: {
+  clarity: number;
+  spotlightHovered: boolean;
+  reducedMotion: boolean;
+  frame: number;
+}) {
+  const resolvedClarity = clamp01(clarity);
+  const focusPulse =
+    spotlightHovered && !reducedMotion ? 1 + Math.sin(frame * 0.1) * 0.04 : 1;
+
+  if (spotlightHovered) {
+    return {
+      alpha: 0.82 + resolvedClarity * 0.16,
+      brightness: 0.94,
+      contrast: 1.45,
+      blurPx: (1 - resolvedClarity) * 1.5,
+      targetScale: 1.5 * focusPulse,
+      shadowBlurPx: 22,
+      ringAlpha: 0.82,
+      ringWidth: 3,
+      haloAlpha: 0.26,
+    };
+  }
+
+  return {
+    alpha: 0.32 + resolvedClarity * 0.18,
+    brightness: 0.42,
+    contrast: 2.15,
+    blurPx: 3 + (1 - resolvedClarity) * 3,
+    targetScale: 1.38,
+    shadowBlurPx: 6,
+    ringAlpha: 0.2,
+    ringWidth: 1.5,
+    haloAlpha: 0,
+  };
 }
 
 export function createScannerVisualRenderer(
@@ -167,6 +232,7 @@ export function createScannerVisualRenderer(
   let probeInside = false;
   let probeHasEntered = false;
   let targetMotion: TargetMotionState | null = null;
+  let lockStartedAt: number | null = null;
   let cssWidth = 1;
   let cssHeight = 1;
 
@@ -384,18 +450,50 @@ export function createScannerVisualRenderer(
       return;
     }
     const clarity = Math.min(1, reveal * 0.55 + motion.clarityBoost * 0.45);
-    const size = targetDisplayRadius * 2 * (0.8 + clarity * 0.2);
+    const mysteryPresentation = state.mysteryMode
+      ? resolveMysteryTargetPresentation({
+          clarity,
+          spotlightHovered,
+          reducedMotion: state.reducedMotion,
+          frame,
+        })
+      : null;
+    const size =
+      targetDisplayRadius *
+      2 *
+      (0.8 + clarity * 0.2) *
+      (mysteryPresentation?.targetScale ?? 1);
     context.save();
     context.translate(motion.position.x, motion.position.y);
-    context.globalAlpha = spotlightHovered
-      ? 0.35 + clarity * 0.65
-      : 0.12 + clarity * 0.45;
+    context.globalAlpha = mysteryPresentation
+      ? mysteryPresentation.alpha
+      : spotlightHovered
+        ? 0.35 + clarity * 0.65
+        : 0.12 + clarity * 0.45;
     const targetImage = getTargetImage();
     if (targetImage) {
-      context.filter = spotlightHovered
-        ? `grayscale(0) saturate(1.12) contrast(${0.85 + clarity * 0.25}) blur(${(1 - clarity) * 4}px)`
-        : `grayscale(1) contrast(${0.65 + clarity * 0.25}) blur(${(1 - clarity) * 4}px)`;
+      context.filter = mysteryPresentation
+        ? `grayscale(1) brightness(${mysteryPresentation.brightness}) contrast(${mysteryPresentation.contrast}) blur(${mysteryPresentation.blurPx}px) drop-shadow(0 0 ${mysteryPresentation.shadowBlurPx}px ${palette.spotlightAccent})`
+        : spotlightHovered
+          ? `grayscale(0) saturate(1.12) contrast(${0.85 + clarity * 0.25}) blur(${(1 - clarity) * 4}px)`
+          : `grayscale(1) contrast(${0.65 + clarity * 0.25}) blur(${(1 - clarity) * 4}px)`;
       context.drawImage(targetImage, -size / 2, -size / 2, size, size);
+      if (mysteryPresentation) {
+        context.filter = "none";
+        context.globalAlpha = mysteryPresentation.ringAlpha;
+        context.strokeStyle = palette.spotlightAccent;
+        context.lineWidth = mysteryPresentation.ringWidth;
+        context.beginPath();
+        context.arc(0, 0, size * 0.58, 0, Math.PI * 2);
+        context.stroke();
+        if (mysteryPresentation.haloAlpha > 0) {
+          context.globalAlpha = mysteryPresentation.haloAlpha;
+          context.lineWidth = 1.5;
+          context.beginPath();
+          context.arc(0, 0, size * 0.7, 0, Math.PI * 2);
+          context.stroke();
+        }
+      }
     } else {
       context.fillStyle = "rgba(180, 190, 180, 0.35)";
       context.beginPath();
@@ -403,6 +501,90 @@ export function createScannerVisualRenderer(
       context.fill();
     }
     context.restore();
+  };
+
+  const drawLockFinale = (
+    fan: ReturnType<typeof computeFanGeometry>,
+    motion: TargetMotionState,
+    progress: number,
+  ) => {
+    const targetImage = getTargetImage();
+    const waveProgress = easeOutCubic(progress / 0.34);
+    const travelProgress = easeInOutCubic((progress - 0.16) / 0.46);
+    const colorProgress = easeInOutCubic((progress - 0.46) / 0.38);
+    const particleProgress = easeOutCubic((progress - 0.5) / 0.5);
+    const finaleX = fan.cx;
+    const finaleY = fan.cy - fan.radius * 0.48;
+    const x = lerp(motion.position.x, finaleX, travelProgress);
+    const y = lerp(motion.position.y, finaleY, travelProgress);
+    const startSize = targetDisplayRadius * 2;
+    const finaleSize = Math.min(280, Math.max(150, fan.radius * 0.5));
+    const size = lerp(startSize, finaleSize, easeOutCubic(travelProgress));
+
+    context.save();
+    context.globalAlpha = 1 - clamp01((progress - 0.32) / 0.22);
+    context.strokeStyle = palette.spotlightAccent;
+    for (let index = 0; index < 3; index += 1) {
+      const ringProgress = clamp01(waveProgress - index * 0.16);
+      if (ringProgress <= 0) {
+        continue;
+      }
+      context.globalAlpha = (1 - ringProgress) * 0.8;
+      context.lineWidth = 2 + (1 - ringProgress) * 3;
+      context.beginPath();
+      context.arc(
+        motion.position.x,
+        motion.position.y,
+        targetDisplayRadius + ringProgress * fan.radius * 0.62,
+        0,
+        Math.PI * 2,
+      );
+      context.stroke();
+    }
+    context.restore();
+
+    if (targetImage) {
+      context.save();
+      context.translate(x, y);
+      const arrivalPulse =
+        state.reducedMotion || travelProgress < 0.92
+          ? 1
+          : 1 + Math.sin((travelProgress - 0.92) * Math.PI * 12) * 0.035;
+      const pulseSize = size * arrivalPulse;
+      context.globalAlpha = 0.62 + colorProgress * 0.38;
+      context.filter = `grayscale(${1 - colorProgress}) saturate(${0.7 + colorProgress * 0.55}) contrast(${1.45 - colorProgress * 0.35}) drop-shadow(0 0 ${8 + colorProgress * 20}px ${palette.spotlightAccent})`;
+      context.drawImage(
+        targetImage,
+        -pulseSize / 2,
+        -pulseSize / 2,
+        pulseSize,
+        pulseSize,
+      );
+      context.restore();
+    }
+
+    if (particleProgress > 0 && !state.reducedMotion) {
+      context.save();
+      context.fillStyle = palette.spotlightParticle;
+      for (let index = 0; index < 18; index += 1) {
+        const angle = (index / 18) * Math.PI * 2 + frame * 0.012;
+        const distance =
+          finaleSize * (0.42 + particleProgress * (0.36 + (index % 4) * 0.06));
+        const particleSize = 1.5 + (index % 3);
+        context.globalAlpha =
+          Math.sin(clamp01(particleProgress) * Math.PI) * (0.45 + (index % 2) * 0.25);
+        context.beginPath();
+        context.arc(
+          finaleX + Math.cos(angle) * distance,
+          finaleY + Math.sin(angle) * distance * 0.72,
+          particleSize,
+          0,
+          Math.PI * 2,
+        );
+        context.fill();
+      }
+      context.restore();
+    }
   };
 
   const draw = () => {
@@ -497,7 +679,15 @@ export function createScannerVisualRenderer(
         (probeInside &&
           proximity !== null &&
           proximity.distance <= spotlightRadius);
-      drawTarget(fan, targetMotion, Math.min(1, reveal), spotlightHovered);
+      if (state.locking && lockStartedAt !== null) {
+        drawLockFinale(
+          fan,
+          targetMotion,
+          clamp01((now - lockStartedAt) / DUDU_SCANNER_LOCK_RESULT_DELAY_MS),
+        );
+      } else {
+        drawTarget(fan, targetMotion, Math.min(1, reveal), spotlightHovered);
+      }
     }
 
     context.restore();
@@ -611,11 +801,18 @@ export function createScannerVisualRenderer(
       probeHasEntered = false;
     },
     setState(patch) {
+      const lockingStarted = patch.locking === true && !state.locking;
+      const lockingEnded = patch.locking === false && state.locking;
       const seedChanged =
         patch.placementSeed !== undefined && patch.placementSeed !== state.placementSeed;
       const targetWasCancelled =
         state.targetRevealed && patch.targetRevealed === false;
       state = { ...state, ...patch };
+      if (lockingStarted) {
+        lockStartedAt = getNow();
+      } else if (lockingEnded || seedChanged || targetWasCancelled) {
+        lockStartedAt = null;
+      }
       if (seedChanged || targetWasCancelled) {
         resetTargetMotion();
       }

@@ -1,6 +1,7 @@
 import {
   coerceDuduScannerConfig,
   type DuduScannerConfigShape,
+  type DuduScannerScanMode,
   type DuduScannerThemeId,
 } from "@/lib/dudu-scanner/catalog";
 
@@ -11,6 +12,13 @@ export function applyThemeChange(
   themeId: DuduScannerThemeId,
 ): DuduScannerConfig {
   return coerceDuduScannerConfig({ ...config, themeId });
+}
+
+export function applyScanModeChange(
+  config: DuduScannerConfig,
+  scanMode: DuduScannerScanMode,
+): DuduScannerConfig {
+  return { ...config, scanMode };
 }
 
 export function applyTargetChange(

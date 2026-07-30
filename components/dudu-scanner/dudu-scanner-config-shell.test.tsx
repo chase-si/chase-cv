@@ -36,12 +36,21 @@ describe("DuduScannerConfigShell", () => {
     window.localStorage.clear();
   });
 
-  it("renders English defaults with Snack Scan, Fry Sprite, and sound enabled", () => {
+  it("renders English defaults in mystery mode with sound enabled", () => {
     renderShell("en");
 
     expect(screen.getByRole("heading", { name: "Dudu Scanner" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Mystery scan", pressed: true }),
+    ).toBeInTheDocument();
+    const operatorMode = screen.getByRole("button", { name: "Operator mode" });
+    const mysteryMode = screen.getByRole("button", { name: "Mystery scan" });
+    expect(
+      screen.getAllByRole("button").indexOf(operatorMode),
+    ).toBeLessThan(screen.getAllByRole("button").indexOf(mysteryMode));
     expect(screen.getByRole("button", { name: "Snack Scan", pressed: true })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Fry Sprite", pressed: true })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Fry Sprite" })).not.toBeInTheDocument();
+    expect(screen.getByTestId("dudu-scanner-mystery-summary")).toBeInTheDocument();
     expect(screen.getByRole("switch", { name: "Sound effects" })).toHaveAttribute(
       "aria-checked",
       "true",
@@ -53,21 +62,28 @@ describe("DuduScannerConfigShell", () => {
     renderShell("zh");
 
     expect(screen.getByRole("heading", { name: "肚肚扫描仪" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "神秘扫描", pressed: true }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "零食扫描", pressed: true })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "薯条精灵", pressed: true })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "薯条精灵" })).not.toBeInTheDocument();
     expect(screen.getByText("仅供娱乐，非医疗工具。")).toBeInTheDocument();
   });
 
   it("falls back to defaults when stored preferences are corrupt", () => {
     window.localStorage.setItem(DUDU_SCANNER_CONFIG_STORAGE_KEY, "{broken");
     renderShell("en");
+    expect(
+      screen.getByRole("button", { name: "Mystery scan", pressed: true }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Snack Scan", pressed: true })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Fry Sprite", pressed: true })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Fry Sprite" })).not.toBeInTheDocument();
   });
 
   it("shows only three targets for the active theme and keeps a valid selection", () => {
     renderShell("en");
 
+    fireEvent.click(screen.getByRole("button", { name: "Operator mode" }));
     fireEvent.click(screen.getByRole("button", { name: "Tummy Creatures" }));
 
     const tummyTargets = ["Sleepy Bug", "Rumble Monster", "Rice Ball Sprite"];
@@ -81,18 +97,23 @@ describe("DuduScannerConfigShell", () => {
   it("persists sound, theme, and target across reloads", () => {
     const { unmount } = renderShell("en");
 
+    fireEvent.click(screen.getByRole("button", { name: "Operator mode" }));
     fireEvent.click(screen.getByRole("button", { name: "Tummy Creatures" }));
     fireEvent.click(screen.getByRole("button", { name: "Rumble Monster" }));
     fireEvent.click(screen.getByRole("switch", { name: "Sound effects" }));
 
     const stored = window.localStorage.getItem(DUDU_SCANNER_CONFIG_STORAGE_KEY);
     expect(stored).toContain("rumble-monster");
+    expect(stored).toContain('"scanMode":"operator"');
     expect(stored).toContain('"soundEnabled":false');
 
     unmount();
     renderShell("en");
 
     expect(screen.getByRole("button", { name: "Tummy Creatures", pressed: true })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Operator mode", pressed: true }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Rumble Monster", pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("switch", { name: "Sound effects" })).toHaveAttribute(
       "aria-checked",

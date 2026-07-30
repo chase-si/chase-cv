@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createScannerVisualRenderer } from "@/lib/dudu-scanner/scanner-visual/renderer";
+import {
+  createScannerVisualRenderer,
+  resolveMysteryTargetPresentation,
+} from "@/lib/dudu-scanner/scanner-visual/renderer";
 
 function createTestCanvas() {
   const canvas = document.createElement("canvas");
@@ -284,5 +287,46 @@ describe("scanner visual renderer lifecycle", () => {
     expect(onDiscovery).toHaveBeenCalledTimes(1);
     expect(renderer.getMetrics().dwellProgress).toBe(1);
     renderer.destroy();
+  });
+});
+
+describe("mystery target presentation", () => {
+  it("makes spotlight focus clearer and brighter without revealing color", () => {
+    const focused = resolveMysteryTargetPresentation({
+      clarity: 0.8,
+      spotlightHovered: true,
+      reducedMotion: true,
+      frame: 12,
+    });
+    const unfocused = resolveMysteryTargetPresentation({
+      clarity: 0.8,
+      spotlightHovered: false,
+      reducedMotion: true,
+      frame: 12,
+    });
+
+    expect(focused.alpha).toBeGreaterThan(unfocused.alpha);
+    expect(focused.brightness).toBeGreaterThan(unfocused.brightness);
+    expect(focused.blurPx).toBeLessThan(unfocused.blurPx);
+    expect(focused.ringAlpha).toBeGreaterThan(unfocused.ringAlpha);
+    expect(focused.haloAlpha).toBeGreaterThan(0);
+  });
+
+  it("disables the focused breathing scale when reduced motion is requested", () => {
+    const reduced = resolveMysteryTargetPresentation({
+      clarity: 1,
+      spotlightHovered: true,
+      reducedMotion: true,
+      frame: 15,
+    });
+    const animated = resolveMysteryTargetPresentation({
+      clarity: 1,
+      spotlightHovered: true,
+      reducedMotion: false,
+      frame: 15,
+    });
+
+    expect(reduced.targetScale).toBe(1.5);
+    expect(animated.targetScale).not.toBe(reduced.targetScale);
   });
 });

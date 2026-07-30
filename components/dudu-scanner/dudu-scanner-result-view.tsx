@@ -51,6 +51,7 @@ export function DuduScannerResultView({
             alt=""
             width={140}
             height={140}
+            loading="eager"
             className="size-32 object-contain"
             data-testid="dudu-scanner-result-target"
           />

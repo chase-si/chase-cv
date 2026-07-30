@@ -407,7 +407,22 @@
   },
   "duduScanner": {
     "title": "Dudu Scanner",
-    "subtitle": "Pick a theme, choose a character, and get ready for a silly belly-scan reveal.",
+    "subtitle": "Pick a theme, choose how much to reveal, and get ready for a silly belly scan.",
+    "scanModeHeading": "Scan mode",
+    "scanModes": {
+      "mystery": {
+        "name": "Mystery scan",
+        "description": "The scanner secretly chooses a character from your theme."
+      },
+      "operator": {
+        "name": "Operator mode",
+        "description": "Choose the exact character before the performance."
+      }
+    },
+    "mysterySummary": {
+      "title": "Identity classified",
+      "description": "One of three signals will be selected at the start of every round. Lock it to reveal who is hiding inside."
+    },
     "themesHeading": "Scan theme",
     "targetsHeading": "Scan target",
     "soundLabel": "Sound effects",
@@ -425,31 +440,37 @@
     "targets": {
       "frySprite": {
         "name": "Fry Sprite",
+        "revealLine": "Ketchup patrol—roll out!",
         "description": "A tiny fry friend is combing the belly for missing ketchup.",
         "suggestion": "Leave a little room for veggies today—they love a seat at the table too."
       },
       "candyCritter": {
         "name": "Candy Critter",
+        "revealLine": "Sweet-energy spin activated!",
         "description": "Sweet energy is spinning happy circles in there.",
         "suggestion": "Sip some water and let the sugar parade slow down."
       },
       "bobaBubbles": {
         "name": "Boba Bubbles",
+        "revealLine": "Pop, pop—bubbles in formation!",
         "description": "Round bubbles are lining up for a gentle wobble.",
         "suggestion": "Give the pearls a mini vacation today."
       },
       "sleepyBug": {
         "name": "Sleepy Bug",
+        "revealLine": "Just five more minutes…",
         "description": "Last night ran short, so a dreamy buddy is yawning here.",
         "suggestion": "Hop into bed a bit earlier tonight."
       },
       "rumbleMonster": {
         "name": "Rumble Monster",
+        "revealLine": "Rumble, rumble—is it mealtime?",
         "description": "A cuddly monster is tapping a tiny drum—mealtime is near.",
         "suggestion": "Eat on schedule so the drum can take a nap."
       },
       "riceBallSprite": {
         "name": "Rice Ball Sprite",
+        "revealLine": "One little bite at a time!",
         "description": "A cheerful rice-ball pal is scouting for careful eaters.",
         "suggestion": "Take the next bite slowly—it makes them extra happy."
       }
@@ -479,6 +500,7 @@
       "noSignal": "No signal to lock — move the probe or press Space to force discovery.",
       "fullscreenHint": "Fullscreen unavailable — press F to try again.",
       "doubleClickLockHint": "Press Enter to lock. Above 90% signal, you can also double-click the target.",
+      "finaleEyebrow": "Mystery identity confirmed",
       "status": {
         "initializing": "Initializing scanner…",
         "moveProbe": "Move the probe to find a signal",
@@ -488,6 +510,7 @@
         "signalStrong": "Strong signal — hold the probe steady",
         "signalDetected": "Signal detected",
         "targetReady": "Target revealed — ready to lock",
+        "mysteryReady": "Unknown signal stabilized — lock to identify",
         "locking": "Locking frame…"
       },
       "hud": {
@@ -500,7 +523,7 @@
     "result": {
       "eyebrow": "Scan complete",
       "title": "Target locked!",
-      "body": "Your silly belly-scan found the character you picked. Ready for another round?",
+      "body": "Your silly belly-scan identified this character. Ready for another round?",
       "scanAgain": "Scan again",
       "changeTarget": "Change target"
     }

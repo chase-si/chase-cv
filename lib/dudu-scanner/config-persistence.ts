@@ -1,6 +1,9 @@
 import {
   coerceDuduScannerConfig,
   DUDU_SCANNER_DEFAULT_CONFIG,
+  isDuduScannerTargetId,
+  isDuduScannerThemeId,
+  isTargetInTheme,
   type DuduScannerConfigShape,
 } from "@/lib/dudu-scanner/catalog";
 
@@ -9,6 +12,7 @@ export const DUDU_SCANNER_CONFIG_STORAGE_KEY = "dudu-scanner-config-v1";
 
 type StoredDuduScannerConfig = {
   version: number;
+  scanMode?: DuduScannerConfigShape["scanMode"];
   themeId: DuduScannerConfigShape["themeId"];
   targetId: DuduScannerConfigShape["targetId"];
   soundEnabled: boolean;
@@ -26,7 +30,14 @@ export function parseStoredDuduScannerConfig(raw: string | null): DuduScannerCon
     if (parsed.version !== DUDU_SCANNER_CONFIG_STORAGE_VERSION) {
       return { ...DUDU_SCANNER_DEFAULT_CONFIG };
     }
-    return coerceDuduScannerConfig(parsed);
+    const legacyTargetIsValid =
+      isDuduScannerThemeId(parsed.themeId) &&
+      isDuduScannerTargetId(parsed.targetId) &&
+      isTargetInTheme(parsed.targetId, parsed.themeId);
+    return coerceDuduScannerConfig({
+      ...parsed,
+      scanMode: parsed.scanMode ?? (legacyTargetIsValid ? "operator" : "mystery"),
+    });
   } catch {
     return { ...DUDU_SCANNER_DEFAULT_CONFIG };
   }
@@ -35,6 +46,7 @@ export function parseStoredDuduScannerConfig(raw: string | null): DuduScannerCon
 export function serializeDuduScannerConfig(config: DuduScannerConfigShape): string {
   const payload: StoredDuduScannerConfig = {
     version: DUDU_SCANNER_CONFIG_STORAGE_VERSION,
+    scanMode: config.scanMode,
     themeId: config.themeId,
     targetId: config.targetId,
     soundEnabled: config.soundEnabled,

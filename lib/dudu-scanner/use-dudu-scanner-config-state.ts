@@ -4,6 +4,7 @@ import { startTransition, useCallback, useEffect, useState } from "react";
 
 import {
   DUDU_SCANNER_DEFAULT_CONFIG,
+  type DuduScannerScanMode,
   type DuduScannerConfigShape,
   type DuduScannerTargetId,
   type DuduScannerThemeId,
@@ -11,6 +12,7 @@ import {
 import { readDuduScannerConfig, writeDuduScannerConfig } from "@/lib/dudu-scanner/config-persistence";
 import {
   applySoundChange,
+  applyScanModeChange,
   applyTargetChange,
   applyThemeChange,
 } from "@/lib/dudu-scanner/config-state";
@@ -39,6 +41,10 @@ export function useDuduScannerConfigState() {
     setConfig((current) => applyThemeChange(current, themeId));
   }, []);
 
+  const setScanMode = useCallback((scanMode: DuduScannerScanMode) => {
+    setConfig((current) => applyScanModeChange(current, scanMode));
+  }, []);
+
   const setTargetId = useCallback((targetId: DuduScannerTargetId) => {
     setConfig((current) => applyTargetChange(current, targetId));
   }, []);
@@ -49,6 +55,7 @@ export function useDuduScannerConfigState() {
 
   return {
     config,
+    setScanMode,
     setThemeId,
     setTargetId,
     setSoundEnabled,

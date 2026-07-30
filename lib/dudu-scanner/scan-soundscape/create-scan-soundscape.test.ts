@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ScanSoundscapeAudioContext } from "@/lib/dudu-scanner/scan-soundscape/audio-context-port";
 import {
   createScanSoundscape,
+  getCharacterLockCueProfile,
   proximitySignalToBeepProfile,
   SCAN_SOUNDSCAPE_MASTER_LEVEL,
   signalStrengthToProbeVelocity,
@@ -186,9 +187,18 @@ describe("createScanSoundscape", () => {
 
     expect(() => {
       engine.notifyReveal();
-      engine.notifyLock();
+      engine.notifyLock("rumble-monster");
     }).not.toThrow();
     engine.dispose();
+  });
+
+  it("uses a distinct synthesized lock motif for each character", () => {
+    expect(getCharacterLockCueProfile("fry-sprite")).not.toEqual(
+      getCharacterLockCueProfile("sleepy-bug"),
+    );
+    expect(getCharacterLockCueProfile("rumble-monster")).toMatchObject({
+      oscillatorType: "sawtooth",
+    });
   });
 
   it("cancels target cues when the director hides the target", async () => {

@@ -2,6 +2,10 @@ export const DUDU_SCANNER_THEME_IDS = ["snack-scan", "tummy-creatures"] as const
 
 export type DuduScannerThemeId = (typeof DUDU_SCANNER_THEME_IDS)[number];
 
+export const DUDU_SCANNER_SCAN_MODE_IDS = ["operator", "mystery"] as const;
+
+export type DuduScannerScanMode = (typeof DUDU_SCANNER_SCAN_MODE_IDS)[number];
+
 export const DUDU_SCANNER_TARGET_IDS = [
   "fry-sprite",
   "candy-critter",
@@ -84,12 +88,14 @@ const TARGETS_BY_THEME: Record<DuduScannerThemeId, readonly DuduScannerTargetId[
 };
 
 export const DUDU_SCANNER_DEFAULT_CONFIG = {
+  scanMode: "mystery",
   themeId: "snack-scan",
   targetId: "fry-sprite",
   soundEnabled: true,
 } as const satisfies DuduScannerConfigShape;
 
 export type DuduScannerConfigShape = {
+  scanMode: DuduScannerScanMode;
   themeId: DuduScannerThemeId;
   targetId: DuduScannerTargetId;
   soundEnabled: boolean;
@@ -115,6 +121,13 @@ export function isDuduScannerThemeId(value: unknown): value is DuduScannerThemeI
   return typeof value === "string" && (DUDU_SCANNER_THEME_IDS as readonly string[]).includes(value);
 }
 
+export function isDuduScannerScanMode(value: unknown): value is DuduScannerScanMode {
+  return (
+    typeof value === "string" &&
+    (DUDU_SCANNER_SCAN_MODE_IDS as readonly string[]).includes(value)
+  );
+}
+
 export function isDuduScannerTargetId(value: unknown): value is DuduScannerTargetId {
   return typeof value === "string" && (DUDU_SCANNER_TARGET_IDS as readonly string[]).includes(value);
 }
@@ -122,6 +135,9 @@ export function isDuduScannerTargetId(value: unknown): value is DuduScannerTarge
 export function coerceDuduScannerConfig(
   partial: Partial<DuduScannerConfigShape> | null | undefined,
 ): DuduScannerConfigShape {
+  const scanMode = isDuduScannerScanMode(partial?.scanMode)
+    ? partial.scanMode
+    : DUDU_SCANNER_DEFAULT_CONFIG.scanMode;
   const themeId = isDuduScannerThemeId(partial?.themeId)
     ? partial.themeId
     : DUDU_SCANNER_DEFAULT_CONFIG.themeId;
@@ -136,5 +152,5 @@ export function coerceDuduScannerConfig(
       ? partial.soundEnabled
       : DUDU_SCANNER_DEFAULT_CONFIG.soundEnabled;
 
-  return { themeId, targetId, soundEnabled };
+  return { scanMode, themeId, targetId, soundEnabled };
 }

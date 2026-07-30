@@ -44,6 +44,7 @@ describe("DuduScannerApp controls", () => {
     resetTargetImageCacheForTests();
     window.localStorage.clear();
     window.sessionStorage.clear();
+    vi.spyOn(Math, "random").mockReturnValue(0);
     class OkImage {
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
@@ -195,10 +196,34 @@ describe("DuduScannerApp controls", () => {
     vi.stubGlobal("Image", TrackingImage as unknown as typeof Image);
 
     renderApp();
+    fireEvent.click(screen.getByRole("button", { name: "Operator mode" }));
     fireEvent.click(screen.getByRole("button", { name: "Boba Bubbles" }));
     await startScan();
 
     expect(assignedSources[0]).toBe(getTargetRecord("boba-bubbles").imageSrc);
+  });
+
+  it("keeps the mystery target hidden on setup and resolves it when the round starts", async () => {
+    const assignedSources: string[] = [];
+    class TrackingImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      decode = vi.fn().mockResolvedValue(undefined);
+
+      set src(value: string) {
+        assignedSources.push(value);
+        queueMicrotask(() => {
+          this.onload?.();
+        });
+      }
+    }
+    vi.stubGlobal("Image", TrackingImage as unknown as typeof Image);
+
+    renderApp();
+    expect(screen.queryByRole("button", { name: "Fry Sprite" })).not.toBeInTheDocument();
+    await startScan();
+
+    expect(assignedSources[0]).toBe(getTargetRecord("fry-sprite").imageSrc);
   });
 
   it("uses the target placeholder silhouette when production art fails to preload", async () => {
@@ -249,5 +274,33 @@ describe("DuduScannerApp controls", () => {
     await waitFor(() => {
       expect(screen.getByTestId("dudu-scanner-lock-frame")).toBeInTheDocument();
     });
+  });
+
+  it("keeps a mystery identity concealed until the lock finale", async () => {
+    let now = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => {
+      now += 600;
+      return now;
+    });
+    renderApp();
+    await startScan();
+
+    fireEvent.keyDown(window, { key: " " });
+    await waitFor(() => {
+      expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent(
+        "Unknown signal stabilized",
+      );
+    });
+    expect(screen.queryByText("Ketchup patrol—roll out!")).not.toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "Enter" });
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("dudu-scanner-reveal-finale")).toHaveTextContent(
+          "Ketchup patrol—roll out!",
+        );
+      },
+      { timeout: 2_000 },
+    );
   });
 });

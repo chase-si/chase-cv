@@ -2,11 +2,17 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 
-import type { DuduScannerConfigShape, DuduScannerTargetId, DuduScannerThemeId } from "@/lib/dudu-scanner/catalog";
+import type {
+  DuduScannerConfigShape,
+  DuduScannerScanMode,
+  DuduScannerTargetId,
+  DuduScannerThemeId,
+} from "@/lib/dudu-scanner/catalog";
 import { useDuduScannerConfigState } from "@/lib/dudu-scanner/use-dudu-scanner-config-state";
 
 type DuduScannerConfigContextValue = {
   config: DuduScannerConfigShape;
+  setScanMode: (scanMode: DuduScannerScanMode) => void;
   setThemeId: (themeId: DuduScannerThemeId) => void;
   setTargetId: (targetId: DuduScannerTargetId) => void;
   setSoundEnabled: (soundEnabled: boolean) => void;

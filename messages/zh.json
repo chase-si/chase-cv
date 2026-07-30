@@ -407,7 +407,22 @@
   },
   "duduScanner": {
     "title": "肚肚扫描仪",
-    "subtitle": "选好主题和角色，调好声音，就可以开始好玩的肚肚扫描啦。",
+    "subtitle": "选好主题和扫描方式，调好声音，就可以开始神秘的肚肚扫描啦。",
+    "scanModeHeading": "扫描模式",
+    "scanModes": {
+      "mystery": {
+        "name": "神秘扫描",
+        "description": "扫描仪会从当前主题中秘密选择一个角色。"
+      },
+      "operator": {
+        "name": "操作者模式",
+        "description": "表演开始前，由操作者指定确切角色。"
+      }
+    },
+    "mysterySummary": {
+      "title": "角色身份已加密",
+      "description": "每轮开始时会从三个信号中随机抽取一个。完成锁定，才能知道是谁藏在里面。"
+    },
     "themesHeading": "扫描主题",
     "targetsHeading": "扫描目标",
     "soundLabel": "音效",
@@ -425,31 +440,37 @@
     "targets": {
       "frySprite": {
         "name": "薯条精灵",
+        "revealLine": "番茄酱侦察队，出发！",
         "description": "薯条精灵正在肚肚里找失踪的番茄酱。",
         "suggestion": "今天给青菜也留一个位置吧。"
       },
       "candyCritter": {
         "name": "糖果怪",
+        "revealLine": "甜甜能量转起来！",
         "description": "甜甜能量太多，正开心地转圈。",
         "suggestion": "喝一点水，让它慢慢停下来。"
       },
       "bobaBubbles": {
         "name": "奶茶泡泡",
+        "revealLine": "啵啵——排好队啦！",
         "description": "圆滚滚的泡泡正在排队。",
         "suggestion": "今天先让珍珠们放个假。"
       },
       "sleepyBug": {
         "name": "瞌睡虫",
+        "revealLine": "再让我睡五分钟……",
         "description": "昨晚没睡够，它就在这里打哈欠。",
         "suggestion": "今晚早点钻进被窝。"
       },
       "rumbleMonster": {
         "name": "咕噜小怪兽",
+        "revealLine": "咕噜咕噜，开饭了吗？",
         "description": "它敲着小鼓提醒肚肚到饭点了。",
         "suggestion": "按时吃饭，别让小鼓一直响。"
       },
       "riceBallSprite": {
         "name": "饭团精灵",
+        "revealLine": "一口一口，慢慢来！",
         "description": "它正在寻找认真吃饭的新朋友。",
         "suggestion": "下一顿慢慢吃，它会更开心。"
       }
@@ -479,6 +500,7 @@
       "noSignal": "没有可锁定的信号——请移动探头，或按空格强制发现。",
       "fullscreenHint": "无法进入全屏——按 F 可再试一次。",
       "doubleClickLockHint": "按 Enter 锁定；信号高于 90% 时，也可以双击目标锁定。",
+      "finaleEyebrow": "神秘身份确认",
       "status": {
         "initializing": "正在初始化扫描仪…",
         "moveProbe": "移动探头寻找信号",
@@ -488,6 +510,7 @@
         "signalStrong": "信号强烈——请保持探头稳定",
         "signalDetected": "已检测到信号",
         "targetReady": "目标已显形——可以锁定",
+        "mysteryReady": "未知信号已稳定——锁定后揭晓身份",
         "locking": "正在锁定画面…"
       },
       "hud": {
@@ -500,7 +523,7 @@
     "result": {
       "eyebrow": "扫描完成",
       "title": "目标已锁定！",
-      "body": "肚肚扫描找到了你选的角色。要再来一轮吗？",
+      "body": "肚肚扫描确认了这个神秘角色。要再来一轮吗？",
       "scanAgain": "再扫一次",
       "changeTarget": "更换目标"
     }

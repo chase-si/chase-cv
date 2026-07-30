@@ -3,6 +3,7 @@ import {
   type ScanSoundscapeAudioContext,
   type ScanSoundscapeAudioContextPort,
 } from "@/lib/dudu-scanner/scan-soundscape/audio-context-port";
+import type { DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
 
 export const SCAN_SOUNDSCAPE_MASTER_LEVEL = 0.5;
 export const SCAN_SOUNDSCAPE_RAMP_SECONDS = 0.09;
@@ -15,7 +16,7 @@ export type ScanSoundscape = {
   setProbeVelocity(normalized: number): void;
   setProximitySignal(normalized: number): void;
   notifyReveal(): void;
-  notifyLock(): void;
+  notifyLock(targetId?: DuduScannerTargetId): void;
   cancelTargetCues(): void;
   handleWindowBlur(): void;
   handleWindowFocus(): void;
@@ -25,6 +26,57 @@ export type ScanSoundscape = {
 export type CreateScanSoundscapeOptions = {
   port?: ScanSoundscapeAudioContextPort;
 };
+
+type CharacterCueProfile = {
+  frequencies: readonly number[];
+  oscillatorType: OscillatorType;
+  durationSeconds: number;
+};
+
+const CHARACTER_LOCK_CUE_PROFILES: Record<DuduScannerTargetId, CharacterCueProfile> = {
+  "fry-sprite": {
+    frequencies: [392, 523.25, 783.99],
+    oscillatorType: "square",
+    durationSeconds: 0.62,
+  },
+  "candy-critter": {
+    frequencies: [659.25, 783.99, 987.77],
+    oscillatorType: "triangle",
+    durationSeconds: 0.7,
+  },
+  "boba-bubbles": {
+    frequencies: [329.63, 493.88, 659.25],
+    oscillatorType: "sine",
+    durationSeconds: 0.74,
+  },
+  "sleepy-bug": {
+    frequencies: [220, 261.63, 329.63],
+    oscillatorType: "sine",
+    durationSeconds: 0.9,
+  },
+  "rumble-monster": {
+    frequencies: [146.83, 196, 293.66],
+    oscillatorType: "sawtooth",
+    durationSeconds: 0.76,
+  },
+  "rice-ball-sprite": {
+    frequencies: [440, 554.37, 659.25],
+    oscillatorType: "triangle",
+    durationSeconds: 0.68,
+  },
+};
+
+export function getCharacterLockCueProfile(
+  targetId?: DuduScannerTargetId,
+): CharacterCueProfile {
+  return targetId
+    ? CHARACTER_LOCK_CUE_PROFILES[targetId]
+    : {
+        frequencies: [392, 523.25, 659.25],
+        oscillatorType: "sine",
+        durationSeconds: 0.6,
+      };
+}
 
 type ScanLayerNodes = {
   ambienceOscA: OscillatorNode;
@@ -201,10 +253,11 @@ export function createScanSoundscape(
   };
 
   const playCue = (
-    frequencies: number[],
+    frequencies: readonly number[],
     durationSeconds: number,
     peakGain: number,
     trackAsTargetCue = true,
+    oscillatorType: OscillatorType = "sine",
   ) => {
     const ctx = ensureContext();
     if (!ctx || !focusGain || !effectiveAudible()) {
@@ -222,7 +275,7 @@ export function createScanSoundscape(
 
     frequencies.forEach((frequency, index) => {
       const osc = ctx.createOscillator();
-      osc.type = "sine";
+      osc.type = oscillatorType;
       osc.frequency.value = frequency;
       const toneGain = ctx.createGain();
       toneGain.gain.value = 1 / frequencies.length;
@@ -294,8 +347,15 @@ export function createScanSoundscape(
     notifyReveal() {
       playCue([523.25, 659.25], 0.28, 0.12);
     },
-    notifyLock() {
-      playCue([392, 523.25, 659.25], 0.36, 0.1);
+    notifyLock(targetId) {
+      const profile = getCharacterLockCueProfile(targetId);
+      playCue(
+        profile.frequencies,
+        profile.durationSeconds,
+        0.11,
+        true,
+        profile.oscillatorType,
+      );
     },
     cancelTargetCues() {
       if (!context) {

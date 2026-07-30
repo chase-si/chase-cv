@@ -11,7 +11,7 @@ import { DUDU_SCANNER_TARGET_MESSAGE_KEY } from "@/lib/dudu-scanner/i18n-keys";
 import enMessages from "@/messages/en.json";
 import zhMessages from "@/messages/zh.json";
 
-const TARGET_COPY_FIELDS = ["name", "description", "suggestion"] as const;
+const TARGET_COPY_FIELDS = ["name", "revealLine", "description", "suggestion"] as const;
 
 describe("dudu scanner catalog", () => {
   it("maps each target to stable production character assets", () => {

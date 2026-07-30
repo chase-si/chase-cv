@@ -61,7 +61,7 @@ describe("DuduScannerInstrumentPanel", () => {
 
     expect(screen.getByTestId("dudu-scanner-signal-icon")).toHaveClass("bg-chart-2");
     expect(screen.getByTestId("dudu-scanner-signal-progress")).toHaveClass(
-      "[&_[data-slot=progress-indicator]]:bg-chart-2",
+      "**:data-[slot=progress-indicator]:bg-chart-2",
     );
   });
 
