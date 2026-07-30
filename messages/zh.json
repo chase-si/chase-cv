@@ -153,6 +153,12 @@
           "tag2": "可配置",
           "entry": "进入 Magic Cursor"
         },
+        "duduScanner": {
+          "problem": "怎样把「扫描找角色」做成可玩、可分享的互动，而不是一张静态图？",
+          "tag1": "扫描探索",
+          "tag2": "家庭向彩蛋",
+          "entry": "进入 Dudu Scanner"
+        },
         "flowEditor": {
           "problem": "结构化流程一复杂，树形关系就容易在脑子里打结。",
           "tag1": "流程结构",

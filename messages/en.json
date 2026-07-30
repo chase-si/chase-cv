@@ -153,6 +153,12 @@
           "tag2": "Configurable",
           "entry": "Open Magic Cursor"
         },
+        "duduScanner": {
+          "problem": "How do you turn a hidden-character reveal into a playful scan, not a static image?",
+          "tag1": "Scan & explore",
+          "tag2": "Family easter egg",
+          "entry": "Open Dudu Scanner"
+        },
         "flowEditor": {
           "problem": "Complex structured flows are hard to hold in your head without a visual tree.",
           "tag1": "Flow structure",

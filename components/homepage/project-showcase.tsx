@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageIcon, MousePointer2, Workflow } from "lucide-react";
+import { ImageIcon, MousePointer2, ScanLine, Workflow } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { HomepageMotion } from "@/components/homepage/homepage-motion";
@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 const projectIcons = {
   magicCursor: MousePointer2,
   imageToUi: ImageIcon,
+  duduScanner: ScanLine,
   flowEditor: Workflow,
 } satisfies Record<ProjectId, React.ComponentType<React.SVGProps<SVGSVGElement>>>;
 
@@ -53,6 +54,34 @@ function ProjectPreviewArt({ id }: { id: ProjectId }) {
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (id === "duduScanner") {
+    return (
+      <div
+        aria-hidden
+        className="relative flex h-full min-h-56 flex-col justify-end overflow-hidden bg-muted/20 p-5 sm:p-6"
+      >
+        <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-primary/15 to-transparent" />
+        <div className="relative mx-auto w-full max-w-xs rounded-2xl border-2 border-border bg-card p-4 shadow-[3px_3px_0_0] shadow-foreground/50">
+          <div className="flex items-center justify-between font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <span>Signal</span>
+            <ScanLine className="size-4 text-primary" />
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full border border-border bg-muted">
+            <span className="block h-full w-2/3 rounded-full bg-primary" />
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            {["0.42", "0.71", "0.89"].map((value) => (
+              <div key={value} className="rounded-lg border border-border bg-muted/40 px-2 py-1.5 text-center font-mono text-[10px] font-bold">
+                {value}
+              </div>
+            ))}
+          </div>
+        </div>
+        <span className="absolute bottom-8 left-1/2 size-16 -translate-x-1/2 rounded-full border-2 border-dashed border-primary/50" />
       </div>
     );
   }
