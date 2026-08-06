@@ -21,6 +21,7 @@ import {
 import { IMAGE_TO_UI_SAMPLE_IMAGES } from "@/lib/constants/image-to-ui-samples";
 import type { ActiveImage } from "@/lib/image-to-ui/active-image-types";
 import { useImageToUiToolSession } from "@/lib/image-to-ui/use-image-to-ui-tool-session";
+import { useImageToUiAnalytics } from "@/lib/image-to-ui/use-image-to-ui-analytics";
 import { cn } from "@/lib/utils";
 
 export function ImageToUiToolShell() {
@@ -78,6 +79,8 @@ export function ImageToUiToolShell() {
   } = useImageToUiToolSession({
     extractionErrorMessage: t("extractionError"),
   });
+
+  useImageToUiAnalytics({ activeImage, paletteSelection, displayStep });
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">

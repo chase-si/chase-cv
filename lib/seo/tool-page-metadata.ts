@@ -12,23 +12,25 @@ import {
   getLanguageAlternates,
   siteUrl,
 } from "@/lib/seo/urls";
+import type { MetadataNamespace } from "@/lib/metadata";
 
-export type MetadataNamespace =
-  | "metadata.home"
-  | "metadata.magicCursor"
-  | "metadata.imageToUi"
-  | "metadata.flow"
-  | "metadata.duduScanner"
-  | "metadata.notFound";
+export type ToolPageSocialImage = {
+  path: string;
+  width: number;
+  height: number;
+  alt: string;
+};
 
-export async function buildLocalizedMetadata({
+export async function buildToolPageMetadata({
   locale,
   namespace,
   pathname,
+  socialImage,
 }: {
   locale: AppLocale;
   namespace: MetadataNamespace;
   pathname: string;
+  socialImage: ToolPageSocialImage;
 }): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace });
   const site = await getTranslations({ locale, namespace: "metadata" });
@@ -36,6 +38,9 @@ export async function buildLocalizedMetadata({
   const title = t("title");
   const description = t("description");
   const url = absoluteUrl(pathname, locale);
+  const imageUrl = socialImage.path.startsWith("http")
+    ? socialImage.path
+    : new URL(socialImage.path, siteUrl).toString();
 
   return {
     metadataBase: siteUrl,
@@ -54,18 +59,21 @@ export async function buildLocalizedMetadata({
       alternateLocale: alternateLocale.map(
         (item) => openGraphLocaleByLocale[item],
       ),
+      type: "website",
       images: [
         {
-          url: "/logo.png",
-          alt: site("siteName"),
+          url: imageUrl,
+          width: socialImage.width,
+          height: socialImage.height,
+          alt: socialImage.alt,
         },
       ],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title,
       description,
-      images: ["/logo.png"],
+      images: [imageUrl],
     },
   };
 }

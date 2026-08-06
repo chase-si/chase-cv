@@ -10,8 +10,10 @@
       "description": "Explore configurable cursor effects with live previews and copyable magic-cursor-effect code."
     },
     "imageToUi": {
-      "title": "Masterpiece Colors to shadcn Themes | Chase's CV",
-      "description": "Extract palettes from classic paintings, map them into UI color roles, and preview shadcn/Tailwind-style themes in real interface layouts."
+      "title": "Image Color Palette Extractor & UI Theme Preview | Chase's CV",
+      "description": "Extract UI color palettes from your own images or classic paintings, map surface, action, and support roles, and preview themes in realistic interface layouts—all processed locally in your browser.",
+      "ogImageAlt": "Image to UI tool: extract palette colors from an image and preview interface themes",
+      "applicationName": "Image to UI — Color Palette Extractor"
     },
     "flow": {
       "title": "Flow editor | Chase's CV",
@@ -212,9 +214,9 @@
     "code": "Code"
   },
   "imageToUi": {
-    "title": "Turn Masterpiece Colors into UI Themes",
-    "stepOneDescription": "Choose a classic painting or upload an image, extract its primary, accent, and support colors, then preview a shadcn-style interface theme.",
-    "stepTwoDescription": "See how this painting-inspired palette feels across dashboard and landing page layouts, or go back to tune the colors.",
+    "title": "Image Color Palette Extractor & UI Theme Preview",
+    "stepOneDescription": "Upload your own image or pick a classic painting sample, extract dominant colors, map them into surface, action, and support roles, then preview how they feel in dashboard and landing layouts.",
+    "stepTwoDescription": "Review the themed interface preview, then return to adjust colors or try another image.",
     "backToEdit": "Back to edit",
     "sourceAria": "Image source",
     "sourceTitle": "Source",
@@ -222,8 +224,8 @@
     "previewAria": "Preview and palette",
     "previewTitle": "Current inspiration image",
     "previewDescription": "Review the full image and the source of the palette.",
-    "paletteTitle": "Extract UI colors from the painting",
-    "paletteDescription": "Choose three colors and the tool maps them into background, primary action, and support layers for a live interface preview.",
+    "paletteTitle": "Extract UI colors from your image",
+    "paletteDescription": "Pick three colors and the tool maps them into surface, action, and support roles for a live interface theme preview—not a downloadable theme file.",
     "uploadAria": "Upload image from local device",
     "uploadButton": "Choose local image",
     "uploadHelp": "Images are processed only in your browser and are not uploaded to the server.",
@@ -336,6 +338,57 @@
         "title": "Where Do We Come From?",
         "description": "Tropical color blocks and vivid contrast for expressive, memorable interface themes."
       }
+    },
+    "landing": {
+      "purposeTitle": "What this tool does",
+      "purposeBody": "Image to UI is a browser-based color palette extractor for UI design. It pulls dominant colors from an uploaded image or curated painting sample, classifies them into surface, action, and support roles, and previews how the palette behaves in realistic SaaS layouts. Classic masterpieces remain built-in examples, but the workflow works for any image you bring.",
+      "stepsTitle": "How it works",
+      "step1": "Choose a sample painting or upload an image from your device.",
+      "step2": "Wait for the palette extraction to finish in your browser.",
+      "step3": "Select three colors to assign surface, action, and support roles.",
+      "step4": "Generate the interface preview and compare dashboard and landing layouts.",
+      "useCasesTitle": "When designers use it",
+      "useCase1": "Turn brand photography or mood boards into a first-pass UI palette before coding.",
+      "useCase2": "Stress-test contrast and hierarchy when borrowing colors from art or nature references.",
+      "useCase3": "Explore theme direction quickly without exporting tokens or installing a design-system package.",
+      "rolesTitle": "Surface, action, and support",
+      "rolesIntro": "Instead of listing raw hex values, the preview explains how each selected color is expected to behave in interface hierarchy.",
+      "roleSurfaceTitle": "Surface",
+      "roleSurfaceBody": "Backgrounds, cards, and large calm areas that carry most of the layout.",
+      "roleActionTitle": "Action",
+      "roleActionBody": "Primary buttons, links, and focus states that need readable contrast against surfaces.",
+      "roleSupportTitle": "Support",
+      "roleSupportBody": "Borders, inputs, secondary labels, and muted accents that structure the UI without competing with actions.",
+      "privacyTitle": "Local browser processing",
+      "privacyBody": "Uploaded images stay on your device. Palette extraction runs in the browser with client-side libraries, and this site does not receive your file contents or filenames for analytics.",
+      "faqTitle": "FAQ",
+      "faq": {
+        "upload": {
+          "question": "Can I use my own images?",
+          "answer": "Yes. Use the local upload control to pick JPG, PNG, or WebP files. Processing happens entirely in your browser."
+        },
+        "server": {
+          "question": "Are images uploaded to a server?",
+          "answer": "No. The tool reads the file locally to extract colors. Nothing is sent to Chase's servers for storage or analysis."
+        },
+        "roles": {
+          "question": "What do surface, action, and support mean?",
+          "answer": "They are UI color roles: surfaces hold layout, actions drive primary interaction, and support colors handle borders, inputs, and secondary emphasis."
+        },
+        "preview": {
+          "question": "What does the preview show?",
+          "answer": "A themed SaaS dashboard, settings panel, and marketing landing layout that demonstrate how your palette might feel in product UI—not production code."
+        },
+        "export": {
+          "question": "Can I export or copy a full shadcn theme?",
+          "answer": "Not yet. The current release focuses on extraction, role mapping, and visual preview. It does not generate installable theme files or copy-paste shadcn configuration."
+        }
+      },
+      "relatedTitle": "Keep exploring",
+      "relatedToolsTitle": "Other playground tools",
+      "relatedToolsDescription": "Try a different experiment when you are done tuning colors.",
+      "workExperienceLink": "View work experience",
+      "contactLink": "Contact Chase"
     },
     "preview": {
       "surfaceAria": "SaaS status and settings preview",

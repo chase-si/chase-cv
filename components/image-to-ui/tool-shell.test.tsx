@@ -202,8 +202,8 @@ describe("ImageToUiToolShell render input summary", () => {
     await selectThreePaletteSwatches();
     fireEvent.click(screen.getByTestId("palette-render-button"));
 
-    expect(screen.getByText("把名画配色变成 UI 主题")).toBeInTheDocument();
-    expect(screen.getByText("查看这组名画配色在 dashboard 与 landing page 中的效果，也可以返回继续调整颜色。")).toBeInTheDocument();
+    expect(screen.getByText("从图片提取界面配色")).toBeInTheDocument();
+    expect(screen.getByText("查看界面主题预览，也可以返回继续调色或换一张图。")).toBeInTheDocument();
 
     const preview = screen.getByTestId("saas-preview-surface");
     expect(within(preview).getByRole("tab", { name: "概览" })).toBeInTheDocument();
