@@ -52,3 +52,14 @@ export function getIndexedSeoRoutes(): readonly IndexedSeoRoute[] {
 export function getIndexedPathnames(): readonly string[] {
   return indexedSeoRoutes.map((route) => route.pathname);
 }
+
+/** Tool overview pages (excludes homepage and Magic Cursor effect detail URLs). */
+export function getIndexedToolOverviewPathnames(): readonly string[] {
+  return getIndexedPathnames().filter(
+    (pathname) => pathname !== "/" && !pathname.startsWith("/magic-cursor/"),
+  );
+}
+
+export type IndexedToolOverviewPathname = ReturnType<
+  typeof getIndexedToolOverviewPathnames
+>[number];
