@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
+import type { EffectName } from "magic-cursor-effect";
+
 import type { AppLocale } from "@/i18n/routing";
 import {
   openGraphLocaleByLocale,
@@ -13,9 +15,14 @@ import {
   siteUrl,
 } from "@/lib/seo/urls";
 
+export type MagicCursorEffectMetadataNamespace = {
+  [K in EffectName]: `metadata.magicCursor.effects.${K}`;
+}[EffectName];
+
 export type MetadataNamespace =
   | "metadata.home"
-  | "metadata.magicCursor"
+  | "metadata.magicCursor.hub"
+  | MagicCursorEffectMetadataNamespace
   | "metadata.imageToUi"
   | "metadata.flow"
   | "metadata.duduScanner"

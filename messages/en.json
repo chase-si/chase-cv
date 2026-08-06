@@ -9,8 +9,168 @@
       "personDescription": "Product-minded frontend engineer who ships interaction tools, design-system experiments, and playful browser demos."
     },
     "magicCursor": {
-      "title": "Magic Cursor | Chase's CV",
-      "description": "Explore configurable cursor effects with live previews and copyable magic-cursor-effect code."
+      "hub": {
+        "title": "Magic Cursor Effect Library — Live Previews & Copyable Code | Chase's CV",
+        "description": "Browse nine configurable cursor effects with live previews, tune parameters in the sidebar, and copy magic-cursor-effect setup code for your own pages.",
+        "ogImageAlt": "Magic Cursor effect library with live previews for ring, trail, spotlight, and more",
+        "applicationName": "Magic Cursor Effect Library",
+        "h1": "Magic Cursor effect library",
+        "lead": "Explore nine cursor effects, tune parameters with live previews, and copy integration code."
+      },
+      "effects": {
+        "ring": {
+          "title": "Ring Cursor Effect — Smooth Follower Ring | Chase's CV",
+          "description": "Preview a smooth ring cursor that follows pointer movement with configurable size, color, border width, and easing.",
+          "ogImageAlt": "Ring cursor effect preview with adjustable size and smoothing",
+          "applicationName": "Magic Cursor — Ring Effect",
+          "h1": "Ring cursor effect",
+          "behavior": "Draws a ring that lerps toward the pointer. Smoothing controls how quickly the ring catches up; size and border width shape the halo.",
+          "useCases": "Product landing pages, portfolio heroes, and playful marketing sites that need a lightweight branded pointer without particle overhead.",
+          "breadcrumb": "Ring",
+          "params": {
+            "size": "size — outer diameter of the ring or lens",
+            "color": "color — stroke or particle tint (rgba)",
+            "borderWidth": "borderWidth — ring outline thickness",
+            "smoothing": "smoothing — pointer follow easing (0–1)"
+          }
+        },
+        "magnifier": {
+          "title": "Magnifier Cursor Effect — Lens Zoom Preview | Chase's CV",
+          "description": "Magnify content under the cursor with zoom, blur, brightness, and saturation controls plus the same ring smoothing as the ring effect.",
+          "ogImageAlt": "Magnifier cursor lens with zoom and smoothing controls",
+          "applicationName": "Magic Cursor — Magnifier Effect",
+          "h1": "Magnifier cursor effect",
+          "behavior": "Combines a following ring with a lens that zooms and stylizes pixels beneath the pointer. Lens blur, brightness, and saturation shape the glass look.",
+          "useCases": "Design showcases, before/after demos, and editorial layouts where you want users to inspect details under the cursor.",
+          "breadcrumb": "Magnifier",
+          "params": {
+            "size": "size — outer diameter of the ring or lens",
+            "zoom": "zoom — magnifier scale factor",
+            "lensBlurPx": "lensBlurPx — blur inside the lens",
+            "lensBrightness": "lensBrightness — brightness boost under the lens",
+            "lensSaturate": "lensSaturate — saturation boost under the lens",
+            "smoothing": "smoothing — pointer follow easing (0–1)"
+          }
+        },
+        "trail": {
+          "title": "Trail Cursor Effect — Dot Trail Behind the Pointer | Chase's CV",
+          "description": "Leave a throttled trail of dots behind movement with controls for dot count, size, color, and emission interval.",
+          "ogImageAlt": "Trail cursor effect with configurable dot trail",
+          "applicationName": "Magic Cursor — Trail Effect",
+          "h1": "Trail cursor effect",
+          "behavior": "Spawns dots along the pointer path on a throttle timer. maxDots caps history length; size and color define each stamp.",
+          "useCases": "Playful brand sites, game promos, and interactive art pieces that reward movement with motion graphics.",
+          "breadcrumb": "Trail",
+          "params": {
+            "maxDots": "maxDots — maximum trail stamps kept alive",
+            "size": "size — outer diameter of the ring or lens",
+            "color": "color — stroke or particle tint (rgba)",
+            "throttleMs": "throttleMs — minimum milliseconds between trail dots"
+          }
+        },
+        "spotlight": {
+          "title": "Spotlight Cursor Effect — Dimmed Stage with Pointer Hole | Chase's CV",
+          "description": "Darken the page except for a circular spotlight that follows the cursor, with radius and dim color controls.",
+          "ogImageAlt": "Spotlight cursor effect with dimmed overlay",
+          "applicationName": "Magic Cursor — Spotlight Effect",
+          "h1": "Spotlight cursor effect",
+          "behavior": "Applies a dim overlay with a circular cutout centered on the pointer. Radius sets the lit area; dimColor controls the surrounding shade.",
+          "useCases": "Guided tours, storytelling scroll experiences, and reveal moments that focus attention on one region at a time.",
+          "breadcrumb": "Spotlight",
+          "params": {
+            "radius": "radius — spotlight or arc radius",
+            "dimColor": "dimColor — rgba overlay outside the spotlight"
+          }
+        },
+        "magnetic": {
+          "title": "Magnetic Cursor Effect — Attract Elements to the Pointer | Chase's CV",
+          "description": "Pull elements matching a CSS selector toward the cursor with adjustable strength and preview item color.",
+          "ogImageAlt": "Magnetic cursor effect attracting UI blocks",
+          "applicationName": "Magic Cursor — Magnetic Effect",
+          "h1": "Magnetic cursor effect",
+          "behavior": "Targets elements via selector (default [data-magnetic]) and offsets them toward the pointer based on strength. itemColor tints preview blocks.",
+          "useCases": "Button grids, card stacks, and micro-interaction demos where nearby UI should feel pulled toward the cursor.",
+          "breadcrumb": "Magnetic",
+          "params": {
+            "strength": "strength — magnetic pull amount (0–1)",
+            "selector": "selector — CSS selector for magnetic targets",
+            "itemColor": "itemColor — preview color for magnetic blocks"
+          }
+        },
+        "flame": {
+          "title": "Flame Cursor Effect — Rising Fire Particles | Chase's CV",
+          "description": "Emit rising flame particles from the pointer with controls for emission rate, size, lifetime, rise speed, jitter, and DPR cap.",
+          "ogImageAlt": "Flame cursor particle effect preview",
+          "applicationName": "Magic Cursor — Flame Effect",
+          "h1": "Flame cursor effect",
+          "behavior": "Spawns particles that rise and fade with jitter. emission sets spawn rate; lifeMs and rise shape motion; maxDpr limits canvas density.",
+          "useCases": "Seasonal campaigns, game launches, and high-energy hero sections that need fiery motion tied to the cursor.",
+          "breadcrumb": "Flame",
+          "params": {
+            "emission": "emission — particles spawned per frame batch",
+            "size": "size — outer diameter of the ring or lens",
+            "lifeMs": "lifeMs — particle lifetime in milliseconds",
+            "rise": "rise — upward velocity for flame/smoke",
+            "jitter": "jitter — random motion for flame particles",
+            "maxDpr": "maxDpr — device pixel ratio cap for flame canvas"
+          }
+        },
+        "smoke": {
+          "title": "Smoke Cursor Effect — Drifting Smoke Particles | Chase's CV",
+          "description": "Emit soft smoke puffs that rise and drift from the pointer with color, size, lifetime, and motion tuning.",
+          "ogImageAlt": "Smoke cursor particle effect preview",
+          "applicationName": "Magic Cursor — Smoke Effect",
+          "h1": "Smoke cursor effect",
+          "behavior": "Similar to flame but with slower rise and horizontal drift for wispy smoke. color tints each puff; emission and lifeMs control density.",
+          "useCases": "Moody portfolios, music releases, and atmospheric landing pages that need subtle environmental motion.",
+          "breadcrumb": "Smoke",
+          "params": {
+            "emission": "emission — particles spawned per frame batch",
+            "size": "size — outer diameter of the ring or lens",
+            "lifeMs": "lifeMs — particle lifetime in milliseconds",
+            "rise": "rise — upward velocity for flame/smoke",
+            "drift": "drift — horizontal drift for smoke",
+            "color": "color — stroke or particle tint (rgba)"
+          }
+        },
+        "invertRing": {
+          "title": "Invert Ring Cursor Effect — Blend-Mode Halo | Chase's CV",
+          "description": "Ring cursor that inverts or blends with the background using blend modes, optional blend background, and ring smoothing.",
+          "ogImageAlt": "Invert ring cursor with blend mode controls",
+          "applicationName": "Magic Cursor — Invert Ring Effect",
+          "h1": "Invert ring cursor effect",
+          "behavior": "Renders a ring whose pixels interact with the page via CSS blend modes (default difference). blendBackground can force a backdrop color for predictable contrast.",
+          "useCases": "Bold typography heroes, poster-like layouts, and experiments where the cursor should cut through color blocks.",
+          "breadcrumb": "Invert ring",
+          "params": {
+            "size": "size — outer diameter of the ring or lens",
+            "color": "color — stroke or particle tint (rgba)",
+            "borderWidth": "borderWidth — ring outline thickness",
+            "smoothing": "smoothing — pointer follow easing (0–1)",
+            "blendMode": "blendMode — CSS mix-blend-mode for invert ring",
+            "blendBackground": "blendBackground — optional backdrop color behind the ring"
+          }
+        },
+        "electricArc": {
+          "title": "Electric Arc Cursor Effect — Click Bursts and Arcs | Chase's CV",
+          "description": "Spawn electric arcs around the pointer with length, radius, lifetime, glow, emission rate, and click burst tuning.",
+          "ogImageAlt": "Electric arc cursor effect with glow",
+          "applicationName": "Magic Cursor — Electric Arc Effect",
+          "h1": "Electric arc cursor effect",
+          "behavior": "Draws short-lived arcs near the pointer. clickBurst adds extra arcs on click; glowColor softens the neon edge around color.",
+          "useCases": "Sci-fi product teasers, gaming UIs, and interactive posters that need energetic feedback on move and click.",
+          "breadcrumb": "Electric arc",
+          "params": {
+            "emission": "emission — particles spawned per frame batch",
+            "length": "length — electric arc segment length",
+            "radius": "radius — spotlight or arc radius",
+            "lifeMs": "lifeMs — particle lifetime in milliseconds",
+            "color": "color — stroke or particle tint (rgba)",
+            "glowColor": "glowColor — outer glow tint for arcs",
+            "clickBurst": "clickBurst — extra arcs spawned on pointer down"
+          }
+        }
+      }
     },
     "imageToUi": {
       "title": "Image Color Palette Extractor & UI Theme Preview | Chase's CV",
@@ -269,7 +429,22 @@
     "copySuccess": "Copied to clipboard",
     "copyError": "Copy failed",
     "copy": "Copy",
-    "code": "Code"
+    "code": "Code",
+    "landing": {
+      "purposeTitle": "What this library is for",
+      "purposeBody": "Magic Cursor is a bilingual gallery of nine pointer effects built on magic-cursor-effect. Each page explains the behavior, shows a live demo with the same sidebar controls as production, and links to related effects you can compare side by side.",
+      "catalogTitle": "Browse every effect",
+      "catalogDescription": "Open a detail page to read behavior notes, parameter help, and copy integration code.",
+      "backToHub": "Back to Magic Cursor overview",
+      "relatedEffectsTitle": "Related effects",
+      "relatedEffectsDescription": "Compare nearby effects without losing your parameter context.",
+      "relatedToolsTitle": "More playground tools",
+      "relatedToolsDescription": "Continue exploring other browser-based experiments on this site.",
+      "behaviorTitle": "How it behaves",
+      "useCasesTitle": "Good fits",
+      "paramsTitle": "Key parameters",
+      "hubLinkLabel": "Magic Cursor overview"
+    }
   },
   "imageToUi": {
     "title": "Image Color Palette Extractor & UI Theme Preview",

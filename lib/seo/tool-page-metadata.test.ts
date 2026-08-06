@@ -4,6 +4,7 @@ import { routing } from "@/i18n/routing";
 import { FLOW_OG_IMAGE } from "@/lib/flow/flow-social-image";
 import { IMAGE_TO_UI_OG_IMAGE } from "@/lib/image-to-ui/image-to-ui-social-image";
 import { HOME_OG_IMAGE } from "@/lib/seo/home-social-image";
+import { MAGIC_CURSOR_HUB_OG_IMAGE } from "@/lib/magic-cursor/magic-cursor-social-image";
 import { siteUrl } from "@/lib/seo/urls";
 import { buildToolPageMetadata } from "@/lib/seo/tool-page-metadata";
 
@@ -81,6 +82,22 @@ describe("buildToolPageMetadata", () => {
     });
 
     const imageUrl = new URL(FLOW_OG_IMAGE.path, siteUrl).toString();
+    expect(metadata.twitter?.images).toEqual([imageUrl]);
+  });
+
+  it("uses large-image Twitter cards for Magic Cursor hub", async () => {
+    const metadata = await buildToolPageMetadata({
+      locale: "en",
+      namespace: "metadata.magicCursor.hub",
+      pathname: "/magic-cursor",
+      socialImage: {
+        ...MAGIC_CURSOR_HUB_OG_IMAGE,
+        alt: "Magic Cursor hub preview",
+      },
+    });
+
+    const imageUrl = new URL(MAGIC_CURSOR_HUB_OG_IMAGE.path, siteUrl).toString();
+    expect(metadata.twitter?.card).toBe("summary_large_image");
     expect(metadata.twitter?.images).toEqual([imageUrl]);
   });
 });
