@@ -2,8 +2,11 @@
   "metadata": {
     "siteName": "Chase's CV",
     "home": {
-      "title": "Chase's CV",
-      "description": "Chase's personal website for product-minded frontend work, interaction experiments, and design systems."
+      "title": "Chase — Product Frontend, Interaction Tools & Design Systems",
+      "description": "Chase builds product-minded frontend experiences, browser-based interaction tools, and design-system experiments. Explore the playground, then see how each tool maps to real product work.",
+      "ogImageAlt": "Chase: product frontend engineer and interaction tool builder",
+      "personName": "Chase",
+      "personDescription": "Product-minded frontend engineer who ships interaction tools, design-system experiments, and playful browser demos."
     },
     "magicCursor": {
       "title": "Magic Cursor | Chase's CV",
@@ -16,12 +19,16 @@
       "applicationName": "Image to UI — Color Palette Extractor"
     },
     "flow": {
-      "title": "Flow editor | Chase's CV",
-      "description": "Visualize and edit SFC flow structure in an experimental editor."
+      "title": "SFC Flow Editor — Visual Tree for Structured Flows | Chase's CV",
+      "description": "Experiment with a browser-based flow editor for SFC-style structured flows: zoom the canvas, add branches and sequential steps, edit node properties, and preview runtime highlights.",
+      "ogImageAlt": "Flow editor: visualize and edit structured SFC flows in the browser",
+      "applicationName": "SFC Flow Editor"
     },
     "duduScanner": {
-      "title": "Dudu Scanner | Chase's CV",
-      "description": "A playful belly-scan console for family-friendly reveals. Configure themes, characters, and sound before the show begins."
+      "title": "Dudu Scanner — Playful Belly Scan for Family Reveals | Chase's CV",
+      "description": "Configure themes, characters, and sound for a silly belly-scan performance. Mystery or operator mode, fullscreen-friendly controls, and gentle reveal cues for family easter eggs.",
+      "ogImageAlt": "Dudu Scanner: playful belly-scan console for family-friendly character reveals",
+      "applicationName": "Dudu Scanner"
     },
     "notFound": {
       "title": "Page not found | Chase's CV",
@@ -122,6 +129,47 @@
       "resetDescription": "The current flow contains unsaved changes. Resetting restores the example and cannot be undone.",
       "confirmDelete": "Delete node",
       "confirmReset": "Reset example"
+    },
+    "landing": {
+      "purposeTitle": "What this editor does",
+      "purposeBody": "The Flow Editor is an experimental visual workspace for SFC-style structured flows. It renders the tree on a zoomable canvas, lets you add sequential steps or branches, and surfaces node properties in a side panel—useful when a JSON or YAML flow is too hard to hold in your head.",
+      "stepsTitle": "How to use it",
+      "step1": "Load the demo flow and pan or zoom the canvas to orient yourself.",
+      "step2": "Select a node to inspect IDs, descriptions, and branch metadata in the properties panel.",
+      "step3": "Use the toolbar to add sequential steps, branches, or expand supported branch nodes.",
+      "step4": "Toggle runtime highlight to see how execution might travel through the current structure.",
+      "useCasesTitle": "When teams reach for it",
+      "useCase1": "Sketch onboarding or approval flows before wiring them into production orchestration.",
+      "useCase2": "Explain branching logic to teammates without scrolling through nested config files.",
+      "useCase3": "Prototype how runtime highlighting could help operators debug stuck flows.",
+      "faqTitle": "FAQ",
+      "faq": {
+        "sfc": {
+          "question": "What kind of flows does it model?",
+          "answer": "It focuses on structured, tree-shaped flows similar to SFC drafts: sequential steps, condition nodes, and explicit branches—not a general-purpose whiteboard."
+        },
+        "edit": {
+          "question": "Can I import my own production flow?",
+          "answer": "Not in this playground release. The page ships with a demo tree so you can explore editing mechanics without connecting to a backend."
+        },
+        "demo": {
+          "question": "What does runtime highlight show?",
+          "answer": "A illustrative pass over the demo graph so you can discuss execution order and branch joins—it's a visual aid, not a live production trace."
+        },
+        "export": {
+          "question": "Can I export JSON or code?",
+          "answer": "No export yet. The tool is for visualization and hands-on editing practice inside the browser session."
+        },
+        "browser": {
+          "question": "Does it work on mobile?",
+          "answer": "The layout is responsive, but dense editing is most comfortable on a desktop-sized screen with a pointer."
+        }
+      },
+      "relatedTitle": "Keep exploring",
+      "relatedToolsTitle": "Other playground tools",
+      "relatedToolsDescription": "Jump to another experiment when you're done rearranging nodes.",
+      "workExperienceLink": "View work experience",
+      "contactLink": "Contact Chase"
     }
   },
   "themeToggle": {
@@ -168,6 +216,16 @@
           "entry": "Open Flow Editor"
         }
       }
+    },
+    "focusChips": {
+      "product": "Product frontend",
+      "ai": "AI-assisted builder",
+      "tools": "Interaction tools"
+    },
+    "seo": {
+      "toolsTitle": "Playground tools",
+      "toolsIntro": "Each experiment below is a real, shippable slice of product frontend work—interaction design, design-system thinking, and browser-native tooling you can try immediately.",
+      "contactLink": "Contact Chase"
     },
     "contactTitle": "Contact me",
     "contact": {
@@ -589,6 +647,47 @@
       "body": "Your silly belly-scan identified this character. Ready for another round?",
       "scanAgain": "Scan again",
       "changeTarget": "Change target"
+    },
+    "landing": {
+      "purposeTitle": "What Dudu Scanner is for",
+      "purposeBody": "Dudu Scanner is a playful belly-scan console for family-friendly reveals. Pick a snack or creature theme, choose mystery or operator mode, tune sound, then run a fullscreen-friendly scan that ends in a goofy character cameo—entertainment only, not a medical device.",
+      "stepsTitle": "How a scan show works",
+      "step1": "On the setup screen, choose a theme, scan mode, and optional sound.",
+      "step2": "Press start scan to enter the immersive view with keyboard shortcuts ready.",
+      "step3": "Sweep the probe (or let auto-scan run) until the signal is strong enough to lock.",
+      "step4": "Reveal the character, share the laugh, then reset for another round.",
+      "useCasesTitle": "When families use it",
+      "useCase1": "Turn a hidden stuffed animal or snack joke into a mini stage performance.",
+      "useCase2": "Let kids \"operate\" the scanner with printed shortcut cards before the big reveal.",
+      "useCase3": "Record a short clip of the scan UI as a playful pregnancy or party easter egg.",
+      "faqTitle": "FAQ",
+      "faq": {
+        "family": {
+          "question": "Is it safe for kids?",
+          "answer": "It's a silly browser toy with gentle sound and cartoon characters. Always supervise young operators and remember it's entertainment—not health advice."
+        },
+        "setup": {
+          "question": "What's the difference between mystery and operator mode?",
+          "answer": "Mystery mode secretly picks a character from your theme each round. Operator mode lets you lock in the exact character before the show starts."
+        },
+        "sound": {
+          "question": "Can I mute the scanner?",
+          "answer": "Yes. Toggle sound on the setup screen or press M during a scan to silence effects."
+        },
+        "fullscreen": {
+          "question": "Does fullscreen work on phones?",
+          "answer": "Browsers vary. The UI offers a fullscreen retry shortcut, but the most reliable experience is landscape tablet or desktop."
+        },
+        "surprise": {
+          "question": "Will it spoil a real surprise?",
+          "answer": "Operator mode shows your pick up front. Use mystery mode when you want the audience to discover the character live."
+        }
+      },
+      "relatedTitle": "Keep exploring",
+      "relatedToolsTitle": "Other playground tools",
+      "relatedToolsDescription": "Try a different experiment after the belly laughs settle.",
+      "workExperienceLink": "View work experience",
+      "contactLink": "Contact Chase"
     }
   }
 }
