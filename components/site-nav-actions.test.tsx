@@ -96,7 +96,7 @@ describe("SiteNavActions", () => {
     const projects = within(nav).getByRole("menu", { name: "游乐场" });
     expect(within(projects).getByText("探索可配置的鼠标特效。")).toBeInTheDocument();
     expect(within(projects).getByText("把名画配色变成界面主题。")).toBeInTheDocument();
-    expect(within(projects).getByText("扫描寻找藏起来的角色，开启亲子惊喜揭晓。")).toBeInTheDocument();
+    expect(within(projects).getByText("扫描寻找肚子里藏起来的角色。")).toBeInTheDocument();
     expect(within(projects).getByText("可视化编辑结构化流程。")).toBeInTheDocument();
 
     fireEvent.click(within(projects).getByRole("menuitem", { name: /Dudu Scanner/i }));

@@ -8,10 +8,10 @@ import {
 } from "@/i18n/routing";
 import {
   absoluteUrl,
+  getCanonicalPathname,
   getLanguageAlternates,
-  localizePathname,
   siteUrl,
-} from "@/lib/site";
+} from "@/lib/seo/urls";
 
 type MetadataNamespace =
   | "metadata.home"
@@ -42,7 +42,7 @@ export async function buildLocalizedMetadata({
     title,
     description,
     alternates: {
-      canonical: localizePathname(pathname, locale),
+      canonical: getCanonicalPathname(pathname, locale),
       languages: getLanguageAlternates(pathname),
     },
     openGraph: {
