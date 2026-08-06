@@ -1,16 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import { getIndexedPathnames } from "@/lib/seo/route-registry";
 import {
   absoluteUrl,
+  getIndexedPathnames,
   getLanguageAlternates,
-  indexedPathnames,
   localizePathname,
 } from "@/lib/site";
 
 describe("site SEO re-exports", () => {
   it("keeps indexed pathnames aligned with the SEO route registry", () => {
-    expect(getIndexedPathnames()).toEqual([...indexedPathnames]);
+    const pathnames = getIndexedPathnames();
+    expect(pathnames.length).toBeGreaterThan(0);
+    expect(new Set(pathnames).size).toBe(pathnames.length);
+    for (const pathname of pathnames) {
+      expect(pathname.startsWith("/")).toBe(true);
+    }
   });
 
   it("builds representative localized URLs through the shared helpers", () => {

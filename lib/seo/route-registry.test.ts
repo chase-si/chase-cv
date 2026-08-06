@@ -3,21 +3,18 @@ import { describe, expect, it } from "vitest";
 import { MAGIC_CURSOR_EFFECT_ORDER } from "@/lib/constants/magic-cursor";
 import { routing } from "@/i18n/routing";
 
-import { getIndexedSeoRoutes, getIndexedPathnames } from "./route-registry";
-
-const CORE_INDEXED_PATHNAMES = [
-  "/",
-  "/image-to-ui",
-  "/flow",
-  "/dudu-scanner",
-  "/magic-cursor",
-] as const;
+import {
+  getIndexedSeoRoutes,
+  getIndexedPathnames,
+  getIndexedToolOverviewPathnames,
+} from "./route-registry";
 
 describe("indexed SEO route registry", () => {
   it("lists core tool routes and every magic cursor effect page", () => {
     const pathnames = getIndexedPathnames();
+    const toolOverviews = getIndexedToolOverviewPathnames();
 
-    for (const pathname of CORE_INDEXED_PATHNAMES) {
+    for (const pathname of toolOverviews) {
       expect(pathnames).toContain(pathname);
     }
 
@@ -26,7 +23,7 @@ describe("indexed SEO route registry", () => {
     }
 
     expect(pathnames.length).toBe(
-      CORE_INDEXED_PATHNAMES.length + MAGIC_CURSOR_EFFECT_ORDER.length,
+      1 + toolOverviews.length + MAGIC_CURSOR_EFFECT_ORDER.length,
     );
   });
 

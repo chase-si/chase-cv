@@ -1,4 +1,9 @@
-import { getIndexedPathnames } from "@/lib/seo/route-registry";
+import {
+  getIndexedPathnames,
+  getIndexedSeoRoutes,
+  getIndexedToolOverviewPathnames,
+  type IndexedSeoRoute,
+} from "@/lib/seo/route-registry";
 
 export {
   absoluteUrl,
@@ -8,6 +13,7 @@ export {
   siteUrl,
 } from "@/lib/seo/urls";
 
-export const indexedPathnames = getIndexedPathnames();
+export type { IndexedSeoRoute };
+export { getIndexedPathnames, getIndexedSeoRoutes, getIndexedToolOverviewPathnames };
 
-export type IndexedPathname = (typeof indexedPathnames)[number];
+export type IndexedPathname = ReturnType<typeof getIndexedPathnames>[number];
