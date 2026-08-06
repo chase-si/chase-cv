@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import { MagicCursorEffectPage } from "@/app/[locale]/magic-cursor/[effectName]/view";
 import { MAGIC_CURSOR_EFFECT_ORDER } from "@/lib/constants/magic-cursor";
-import { localizePathname } from "@/lib/site";
+import { localizePathname } from "@/lib/seo/urls";
 import type { AppLocale } from "@/i18n/routing";
 import { buildLocalizedMetadata } from "@/lib/metadata";
 
