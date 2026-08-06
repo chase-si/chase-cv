@@ -9,8 +9,168 @@
       "personDescription": "产品化前端工程师，发布交互工具、设计系统实验与轻量浏览器演示。"
     },
     "magicCursor": {
-      "title": "Magic Cursor | Chase's CV",
-      "description": "用实时预览探索可配置的鼠标效果，并复制 magic-cursor-effect 代码。"
+      "hub": {
+        "title": "Magic Cursor 效果库 — 实时预览与可复制代码 | Chase's CV",
+        "description": "浏览九种可配置的鼠标效果，在侧栏实时调参，并复制 magic-cursor-effect 集成代码到你的页面。",
+        "ogImageAlt": "Magic Cursor 效果库：环形、拖尾、聚光灯等多种效果的实时预览",
+        "applicationName": "Magic Cursor 效果库",
+        "h1": "Magic Cursor 效果库",
+        "lead": "探索九种鼠标效果，实时调参预览，并复制集成代码。"
+      },
+      "effects": {
+        "ring": {
+          "title": "环形光标效果 — 平滑跟随圆环 | Chase's CV",
+          "description": "预览平滑跟随指针的圆环光标，可调尺寸、颜色、描边宽度与缓动。",
+          "ogImageAlt": "环形光标效果：可调尺寸与平滑度",
+          "applicationName": "Magic Cursor — 环形效果",
+          "h1": "环形光标效果",
+          "behavior": "绘制向指针插值移动的圆环。平滑度决定追赶速度，尺寸与描边决定光环形态。",
+          "useCases": "产品落地页、作品集首屏等需要轻量品牌指针、又不想上粒子效果的场景。",
+          "breadcrumb": "环形",
+          "params": {
+            "size": "size — 圆环或透镜外径",
+            "color": "color — 描边或粒子颜色（rgba）",
+            "borderWidth": "borderWidth — 圆环描边粗细",
+            "smoothing": "smoothing — 指针跟随缓动（0–1）"
+          }
+        },
+        "magnifier": {
+          "title": "放大镜光标效果 — 透镜放大预览 | Chase's CV",
+          "description": "在指针下放大内容，支持缩放、模糊、亮度、饱和度，并沿用环形效果的平滑跟随。",
+          "ogImageAlt": "放大镜光标：缩放与平滑控制",
+          "applicationName": "Magic Cursor — 放大镜效果",
+          "h1": "放大镜光标效果",
+          "behavior": "在跟随圆环上叠加透镜，放大并风格化指针下像素；模糊、亮度、饱和度塑造玻璃质感。",
+          "useCases": "设计展示、前后对比演示、希望用户用光标细看细节的版面。",
+          "breadcrumb": "放大镜",
+          "params": {
+            "size": "size — 圆环或透镜外径",
+            "zoom": "zoom — 放大镜缩放倍数",
+            "lensBlurPx": "lensBlurPx — 透镜内模糊",
+            "lensBrightness": "lensBrightness — 透镜下亮度增益",
+            "lensSaturate": "lensSaturate — 透镜下饱和度增益",
+            "smoothing": "smoothing — 指针跟随缓动（0–1）"
+          }
+        },
+        "trail": {
+          "title": "拖尾光标效果 — 指针后的点阵轨迹 | Chase's CV",
+          "description": "在移动路径上按节流间隔留下点阵拖尾，可调点数、尺寸、颜色与间隔。",
+          "ogImageAlt": "拖尾光标：可配置点阵轨迹",
+          "applicationName": "Magic Cursor — 拖尾效果",
+          "h1": "拖尾光标效果",
+          "behavior": "按节流时间在指针路径上生成点。maxDots 限制历史长度，size 与 color 定义每个印记。",
+          "useCases": "趣味品牌站、游戏宣传、用运动反馈强化互动感的作品页。",
+          "breadcrumb": "拖尾",
+          "params": {
+            "maxDots": "maxDots — 拖尾保留的最大点数",
+            "size": "size — 圆环或透镜外径",
+            "color": "color — 描边或粒子颜色（rgba）",
+            "throttleMs": "throttleMs — 拖尾点之间的最小间隔（毫秒）"
+          }
+        },
+        "spotlight": {
+          "title": "聚光灯光标效果 — 暗场中的光洞 | Chase's CV",
+          "description": "除跟随指针的圆形光区外压暗页面，可调半径与暗场颜色。",
+          "ogImageAlt": "聚光灯光标：暗色遮罩与光洞",
+          "applicationName": "Magic Cursor — 聚光灯效果",
+          "h1": "聚光灯光标效果",
+          "behavior": "以指针为中心在遮罩上挖出圆形亮区。radius 决定光照范围，dimColor 控制周围暗度。",
+          "useCases": "引导式浏览、叙事滚动、需要一次只聚焦一个区域的揭晓场景。",
+          "breadcrumb": "聚光灯",
+          "params": {
+            "radius": "radius — 聚光灯或电弧半径",
+            "dimColor": "dimColor — 聚光灯外遮罩颜色"
+          }
+        },
+        "magnetic": {
+          "title": "磁吸光标效果 — 元素向指针靠拢 | Chase's CV",
+          "description": "按 CSS 选择器匹配元素并向指针偏移，可调吸力强度与预览色块颜色。",
+          "ogImageAlt": "磁吸光标：吸引界面块",
+          "applicationName": "Magic Cursor — 磁吸效果",
+          "h1": "磁吸光标效果",
+          "behavior": "通过 selector（默认 [data-magnetic]）选中元素，按 strength 向指针偏移；itemColor 为预览块上色。",
+          "useCases": "按钮阵列、卡片堆叠、希望附近 UI 被光标吸引的微交互演示。",
+          "breadcrumb": "磁吸",
+          "params": {
+            "strength": "strength — 磁吸强度（0–1）",
+            "selector": "selector — 磁吸目标的 CSS 选择器",
+            "itemColor": "itemColor — 磁吸预览块颜色"
+          }
+        },
+        "flame": {
+          "title": "火焰光标效果 — 上升火焰粒子 | Chase's CV",
+          "description": "从指针发射上升火焰粒子，可调发射率、尺寸、寿命、上升速度、抖动与 DPR 上限。",
+          "ogImageAlt": "火焰光标粒子效果预览",
+          "applicationName": "Magic Cursor — 火焰效果",
+          "h1": "火焰光标效果",
+          "behavior": "生成带抖动上升并淡出的粒子。emission 控制频率，lifeMs 与 rise 塑造运动，maxDpr 限制画布密度。",
+          "useCases": "节日营销、游戏上线、需要火焰动感绑定光标的高能量首屏。",
+          "breadcrumb": "火焰",
+          "params": {
+            "emission": "emission — 每批发射的粒子数",
+            "size": "size — 圆环或透镜外径",
+            "lifeMs": "lifeMs — 粒子寿命（毫秒）",
+            "rise": "rise — 火焰/烟雾上升速度",
+            "jitter": "jitter — 火焰粒子随机抖动",
+            "maxDpr": "maxDpr — 火焰画布 DPR 上限"
+          }
+        },
+        "smoke": {
+          "title": "烟雾光标效果 — 飘散烟雾粒子 | Chase's CV",
+          "description": "从指针发射缓慢上升并漂移的烟雾，可调颜色、尺寸、寿命与运动参数。",
+          "ogImageAlt": "烟雾光标粒子效果预览",
+          "applicationName": "Magic Cursor — 烟雾效果",
+          "h1": "烟雾光标效果",
+          "behavior": "类似火焰但更慢上升并带水平漂移。color 为烟雾上色，emission 与 lifeMs 控制密度。",
+          "useCases": "氛围作品集、音乐发布、需要环境感运动的落地页。",
+          "breadcrumb": "烟雾",
+          "params": {
+            "emission": "emission — 每批发射的粒子数",
+            "size": "size — 圆环或透镜外径",
+            "lifeMs": "lifeMs — 粒子寿命（毫秒）",
+            "rise": "rise — 火焰/烟雾上升速度",
+            "drift": "drift — 烟雾水平漂移",
+            "color": "color — 描边或粒子颜色（rgba）"
+          }
+        },
+        "invertRing": {
+          "title": "反相环光标效果 — 混合模式光环 | Chase's CV",
+          "description": "通过混合模式（默认 difference）与背景相互作用，可选 blendBackground，并支持环平滑。",
+          "ogImageAlt": "反相环光标：混合模式控制",
+          "applicationName": "Magic Cursor — 反相环效果",
+          "h1": "反相环光标效果",
+          "behavior": "绘制与页面像素按 CSS 混合模式作用的光环。blendBackground 可指定衬底以获得稳定对比。",
+          "useCases": "大胆排版首屏、海报式版面、希望光标“切开”色块的实验。",
+          "breadcrumb": "反相环",
+          "params": {
+            "size": "size — 圆环或透镜外径",
+            "color": "color — 描边或粒子颜色（rgba）",
+            "borderWidth": "borderWidth — 圆环描边粗细",
+            "smoothing": "smoothing — 指针跟随缓动（0–1）",
+            "blendMode": "blendMode — 反相环的 CSS 混合模式",
+            "blendBackground": "blendBackground — 反相环可选衬底色"
+          }
+        },
+        "electricArc": {
+          "title": "电弧光标效果 — 移动与点击电弧 | Chase's CV",
+          "description": "在指针附近生成短寿命电弧，可调长度、半径、寿命、发光、发射率与点击爆发。",
+          "ogImageAlt": "电弧光标：霓虹发光效果",
+          "applicationName": "Magic Cursor — 电弧效果",
+          "h1": "电弧光标效果",
+          "behavior": "在指针附近绘制短寿命电弧。clickBurst 在点击时额外爆发；glowColor 柔化霓虹边缘。",
+          "useCases": "科幻产品预告、游戏界面、需要在移动与点击时给出强反馈的互动海报。",
+          "breadcrumb": "电弧",
+          "params": {
+            "emission": "emission — 每批发射的粒子数",
+            "length": "length — 电弧线段长度",
+            "radius": "radius — 聚光灯或电弧半径",
+            "lifeMs": "lifeMs — 粒子寿命（毫秒）",
+            "color": "color — 描边或粒子颜色（rgba）",
+            "glowColor": "glowColor — 电弧外发光颜色",
+            "clickBurst": "clickBurst — 点击时额外爆发的电弧数"
+          }
+        }
+      }
     },
     "imageToUi": {
       "title": "图片配色提取与界面主题预览 | Chase's CV",
@@ -269,7 +429,22 @@
     "copySuccess": "已复制到剪贴板",
     "copyError": "复制失败",
     "copy": "复制",
-    "code": "Code"
+    "code": "Code",
+    "landing": {
+      "purposeTitle": "这个效果库解决什么问题",
+      "purposeBody": "Magic Cursor 是基于 magic-cursor-effect 的九种指针效果双语画廊。每个详情页说明行为、提供与线上一致的侧栏控件实时演示，并链接可横向对比的相关效果。",
+      "catalogTitle": "浏览全部效果",
+      "catalogDescription": "进入详情页查看行为说明、参数提示，并复制集成代码。",
+      "backToHub": "返回 Magic Cursor 总览",
+      "relatedEffectsTitle": "相关效果",
+      "relatedEffectsDescription": "在不丢失参数上下文的情况下对比邻近效果。",
+      "relatedToolsTitle": "更多游乐场工具",
+      "relatedToolsDescription": "继续探索站点上的其他浏览器实验。",
+      "behaviorTitle": "行为说明",
+      "useCasesTitle": "适用场景",
+      "paramsTitle": "关键参数",
+      "hubLinkLabel": "Magic Cursor 总览"
+    }
   },
   "imageToUi": {
     "title": "从图片提取界面配色",

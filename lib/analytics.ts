@@ -22,7 +22,10 @@ export type AnalyticsEventName =
   | "flow_contact_click"
   | "dudu_scanner_related_tool_click"
   | "dudu_scanner_profile_click"
-  | "dudu_scanner_contact_click";
+  | "dudu_scanner_contact_click"
+  | "magic_cursor_related_effect_click"
+  | "magic_cursor_related_tool_click"
+  | "magic_cursor_hub_effect_click";
 
 export function trackEvent(
   name: AnalyticsEventName,

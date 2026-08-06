@@ -3,26 +3,30 @@
 import { useState } from "react";
 
 import type { EffectName } from "magic-cursor-effect";
-import { useTranslations } from "next-intl";
 
 import { MagicCursorDemoTile } from "@/components/magic-cursor/demo-tile";
 import { MagicCursorSidebar } from "@/components/magic-cursor/sidebar";
 import { Card } from "@/components/ui/card";
 import { defaultOptionsByEffect, MAGIC_CURSOR_EFFECT_ORDER } from "@/lib/constants/magic-cursor";
 
-export function MagicCursorEffectGalleryPage() {
+export function MagicCursorEffectGalleryPage({
+  heading,
+  description,
+}: {
+  heading: string;
+  description: string;
+}) {
   const [active, setActive] = useState<EffectName | null>(null);
-  const t = useTranslations("magicCursor");
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
       <main className="mx-auto w-full flex-1 px-4 py-8 sm:px-6 sm:py-10">
         <header className="mb-8 space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            {t("title")}
+            {heading}
           </h1>
           <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-            {t("description")}
+            {description}
           </p>
         </header>
 
