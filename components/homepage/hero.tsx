@@ -35,14 +35,14 @@ export function HomepageHero() {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2">
-          {["Product frontend", "AI-assisted builder", "Interaction tools"].map((label) => (
+          {(["product", "ai", "tools"] as const).map((key) => (
             <HomepageMotion
-              key={label}
+              key={key}
               kind="hero"
               className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 font-mono text-xs shadow-[2px_2px_0_0] shadow-foreground/50"
             >
               <span className="size-1.5 rounded-full bg-chart-2" />
-              {label}
+              {t(`focusChips.${key}`)}
             </HomepageMotion>
           ))}
         </div>

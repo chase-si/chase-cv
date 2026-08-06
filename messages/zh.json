@@ -2,8 +2,11 @@
   "metadata": {
     "siteName": "Chase's CV",
     "home": {
-      "title": "Chase's CV",
-      "description": "Chase 的个人网站，展示产品化前端、交互实验与设计系统相关作品。"
+      "title": "Chase — 产品化前端、交互工具与设计系统",
+      "description": "Chase 专注产品化前端、浏览器交互工具与设计系统实验。先逛游乐场，再看每个工具如何对应真实产品工作。",
+      "ogImageAlt": "Chase：产品化前端工程师与交互工具作者",
+      "personName": "Chase",
+      "personDescription": "产品化前端工程师，发布交互工具、设计系统实验与轻量浏览器演示。"
     },
     "magicCursor": {
       "title": "Magic Cursor | Chase's CV",
@@ -16,12 +19,16 @@
       "applicationName": "Image to UI 图片配色提取工具"
     },
     "flow": {
-      "title": "流程编辑器 | Chase's CV",
-      "description": "可视化查看与编辑 SFC 流程结构的实验工具。"
+      "title": "SFC 流程编辑器 — 结构化流程可视化 | Chase's CV",
+      "description": "在浏览器中试验 SFC 风格结构化流程：缩放画布、添加分支与顺序步骤、编辑节点属性，并预览运行时高亮路径。",
+      "ogImageAlt": "流程编辑器：在浏览器中可视化编辑结构化 SFC 流程",
+      "applicationName": "SFC 流程编辑器"
     },
     "duduScanner": {
-      "title": "肚肚扫描仪 | Chase's CV",
-      "description": "亲子向的趣味肚肚扫描控制台：先选好主题、角色和声音，再开始现场表演。"
+      "title": "肚肚扫描仪 — 亲子向趣味肚肚扫描 | Chase's CV",
+      "description": "配置主题、角色与音效，来一场轻松的肚肚扫描表演；支持神秘模式或操作员模式，适合家庭向彩蛋与现场互动。",
+      "ogImageAlt": "肚肚扫描仪：亲子向趣味扫描控制台",
+      "applicationName": "肚肚扫描仪"
     },
     "notFound": {
       "title": "页面未找到 | Chase's CV",
@@ -122,6 +129,47 @@
       "resetDescription": "当前流程包含尚未保留的修改。重置后将恢复示例内容，此操作无法撤销。",
       "confirmDelete": "确认删除",
       "confirmReset": "确认重置"
+    },
+    "landing": {
+      "purposeTitle": "这个编辑器做什么",
+      "purposeBody": "流程编辑器是一个面向 SFC 风格结构化流程的实验性可视化工作台。它在可缩放的画布上渲染流程树，支持添加顺序步骤或分支，并在侧栏展示节点属性——当 JSON/YAML 配置难以在脑中展开时尤其好用。",
+      "stepsTitle": "如何使用",
+      "step1": "从示例流程开始，缩放或平移画布熟悉结构。",
+      "step2": "选中节点，在属性面板查看 ID、描述与分支信息。",
+      "step3": "使用工具栏添加顺序步骤、分支，或扩展支持的分支节点。",
+      "step4": "切换运行时高亮，讨论执行路径可能如何穿过当前结构。",
+      "useCasesTitle": "适用场景",
+      "useCase1": "在接入生产编排前，先草拟 onboarding 或审批类流程。",
+      "useCase2": "向同事解释分支逻辑，而不用滚动嵌套配置文件。",
+      "useCase3": "原型化运行时高亮，帮助运营同学理解卡住的路径。",
+      "faqTitle": "常见问题",
+      "faq": {
+        "sfc": {
+          "question": "它建模哪类流程？",
+          "answer": "聚焦树形结构化流程，类似 SFC 草稿：顺序步骤、条件节点与显式分支，不是通用白板。"
+        },
+        "edit": {
+          "question": "能导入线上真实流程吗？",
+          "answer": "当前游乐场版本还不支持。页面内置示例树，方便在不连后端的情况下体验编辑能力。"
+        },
+        "demo": {
+          "question": "运行时高亮代表什么？",
+          "answer": "在示例图上做示意性路径展示，便于讨论执行顺序与分支汇合，并非真实生产 trace。"
+        },
+        "export": {
+          "question": "能导出 JSON 或代码吗？",
+          "answer": "暂不支持导出，工具用于浏览器会话内的可视化与动手编辑练习。"
+        },
+        "browser": {
+          "question": "手机上好用吗？",
+          "answer": "布局可响应，但密集编辑更适合桌面指针操作。"
+        }
+      },
+      "relatedTitle": "继续探索",
+      "relatedToolsTitle": "其他游乐场工具",
+      "relatedToolsDescription": "改完节点后，可以换另一个实验试试。",
+      "workExperienceLink": "查看工作经历",
+      "contactLink": "联系 Chase"
     }
   },
   "themeToggle": {
@@ -168,6 +216,16 @@
           "entry": "进入 Flow Editor"
         }
       }
+    },
+    "focusChips": {
+      "product": "产品化前端",
+      "ai": "AI 辅助构建",
+      "tools": "交互工具"
+    },
+    "seo": {
+      "toolsTitle": "游乐场工具",
+      "toolsIntro": "下面每个实验都是可交付的产品前端切片——交互设计、设计系统思维，以及可以立刻上手的浏览器原生工具。",
+      "contactLink": "联系 Chase"
     },
     "contactTitle": "联系我",
     "contact": {
@@ -589,6 +647,47 @@
       "body": "肚肚扫描确认了这个神秘角色。要再来一轮吗？",
       "scanAgain": "再扫一次",
       "changeTarget": "更换目标"
+    },
+    "landing": {
+      "purposeTitle": "肚肚扫描仪是做什么的",
+      "purposeBody": "肚肚扫描仪是一个亲子向的趣味肚肚扫描控制台。选择零食或生物主题、神秘或操作员模式，调好音效后进入沉浸式扫描，最后以搞怪角色彩蛋收场——仅供娱乐，不是医疗设备。",
+      "stepsTitle": "一场扫描秀怎么进行",
+      "step1": "在设置页选择主题、扫描模式，以及是否开启音效。",
+      "step2": "点击开始扫描，进入全屏友好的沉浸界面，快捷键已就绪。",
+      "step3": "移动探头（或使用自动扫描），直到信号足够强可以锁定。",
+      "step4": "揭晓角色、分享笑声，然后重置再来一轮。",
+      "useCasesTitle": "家庭会在什么时候玩",
+      "useCase1": "把藏起来的玩偶或零食梗变成小型舞台表演。",
+      "useCase2": "让孩子拿着快捷键小抄当「操作员」，再开始正式揭晓。",
+      "useCase3": "录一段扫描界面短片，作为孕期或派对彩蛋。",
+      "faqTitle": "常见问题",
+      "faq": {
+        "family": {
+          "question": "适合小朋友吗？",
+          "answer": "这是轻松的浏览器玩具，配有温和音效与卡通角色。请家长陪同操作，并记住它仅供娱乐，不是健康建议。"
+        },
+        "setup": {
+          "question": "神秘模式和操作员模式有什么区别？",
+          "answer": "神秘模式每轮会从主题里悄悄抽一个角色；操作员模式则让你提前锁定具体角色再开场。"
+        },
+        "sound": {
+          "question": "可以关掉声音吗？",
+          "answer": "可以。在设置页切换音效，或在扫描中按 M 静音。"
+        },
+        "fullscreen": {
+          "question": "手机能全屏吗？",
+          "answer": "不同浏览器表现不一。界面提供全屏重试快捷键，但横屏平板或桌面通常最稳。"
+        },
+        "surprise": {
+          "question": "会不会提前剧透？",
+          "answer": "操作员模式会提前展示你的选择；想现场惊喜请用神秘模式。"
+        }
+      },
+      "relatedTitle": "继续探索",
+      "relatedToolsTitle": "其他游乐场工具",
+      "relatedToolsDescription": "笑完之后，还可以试试别的实验。",
+      "workExperienceLink": "查看工作经历",
+      "contactLink": "联系 Chase"
     }
   }
 }

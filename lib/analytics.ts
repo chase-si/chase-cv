@@ -14,7 +14,15 @@ export type AnalyticsEventName =
   | "image_to_ui_preview_generated"
   | "image_to_ui_related_tool_click"
   | "image_to_ui_profile_click"
-  | "image_to_ui_contact_click";
+  | "image_to_ui_contact_click"
+  | "homepage_tool_click"
+  | "homepage_contact_click"
+  | "flow_related_tool_click"
+  | "flow_profile_click"
+  | "flow_contact_click"
+  | "dudu_scanner_related_tool_click"
+  | "dudu_scanner_profile_click"
+  | "dudu_scanner_contact_click";
 
 export function trackEvent(
   name: AnalyticsEventName,
