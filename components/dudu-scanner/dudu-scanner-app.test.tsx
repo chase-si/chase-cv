@@ -243,13 +243,14 @@ describe("DuduScannerApp controls", () => {
     vi.stubGlobal("Image", FailImage as unknown as typeof Image);
 
     renderApp();
+    fireEvent.click(screen.getByRole("button", { name: "Operator mode" }));
     await startScan();
     fireEvent.keyDown(window, { key: " " });
 
     await waitFor(() => {
       expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent("Signal detected");
     });
-    expect(assignedSources).toContain("/dudu-scanner/placeholders/fry-sprite.svg");
+    expect(assignedSources).toContain(getTargetRecord("fry-sprite").placeholderSrc);
   });
 
   it("reveals and locks through the touch operator bar", async () => {
