@@ -167,7 +167,7 @@
         }
       }
     },
-    "contactTitle": "Contact me",
+    "contactTitle": "Contact me(Open to work)",
     "contact": {
       "upwork": "upwork",
       "channels": {
@@ -417,12 +417,12 @@
   },
   "duduScanner": {
     "title": "Dudu Scanner",
-    "subtitle": "Pick a theme, choose how much to reveal, and get ready for a silly belly scan.",
+    "subtitle": "Choose how much to reveal and get ready for a silly belly scan.",
     "scanModeHeading": "Scan mode",
     "scanModes": {
       "mystery": {
         "name": "Mystery scan",
-        "description": "The scanner secretly chooses a character from your theme."
+        "description": "The scanner secretly chooses one of the characters."
       },
       "operator": {
         "name": "Operator mode",
@@ -431,7 +431,7 @@
     },
     "mysterySummary": {
       "title": "Identity classified",
-      "description": "One of three signals will be selected at the start of every round. Lock it to reveal who is hiding inside."
+      "description": "One of ten signals will be selected at the start of every round. Lock it to reveal who is hiding inside."
     },
     "themesHeading": "Scan theme",
     "targetsHeading": "Scan target",
@@ -445,7 +445,8 @@
     "disclaimer": "For entertainment only — not a medical device.",
     "themes": {
       "snackScan": "Snack Scan",
-      "tummyCreatures": "Tummy Creatures"
+      "tummyCreatures": "Tummy Creatures",
+      "healthyBuddies": "Healthy Buddies"
     },
     "targets": {
       "frySprite": {
@@ -483,6 +484,30 @@
         "revealLine": "Slow down and chew every bite!",
         "description": "The next bite arrives before Rice Ball Sprite is ready when food is eaten too quickly.",
         "suggestion": "At your next meal, sit down, focus on eating, and chew each bite before swallowing!"
+      },
+      "eyeGuard": {
+        "name": "Eye Guard",
+        "revealLine": "Tired eyes need a little break!",
+        "description": "After too much screen time, Eye Guard raises a shield to help tired eyes rest.",
+        "suggestion": "Put the screen down now, look into the distance, and give your eyes a break!"
+      },
+      "motionEnergyBall": {
+        "name": "Motion Energy Ball",
+        "revealLine": "Wake up, energy—let's get moving!",
+        "description": "After sitting for too long, Motion Energy Ball is curled up and waiting for you to wake it.",
+        "suggestion": "Stand up now, stretch your arms, kick your legs, and walk around for a few minutes!"
+      },
+      "toothbrushKnight": {
+        "name": "Toothbrush Knight",
+        "revealLine": "The tooth castle needs a guardian!",
+        "description": "Toothbrush Knight found food critters hiding in the corners and is ready to clean them away.",
+        "suggestion": "Brush carefully before bed tonight—don't miss the inside, outside, or back teeth!"
+      },
+      "breakfastWakeUpBird": {
+        "name": "Breakfast Wake-up Bird",
+        "revealLine": "Breakfast time—let's fuel up!",
+        "description": "Breakfast was missed this morning, so Wake-up Bird is chirping inside the belly.",
+        "suggestion": "Eat breakfast on time tomorrow, then start the day full of energy!"
       }
     },
     "shortcuts": {

@@ -3,13 +3,13 @@ import { describe, expect, it } from "vitest";
 import { pickMysteryTarget, resolveRoundTarget } from "@/lib/dudu-scanner/round-target";
 
 describe("dudu scanner round target", () => {
-  it("picks a target from the active mystery theme", () => {
-    expect(pickMysteryTarget("snack-scan", () => 0)).toBe("fry-sprite");
-    expect(pickMysteryTarget("snack-scan", () => 0.999)).toBe("boba-bubbles");
+  it("picks a target from the complete catalog", () => {
+    expect(pickMysteryTarget(() => 0)).toBe("fry-sprite");
+    expect(pickMysteryTarget(() => 0.999)).toBe("breakfast-wake-up-bird");
   });
 
   it("avoids immediately repeating the previous mystery target", () => {
-    expect(pickMysteryTarget("snack-scan", () => 0, "fry-sprite")).toBe(
+    expect(pickMysteryTarget(() => 0, "fry-sprite")).toBe(
       "candy-critter",
     );
   });

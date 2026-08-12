@@ -16,6 +16,12 @@ const TARGET_COPY_FIELDS = ["name", "revealLine", "description", "suggestion"] a
 describe("dudu scanner catalog", () => {
   it("maps each target to stable production character assets", () => {
     const geminiProductionTargets = new Set(["boba-bubbles", "sleepy-bug"]);
+    const sharedFallbackTargets = new Map([
+      ["eye-guard", "rumble-monster"],
+      ["motion-energy-ball", "candy-critter"],
+      ["toothbrush-knight", "rice-ball-sprite"],
+      ["breakfast-wake-up-bird", "rice-ball-sprite"],
+    ]);
 
     for (const targetId of DUDU_SCANNER_TARGET_IDS) {
       const record = getTargetRecord(targetId);
@@ -25,14 +31,21 @@ describe("dudu scanner catalog", () => {
 
       expect(record.id).toBe(targetId);
       expect(record.imageSrc).toBe(`/dudu-scanner/characters/${stem}.png`);
-      expect(record.placeholderSrc).toBe(`/dudu-scanner/placeholders/${stem}.svg`);
+      const fallbackStem = sharedFallbackTargets.get(targetId) ?? stem;
+      expect(record.placeholderSrc).toBe(`/dudu-scanner/placeholders/${fallbackStem}.svg`);
     }
   });
 
-  it("groups three targets per theme", () => {
+  it("groups every target into a catalog collection", () => {
+    const expectedThemeSizes = {
+      "snack-scan": 3,
+      "tummy-creatures": 3,
+      "healthy-buddies": 4,
+    } as const;
+
     for (const themeId of DUDU_SCANNER_THEME_IDS) {
       const ids = getTargetIdsForTheme(themeId);
-      expect(ids).toHaveLength(3);
+      expect(ids).toHaveLength(expectedThemeSizes[themeId]);
       for (const targetId of ids) {
         expect(isTargetInTheme(targetId, themeId)).toBe(true);
       }

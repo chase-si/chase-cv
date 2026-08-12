@@ -24,7 +24,7 @@ export function HomepageHero() {
         <div className="mt-6 space-y-5 text-pretty text-lg font-semibold leading-8 text-foreground sm:text-2xl sm:leading-10">
           <HomepageMotion as="p" kind="hero" className="text-4xl font-black tracking-tight sm:text-6xl">
             {t("introLeadPrefix")}
-            <span className="text-primary">{t("introLeadName")}</span>
+            <span className="text-primary">{t("introLeadName")}</span><br />
             {t("introLeadSuffix")}
           </HomepageMotion>
           <HomepageMotion as="p" kind="hero">

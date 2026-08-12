@@ -173,7 +173,7 @@ describe("DuduScannerApp controls", () => {
     window.sessionStorage.setItem("dudu-scanner-immersive-v1", "1");
 
     renderApp();
-    expect(screen.getByRole("button", { name: "Tummy Creatures", pressed: true })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tummy Creatures" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Rumble Monster", pressed: true })).toBeInTheDocument();
     expect(window.sessionStorage.getItem("dudu-scanner-immersive-v1")).toBeNull();
   });
@@ -291,13 +291,13 @@ describe("DuduScannerApp controls", () => {
         "Unknown signal stabilized",
       );
     });
-    expect(screen.queryByText("Ketchup patrol—roll out!")).not.toBeInTheDocument();
+    expect(screen.queryByText("Veggie buddies, come join the team!")).not.toBeInTheDocument();
 
     fireEvent.keyDown(window, { key: "Enter" });
     await waitFor(
       () => {
         expect(screen.getByTestId("dudu-scanner-reveal-finale")).toHaveTextContent(
-          "Ketchup patrol—roll out!",
+          "Veggie buddies, come join the team!",
         );
       },
       { timeout: 2_000 },
