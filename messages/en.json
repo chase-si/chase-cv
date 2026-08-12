@@ -167,7 +167,7 @@
         }
       }
     },
-    "contactTitle": "Contact me",
+    "contactTitle": "Contact me(Open to work)",
     "contact": {
       "upwork": "upwork",
       "channels": {
@@ -417,12 +417,12 @@
   },
   "duduScanner": {
     "title": "Dudu Scanner",
-    "subtitle": "Pick a theme, choose how much to reveal, and get ready for a silly belly scan.",
+    "subtitle": "Choose how much to reveal and get ready for a silly belly scan.",
     "scanModeHeading": "Scan mode",
     "scanModes": {
       "mystery": {
         "name": "Mystery scan",
-        "description": "The scanner secretly chooses a character from your theme."
+        "description": "The scanner secretly chooses one of the characters."
       },
       "operator": {
         "name": "Operator mode",
@@ -431,7 +431,7 @@
     },
     "mysterySummary": {
       "title": "Identity classified",
-      "description": "One of three signals will be selected at the start of every round. Lock it to reveal who is hiding inside."
+      "description": "One of ten signals will be selected at the start of every round. Lock it to reveal who is hiding inside."
     },
     "themesHeading": "Scan theme",
     "targetsHeading": "Scan target",
@@ -445,44 +445,69 @@
     "disclaimer": "For entertainment only — not a medical device.",
     "themes": {
       "snackScan": "Snack Scan",
-      "tummyCreatures": "Tummy Creatures"
+      "tummyCreatures": "Tummy Creatures",
+      "healthyBuddies": "Healthy Buddies"
     },
     "targets": {
       "frySprite": {
         "name": "Fry Sprite",
-        "revealLine": "Ketchup patrol—roll out!",
-        "description": "A tiny fry friend is combing the belly for missing ketchup.",
-        "suggestion": "Leave a little room for veggies today—they love a seat at the table too."
+        "revealLine": "Veggie buddies, come join the team!",
+        "description": "Fry Sprite has had lots of fries and is searching the belly for some veggie buddies.",
+        "suggestion": "Eat a few extra bites of vegetables at your next meal to help your belly feel strong!"
       },
       "candyCritter": {
         "name": "Candy Critter",
-        "revealLine": "Sweet-energy spin activated!",
-        "description": "Sweet energy is spinning happy circles in there.",
-        "suggestion": "Sip some water and let the sugar parade slow down."
+        "revealLine": "That's a lot of sweet energy!",
+        "description": "Candy Critter brought lots of sweet energy and is spinning nonstop inside the belly.",
+        "suggestion": "Go drink a glass of plain water now, and remember to keep drinking water!"
       },
       "bobaBubbles": {
         "name": "Boba Bubbles",
-        "revealLine": "Pop, pop—bubbles in formation!",
-        "description": "Round bubbles are lining up for a gentle wobble.",
-        "suggestion": "Give the pearls a mini vacation today."
+        "revealLine": "The boba bubbles are all filled up!",
+        "description": "You've already had plenty of milk tea today, and the belly is packed with bubbles.",
+        "suggestion": "No more milk tea today—choose plain water when you want another drink!"
       },
       "sleepyBug": {
         "name": "Sleepy Bug",
-        "revealLine": "Just five more minutes…",
-        "description": "Last night ran short, so a dreamy buddy is yawning here.",
-        "suggestion": "Hop into bed a bit earlier tonight."
+        "revealLine": "Here comes a yawn—time for a full night's sleep!",
+        "description": "There wasn't enough sleep last night, so Sleepy Bug has been yawning all day.",
+        "suggestion": "Get into bed on time tonight, put screens away, and sleep through the night!"
       },
       "rumbleMonster": {
         "name": "Rumble Monster",
-        "revealLine": "Rumble, rumble—is it mealtime?",
-        "description": "A cuddly monster is tapping a tiny drum—mealtime is near.",
-        "suggestion": "Eat on schedule so the drum can take a nap."
+        "revealLine": "Rumble, rumble—the belly is waiting for a meal!",
+        "description": "Mealtime was missed, so Rumble Monster is drumming to remind you.",
+        "suggestion": "Eat your next meal on time, and don't replace a proper meal with snacks!"
       },
       "riceBallSprite": {
         "name": "Rice Ball Sprite",
-        "revealLine": "One little bite at a time!",
-        "description": "A cheerful rice-ball pal is scouting for careful eaters.",
-        "suggestion": "Take the next bite slowly—it makes them extra happy."
+        "revealLine": "Slow down and chew every bite!",
+        "description": "The next bite arrives before Rice Ball Sprite is ready when food is eaten too quickly.",
+        "suggestion": "At your next meal, sit down, focus on eating, and chew each bite before swallowing!"
+      },
+      "eyeGuard": {
+        "name": "Eye Guard",
+        "revealLine": "Tired eyes need a little break!",
+        "description": "After too much screen time, Eye Guard raises a shield to help tired eyes rest.",
+        "suggestion": "Put the screen down now, look into the distance, and give your eyes a break!"
+      },
+      "motionEnergyBall": {
+        "name": "Motion Energy Ball",
+        "revealLine": "Wake up, energy—let's get moving!",
+        "description": "After sitting for too long, Motion Energy Ball is curled up and waiting for you to wake it.",
+        "suggestion": "Stand up now, stretch your arms, kick your legs, and walk around for a few minutes!"
+      },
+      "toothbrushKnight": {
+        "name": "Toothbrush Knight",
+        "revealLine": "The tooth castle needs a guardian!",
+        "description": "Toothbrush Knight found food critters hiding in the corners and is ready to clean them away.",
+        "suggestion": "Brush carefully before bed tonight—don't miss the inside, outside, or back teeth!"
+      },
+      "breakfastWakeUpBird": {
+        "name": "Breakfast Wake-up Bird",
+        "revealLine": "Breakfast time—let's fuel up!",
+        "description": "Breakfast was missed this morning, so Wake-up Bird is chirping inside the belly.",
+        "suggestion": "Eat breakfast on time tomorrow, then start the day full of energy!"
       }
     },
     "shortcuts": {
@@ -534,6 +559,7 @@
       "eyebrow": "Scan complete",
       "title": "Target locked!",
       "body": "Your silly belly-scan identified this character. Ready for another round?",
+      "healthTask": "Today's healthy mission",
       "scanAgain": "Scan again",
       "changeTarget": "Change target"
     }

@@ -127,13 +127,13 @@
     "toDark": "切换为深色"
   },
   "home": {
-    "eyebrow": "Brutalist Product Lab",
+    "eyebrow": "本站就是瞎玩儿",
     "introLeadPrefix": "我是 ",
     "introLeadName": "Chase",
-    "introLeadSuffix": "，一名从古法编程走来的程序员。",
-    "introPresent": "8 年工程经验，现在我用",
+    "introLeadSuffix": "自由职业程序员。",
+    "introPresent": "之前8年纯手搓，现在用",
     "introPresentDetailLead": "AI",
-    "introPresentDetailRest": " , 更好的coding。",
+    "introPresentDetailRest": " , 变身天才程序员",
     "primaryCta": "探索游乐场",
     "secondaryCta": "工作经历",
     "workbenchLabel": "混合工作台预览",
@@ -167,7 +167,7 @@
         }
       }
     },
-    "contactTitle": "联系我",
+    "contactTitle": "联系我(派点活儿)",
     "contact": {
       "upwork": "upwork",
       "channels": {
@@ -417,12 +417,12 @@
   },
   "duduScanner": {
     "title": "肚肚扫描仪",
-    "subtitle": "选好主题和扫描方式，调好声音，就可以开始神秘的肚肚扫描啦。",
+    "subtitle": "选好扫描方式，调好声音，就可以开始神秘的肚肚扫描啦。",
     "scanModeHeading": "扫描模式",
     "scanModes": {
       "mystery": {
         "name": "神秘扫描",
-        "description": "扫描仪会从当前主题中秘密选择一个角色。"
+        "description": "扫描仪会从全部角色中秘密选择一个。"
       },
       "operator": {
         "name": "操作者模式",
@@ -431,7 +431,7 @@
     },
     "mysterySummary": {
       "title": "角色身份已加密",
-      "description": "每轮开始时会从三个信号中随机抽取一个。完成锁定，才能知道是谁藏在里面。"
+      "description": "每轮开始时会从十个信号中随机抽取一个。完成锁定，才能知道是谁藏在里面。"
     },
     "themesHeading": "扫描主题",
     "targetsHeading": "扫描目标",
@@ -445,44 +445,69 @@
     "disclaimer": "仅供娱乐，非医疗工具。",
     "themes": {
       "snackScan": "零食扫描",
-      "tummyCreatures": "肚肚生物"
+      "tummyCreatures": "肚肚生物",
+      "healthyBuddies": "健康小伙伴"
     },
     "targets": {
       "frySprite": {
         "name": "薯条精灵",
-        "revealLine": "番茄酱侦察队，出发！",
-        "description": "薯条精灵正在肚肚里找失踪的番茄酱。",
-        "suggestion": "今天给青菜也留一个位置吧。"
+        "revealLine": "蔬菜伙伴，快来集合！",
+        "description": "薯条精灵吃了好多薯条，正在肚肚里寻找蔬菜伙伴。",
+        "suggestion": "下一餐多吃几口蔬菜，让肚肚变得更有力量！"
       },
       "candyCritter": {
         "name": "糖果怪",
-        "revealLine": "甜甜能量转起来！",
-        "description": "甜甜能量太多，正开心地转圈。",
-        "suggestion": "喝一点水，让它慢慢停下来。"
+        "revealLine": "甜甜能量有点多啦！",
+        "description": "糖果怪带来了好多甜甜能量，正在肚肚里转个不停。",
+        "suggestion": "现在去喝一杯白开水，接下来也要记得多喝水！"
       },
       "bobaBubbles": {
         "name": "奶茶泡泡",
-        "revealLine": "啵啵——排好队啦！",
-        "description": "圆滚滚的泡泡正在排队。",
-        "suggestion": "今天先让珍珠们放个假。"
+        "revealLine": "奶茶泡泡已经装满啦！",
+        "description": "今天已经喝了不少奶茶，肚肚里的泡泡挤得满满的。",
+        "suggestion": "今天不能再喝奶茶啦，想喝东西就换成白开水吧"
       },
       "sleepyBug": {
         "name": "瞌睡虫",
-        "revealLine": "再让我睡五分钟……",
-        "description": "昨晚没睡够，它就在这里打哈欠。",
-        "suggestion": "今晚早点钻进被窝。"
+        "revealLine": "哈欠来了，该补足睡眠啦！",
+        "description": "昨晚睡得不够，瞌睡虫一整天都在肚肚里打哈欠。",
+        "suggestion": "今晚按时上床，睡前少看屏幕，好好睡一整晚！"
       },
       "rumbleMonster": {
         "name": "咕噜小怪兽",
-        "revealLine": "咕噜咕噜，开饭了吗？",
-        "description": "它敲着小鼓提醒肚肚到饭点了。",
-        "suggestion": "按时吃饭，别让小鼓一直响。"
+        "revealLine": "咕噜咕噜，肚肚在等正餐！",
+        "description": "错过了吃饭时间，咕噜小怪兽正敲鼓提醒你。",
+        "suggestion": "下一餐要按时吃正餐，不可以用零食替代哦"
       },
       "riceBallSprite": {
         "name": "饭团精灵",
-        "revealLine": "一口一口，慢慢来！",
-        "description": "它正在寻找认真吃饭的新朋友。",
-        "suggestion": "下一顿慢慢吃，它会更开心。"
+        "revealLine": "别着急，每一口都要慢慢嚼！",
+        "description": "吃得太快，饭团精灵还没准备好，下一口就来了。",
+        "suggestion": "吃饭记得细嚼慢咽哦"
+      },
+      "eyeGuard": {
+        "name": "护眼小卫士",
+        "revealLine": "眼睛累啦，该休息一下！",
+        "description": "看了太久的屏幕，护眼小卫士举起盾牌，来帮眼睛挡住疲劳。",
+        "suggestion": "现在放下屏幕，看看远处，让眼睛休息一会儿！"
+      },
+      "motionEnergyBall": {
+        "name": "运动能量球",
+        "revealLine": "能量醒醒，身体动起来！",
+        "description": "坐得太久，运动能量球缩成了小小一团，正在等你把它唤醒。",
+        "suggestion": "现在站起来伸伸手、踢踢腿，再走动几分钟！"
+      },
+      "toothbrushKnight": {
+        "name": "刷牙小骑士",
+        "revealLine": "牙齿城堡需要守护！",
+        "description": "刷牙小骑士发现牙齿角落里还藏着食物小怪兽，准备出发清理。",
+        "suggestion": "今晚睡觉前认真刷牙，牙齿里面、外面和后面都别漏掉！"
+      },
+      "breakfastWakeUpBird": {
+        "name": "早餐叫醒鸟",
+        "revealLine": "早餐时间到，快给身体加油！",
+        "description": "早上没有好好吃早餐，叫醒鸟正在肚肚里咕咕叫。",
+        "suggestion": "明天早上按时吃早餐，吃饱再精神满满地出发！"
       }
     },
     "shortcuts": {
@@ -534,6 +559,7 @@
       "eyebrow": "扫描完成",
       "title": "目标已锁定！",
       "body": "肚肚扫描确认了这个神秘角色。要再来一轮吗？",
+      "healthTask": "今日健康小任务",
       "scanAgain": "再扫一次",
       "changeTarget": "更换目标"
     }

@@ -1,5 +1,6 @@
 import {
   coerceDuduScannerConfig,
+  getThemeIdForTarget,
   type DuduScannerConfigShape,
   type DuduScannerScanMode,
   type DuduScannerThemeId,
@@ -25,7 +26,11 @@ export function applyTargetChange(
   config: DuduScannerConfig,
   targetId: DuduScannerConfig["targetId"],
 ): DuduScannerConfig {
-  return coerceDuduScannerConfig({ ...config, targetId });
+  return coerceDuduScannerConfig({
+    ...config,
+    themeId: getThemeIdForTarget(targetId),
+    targetId,
+  });
 }
 
 export function applySoundChange(

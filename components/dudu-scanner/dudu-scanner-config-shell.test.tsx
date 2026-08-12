@@ -48,7 +48,8 @@ describe("DuduScannerConfigShell", () => {
     expect(
       screen.getAllByRole("button").indexOf(operatorMode),
     ).toBeLessThan(screen.getAllByRole("button").indexOf(mysteryMode));
-    expect(screen.getByRole("button", { name: "Snack Scan", pressed: true })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Snack Scan" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tummy Creatures" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Fry Sprite" })).not.toBeInTheDocument();
     expect(screen.getByTestId("dudu-scanner-mystery-summary")).toBeInTheDocument();
     expect(screen.getByRole("switch", { name: "Sound effects" })).toHaveAttribute(
@@ -65,7 +66,8 @@ describe("DuduScannerConfigShell", () => {
     expect(
       screen.getByRole("button", { name: "神秘扫描", pressed: true }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "零食扫描", pressed: true })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "零食扫描" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "肚肚生物" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "薯条精灵" })).not.toBeInTheDocument();
     expect(screen.getByText("仅供娱乐，非医疗工具。")).toBeInTheDocument();
   });
@@ -76,21 +78,30 @@ describe("DuduScannerConfigShell", () => {
     expect(
       screen.getByRole("button", { name: "Mystery scan", pressed: true }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Snack Scan", pressed: true })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Snack Scan" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Fry Sprite" })).not.toBeInTheDocument();
   });
 
-  it("shows only three targets for the active theme and keeps a valid selection", () => {
+  it("shows all targets together and keeps the selected target", () => {
     renderShell("en");
 
     fireEvent.click(screen.getByRole("button", { name: "Operator mode" }));
-    fireEvent.click(screen.getByRole("button", { name: "Tummy Creatures" }));
-
-    const tummyTargets = ["Sleepy Bug", "Rumble Monster", "Rice Ball Sprite"];
-    for (const name of tummyTargets) {
+    const targets = [
+      "Fry Sprite",
+      "Candy Critter",
+      "Boba Bubbles",
+      "Sleepy Bug",
+      "Rumble Monster",
+      "Rice Ball Sprite",
+      "Eye Guard",
+      "Motion Energy Ball",
+      "Toothbrush Knight",
+      "Breakfast Wake-up Bird",
+    ];
+    for (const name of targets) {
       expect(screen.getByRole("button", { name })).toBeInTheDocument();
     }
-    expect(screen.queryByRole("button", { name: "Fry Sprite" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Sleepy Bug" }));
     expect(screen.getByRole("button", { name: "Sleepy Bug", pressed: true })).toBeInTheDocument();
   });
 
@@ -98,7 +109,6 @@ describe("DuduScannerConfigShell", () => {
     const { unmount } = renderShell("en");
 
     fireEvent.click(screen.getByRole("button", { name: "Operator mode" }));
-    fireEvent.click(screen.getByRole("button", { name: "Tummy Creatures" }));
     fireEvent.click(screen.getByRole("button", { name: "Rumble Monster" }));
     fireEvent.click(screen.getByRole("switch", { name: "Sound effects" }));
 
@@ -110,7 +120,7 @@ describe("DuduScannerConfigShell", () => {
     unmount();
     renderShell("en");
 
-    expect(screen.getByRole("button", { name: "Tummy Creatures", pressed: true })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tummy Creatures" })).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Operator mode", pressed: true }),
     ).toBeInTheDocument();

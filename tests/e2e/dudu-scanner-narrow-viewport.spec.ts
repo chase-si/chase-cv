@@ -46,11 +46,30 @@ test.describe("dudu scanner narrow viewport", () => {
       timeout: 3000,
     });
     await expect(page.getByTestId("dudu-scanner-status")).toHaveText(
-      "Target revealed — ready to lock",
+      "Unknown signal stabilized — lock to identify",
       { timeout: 3000 },
     );
     await page.getByTestId("dudu-scanner-operator-lock").click();
     await expect(page.getByTestId("dudu-scanner-lock-frame")).toBeVisible();
     await expect(page.getByTestId("dudu-scanner-result-view")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId("dudu-scanner-health-guidance")).toBeVisible();
+    await expect(page.getByTestId("dudu-scanner-scan-again")).toBeVisible();
+  });
+
+  test("shows all ten operator targets without horizontal overflow", async ({ page }) => {
+    await page.goto(DUDU_SCANNER_PATH);
+    await page.getByRole("button", { name: "Operator mode" }).click();
+
+    await expect(page.getByRole("button", { name: "Eye Guard" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Motion Energy Ball" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Toothbrush Knight" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Breakfast Wake-up Bird" })).toBeVisible();
+
+    const appRoot = page.getByTestId("dudu-scanner-app-root");
+    const hasHorizontalOverflow = await appRoot.evaluate((node) => {
+      const element = node as HTMLElement;
+      return element.scrollWidth > element.clientWidth + 1;
+    });
+    expect(hasHorizontalOverflow).toBe(false);
   });
 });

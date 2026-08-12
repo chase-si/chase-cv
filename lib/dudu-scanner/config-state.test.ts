@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   applyScanModeChange,
+  applyTargetChange,
   applyThemeChange,
   type DuduScannerConfig,
 } from "@/lib/dudu-scanner/config-state";
@@ -32,6 +33,22 @@ describe("dudu scanner config state", () => {
     expect(applyScanModeChange(base, "operator")).toEqual({
       ...base,
       scanMode: "operator",
+    });
+  });
+
+  it("selects a target from either legacy theme", () => {
+    expect(applyTargetChange(base, "sleepy-bug")).toEqual({
+      ...base,
+      themeId: "tummy-creatures",
+      targetId: "sleepy-bug",
+    });
+  });
+
+  it("selects a target from the healthy buddies collection", () => {
+    expect(applyTargetChange(base, "eye-guard")).toEqual({
+      ...base,
+      themeId: "healthy-buddies",
+      targetId: "eye-guard",
     });
   });
 });

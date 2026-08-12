@@ -2,10 +2,11 @@ import type { DuduScannerTargetId, DuduScannerThemeId } from "@/lib/dudu-scanner
 
 export const DUDU_SCANNER_THEME_MESSAGE_KEY: Record<
   DuduScannerThemeId,
-  "snackScan" | "tummyCreatures"
+  "snackScan" | "tummyCreatures" | "healthyBuddies"
 > = {
   "snack-scan": "snackScan",
   "tummy-creatures": "tummyCreatures",
+  "healthy-buddies": "healthyBuddies",
 };
 
 export const DUDU_SCANNER_TARGET_MESSAGE_KEY: Record<
@@ -16,6 +17,10 @@ export const DUDU_SCANNER_TARGET_MESSAGE_KEY: Record<
   | "sleepyBug"
   | "rumbleMonster"
   | "riceBallSprite"
+  | "eyeGuard"
+  | "motionEnergyBall"
+  | "toothbrushKnight"
+  | "breakfastWakeUpBird"
 > = {
   "fry-sprite": "frySprite",
   "candy-critter": "candyCritter",
@@ -23,6 +28,10 @@ export const DUDU_SCANNER_TARGET_MESSAGE_KEY: Record<
   "sleepy-bug": "sleepyBug",
   "rumble-monster": "rumbleMonster",
   "rice-ball-sprite": "riceBallSprite",
+  "eye-guard": "eyeGuard",
+  "motion-energy-ball": "motionEnergyBall",
+  "toothbrush-knight": "toothbrushKnight",
+  "breakfast-wake-up-bird": "breakfastWakeUpBird",
 };
 
 export const DUDU_SCANNER_SHORTCUT_KEYS = [
