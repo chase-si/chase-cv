@@ -95,6 +95,7 @@ export type CreateScannerVisualRendererOptions = {
   palette?: ScannerVisualPalette;
   onDiscovery?: () => void;
   metricsIntervalMs?: number;
+  maxFramesPerSecond?: number;
 };
 
 const defaultState: ScannerVisualRenderState = {
@@ -115,6 +116,8 @@ const defaultPalette: ScannerVisualPalette = {
   spotlightAccent: "Highlight",
   spotlightParticle: "Highlight",
 };
+
+const NOISE_TEXTURE_FRAME_COUNT = 3;
 
 function hashNoise(x: number, y: number, frame: number): number {
   const value = Math.sin(x * 12.9898 + y * 78.233 + frame * 0.17) * 43758.5453;
@@ -207,6 +210,7 @@ export function createScannerVisualRenderer(
     palette = defaultPalette,
     onDiscovery,
     metricsIntervalMs = 80,
+    maxFramesPerSecond = 30,
   } = options;
 
   const context = canvas.getContext("2d");
@@ -235,6 +239,33 @@ export function createScannerVisualRenderer(
   let lockStartedAt: number | null = null;
   let cssWidth = 1;
   let cssHeight = 1;
+  let lastRenderedAt = Number.NEGATIVE_INFINITY;
+  let noiseTextures: HTMLCanvasElement[] = [];
+
+  const buildNoiseTextures = (width: number, height: number) => {
+    const textureWidth = Math.max(1, Math.ceil(width));
+    const textureHeight = Math.max(1, Math.ceil(height));
+    noiseTextures = Array.from({ length: NOISE_TEXTURE_FRAME_COUNT }, (_, textureFrame) => {
+      const texture = document.createElement("canvas");
+      texture.width = textureWidth;
+      texture.height = textureHeight;
+      const textureContext = texture.getContext("2d");
+      if (!textureContext) {
+        return texture;
+      }
+
+      const step = 6;
+      for (let y = 0; y < textureHeight; y += step) {
+        for (let x = 0; x < textureWidth; x += step) {
+          const n = hashNoise(x * 0.04, y * 0.04, textureFrame * 13);
+          const gray = Math.floor(18 + n * 42);
+          textureContext.fillStyle = `rgba(${gray}, ${gray + 4}, ${gray + 8}, 0.55)`;
+          textureContext.fillRect(x, y, step, step);
+        }
+      }
+      return texture;
+    });
+  };
 
   const resetTargetMotion = () => {
     const fan = computeFanGeometry(cssWidth, cssHeight);
@@ -250,6 +281,8 @@ export function createScannerVisualRenderer(
     canvas.style.width = `${layout.cssWidth}px`;
     canvas.style.height = `${layout.cssHeight}px`;
     context.setTransform(layout.devicePixelRatio, 0, 0, layout.devicePixelRatio, 0, 0);
+    const fan = computeFanGeometry(cssWidth, cssHeight);
+    buildNoiseTextures(fan.radius * 2, fan.radius);
     resetTargetMotion();
   };
 
@@ -317,18 +350,19 @@ export function createScannerVisualRenderer(
   const drawNoiseLayer = (
     fan: ReturnType<typeof computeFanGeometry>,
     motionScale: number,
-    offsetX: number,
-    offsetY: number,
   ) => {
-    const step = 6;
-    for (let y = fan.cy - fan.radius; y < fan.cy; y += step) {
-      for (let x = fan.cx - fan.radius; x < fan.cx + fan.radius; x += step) {
-        const n = hashNoise(x * 0.04 + offsetX, y * 0.04 + offsetY, frame * motionScale);
-        const gray = Math.floor(18 + n * 42);
-        context.fillStyle = `rgba(${gray}, ${gray + 4}, ${gray + 8}, 0.55)`;
-        context.fillRect(x, y, step, step);
-      }
+    if (noiseTextures.length === 0) {
+      return;
     }
+    const textureFrame = Math.floor(frame * Math.max(0.25, motionScale) * 0.18);
+    const texture = noiseTextures[textureFrame % noiseTextures.length];
+    context.drawImage(
+      texture,
+      fan.cx - fan.radius,
+      fan.cy - fan.radius,
+      fan.radius * 2,
+      fan.radius,
+    );
   };
 
   const drawTextureLayer = (
@@ -374,12 +408,7 @@ export function createScannerVisualRenderer(
     context.arc(probeX, probeY, spotlightRadius, 0, Math.PI * 2);
     context.clip();
     context.globalAlpha = 0.65 + signalStrength * 0.35;
-    drawNoiseLayer(
-      fan,
-      motionScale,
-      probe.textureOffsetX * fan.radius,
-      probe.textureOffsetY * fan.radius,
-    );
+    drawNoiseLayer(fan, motionScale);
     drawTextureLayer(
       fan,
       motionScale,
@@ -593,8 +622,19 @@ export function createScannerVisualRenderer(
       return;
     }
     const now = getNow();
+    const targetFramesPerSecond = !state.active && !state.locking
+      ? 5
+      : state.reducedMotion
+        ? Math.min(15, maxFramesPerSecond)
+        : maxFramesPerSecond;
+    const minimumFrameInterval = 1000 / Math.max(1, targetFramesPerSecond);
+    if (now - lastRenderedAt < minimumFrameInterval) {
+      rafId = requestFrame(draw);
+      return;
+    }
     const deltaMs = Math.max(0, now - lastFrameAt);
     lastFrameAt = now;
+    lastRenderedAt = now;
     const fan = computeFanGeometry(cssWidth, cssHeight);
     const motionPolicy = resolveScannerMotionPolicy(state.reducedMotion);
     const elapsedSeconds = (now - startedAt) / 1000;
@@ -633,12 +673,7 @@ export function createScannerVisualRenderer(
     context.save();
     drawFanMask(fan);
 
-    drawNoiseLayer(
-      fan,
-      motionPolicy.textureMotion,
-      probe.textureOffsetX * fan.radius,
-      probe.textureOffsetY * fan.radius,
-    );
+    drawNoiseLayer(fan, motionPolicy.textureMotion);
     drawTextureLayer(
       fan,
       motionPolicy.textureMotion,
@@ -745,6 +780,7 @@ export function createScannerVisualRenderer(
       started = true;
       startedAt = getNow();
       lastFrameAt = startedAt;
+      lastRenderedAt = Number.NEGATIVE_INFINITY;
       resize(true);
       if (pageVisible) {
         rafId = requestFrame(draw);
@@ -769,6 +805,7 @@ export function createScannerVisualRenderer(
         hiddenAt = null;
       }
       lastFrameAt = resumedAt;
+      lastRenderedAt = Number.NEGATIVE_INFINITY;
       if (started && !rafId) {
         rafId = requestFrame(draw);
       }
@@ -819,6 +856,7 @@ export function createScannerVisualRenderer(
       if (seedChanged) {
         startedAt = getNow();
         lastFrameAt = startedAt;
+        lastRenderedAt = Number.NEGATIVE_INFINITY;
       }
       if (seedChanged || targetWasCancelled) {
         dwellMs = 0;
@@ -840,6 +878,7 @@ export function createScannerVisualRenderer(
         rafId = 0;
       }
       smoother.reset();
+      noiseTextures = [];
     },
     getMetrics,
     getTargetPosition() {

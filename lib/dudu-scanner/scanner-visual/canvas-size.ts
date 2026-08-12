@@ -1,4 +1,4 @@
-export const DEFAULT_MAX_DEVICE_PIXEL_RATIO = 2;
+export const DEFAULT_MAX_DEVICE_PIXEL_RATIO = 1.5;
 export const DEFAULT_RESIZE_THROTTLE_MS = 120;
 
 export type CanvasLayout = {

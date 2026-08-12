@@ -7,10 +7,10 @@ import {
 
 describe("scanner canvas sizing", () => {
   it("caps device pixel ratio", () => {
-    const layout = computeCanvasLayout(400, 300, 3, 2);
-    expect(layout.devicePixelRatio).toBe(2);
-    expect(layout.pixelWidth).toBe(800);
-    expect(layout.pixelHeight).toBe(600);
+    const layout = computeCanvasLayout(400, 300, 3);
+    expect(layout.devicePixelRatio).toBe(1.5);
+    expect(layout.pixelWidth).toBe(600);
+    expect(layout.pixelHeight).toBe(450);
   });
 
   it("throttles rapid resize callbacks", () => {

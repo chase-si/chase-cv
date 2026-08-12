@@ -38,6 +38,63 @@ describe("scanner visual renderer lifecycle", () => {
     expect(cancelFrame).toHaveBeenCalledWith(1);
   });
 
+  it("keeps steady-state canvas draw calls bounded per rendered frame", () => {
+    const { canvas } = createTestCanvas();
+    const rect = new DOMRect(0, 0, 800, 600);
+    let now = 0;
+    let nextFrame: FrameRequestCallback | null = null;
+    const context = canvas.getContext("2d")!;
+    const fillRect = vi.spyOn(context, "fillRect");
+    const renderer = createScannerVisualRenderer({
+      canvas,
+      getStageRect: () => rect,
+      requestFrame: (callback) => {
+        nextFrame = callback;
+        return 1;
+      },
+      cancelFrame: () => {},
+      getNow: () => now,
+    });
+
+    renderer.start();
+    fillRect.mockClear();
+    now = 40;
+    nextFrame!(now);
+
+    expect(fillRect.mock.calls.length).toBeLessThan(50);
+    fillRect.mockRestore();
+    renderer.destroy();
+  });
+
+  it("caps steady-state rendering at 30 frames per second", () => {
+    const { canvas } = createTestCanvas();
+    const rect = new DOMRect(0, 0, 800, 600);
+    let now = 0;
+    let nextFrame: FrameRequestCallback | null = null;
+    const context = canvas.getContext("2d")!;
+    const clearRect = vi.spyOn(context, "clearRect");
+    const renderer = createScannerVisualRenderer({
+      canvas,
+      getStageRect: () => rect,
+      requestFrame: (callback) => {
+        nextFrame = callback;
+        return 1;
+      },
+      cancelFrame: () => {},
+      getNow: () => now,
+    });
+
+    renderer.start();
+    nextFrame!(now);
+    clearRect.mockClear();
+    now = 10;
+    nextFrame!(now);
+
+    expect(clearRect).not.toHaveBeenCalled();
+    clearRect.mockRestore();
+    renderer.destroy();
+  });
+
   it("pauses and resumes the animation lifecycle with page visibility", () => {
     const { canvas, stage } = createTestCanvas();
     const requestFrame = vi.fn<(callback: FrameRequestCallback) => number>().mockReturnValue(7);
