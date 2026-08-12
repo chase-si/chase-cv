@@ -15,7 +15,11 @@ const TARGET_COPY_FIELDS = ["name", "revealLine", "description", "suggestion"] a
 
 describe("dudu scanner catalog", () => {
   it("maps each target to stable production character assets", () => {
-    const geminiProductionTargets = new Set(["boba-bubbles", "sleepy-bug"]);
+    const geminiProductionTargets = new Set([
+      "fry-sprite",
+      "boba-bubbles",
+      "sleepy-bug",
+    ]);
     const sharedFallbackTargets = new Map([
       ["eye-guard", "rumble-monster"],
       ["motion-energy-ball", "candy-critter"],

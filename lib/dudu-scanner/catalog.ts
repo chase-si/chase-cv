@@ -35,6 +35,7 @@ export type DuduScannerTargetRecord = {
 };
 
 const GEMINI_PRODUCTION_TARGET_IDS: ReadonlySet<DuduScannerTargetId> = new Set([
+  "fry-sprite",
   "boba-bubbles",
   "sleepy-bug",
 ]);
