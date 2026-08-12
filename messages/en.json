@@ -450,39 +450,39 @@
     "targets": {
       "frySprite": {
         "name": "Fry Sprite",
-        "revealLine": "Ketchup patrol—roll out!",
-        "description": "A tiny fry friend is combing the belly for missing ketchup.",
-        "suggestion": "Leave a little room for veggies today—they love a seat at the table too."
+        "revealLine": "Veggie buddies, come join the team!",
+        "description": "Fry Sprite has had lots of fries and is searching the belly for some veggie buddies.",
+        "suggestion": "Eat a few extra bites of vegetables at your next meal to help your belly feel strong!"
       },
       "candyCritter": {
         "name": "Candy Critter",
-        "revealLine": "Sweet-energy spin activated!",
-        "description": "Sweet energy is spinning happy circles in there.",
-        "suggestion": "Sip some water and let the sugar parade slow down."
+        "revealLine": "That's a lot of sweet energy!",
+        "description": "Candy Critter brought lots of sweet energy and is spinning nonstop inside the belly.",
+        "suggestion": "Go drink a glass of plain water now, and remember to keep drinking water!"
       },
       "bobaBubbles": {
         "name": "Boba Bubbles",
-        "revealLine": "Pop, pop—bubbles in formation!",
-        "description": "Round bubbles are lining up for a gentle wobble.",
-        "suggestion": "Give the pearls a mini vacation today."
+        "revealLine": "The boba bubbles are all filled up!",
+        "description": "You've already had plenty of milk tea today, and the belly is packed with bubbles.",
+        "suggestion": "No more milk tea today—choose plain water when you want another drink!"
       },
       "sleepyBug": {
         "name": "Sleepy Bug",
-        "revealLine": "Just five more minutes…",
-        "description": "Last night ran short, so a dreamy buddy is yawning here.",
-        "suggestion": "Hop into bed a bit earlier tonight."
+        "revealLine": "Here comes a yawn—time for a full night's sleep!",
+        "description": "There wasn't enough sleep last night, so Sleepy Bug has been yawning all day.",
+        "suggestion": "Get into bed on time tonight, put screens away, and sleep through the night!"
       },
       "rumbleMonster": {
         "name": "Rumble Monster",
-        "revealLine": "Rumble, rumble—is it mealtime?",
-        "description": "A cuddly monster is tapping a tiny drum—mealtime is near.",
-        "suggestion": "Eat on schedule so the drum can take a nap."
+        "revealLine": "Rumble, rumble—the belly is waiting for a meal!",
+        "description": "Mealtime was missed, so Rumble Monster is drumming to remind you.",
+        "suggestion": "Eat your next meal on time, and don't replace a proper meal with snacks!"
       },
       "riceBallSprite": {
         "name": "Rice Ball Sprite",
-        "revealLine": "One little bite at a time!",
-        "description": "A cheerful rice-ball pal is scouting for careful eaters.",
-        "suggestion": "Take the next bite slowly—it makes them extra happy."
+        "revealLine": "Slow down and chew every bite!",
+        "description": "The next bite arrives before Rice Ball Sprite is ready when food is eaten too quickly.",
+        "suggestion": "At your next meal, sit down, focus on eating, and chew each bite before swallowing!"
       }
     },
     "shortcuts": {
@@ -534,6 +534,7 @@
       "eyebrow": "Scan complete",
       "title": "Target locked!",
       "body": "Your silly belly-scan identified this character. Ready for another round?",
+      "healthTask": "Today's healthy mission",
       "scanAgain": "Scan again",
       "changeTarget": "Change target"
     }

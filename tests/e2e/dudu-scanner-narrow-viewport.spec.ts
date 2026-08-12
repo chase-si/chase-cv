@@ -46,11 +46,13 @@ test.describe("dudu scanner narrow viewport", () => {
       timeout: 3000,
     });
     await expect(page.getByTestId("dudu-scanner-status")).toHaveText(
-      "Target revealed — ready to lock",
+      "Unknown signal stabilized — lock to identify",
       { timeout: 3000 },
     );
     await page.getByTestId("dudu-scanner-operator-lock").click();
     await expect(page.getByTestId("dudu-scanner-lock-frame")).toBeVisible();
     await expect(page.getByTestId("dudu-scanner-result-view")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId("dudu-scanner-health-guidance")).toBeVisible();
+    await expect(page.getByTestId("dudu-scanner-scan-again")).toBeVisible();
   });
 });
