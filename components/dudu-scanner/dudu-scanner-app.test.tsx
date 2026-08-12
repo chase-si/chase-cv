@@ -173,7 +173,7 @@ describe("DuduScannerApp controls", () => {
     window.sessionStorage.setItem("dudu-scanner-immersive-v1", "1");
 
     renderApp();
-    expect(screen.getByRole("button", { name: "Tummy Creatures", pressed: true })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tummy Creatures" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Rumble Monster", pressed: true })).toBeInTheDocument();
     expect(window.sessionStorage.getItem("dudu-scanner-immersive-v1")).toBeNull();
   });
@@ -243,13 +243,14 @@ describe("DuduScannerApp controls", () => {
     vi.stubGlobal("Image", FailImage as unknown as typeof Image);
 
     renderApp();
+    fireEvent.click(screen.getByRole("button", { name: "Operator mode" }));
     await startScan();
     fireEvent.keyDown(window, { key: " " });
 
     await waitFor(() => {
       expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent("Signal detected");
     });
-    expect(assignedSources).toContain("/dudu-scanner/placeholders/fry-sprite.svg");
+    expect(assignedSources).toContain(getTargetRecord("fry-sprite").placeholderSrc);
   });
 
   it("reveals and locks through the touch operator bar", async () => {
@@ -291,13 +292,13 @@ describe("DuduScannerApp controls", () => {
         "Unknown signal stabilized",
       );
     });
-    expect(screen.queryByText("Ketchup patrol—roll out!")).not.toBeInTheDocument();
+    expect(screen.queryByText("Veggie buddies, come join the team!")).not.toBeInTheDocument();
 
     fireEvent.keyDown(window, { key: "Enter" });
     await waitFor(
       () => {
         expect(screen.getByTestId("dudu-scanner-reveal-finale")).toHaveTextContent(
-          "Ketchup patrol—roll out!",
+          "Veggie buddies, come join the team!",
         );
       },
       { timeout: 2_000 },

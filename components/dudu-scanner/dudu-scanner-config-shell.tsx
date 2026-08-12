@@ -9,16 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import {
-  DUDU_SCANNER_THEME_IDS,
-  getTargetIdsForTheme,
+  DUDU_SCANNER_TARGET_IDS,
   getTargetRecord,
   type DuduScannerScanMode,
-  type DuduScannerThemeId,
 } from "@/lib/dudu-scanner/catalog";
-import {
-  DUDU_SCANNER_TARGET_MESSAGE_KEY,
-  DUDU_SCANNER_THEME_MESSAGE_KEY,
-} from "@/lib/dudu-scanner/i18n-keys";
+import { DUDU_SCANNER_TARGET_MESSAGE_KEY } from "@/lib/dudu-scanner/i18n-keys";
 import { useDuduScannerConfig } from "@/lib/dudu-scanner/use-dudu-scanner-config";
 import { cn } from "@/lib/utils";
 
@@ -30,9 +25,7 @@ export function DuduScannerConfigShell({
   assetLoadWarning?: boolean;
 }) {
   const t = useTranslations("duduScanner");
-  const { config, setScanMode, setThemeId, setTargetId, setSoundEnabled } =
-    useDuduScannerConfig();
-  const visibleTargets = getTargetIdsForTheme(config.themeId);
+  const { config, setScanMode, setTargetId, setSoundEnabled } = useDuduScannerConfig();
 
   return (
     <main
@@ -61,9 +54,6 @@ export function DuduScannerConfigShell({
 
       <div className="grid gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-stretch">
         <Card className="flex flex-col overflow-hidden lg:min-h-0">
-          <CardHeader className="gap-1 border-b border-border px-4 py-3">
-            <CardTitle className="text-base">{t("themesHeading")}</CardTitle>
-          </CardHeader>
           <CardContent className="flex flex-col gap-4 px-4 py-3 lg:min-h-0">
             <div className="space-y-2">
               <h2 className="text-sm font-medium text-foreground">{t("scanModeHeading")}</h2>
@@ -101,30 +91,11 @@ export function DuduScannerConfigShell({
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {DUDU_SCANNER_THEME_IDS.map((themeId) => {
-                const messageKey = DUDU_SCANNER_THEME_MESSAGE_KEY[themeId];
-                const selected = config.themeId === themeId;
-                return (
-                  <Button
-                    key={themeId}
-                    type="button"
-                    size="sm"
-                    variant={selected ? "default" : "outline"}
-                    aria-pressed={selected}
-                    onClick={() => setThemeId(themeId as DuduScannerThemeId)}
-                  >
-                    {t(`themes.${messageKey}`)}
-                  </Button>
-                );
-              })}
-            </div>
-
             {config.scanMode === "operator" ? (
               <div className="min-h-0 space-y-2">
                 <h2 className="text-sm font-medium text-foreground">{t("targetsHeading")}</h2>
-                <div className="grid gap-2 sm:grid-cols-3">
-                  {visibleTargets.map((targetId) => {
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                  {DUDU_SCANNER_TARGET_IDS.map((targetId) => {
                     const messageKey = DUDU_SCANNER_TARGET_MESSAGE_KEY[targetId];
                     const selected = config.targetId === targetId;
                     const { imageSrc } = getTargetRecord(targetId);

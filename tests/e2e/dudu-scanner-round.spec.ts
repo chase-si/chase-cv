@@ -18,6 +18,7 @@ function hashTargetSeed(targetId: string): number {
 
 async function startScanRound(page: import("@playwright/test").Page) {
   await page.goto(DUDU_SCANNER_PATH);
+  await page.getByRole("button", { name: "Operator mode" }).click();
   await page.getByRole("button", { name: "Start scan" }).click();
   await expect(page.getByTestId("dudu-scanner-scan-view")).toBeVisible();
 }
@@ -160,14 +161,14 @@ test.describe("dudu scanner round", () => {
 
   test("refresh during scan returns to config with persisted preferences", async ({ page }) => {
     await page.goto(DUDU_SCANNER_PATH);
-    await page.getByRole("button", { name: "Tummy Creatures" }).click();
+    await page.getByRole("button", { name: "Operator mode" }).click();
     await page.getByRole("button", { name: "Rumble Monster" }).click();
     await page.getByRole("button", { name: "Start scan" }).click();
     await expect(page.getByTestId("dudu-scanner-scan-view")).toBeVisible();
 
     await page.reload();
     await expect(page.getByRole("heading", { name: "Dudu Scanner" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Tummy Creatures", pressed: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Operator mode", pressed: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Rumble Monster", pressed: true })).toBeVisible();
   });
 });

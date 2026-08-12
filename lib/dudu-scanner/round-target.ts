@@ -1,8 +1,7 @@
 import {
-  getTargetIdsForTheme,
+  DUDU_SCANNER_TARGET_IDS,
   type DuduScannerConfigShape,
   type DuduScannerTargetId,
-  type DuduScannerThemeId,
 } from "@/lib/dudu-scanner/catalog";
 
 function clampRandomUnit(value: number): number {
@@ -13,17 +12,15 @@ function clampRandomUnit(value: number): number {
 }
 
 export function pickMysteryTarget(
-  themeId: DuduScannerThemeId,
   random: () => number = Math.random,
   excludedTargetId?: DuduScannerTargetId | null,
 ): DuduScannerTargetId {
-  const themeTargets = getTargetIdsForTheme(themeId);
   const candidates =
-    excludedTargetId && themeTargets.length > 1
-      ? themeTargets.filter((targetId) => targetId !== excludedTargetId)
-      : themeTargets;
+    excludedTargetId && DUDU_SCANNER_TARGET_IDS.length > 1
+      ? DUDU_SCANNER_TARGET_IDS.filter((targetId) => targetId !== excludedTargetId)
+      : DUDU_SCANNER_TARGET_IDS;
   const index = Math.floor(clampRandomUnit(random()) * candidates.length);
-  return candidates[index] ?? themeTargets[0];
+  return candidates[index] ?? DUDU_SCANNER_TARGET_IDS[0];
 }
 
 export function resolveRoundTarget(
@@ -34,5 +31,5 @@ export function resolveRoundTarget(
   if (config.scanMode === "operator") {
     return config.targetId;
   }
-  return pickMysteryTarget(config.themeId, random, excludedTargetId);
+  return pickMysteryTarget(random, excludedTargetId);
 }

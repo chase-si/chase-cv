@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { DuduScannerBackButton } from "@/components/dudu-scanner/dudu-scanner-back-button";
 import { DuduScannerFanCanvas } from "@/components/dudu-scanner/dudu-scanner-fan-canvas";
@@ -63,6 +63,18 @@ const initialMetrics: ScannerVisualMetrics = {
   scanFrequencyHz: 0.9,
 };
 
+function scannerMetricsAffectHud(
+  previous: ScannerVisualMetrics,
+  next: ScannerVisualMetrics,
+): boolean {
+  return (
+    Math.round(previous.signalStrength * 100) !== Math.round(next.signalStrength * 100) ||
+    previous.signalBand !== next.signalBand ||
+    previous.probeInside !== next.probeInside ||
+    previous.probeHasEntered !== next.probeHasEntered
+  );
+}
+
 export function DuduScannerScanView({
   targetId,
   targetImageSrc,
@@ -89,6 +101,13 @@ export function DuduScannerScanView({
   );
   const [metrics, setMetrics] = useState<ScannerVisualMetrics>(initialMetrics);
   const [timestamp, setTimestamp] = useState(() => formatHudTimestamp(new Date()));
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setTimestamp(formatHudTimestamp(new Date()));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, []);
   const statusKey =
     scanStage === "auto-scan"
       ? "initializing"
@@ -133,8 +152,7 @@ export function DuduScannerScanView({
       onDiscovery={onDiscovery}
       onLockRequest={() => onDomainCommand?.({ type: "LOCK_SIGNAL" })}
       onMetricsChange={(next) => {
-        setMetrics(next);
-        setTimestamp(formatHudTimestamp(new Date()));
+        setMetrics((previous) => (scannerMetricsAffectHud(previous, next) ? next : previous));
         onScanMetrics?.(next);
       }}
     />

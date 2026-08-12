@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Heart } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
@@ -62,9 +63,20 @@ export function DuduScannerResultView({
         <p className="max-w-sm text-sm text-muted-foreground">
           {t(`targets.${targetMessageKey}.description`)}
         </p>
-        <p className="max-w-sm text-sm font-medium text-foreground">
-          {t(`targets.${targetMessageKey}.suggestion`)}
-        </p>
+        <div
+          className="flex w-full max-w-sm items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 px-3 py-3 text-left"
+          data-testid="dudu-scanner-health-guidance"
+        >
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Heart className="size-4" aria-hidden />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-primary">{t("result.healthTask")}</p>
+            <p className="mt-1 text-sm font-medium leading-relaxed text-foreground">
+              {t(`targets.${targetMessageKey}.suggestion`)}
+            </p>
+          </div>
+        </div>
       </div>
 
       <p className="text-sm text-muted-foreground">{t("disclaimer")}</p>

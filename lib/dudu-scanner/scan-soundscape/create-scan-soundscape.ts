@@ -64,6 +64,26 @@ const CHARACTER_LOCK_CUE_PROFILES: Record<DuduScannerTargetId, CharacterCueProfi
     oscillatorType: "triangle",
     durationSeconds: 0.68,
   },
+  "eye-guard": {
+    frequencies: [523.25, 659.25, 783.99],
+    oscillatorType: "sine",
+    durationSeconds: 0.72,
+  },
+  "motion-energy-ball": {
+    frequencies: [440, 659.25, 880],
+    oscillatorType: "square",
+    durationSeconds: 0.64,
+  },
+  "toothbrush-knight": {
+    frequencies: [392, 587.33, 783.99],
+    oscillatorType: "triangle",
+    durationSeconds: 0.74,
+  },
+  "breakfast-wake-up-bird": {
+    frequencies: [493.88, 659.25, 987.77],
+    oscillatorType: "sine",
+    durationSeconds: 0.78,
+  },
 };
 
 export function getCharacterLockCueProfile(

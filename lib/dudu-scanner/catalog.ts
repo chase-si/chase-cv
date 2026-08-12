@@ -1,4 +1,8 @@
-export const DUDU_SCANNER_THEME_IDS = ["snack-scan", "tummy-creatures"] as const;
+export const DUDU_SCANNER_THEME_IDS = [
+  "snack-scan",
+  "tummy-creatures",
+  "healthy-buddies",
+] as const;
 
 export type DuduScannerThemeId = (typeof DUDU_SCANNER_THEME_IDS)[number];
 
@@ -13,6 +17,10 @@ export const DUDU_SCANNER_TARGET_IDS = [
   "sleepy-bug",
   "rumble-monster",
   "rice-ball-sprite",
+  "eye-guard",
+  "motion-energy-ball",
+  "toothbrush-knight",
+  "breakfast-wake-up-bird",
 ] as const;
 
 export type DuduScannerTargetId = (typeof DUDU_SCANNER_TARGET_IDS)[number];
@@ -27,6 +35,7 @@ export type DuduScannerTargetRecord = {
 };
 
 const GEMINI_PRODUCTION_TARGET_IDS: ReadonlySet<DuduScannerTargetId> = new Set([
+  "fry-sprite",
   "boba-bubbles",
   "sleepy-bug",
 ]);
@@ -80,11 +89,41 @@ const TARGETS: Record<DuduScannerTargetId, DuduScannerTargetRecord> = {
     imageSrc: characterAssetPath("rice-ball-sprite"),
     placeholderSrc: placeholderAssetPath("rice-ball-sprite"),
   },
+  "eye-guard": {
+    id: "eye-guard",
+    themeId: "healthy-buddies",
+    imageSrc: characterAssetPath("eye-guard"),
+    placeholderSrc: placeholderAssetPath("rumble-monster"),
+  },
+  "motion-energy-ball": {
+    id: "motion-energy-ball",
+    themeId: "healthy-buddies",
+    imageSrc: characterAssetPath("motion-energy-ball"),
+    placeholderSrc: placeholderAssetPath("candy-critter"),
+  },
+  "toothbrush-knight": {
+    id: "toothbrush-knight",
+    themeId: "healthy-buddies",
+    imageSrc: characterAssetPath("toothbrush-knight"),
+    placeholderSrc: placeholderAssetPath("rice-ball-sprite"),
+  },
+  "breakfast-wake-up-bird": {
+    id: "breakfast-wake-up-bird",
+    themeId: "healthy-buddies",
+    imageSrc: characterAssetPath("breakfast-wake-up-bird"),
+    placeholderSrc: placeholderAssetPath("rice-ball-sprite"),
+  },
 };
 
 const TARGETS_BY_THEME: Record<DuduScannerThemeId, readonly DuduScannerTargetId[]> = {
   "snack-scan": ["fry-sprite", "candy-critter", "boba-bubbles"],
   "tummy-creatures": ["sleepy-bug", "rumble-monster", "rice-ball-sprite"],
+  "healthy-buddies": [
+    "eye-guard",
+    "motion-energy-ball",
+    "toothbrush-knight",
+    "breakfast-wake-up-bird",
+  ],
 };
 
 export const DUDU_SCANNER_DEFAULT_CONFIG = {

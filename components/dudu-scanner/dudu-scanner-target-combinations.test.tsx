@@ -51,6 +51,9 @@ describe("DuduScanner result combinations", () => {
       expect(screen.getByText(copy.name)).toBeInTheDocument();
       expect(screen.getByText(copy.description)).toBeInTheDocument();
       expect(screen.getByText(copy.suggestion)).toBeInTheDocument();
+      expect(screen.getByTestId("dudu-scanner-health-guidance")).toHaveTextContent(
+        enMessages.duduScanner.result.healthTask,
+      );
       expect(screen.getByTestId("dudu-scanner-result-target")).toHaveAttribute(
         "src",
         getTargetRecord(targetId).imageSrc,
