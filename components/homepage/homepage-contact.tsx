@@ -9,6 +9,7 @@ import { UpworkIcon } from "@/components/icons/upwork-icon";
 import { HomepageMotion } from "@/components/homepage/homepage-motion";
 import { Link } from "@/i18n/navigation";
 import { trackEvent } from "@/lib/analytics";
+import { trackHomepageContactClick } from "@/lib/homepage/homepage-seo-analytics-events";
 import {
   HOMEPAGE_CONTACT_EMAIL,
   HOMEPAGE_CONTACT_GITHUB_URL,
@@ -99,6 +100,7 @@ export function HomepageContact() {
   const tNav = useTranslations("siteNav");
 
   const onOutbound = useCallback((target: string, url: string) => {
+    trackHomepageContactClick(target);
     trackEvent("outbound_click", { url, target });
   }, []);
 
