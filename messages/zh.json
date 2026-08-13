@@ -577,6 +577,9 @@
       "title": "目标已锁定！",
       "body": "肚肚扫描确认了这个神秘角色。要再来一轮吗？",
       "healthTask": "今日健康小任务",
+      "playHealthTask": "播放健康小任务",
+      "stopHealthTask": "停止播放健康小任务",
+      "healthTaskHint": "点击播放以下建议，或您人工朗读您现编的建议",
       "scanAgain": "再扫一次",
       "changeTarget": "更换目标"
     }

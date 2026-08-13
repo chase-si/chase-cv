@@ -577,6 +577,9 @@
       "title": "Target locked!",
       "body": "Your silly belly-scan identified this character. Ready for another round?",
       "healthTask": "Today's healthy mission",
+      "playHealthTask": "Play healthy mission",
+      "stopHealthTask": "Stop healthy mission",
+      "healthTaskHint": "Tap play for the tip below, or read aloud a suggestion of your own.",
       "scanAgain": "Scan again",
       "changeTarget": "Change target"
     }

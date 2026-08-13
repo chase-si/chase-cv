@@ -1,13 +1,36 @@
 "use client";
 
 import Image from "next/image";
-import { Heart } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Heart, Square, Volume2 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
 import { DuduScannerBackButton } from "@/components/dudu-scanner/dudu-scanner-back-button";
+import type { AppLocale } from "@/i18n/routing";
 import { type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
 import { DUDU_SCANNER_TARGET_MESSAGE_KEY } from "@/lib/dudu-scanner/i18n-keys";
+
+const SPEECH_RATE = 0.9;
+const SPEECH_LANG_BY_LOCALE: Record<AppLocale, string> = {
+  en: "en-US",
+  zh: "zh-CN",
+};
+
+function isSpeechSynthesisSupported() {
+  return typeof window.speechSynthesis?.speak === "function";
+}
+
+function subscribeToNothing() {
+  return () => {};
+}
+
+function pickVoice(lang: string) {
+  const prefix = lang.slice(0, 2).toLowerCase();
+  return window.speechSynthesis
+    .getVoices()
+    .find((voice) => voice.lang.toLowerCase().startsWith(prefix));
+}
 
 type DuduScannerResultViewProps = {
   targetId: DuduScannerTargetId;
@@ -25,7 +48,48 @@ export function DuduScannerResultView({
   onBack,
 }: DuduScannerResultViewProps) {
   const t = useTranslations("duduScanner");
+  const locale = useLocale() as AppLocale;
   const targetMessageKey = DUDU_SCANNER_TARGET_MESSAGE_KEY[targetId];
+  const suggestion = t(`targets.${targetMessageKey}.suggestion`);
+  const speechSupported = useSyncExternalStore(
+    subscribeToNothing,
+    isSpeechSynthesisSupported,
+    () => false,
+  );
+  const [speaking, setSpeaking] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (typeof window.speechSynthesis?.cancel === "function") {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const toggleHealthTaskSpeech = () => {
+    if (!speechSupported) {
+      return;
+    }
+
+    if (speaking || window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(suggestion);
+    utterance.lang = SPEECH_LANG_BY_LOCALE[locale];
+    utterance.rate = SPEECH_RATE;
+    const voice = pickVoice(utterance.lang);
+    if (voice) {
+      utterance.voice = voice;
+    }
+    utterance.onstart = () => setSpeaking(true);
+    utterance.onend = () => setSpeaking(false);
+    utterance.onerror = () => setSpeaking(false);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
 
   return (
     <div
@@ -42,7 +106,6 @@ export function DuduScannerResultView({
           {t("result.eyebrow")}
         </p>
         <h2 className="text-xl font-semibold text-foreground sm:text-2xl">{t("result.title")}</h2>
-        <p className="max-w-md text-muted-foreground">{t("result.body")}</p>
       </div>
 
       <div className="flex w-full max-w-md flex-col items-center gap-3 rounded-2xl border border-border bg-card px-4 py-5 shadow-xs sm:px-8 sm:py-6">
@@ -70,11 +133,25 @@ export function DuduScannerResultView({
           <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Heart className="size-4" aria-hidden />
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-semibold text-primary">{t("result.healthTask")}</p>
-            <p className="mt-1 text-sm font-medium leading-relaxed text-foreground">
-              {t(`targets.${targetMessageKey}.suggestion`)}
-            </p>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1">
+              <p className="min-w-0 flex-1 text-xs font-semibold text-primary">{t("result.healthTask")}</p>
+              {speechSupported ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  className="text-primary hover:text-primary"
+                  aria-label={speaking ? t("result.stopHealthTask") : t("result.playHealthTask")}
+                  aria-pressed={speaking}
+                  onClick={toggleHealthTaskSpeech}
+                >
+                  {speaking ? <Square className="size-3" /> : <Volume2 className="size-3.5" />}
+                </Button>
+              ) : null}
+            </div>
+            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{t("result.healthTaskHint")}</p>
+            <p className="mt-1 text-sm font-medium leading-relaxed text-foreground">{suggestion}</p>
           </div>
         </div>
       </div>
