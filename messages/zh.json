@@ -437,6 +437,23 @@
     "targetsHeading": "扫描目标",
     "soundLabel": "音效",
     "soundDescription": "开始扫描后会有轻柔的扫描音和揭晓提示音。",
+    "howToPlay": {
+      "title": "玩法演示",
+      "description": "移动鼠标，把探头贴在人的肚子上。",
+      "demoLabel": "演示",
+      "accessibleDescription": "用鼠标控制探头，在人的肚子上移动扫描，然后观察屏幕上的结果。",
+      "bellyArea": "人的肚子",
+      "scanHere": "扫描这里",
+      "screen": "观察屏幕",
+      "searching": "寻找信号",
+      "signalFound": "发现信号",
+      "stepsLabel": "游戏玩法说明",
+      "steps": {
+        "move": "移动鼠标",
+        "scan": "贴住肚子",
+        "watch": "查看屏幕"
+      }
+    },
     "shortcutsHeading": "操作者快捷键",
     "shortcutsHint": "以下按键在扫描过程中可用，正式表演前可以先记一下。",
     "startScan": "开始扫描",
