@@ -21,15 +21,13 @@ export function MagicCursorEffectGalleryPage({
 
   return (
     <ToolPageChrome title={heading} description={description}>
-      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
-        <section className="min-h-0 min-w-0 lg:max-h-full">
-          <CardScrollArea className="lg:max-h-full">
-            <MagicCursorSidebar activeEffect={null} />
-          </CardScrollArea>
-        </section>
+      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-stretch">
+        <aside className="min-h-0 min-w-0 lg:max-h-full">
+          <MagicCursorSidebar activeEffect={null} />
+        </aside>
 
-        <Card className="min-h-0 overflow-hidden p-0 lg:max-h-full">
-          <CardScrollArea className="lg:max-h-full">
+        <Card className="flex min-h-0 flex-col overflow-hidden p-0 lg:max-h-full">
+          <CardScrollArea className="min-h-0 flex-1 lg:max-h-full">
             <div className="grid content-start items-start gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
               {MAGIC_CURSOR_EFFECT_ORDER.map((effect) => {
                 // ring 依赖 reach 激活，懒挂载时指针已在格内会永远进不了 activated 状态

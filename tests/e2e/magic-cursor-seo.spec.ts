@@ -20,7 +20,9 @@ test.describe("magic cursor SEO landing", () => {
   test("Chinese ring effect page renders localized copy and breadcrumb JSON-LD", async ({ page }) => {
     await page.goto("/zh/magic-cursor/ring");
 
-    await expect(page.getByRole("heading", { level: 1, name: "环形光标效果" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Magic Cursor 效果库 / 环形" }),
+    ).toBeVisible();
     await expect(page.getByTestId("magic-cursor-effect-landing-content")).toContainText(/适用场景/);
 
     const jsonLdScripts = page.locator('script[type="application/ld+json"]');

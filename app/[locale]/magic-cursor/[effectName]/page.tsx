@@ -60,7 +60,6 @@ export default async function Page(props: Props) {
       <JsonLd data={webAppJsonLd} />
       <MagicCursorEffectPage
         effect={effectName}
-        heading={meta("h1")}
         description={meta("description")}
         hubLabel={hubMeta("h1")}
         breadcrumbLabel={meta("breadcrumb")}

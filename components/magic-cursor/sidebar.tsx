@@ -33,6 +33,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
+  CardScrollArea,
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -96,11 +97,12 @@ export function MagicCursorSidebar(props: Props) {
   const options = detail ? detail.optionsByEffect[detail.activeEffect] : null;
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
+    <Card className="h-full min-h-0 gap-4 py-4 lg:gap-3 lg:py-4">
+      <CardHeader className="shrink-0 pb-0">
         <CardTitle>{t("effectsTitle")}</CardTitle>
         <CardDescription>{t("effectsDescription")}</CardDescription>
       </CardHeader>
+      <CardScrollArea className="min-h-0 flex-1">
       <CardContent className="grid gap-4 pt-0">
         <div className="grid gap-2">
           <Label className="text-xs text-muted-foreground">{t("effectLabel")}</Label>
@@ -950,6 +952,7 @@ export function MagicCursorSidebar(props: Props) {
           </Button>
         )}
       </CardContent>
+      </CardScrollArea>
     </Card>
   );
 }
