@@ -91,5 +91,5 @@ export function useMagicCursorDemoRuntime(baseEnabled: boolean) {
   const enabled =
     baseEnabled && motion.runDecorativeAnimation && isVisible;
 
-  return { enabled, setDemoRoot };
+  return { enabled, demoRoot, setDemoRoot };
 }
