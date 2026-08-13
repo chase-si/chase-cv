@@ -178,8 +178,6 @@ function deriveShadowLayers(
   const shadowBlur = `${blur}px`;
   const shadowSpread = "0px";
   const shadowOpacity = opacity.toFixed(2);
-  const hslShadow = `hsl(0 0% 0% / ${shadowOpacity})`;
-  const baseLayer = `${shadowX} ${shadowY} ${shadowBlur} ${shadowSpread} ${hslShadow}`;
   const layer = (layerY: number, layerBlur: number, layerSpread: number, layerOpacity: number) =>
     `${shadowX} ${layerY}px ${layerBlur}px ${layerSpread}px hsl(0 0% 0% / ${layerOpacity.toFixed(2)})`;
   const layered = (scale: number) =>

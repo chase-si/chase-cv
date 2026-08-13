@@ -48,7 +48,7 @@ export const homepageWorkExperienceContent = {
     },
     archiveStatement: {
       en: "A career built in shipped interfaces.",
-      zh: "工作经历",
+      zh: "一段由真实交付构筑的职业旅程。",
     },
     projectEvidenceLabel: {
       en: "Project evidence / scroll to explore",
