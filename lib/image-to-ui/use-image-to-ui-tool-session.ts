@@ -8,7 +8,6 @@ import {
   initialImageToUiToolSessionFlowState,
 } from "@/lib/image-to-ui/image-to-ui-tool-session";
 import { isPaletteRenderEnabled } from "@/lib/image-to-ui/palette-render-gate";
-import type { ImageToUiPathnameAdapter } from "@/lib/image-to-ui/image-to-ui-route-pathname";
 import { resolveImageToUiFlowStep } from "@/lib/image-to-ui/resolve-image-to-ui-flow-step";
 import {
   useActiveImageSelection,
