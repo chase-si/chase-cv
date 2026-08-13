@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardScrollArea, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
   defaultFlowUiCopy,
@@ -120,10 +120,11 @@ export function FlowStructureToolbar({
   ];
 
   return (
-    <Card size="sm" className={cn("h-full", className)}>
-      <CardHeader className="border-b border-border">
+    <Card size="sm" className={cn("flex h-full min-h-0 flex-col overflow-hidden", className)}>
+      <CardHeader className="shrink-0 border-b border-border">
         <CardTitle className="text-sm">{copy.title}</CardTitle>
       </CardHeader>
+      <CardScrollArea className="min-h-0 flex-1">
       <CardContent className="flex flex-col gap-4">
         <section className="flex flex-col gap-2" aria-labelledby="flow-zoom-heading">
           <h2
@@ -196,6 +197,7 @@ export function FlowStructureToolbar({
           </div>
         </section>
       </CardContent>
+      </CardScrollArea>
     </Card>
   );
 }

@@ -77,7 +77,7 @@ function create(effect: EffectName, root: HTMLDivElement, options: Props["option
 }
 
 const basicStyle =
-  "relative overflow-hidden bg-card min-h-[240px] flex items-center justify-center text-3xl bold uppercase";
+  "relative overflow-hidden bg-card aspect-[4/3] w-full min-h-[200px] max-h-72 flex items-center justify-center text-3xl font-bold uppercase";
 
 function hashStringToUint32(input: string) {
   // FNV-1a 32-bit

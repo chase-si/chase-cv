@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import type { EffectName } from "magic-cursor-effect";
 
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardContent, CardScrollArea } from "@/components/ui/card";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -16,6 +16,7 @@ import {
 import { MagicCursorSidebar } from "@/components/magic-cursor/sidebar";
 import { MagicCursorDemoDetail } from "@/components/magic-cursor/demo-detail";
 import { MagicCursorEffectCode } from "@/components/magic-cursor/effect-code";
+import { ToolPageChrome } from "@/components/tool-page-chrome";
 import type { OptionsByEffect } from "@/components/magic-cursor/types";
 import { Link } from "@/i18n/navigation";
 import { defaultOptionsByEffect } from "@/lib/constants/magic-cursor";
@@ -44,50 +45,43 @@ export function MagicCursorEffectPage({
   }, [effect]);
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col">
-      <main className="mx-auto w-full flex-1 px-4 py-8 sm:px-6 sm:py-10">
-        <header className="mb-8 space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            {heading}
-          </h1>
-          <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-            {description}
-          </p>
-        </header>
-
-        <div className="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)] xl:items-start xl:gap-8">
-          <section>
+    <ToolPageChrome title={heading} description={description}>
+      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
+        <section className="min-h-0 min-w-0 lg:max-h-full">
+          <CardScrollArea className="lg:max-h-full">
             <MagicCursorSidebar
               activeEffect={effect}
               optionsByEffect={optionsByEffect}
               setOptionsByEffect={setOptionsByEffect}
               defaultOptionsByEffect={defaultOptionsByEffect}
             />
-          </section>
+          </CardScrollArea>
+        </section>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink asChild>
-                      <Link href="/magic-cursor">{hubLabel}</Link>
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator>/</BreadcrumbSeparator>
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>{breadcrumbLabel}</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-            </CardHeader>
-            <CardContent>
+        <Card className="flex min-h-0 flex-col overflow-hidden lg:max-h-full lg:gap-0 lg:py-0">
+          <CardHeader className="shrink-0 pb-2">
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link href="/magic-cursor">{hubLabel}</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator>/</BreadcrumbSeparator>
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{breadcrumbLabel}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </CardHeader>
+          <CardContent className="flex min-h-0 flex-1 flex-col">
+            <CardScrollArea className="min-h-0 flex-1">
               <MagicCursorDemoDetail effect={effect} options={options} />
               <MagicCursorEffectCode effect={effect} options={options} />
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-    </div>
+            </CardScrollArea>
+          </CardContent>
+        </Card>
+      </div>
+    </ToolPageChrome>
   );
 }

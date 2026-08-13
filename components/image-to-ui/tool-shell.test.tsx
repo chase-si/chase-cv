@@ -75,6 +75,7 @@ describe("ImageToUiToolShell active image selection", () => {
   it("shows the selected sample in the main preview with contain fitting", () => {
     renderToolShell();
 
+    expect(screen.getByTestId("tool-page-chrome")).toBeInTheDocument();
     fireEvent.click(getSampleCard("great-wave"));
 
     const preview = screen.getByTestId("active-image-preview");
@@ -155,6 +156,7 @@ describe("ImageToUiToolShell render input summary", () => {
     fireEvent.click(screen.getByTestId("palette-render-button"));
 
     expect(screen.getByTestId("render-input-summary")).toBeInTheDocument();
+    expect(screen.getByTestId("tool-page-chrome")).toBeInTheDocument();
     expect(screen.getByTestId("saas-preview-surface")).toBeInTheDocument();
     expect(screen.queryByTestId("palette-selection")).not.toBeInTheDocument();
     expect(screen.getAllByText("生成界面预览").length).toBeGreaterThan(0);

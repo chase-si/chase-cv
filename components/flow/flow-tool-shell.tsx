@@ -12,8 +12,9 @@ import {
   interpolateFlowCopy,
   type FlowUiCopy,
 } from "@/components/flow/flow-ui-copy";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardScrollArea, CardTitle } from "@/components/ui/card";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { ToolPageChrome } from "@/components/tool-page-chrome";
 import { cloneDemoFlowRoot } from "@/lib/flow/clone-demo-flow-root";
 import { getDemoRuntimeHighlightPresentation } from "@/lib/flow/demo-runtime-highlight";
 import { findFlowNodeById } from "@/lib/flow/find-flow-node";
@@ -28,7 +29,6 @@ import {
 import { adjustFlowZoom, FLOW_ZOOM_DEFAULT } from "@/lib/flow/flow-zoom";
 import { updateFlowNodeById } from "@/lib/flow/update-flow-node";
 import type { FlowLeafNode, FlowRoot } from "@/lib/flow/types";
-import { cn } from "@/lib/utils";
 
 export function FlowToolShell({ copy = defaultFlowUiCopy }: { copy?: FlowUiCopy }) {
   const [flowData, setFlowData] = useState<FlowRoot>(() => cloneDemoFlowRoot());
@@ -192,32 +192,22 @@ export function FlowToolShell({ copy = defaultFlowUiCopy }: { copy?: FlowUiCopy 
   }, [confirmation, executeDelete, handleResetDemo]);
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col">
-      <main className="mx-auto flex w-full flex-1 flex-col px-4 py-8 sm:px-6 sm:py-10">
-        <header className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex min-w-0 flex-col gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-              {copy.title}
-            </h1>
-            <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-              {copy.description}
-            </p>
-          </div>
-          <FlowDemoControls
-            runningHighlight={runningHighlight}
-            onRunningHighlightChange={setRunningHighlight}
-            onReset={requestResetDemo}
-            dirty={isDirty}
-            copy={copy.demo}
-            className="shrink-0"
-          />
-        </header>
-
-        <div
-          className={cn(
-            "grid min-h-0 flex-1 grid-cols-[9rem_minmax(0,1fr)] items-stretch gap-3 sm:grid-cols-[10.5rem_minmax(0,1fr)] sm:gap-4 lg:h-[clamp(30rem,calc(70vh-1.5rem),48rem)] lg:flex-none lg:grid-cols-[12rem_minmax(0,1fr)_18rem] lg:grid-rows-1",
-          )}
-        >
+    <>
+    <ToolPageChrome
+      title={copy.title}
+      description={copy.description}
+      actions={
+        <FlowDemoControls
+          runningHighlight={runningHighlight}
+          onRunningHighlightChange={setRunningHighlight}
+          onReset={requestResetDemo}
+          dirty={isDirty}
+          copy={copy.demo}
+          className="shrink-0 border-0 bg-transparent p-0 shadow-none"
+        />
+      }
+    >
+        <div className="grid min-h-0 flex-1 grid-cols-[9rem_minmax(0,1fr)] items-stretch gap-3 sm:grid-cols-[10.5rem_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[12rem_minmax(0,1fr)_18rem] lg:grid-rows-1">
           <aside
             data-testid="flow-editor-toolbar"
             className="min-h-0 min-w-0"
@@ -240,7 +230,7 @@ export function FlowToolShell({ copy = defaultFlowUiCopy }: { copy?: FlowUiCopy 
 
           <section
             data-testid="flow-editor-canvas"
-            className="h-[clamp(30rem,70vh,48rem)] min-w-0 lg:h-full lg:min-h-0"
+            className="h-[min(30rem,70vh)] min-w-0 lg:h-full lg:min-h-0"
             aria-label={copy.canvasAria}
           >
             <FlowReadOnlySurface
@@ -259,23 +249,25 @@ export function FlowToolShell({ copy = defaultFlowUiCopy }: { copy?: FlowUiCopy 
             className="col-span-2 min-h-0 min-w-0 lg:col-span-1"
             aria-label={copy.propertiesAria}
           >
-            <Card className="h-full">
-              <CardHeader className="border-b border-border">
+            <Card className="flex h-full min-h-0 flex-col overflow-hidden">
+              <CardHeader className="shrink-0 border-b border-border">
                 <CardTitle className="text-sm">{copy.properties.title}</CardTitle>
                 <CardDescription>{copy.properties.description}</CardDescription>
               </CardHeader>
-              <CardContent className="py-4">
+              <CardContent className="flex min-h-0 flex-1 flex-col py-0">
+                <CardScrollArea className="min-h-0 flex-1 py-4">
                 <FlowNodePropertiesPanel
                   selectedNode={selectedNode}
                   onPatchNode={handlePatchNode}
                   onClearSelection={handleClearSelection}
                   copy={copy.properties}
                 />
+                </CardScrollArea>
               </CardContent>
             </Card>
           </aside>
         </div>
-      </main>
+    </ToolPageChrome>
       <ConfirmationDialog
         open={confirmation !== null}
         onOpenChange={(open) => {
@@ -299,6 +291,6 @@ export function FlowToolShell({ copy = defaultFlowUiCopy }: { copy?: FlowUiCopy 
         destructive
         onConfirm={handleConfirm}
       />
-    </div>
+    </>
   );
 }

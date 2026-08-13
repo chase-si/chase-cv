@@ -79,7 +79,7 @@ function create(effect: EffectName, root: HTMLDivElement, options: Props["option
 }
 
 const basicStyle =
-  "relative overflow-hidden border border-border bg-card min-h-[240px] flex items-center justify-center text-3xl bold uppercase";
+  "relative overflow-hidden border border-border bg-card mx-auto aspect-[16/9] w-full max-w-4xl min-h-[200px] max-h-80 flex items-center justify-center text-3xl font-bold uppercase";
 
 export function MagicCursorDemoDetail({
   effect,

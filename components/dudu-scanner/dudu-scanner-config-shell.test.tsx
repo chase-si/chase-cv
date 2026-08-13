@@ -39,7 +39,10 @@ describe("DuduScannerConfigShell", () => {
   it("renders English defaults in mystery mode with sound enabled", () => {
     renderShell("en");
 
-    expect(screen.getByRole("heading", { name: "Dudu Scanner" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Dudu Scanner" }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("tool-page-chrome")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Mystery scan", pressed: true }),
     ).toBeInTheDocument();

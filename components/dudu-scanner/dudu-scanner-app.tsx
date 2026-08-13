@@ -353,7 +353,6 @@ function DuduScannerAppInner() {
       data-testid="dudu-scanner-app-root"
       className={cn(
         "flex min-h-0 flex-1 flex-col",
-        round.phase === "config" && "max-h-[calc(100dvh-4rem)]",
         immersive && "fixed inset-0 z-50 overflow-hidden bg-background",
       )}
     >

@@ -64,7 +64,7 @@ export function DuduScannerHowToPlay() {
   return (
     <Card
       size="sm"
-      className="h-full min-h-0 gap-3 border-primary/40 py-3 lg:gap-2 lg:py-2"
+      className="h-auto min-h-0 gap-3 border-primary/40 py-3 lg:gap-2 lg:py-2"
       data-testid="dudu-scanner-how-to-play"
     >
       <CardHeader className="grid-cols-[1fr_auto] items-center gap-3 border-b border-border px-4 pb-3 lg:pb-2">
@@ -80,9 +80,9 @@ export function DuduScannerHowToPlay() {
         </span>
       </CardHeader>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col gap-3 px-4 lg:gap-2">
+      <CardContent className="flex min-h-0 flex-1 flex-col justify-center gap-3 px-4 lg:gap-2">
         <div
-          className="grid min-h-64 flex-1 grid-cols-[minmax(0,1.35fr)_minmax(5.5rem,0.65fr)] items-stretch gap-2 lg:min-h-40"
+          className="mx-auto grid aspect-[16/10] h-auto w-full min-h-56 max-h-72 shrink-0 grid-cols-[minmax(0,1.35fr)_minmax(5.5rem,0.65fr)] items-stretch gap-2"
           role="img"
           aria-label={t("accessibleDescription")}
         >

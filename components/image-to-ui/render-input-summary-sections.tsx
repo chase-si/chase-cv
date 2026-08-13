@@ -147,6 +147,7 @@ export function RenderInputSummaryRoot({
       aria-label={ariaLabel}
       data-testid="render-input-summary"
       data-render-input={summaryDataAttr}
+      className="flex min-h-0 flex-1 flex-col"
     >
       {children}
     </section>

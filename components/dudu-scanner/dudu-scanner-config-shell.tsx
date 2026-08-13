@@ -6,8 +6,9 @@ import { useTranslations } from "next-intl";
 
 import { DuduScannerHowToPlay } from "@/components/dudu-scanner/dudu-scanner-how-to-play";
 import { DuduScannerShortcutDeck } from "@/components/dudu-scanner/dudu-scanner-shortcut-deck";
+import { ToolPageChrome } from "@/components/tool-page-chrome";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardScrollArea, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import {
   DUDU_SCANNER_TARGET_IDS,
@@ -29,32 +30,28 @@ export function DuduScannerConfigShell({
   const { config, setScanMode, setTargetId, setSoundEnabled } = useDuduScannerConfig();
 
   return (
-    <main
-      className="mx-auto flex w-full max-w-6xl min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-3 sm:px-6 sm:py-4 lg:overflow-hidden lg:py-3"
-    >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0 space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[1.65rem]">
-            {t("title")}
-          </h1>
-          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
-          {assetLoadWarning ? (
-            <p
-              className="rounded-xl border border-border bg-muted/50 px-3 py-2 text-xs text-foreground sm:text-sm"
-              role="status"
-              data-testid="dudu-scanner-asset-warning"
-            >
-              {t("assetLoadWarning")}
-            </p>
-          ) : null}
-        </div>
+    <ToolPageChrome
+      title={t("title")}
+      description={t("subtitle")}
+      actions={
         <Button type="button" size="lg" className="w-full shrink-0 sm:w-auto" onClick={onStartScan}>
           {t("startScan")}
         </Button>
-      </div>
+      }
+    >
+      {assetLoadWarning ? (
+        <p
+          className="shrink-0 rounded-xl border border-border bg-muted/50 px-3 py-2 text-xs text-foreground sm:text-sm"
+          role="status"
+          data-testid="dudu-scanner-asset-warning"
+        >
+          {t("assetLoadWarning")}
+        </p>
+      ) : null}
 
-      <div className="grid gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-stretch">
-        <Card className="flex flex-col overflow-hidden lg:min-h-0 lg:gap-0 lg:py-0">
+      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-stretch">
+        <Card className="flex min-h-0 flex-col overflow-hidden lg:gap-0 lg:py-0">
+          <CardScrollArea className="min-h-0 flex-1">
           <CardContent className="flex flex-col gap-4 px-4 py-3 lg:min-h-0 lg:gap-3">
             <div className="space-y-2">
               <h2 className="text-sm font-medium text-foreground">{t("scanModeHeading")}</h2>
@@ -147,9 +144,10 @@ export function DuduScannerConfigShell({
               </div>
             )}
           </CardContent>
+          </CardScrollArea>
         </Card>
 
-        <div className="grid min-h-0 gap-3 sm:grid-cols-[minmax(0,1.2fr)_minmax(11rem,0.8fr)] lg:min-h-0 lg:flex-1 lg:grid-cols-1 lg:grid-rows-[minmax(16rem,1fr)_auto]">
+        <div className="grid min-h-0 gap-3 sm:grid-cols-[minmax(0,1.2fr)_minmax(11rem,0.8fr)] lg:min-h-0 lg:grid-cols-1 lg:grid-rows-[auto_auto] lg:content-start">
           <DuduScannerHowToPlay />
 
           <Card className="min-h-0 overflow-hidden lg:gap-0 lg:py-0">
@@ -178,7 +176,9 @@ export function DuduScannerConfigShell({
         </div>
       </div>
 
-      <p className="text-center text-xs text-muted-foreground sm:text-left">{t("disclaimer")}</p>
-    </main>
+      <p className="shrink-0 text-center text-xs text-muted-foreground sm:text-left">
+        {t("disclaimer")}
+      </p>
+    </ToolPageChrome>
   );
 }

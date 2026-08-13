@@ -1,0 +1,15 @@
+---
+description: Shared chrome for product tool pages (viewport fit, header, inner scroll)
+globs: "{components/tool-page-chrome.tsx,components/dudu-scanner/**,components/magic-cursor/**,components/image-to-ui/**,components/flow/**,app/**/dudu-scanner/**,app/**/magic-cursor/**,app/**/image-to-ui/**,app/**/flow/**}"
+alwaysApply: false
+---
+
+# Tool page layout
+
+When editing these tools, follow `docs/component-standardization.md` § Tool Page Chrome. Do not invent a new page shell.
+
+- Wrap the workspace in `ToolPageChrome`.
+- From `lg` up, the tool must fit `calc(100dvh - 4rem)`; overflow only inside `CardScrollArea`. Below `lg`, page scroll is allowed.
+- Keep header compact and stable across in-page steps. Do not clip action button shadows (`overflow-visible`, header `py-1`).
+- Column counts may differ. Do not stretch demos/tiles with `flex-1` / `h-full` on large screens.
+- `dudu-scanner` scan/result may stay fullscreen; config must use the shared chrome.

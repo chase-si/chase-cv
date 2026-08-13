@@ -9,6 +9,7 @@ import { ExtractedPalettePanel } from "@/components/image-to-ui/extracted-palett
 import { ImageUploadZone } from "@/components/image-to-ui/image-upload-zone";
 import { ImageToUiStepIndicator } from "@/components/image-to-ui/step-indicator";
 import { RenderInputSummaryPanel } from "@/components/image-to-ui/render-input-summary-panel";
+import { ToolPageChrome } from "@/components/tool-page-chrome";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -83,142 +84,136 @@ export function ImageToUiToolShell() {
   useImageToUiAnalytics({ activeImage, paletteSelection, displayStep });
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col">
-      <main className="mx-auto w-full flex-1 px-4 py-8 sm:px-6 sm:py-10">
-        <header className="mb-8 space-y-4">
-          <div className="space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-              {t("title")}
-            </h1>
-            <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-              {displayStep === 1
-                ? t("stepOneDescription")
-                : t("stepTwoDescription")}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <ImageToUiStepIndicator
-              activeStep={displayStep}
-              labels={{
-                stepsAria: t("stepsAria"),
-                select: t("steps.select"),
-                render: t("steps.render"),
-              }}
-            />
-            {displayStep === 2 ? (
-              <Button
-                type="button"
-                variant="ghost"
-                data-testid="render-back-to-edit"
-                className="hover:shadow-md"
-                onClick={backToEdit}
-              >
-                {t("backToEdit")}
-              </Button>
-            ) : null}
-          </div>
-        </header>
-
-        {displayStep === 1 ? (
-          <div className="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)] xl:items-start xl:gap-8">
-            <aside className="space-y-4 xl:sticky xl:top-24" aria-label={t("sourceAria")}>
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <PanelLeft className="size-4 text-primary" aria-hidden />
-                    <CardTitle className="text-base">{t("sourceTitle")}</CardTitle>
-                  </div>
-                  <CardDescription>{t("sourceDescription")}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ImageUploadZone
-                    onFileSelected={selectUpload}
-                    labels={{
-                      uploadAria: t("uploadAria"),
-                      uploadButton: t("uploadButton"),
-                      uploadHelp: t("uploadHelp"),
-                    }}
-                  />
-                  <CardScrollArea className="max-h-112 pr-1">
-                    <div className="space-y-2">
-                      {IMAGE_TO_UI_SAMPLE_IMAGES.map((sample) => (
-                        <SampleListButton
-                          key={sample.id}
-                          id={sample.id}
-                          imagePath={sample.imagePath}
-                          title={sampleMessages[sample.id]?.title ?? sample.title}
-                          description={
-                            sampleMessages[sample.id]?.description ?? sample.description
-                          }
-                          selected={
-                            activeImage?.type === "sample" && activeImage.sampleId === sample.id
-                          }
-                          onSelect={() => selectSample(sample.id, sample.imagePath)}
-                        />
-                      ))}
-                    </div>
-                  </CardScrollArea>
-                </CardContent>
-              </Card>
-            </aside>
-
-            <section className="space-y-6" aria-label={t("previewAria")}>
-              <PreviewCard
-                activeImage={activeImage}
-                sampleTitleById={sampleTitleById}
-                labels={previewLabels}
-              />
-              <PaletteCard
-                activeImage={activeImage}
-                paletteSelection={paletteSelection}
-                setSelectedPaletteColors={setSelectedPaletteColors}
-                onRender={confirmRender}
-                labels={{
-                  paletteTitle: t("paletteTitle"),
-                  paletteDescription: t("paletteDescription"),
-                  paletteEmpty: t("paletteEmpty"),
-                  paletteLoading: t("paletteLoading"),
-                  paletteAria: t("paletteAria"),
-                  paletteShare: (percent) => t("paletteShare", { percent }),
-                  paletteSwatchAria: (hex, percent) =>
-                    t("paletteSwatchAria", { hex, percent }),
-                  paletteInsufficient: (count) =>
-                    t("paletteInsufficient", { count }),
-                  selectionLimit: t("selectionLimit"),
-                  renderButton: t("renderButton"),
-                  selectionProgress: (selected, required) =>
-                    t("selectionProgress", { selected, required }),
-                  selectedColor: (index) => t("selectedColor", { index }),
-                }}
-              />
-            </section>
-          </div>
-        ) : activeImage ? (
-          <RenderInputSummaryPanel
-            activeImage={activeImage}
-            sampleTitleById={sampleTitleById}
-            selectedColors={paletteSelection.selectedColors}
+    <ToolPageChrome
+      title={t("title")}
+      description={displayStep === 1 ? t("stepOneDescription") : t("stepTwoDescription")}
+      actions={
+        <>
+          <ImageToUiStepIndicator
+            activeStep={displayStep}
             labels={{
-              summaryAsideAria: t("summaryAsideAria"),
-              summaryTitle: t("summaryTitle"),
-              summaryDescription: t("summaryDescription"),
-              selectedImage: t("selectedImage"),
-              selectedColorRoles: t("selectedColorRoles"),
-              previewTokens: t("previewTokens"),
-              renderTitle: t("renderTitle"),
-              renderDescription: t("renderDescription"),
-              colorRolesAria: t("colorRolesAria"),
-              tokensAria: t("tokensAria"),
-              summaryRootAria: t("summaryRootAria"),
-              sampleImage: t("sampleImage"),
-              uploadedImage: t("uploadedImage"),
-              roles: roleLabels,
-              roleRationales: roleRationaleLabels,
+              stepsAria: t("stepsAria"),
+              select: t("steps.select"),
+              render: t("steps.render"),
             }}
           />
-        ) : null}
-      </main>
-    </div>
+          {displayStep === 2 ? (
+            <Button
+              type="button"
+              variant="ghost"
+              data-testid="render-back-to-edit"
+              className="hover:shadow-md"
+              onClick={backToEdit}
+            >
+              {t("backToEdit")}
+            </Button>
+          ) : null}
+        </>
+      }
+    >
+      {displayStep === 1 ? (
+        <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-stretch">
+          <aside className="flex min-h-0 min-w-0 flex-col" aria-label={t("sourceAria")}>
+            <Card className="flex min-h-0 flex-1 flex-col overflow-hidden lg:gap-0 lg:py-0">
+              <CardHeader className="shrink-0 pb-3">
+                <div className="flex items-center gap-2">
+                  <PanelLeft className="size-4 text-primary" aria-hidden />
+                  <CardTitle className="text-base">{t("sourceTitle")}</CardTitle>
+                </div>
+                <CardDescription>{t("sourceDescription")}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
+                <ImageUploadZone
+                  onFileSelected={selectUpload}
+                  labels={{
+                    uploadAria: t("uploadAria"),
+                    uploadButton: t("uploadButton"),
+                    uploadHelp: t("uploadHelp"),
+                  }}
+                />
+                <CardScrollArea className="min-h-0 flex-1 pr-1">
+                  <div className="space-y-2">
+                    {IMAGE_TO_UI_SAMPLE_IMAGES.map((sample) => (
+                      <SampleListButton
+                        key={sample.id}
+                        id={sample.id}
+                        imagePath={sample.imagePath}
+                        title={sampleMessages[sample.id]?.title ?? sample.title}
+                        description={
+                          sampleMessages[sample.id]?.description ?? sample.description
+                        }
+                        selected={
+                          activeImage?.type === "sample" && activeImage.sampleId === sample.id
+                        }
+                        onSelect={() => selectSample(sample.id, sample.imagePath)}
+                      />
+                    ))}
+                  </div>
+                </CardScrollArea>
+              </CardContent>
+            </Card>
+          </aside>
+
+          <section className="min-h-0 min-w-0 lg:h-full" aria-label={t("previewAria")}>
+            <CardScrollArea className="h-full">
+              <div className="flex flex-col gap-3">
+                <PreviewCard
+                  activeImage={activeImage}
+                  sampleTitleById={sampleTitleById}
+                  labels={previewLabels}
+                />
+                <PaletteCard
+                  activeImage={activeImage}
+                  paletteSelection={paletteSelection}
+                  setSelectedPaletteColors={setSelectedPaletteColors}
+                  onRender={confirmRender}
+                  labels={{
+                    paletteTitle: t("paletteTitle"),
+                    paletteDescription: t("paletteDescription"),
+                    paletteEmpty: t("paletteEmpty"),
+                    paletteLoading: t("paletteLoading"),
+                    paletteAria: t("paletteAria"),
+                    paletteShare: (percent) => t("paletteShare", { percent }),
+                    paletteSwatchAria: (hex, percent) =>
+                      t("paletteSwatchAria", { hex, percent }),
+                    paletteInsufficient: (count) =>
+                      t("paletteInsufficient", { count }),
+                    selectionLimit: t("selectionLimit"),
+                    renderButton: t("renderButton"),
+                    selectionProgress: (selected, required) =>
+                      t("selectionProgress", { selected, required }),
+                    selectedColor: (index) => t("selectedColor", { index }),
+                  }}
+                />
+              </div>
+            </CardScrollArea>
+          </section>
+        </div>
+      ) : activeImage ? (
+        <RenderInputSummaryPanel
+          activeImage={activeImage}
+          sampleTitleById={sampleTitleById}
+          selectedColors={paletteSelection.selectedColors}
+          labels={{
+            summaryAsideAria: t("summaryAsideAria"),
+            summaryTitle: t("summaryTitle"),
+            summaryDescription: t("summaryDescription"),
+            selectedImage: t("selectedImage"),
+            selectedColorRoles: t("selectedColorRoles"),
+            previewTokens: t("previewTokens"),
+            renderTitle: t("renderTitle"),
+            renderDescription: t("renderDescription"),
+            colorRolesAria: t("colorRolesAria"),
+            tokensAria: t("tokensAria"),
+            summaryRootAria: t("summaryRootAria"),
+            sampleImage: t("sampleImage"),
+            uploadedImage: t("uploadedImage"),
+            roles: roleLabels,
+            roleRationales: roleRationaleLabels,
+          }}
+        />
+      ) : null}
+    </ToolPageChrome>
   );
 }
 
