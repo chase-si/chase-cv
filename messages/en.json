@@ -723,6 +723,23 @@
     "targetsHeading": "Scan target",
     "soundLabel": "Sound effects",
     "soundDescription": "Soft scanner tones and gentle reveal cues when scanning starts.",
+    "howToPlay": {
+      "title": "How to play",
+      "description": "Move the mouse and place the probe on the person's belly.",
+      "demoLabel": "Demo",
+      "accessibleDescription": "Move the mouse-controlled probe over the person's belly, scan, then look at the monitor for the result.",
+      "bellyArea": "Person's belly",
+      "scanHere": "Scan here",
+      "screen": "Monitor",
+      "searching": "Searching",
+      "signalFound": "Signal found",
+      "stepsLabel": "Game instructions",
+      "steps": {
+        "move": "Move mouse",
+        "scan": "Touch belly",
+        "watch": "Watch screen"
+      }
+    },
     "shortcutsHeading": "Operator shortcuts",
     "shortcutsHint": "These keys work during the scan. Keep this list handy before you go live.",
     "startScan": "Start scan",
@@ -846,6 +863,9 @@
       "title": "Target locked!",
       "body": "Your silly belly-scan identified this character. Ready for another round?",
       "healthTask": "Today's healthy mission",
+      "playHealthTask": "Play healthy mission",
+      "stopHealthTask": "Stop healthy mission",
+      "healthTaskHint": "Tap play for the tip below, or read aloud a suggestion of your own.",
       "scanAgain": "Scan again",
       "changeTarget": "Change target"
     },

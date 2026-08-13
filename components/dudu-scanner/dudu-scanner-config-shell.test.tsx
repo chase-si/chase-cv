@@ -56,6 +56,12 @@ describe("DuduScannerConfigShell", () => {
       "aria-checked",
       "true",
     );
+    expect(screen.getByTestId("dudu-scanner-how-to-play")).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: /Move the mouse-controlled probe/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Person's belly")).toBeInTheDocument();
+    expect(screen.getByText("Scan here")).toBeInTheDocument();
     expect(screen.getByText("For entertainment only — not a medical device.")).toBeInTheDocument();
   });
 
@@ -69,6 +75,10 @@ describe("DuduScannerConfigShell", () => {
     expect(screen.queryByRole("button", { name: "零食扫描" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "肚肚生物" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "薯条精灵" })).not.toBeInTheDocument();
+    expect(screen.getByText("玩法演示")).toBeInTheDocument();
+    expect(screen.getByText("人的肚子")).toBeInTheDocument();
+    expect(screen.getByText("扫描这里")).toBeInTheDocument();
+    expect(screen.getByText("贴住肚子")).toBeInTheDocument();
     expect(screen.getByText("仅供娱乐，非医疗工具。")).toBeInTheDocument();
   });
 
@@ -135,5 +145,14 @@ describe("DuduScannerConfigShell", () => {
     renderShell("en");
     expect(screen.getByText("Operator shortcuts")).toBeInTheDocument();
     expect(screen.getByText("Force target discovery")).toBeInTheDocument();
+  });
+
+  it("keeps sound controls inside the operator shortcuts card", () => {
+    renderShell("en");
+    const shortcutsHeading = screen.getByText("Operator shortcuts");
+    const shortcutsCard = shortcutsHeading.closest("[data-slot='card']");
+    expect(shortcutsCard).toBeTruthy();
+    expect(shortcutsCard).toContainElement(screen.getByRole("switch", { name: "Sound effects" }));
+    expect(shortcutsCard).toContainElement(screen.getByText("Force target discovery"));
   });
 });
