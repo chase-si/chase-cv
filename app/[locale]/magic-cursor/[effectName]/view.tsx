@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 
 import type { EffectName } from "magic-cursor-effect";
-import { useTranslations } from "next-intl";
 
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import {
@@ -24,12 +23,21 @@ import { trackEvent } from "@/lib/analytics";
 
 type Props = {
   effect: EffectName;
+  heading: string;
+  description: string;
+  hubLabel: string;
+  breadcrumbLabel: string;
 };
 
-export function MagicCursorEffectPage({ effect }: Props) {
+export function MagicCursorEffectPage({
+  effect,
+  heading,
+  description,
+  hubLabel,
+  breadcrumbLabel,
+}: Props) {
   const [optionsByEffect, setOptionsByEffect] = useState<OptionsByEffect>(defaultOptionsByEffect);
   const options = optionsByEffect[effect];
-  const t = useTranslations("magicCursor");
 
   useEffect(() => {
     trackEvent("effect_view", { effect });
@@ -40,10 +48,10 @@ export function MagicCursorEffectPage({ effect }: Props) {
       <main className="mx-auto w-full flex-1 px-4 py-8 sm:px-6 sm:py-10">
         <header className="mb-8 space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            {t("title")}
+            {heading}
           </h1>
           <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-            {t("description")}
+            {description}
           </p>
         </header>
 
@@ -63,14 +71,12 @@ export function MagicCursorEffectPage({ effect }: Props) {
                 <BreadcrumbList>
                   <BreadcrumbItem>
                     <BreadcrumbLink asChild>
-                      <Link href="/magic-cursor">Magic Cursor</Link>
+                      <Link href="/magic-cursor">{hubLabel}</Link>
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                   <BreadcrumbSeparator>/</BreadcrumbSeparator>
                   <BreadcrumbItem>
-                    <BreadcrumbPage className="first-letter:uppercase">
-                      {effect}
-                    </BreadcrumbPage>
+                    <BreadcrumbPage>{breadcrumbLabel}</BreadcrumbPage>
                   </BreadcrumbItem>
                 </BreadcrumbList>
               </Breadcrumb>
