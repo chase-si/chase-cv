@@ -2,6 +2,19 @@ import { Slider as SliderPrimitive } from "@base-ui/react/slider"
 
 import { cn } from "@/lib/utils"
 
+function toSliderValues(
+  input: SliderPrimitive.Root.Props["value"] | SliderPrimitive.Root.Props["defaultValue"],
+  fallback: number[],
+): number[] {
+  if (Array.isArray(input)) {
+    return input
+  }
+  if (typeof input === "number") {
+    return [input]
+  }
+  return fallback
+}
+
 function Slider({
   className,
   defaultValue,
@@ -10,18 +23,17 @@ function Slider({
   max = 100,
   ...props
 }: SliderPrimitive.Root.Props) {
-  const _values = Array.isArray(value)
-    ? value
-    : Array.isArray(defaultValue)
-      ? defaultValue
-      : [min, max]
+  const _values = toSliderValues(value, toSliderValues(defaultValue, [min, max]))
+  const resolvedValue = typeof value === "number" ? [value] : value
+  const resolvedDefaultValue =
+    typeof defaultValue === "number" ? [defaultValue] : defaultValue
 
   return (
     <SliderPrimitive.Root
       className={cn("data-horizontal:w-full data-vertical:h-full", className)}
       data-slot="slider"
-      defaultValue={defaultValue}
-      value={value}
+      defaultValue={resolvedDefaultValue}
+      value={resolvedValue}
       min={min}
       max={max}
       thumbAlignment="edge"

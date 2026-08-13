@@ -45,9 +45,9 @@ function ShortcutRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-2",
+        "flex min-w-0 items-center gap-2",
         layout === "horizontal" && index === 2 && "ml-3 border-l border-border pl-5",
-        layout === "vertical" && index === 2 && "border-t border-border pt-2",
+        layout === "vertical" && index === 2 && "border-t border-border pt-2 lg:border-t-0 lg:pt-0",
       )}
     >
       <dt>
@@ -55,7 +55,7 @@ function ShortcutRow({
       </dt>
       <dd
         className={cn(
-          "text-xs",
+          "min-w-0 text-xs",
           index < 2 ? "font-semibold text-foreground" : "text-muted-foreground",
         )}
       >

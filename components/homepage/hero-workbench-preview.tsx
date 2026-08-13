@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageIcon, Menu, MousePointer2, Workflow } from "lucide-react";
+import { ImageIcon, Menu, MousePointer2, ScanLine } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
@@ -28,7 +28,7 @@ export function HomepageHeroWorkbenchPreview() {
           <WorkbenchCursorPane />
           <WorkbenchPalettePane />
         </div>
-        <WorkbenchFlowPane />
+        <WorkbenchScannerPane />
       </div>
       <div className="flex items-center gap-4 border-t-2 border-border px-5 py-3 font-mono text-xs font-bold uppercase">
         <span>Build</span>
@@ -93,41 +93,35 @@ function WorkbenchPalettePane() {
   );
 }
 
-function NodeBox({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <span className={cn("rounded-lg border-2 border-border bg-card px-3 py-2 text-xs font-bold shadow-[2px_2px_0_0] shadow-foreground/50", className)}>
-      {children}
-    </span>
-  );
-}
-
-function WorkbenchFlowPane() {
+function WorkbenchScannerPane() {
   return (
     <div aria-hidden className="relative min-h-full overflow-hidden rounded-2xl border-2 border-border bg-background p-4">
       <div className="font-mono text-[10px] font-bold uppercase tracking-wide">
-        Flow Editor
+        Dudu Scanner
       </div>
-      <div className="mt-4 flex h-[calc(100%-2rem)] min-h-64 flex-col items-center justify-center gap-5">
-        <NodeBox className="bg-chart-2/70">Start</NodeBox>
-        <div className="h-6 w-px bg-border" />
-        <NodeBox className="bg-primary text-primary-foreground">Decision</NodeBox>
-        <div className="grid w-full grid-cols-2 gap-4">
-          {["Task A", "Task B"].map((label) => (
-            <div key={label} className="flex flex-col items-center gap-3">
-              <div className="h-6 w-px bg-border" />
-              <NodeBox>{label}</NodeBox>
-              <div className="h-6 w-px bg-border" />
-              <NodeBox className="bg-background font-mono font-medium">End</NodeBox>
+      <div className="relative mt-5 flex min-h-64 flex-col justify-between gap-5">
+        <div className="relative mx-auto flex size-36 items-center justify-center">
+          <span className="absolute inset-0 rounded-full border-2 border-dashed border-primary/70" />
+          <span className="size-14 rounded-full border border-border bg-primary shadow-[0_0_0_14px] shadow-primary/20" />
+          <ScanLine className="absolute size-7 text-primary-foreground" />
+        </div>
+        <div className="rounded-xl border-2 border-border bg-card p-3 shadow-[3px_3px_0_0] shadow-foreground/50">
+          {["Signal", "Lock", "Tip"].map((label, index) => (
+            <div key={label} className="mb-2 grid grid-cols-[3.5rem_1fr] items-center gap-3 last:mb-0">
+              <span className="font-mono text-[10px]">{label}</span>
+              <span className="relative h-1 rounded-full bg-muted">
+                <span
+                  className={cn(
+                    "absolute top-1/2 size-3 -translate-y-1/2 rounded-full border border-border bg-background",
+                    index === 0 && "left-2/3",
+                    index === 1 && "left-1/2",
+                    index === 2 && "left-1/3",
+                  )}
+                />
+              </span>
             </div>
           ))}
         </div>
-        <Workflow className="absolute bottom-4 right-4 size-5 text-muted-foreground" />
       </div>
     </div>
   );

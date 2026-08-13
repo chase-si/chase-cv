@@ -2,24 +2,193 @@
   "metadata": {
     "siteName": "Chase's CV",
     "home": {
-      "title": "Chase's CV",
-      "description": "Chase's personal website for product-minded frontend work, interaction experiments, and design systems."
+      "title": "Chase — Product Frontend, Interaction Tools & Design Systems",
+      "description": "Chase builds product-minded frontend experiences, browser-based interaction tools, and design-system experiments. Explore the playground, then see how each tool maps to real product work.",
+      "ogImageAlt": "Chase: product frontend engineer and interaction tool builder",
+      "personName": "Chase",
+      "personDescription": "Product-minded frontend engineer who ships interaction tools, design-system experiments, and playful browser demos."
     },
     "magicCursor": {
-      "title": "Magic Cursor | Chase's CV",
-      "description": "Explore configurable cursor effects with live previews and copyable magic-cursor-effect code."
+      "hub": {
+        "title": "Magic Cursor Effect Library — Live Previews & Copyable Code | Chase's CV",
+        "description": "Browse nine configurable cursor effects with live previews, tune parameters in the sidebar, and copy magic-cursor-effect setup code for your own pages.",
+        "ogImageAlt": "Magic Cursor effect library with live previews for ring, trail, spotlight, and more",
+        "applicationName": "Magic Cursor Effect Library",
+        "h1": "Magic Cursor effect library",
+        "lead": "Explore nine cursor effects, tune parameters with live previews, and copy integration code."
+      },
+      "effects": {
+        "ring": {
+          "title": "Ring Cursor Effect — Smooth Follower Ring | Chase's CV",
+          "description": "Preview a smooth ring cursor that follows pointer movement with configurable size, color, border width, and easing.",
+          "ogImageAlt": "Ring cursor effect preview with adjustable size and smoothing",
+          "applicationName": "Magic Cursor — Ring Effect",
+          "h1": "Ring cursor effect",
+          "behavior": "Draws a ring that lerps toward the pointer. Smoothing controls how quickly the ring catches up; size and border width shape the halo.",
+          "useCases": "Product landing pages, portfolio heroes, and playful marketing sites that need a lightweight branded pointer without particle overhead.",
+          "breadcrumb": "Ring",
+          "params": {
+            "size": "size — outer diameter of the ring or lens",
+            "color": "color — stroke or particle tint (rgba)",
+            "borderWidth": "borderWidth — ring outline thickness",
+            "smoothing": "smoothing — pointer follow easing (0–1)"
+          }
+        },
+        "magnifier": {
+          "title": "Magnifier Cursor Effect — Lens Zoom Preview | Chase's CV",
+          "description": "Magnify content under the cursor with zoom, blur, brightness, and saturation controls plus the same ring smoothing as the ring effect.",
+          "ogImageAlt": "Magnifier cursor lens with zoom and smoothing controls",
+          "applicationName": "Magic Cursor — Magnifier Effect",
+          "h1": "Magnifier cursor effect",
+          "behavior": "Combines a following ring with a lens that zooms and stylizes pixels beneath the pointer. Lens blur, brightness, and saturation shape the glass look.",
+          "useCases": "Design showcases, before/after demos, and editorial layouts where you want users to inspect details under the cursor.",
+          "breadcrumb": "Magnifier",
+          "params": {
+            "size": "size — outer diameter of the ring or lens",
+            "zoom": "zoom — magnifier scale factor",
+            "lensBlurPx": "lensBlurPx — blur inside the lens",
+            "lensBrightness": "lensBrightness — brightness boost under the lens",
+            "lensSaturate": "lensSaturate — saturation boost under the lens",
+            "smoothing": "smoothing — pointer follow easing (0–1)"
+          }
+        },
+        "trail": {
+          "title": "Trail Cursor Effect — Dot Trail Behind the Pointer | Chase's CV",
+          "description": "Leave a throttled trail of dots behind movement with controls for dot count, size, color, and emission interval.",
+          "ogImageAlt": "Trail cursor effect with configurable dot trail",
+          "applicationName": "Magic Cursor — Trail Effect",
+          "h1": "Trail cursor effect",
+          "behavior": "Spawns dots along the pointer path on a throttle timer. maxDots caps history length; size and color define each stamp.",
+          "useCases": "Playful brand sites, game promos, and interactive art pieces that reward movement with motion graphics.",
+          "breadcrumb": "Trail",
+          "params": {
+            "maxDots": "maxDots — maximum trail stamps kept alive",
+            "size": "size — outer diameter of the ring or lens",
+            "color": "color — stroke or particle tint (rgba)",
+            "throttleMs": "throttleMs — minimum milliseconds between trail dots"
+          }
+        },
+        "spotlight": {
+          "title": "Spotlight Cursor Effect — Dimmed Stage with Pointer Hole | Chase's CV",
+          "description": "Darken the page except for a circular spotlight that follows the cursor, with radius and dim color controls.",
+          "ogImageAlt": "Spotlight cursor effect with dimmed overlay",
+          "applicationName": "Magic Cursor — Spotlight Effect",
+          "h1": "Spotlight cursor effect",
+          "behavior": "Applies a dim overlay with a circular cutout centered on the pointer. Radius sets the lit area; dimColor controls the surrounding shade.",
+          "useCases": "Guided tours, storytelling scroll experiences, and reveal moments that focus attention on one region at a time.",
+          "breadcrumb": "Spotlight",
+          "params": {
+            "radius": "radius — spotlight or arc radius",
+            "dimColor": "dimColor — rgba overlay outside the spotlight"
+          }
+        },
+        "magnetic": {
+          "title": "Magnetic Cursor Effect — Attract Elements to the Pointer | Chase's CV",
+          "description": "Pull elements matching a CSS selector toward the cursor with adjustable strength and preview item color.",
+          "ogImageAlt": "Magnetic cursor effect attracting UI blocks",
+          "applicationName": "Magic Cursor — Magnetic Effect",
+          "h1": "Magnetic cursor effect",
+          "behavior": "Targets elements via selector (default [data-magnetic]) and offsets them toward the pointer based on strength. itemColor tints preview blocks.",
+          "useCases": "Button grids, card stacks, and micro-interaction demos where nearby UI should feel pulled toward the cursor.",
+          "breadcrumb": "Magnetic",
+          "params": {
+            "strength": "strength — magnetic pull amount (0–1)",
+            "selector": "selector — CSS selector for magnetic targets",
+            "itemColor": "itemColor — preview color for magnetic blocks"
+          }
+        },
+        "flame": {
+          "title": "Flame Cursor Effect — Rising Fire Particles | Chase's CV",
+          "description": "Emit rising flame particles from the pointer with controls for emission rate, size, lifetime, rise speed, jitter, and DPR cap.",
+          "ogImageAlt": "Flame cursor particle effect preview",
+          "applicationName": "Magic Cursor — Flame Effect",
+          "h1": "Flame cursor effect",
+          "behavior": "Spawns particles that rise and fade with jitter. emission sets spawn rate; lifeMs and rise shape motion; maxDpr limits canvas density.",
+          "useCases": "Seasonal campaigns, game launches, and high-energy hero sections that need fiery motion tied to the cursor.",
+          "breadcrumb": "Flame",
+          "params": {
+            "emission": "emission — particles spawned per frame batch",
+            "size": "size — outer diameter of the ring or lens",
+            "lifeMs": "lifeMs — particle lifetime in milliseconds",
+            "rise": "rise — upward velocity for flame/smoke",
+            "jitter": "jitter — random motion for flame particles",
+            "maxDpr": "maxDpr — device pixel ratio cap for flame canvas"
+          }
+        },
+        "smoke": {
+          "title": "Smoke Cursor Effect — Drifting Smoke Particles | Chase's CV",
+          "description": "Emit soft smoke puffs that rise and drift from the pointer with color, size, lifetime, and motion tuning.",
+          "ogImageAlt": "Smoke cursor particle effect preview",
+          "applicationName": "Magic Cursor — Smoke Effect",
+          "h1": "Smoke cursor effect",
+          "behavior": "Similar to flame but with slower rise and horizontal drift for wispy smoke. color tints each puff; emission and lifeMs control density.",
+          "useCases": "Moody portfolios, music releases, and atmospheric landing pages that need subtle environmental motion.",
+          "breadcrumb": "Smoke",
+          "params": {
+            "emission": "emission — particles spawned per frame batch",
+            "size": "size — outer diameter of the ring or lens",
+            "lifeMs": "lifeMs — particle lifetime in milliseconds",
+            "rise": "rise — upward velocity for flame/smoke",
+            "drift": "drift — horizontal drift for smoke",
+            "color": "color — stroke or particle tint (rgba)"
+          }
+        },
+        "invertRing": {
+          "title": "Invert Ring Cursor Effect — Blend-Mode Halo | Chase's CV",
+          "description": "Ring cursor that inverts or blends with the background using blend modes, optional blend background, and ring smoothing.",
+          "ogImageAlt": "Invert ring cursor with blend mode controls",
+          "applicationName": "Magic Cursor — Invert Ring Effect",
+          "h1": "Invert ring cursor effect",
+          "behavior": "Renders a ring whose pixels interact with the page via CSS blend modes (default difference). blendBackground can force a backdrop color for predictable contrast.",
+          "useCases": "Bold typography heroes, poster-like layouts, and experiments where the cursor should cut through color blocks.",
+          "breadcrumb": "Invert ring",
+          "params": {
+            "size": "size — outer diameter of the ring or lens",
+            "color": "color — stroke or particle tint (rgba)",
+            "borderWidth": "borderWidth — ring outline thickness",
+            "smoothing": "smoothing — pointer follow easing (0–1)",
+            "blendMode": "blendMode — CSS mix-blend-mode for invert ring",
+            "blendBackground": "blendBackground — optional backdrop color behind the ring"
+          }
+        },
+        "electricArc": {
+          "title": "Electric Arc Cursor Effect — Click Bursts and Arcs | Chase's CV",
+          "description": "Spawn electric arcs around the pointer with length, radius, lifetime, glow, emission rate, and click burst tuning.",
+          "ogImageAlt": "Electric arc cursor effect with glow",
+          "applicationName": "Magic Cursor — Electric Arc Effect",
+          "h1": "Electric arc cursor effect",
+          "behavior": "Draws short-lived arcs near the pointer. clickBurst adds extra arcs on click; glowColor softens the neon edge around color.",
+          "useCases": "Sci-fi product teasers, gaming UIs, and interactive posters that need energetic feedback on move and click.",
+          "breadcrumb": "Electric arc",
+          "params": {
+            "emission": "emission — particles spawned per frame batch",
+            "length": "length — electric arc segment length",
+            "radius": "radius — spotlight or arc radius",
+            "lifeMs": "lifeMs — particle lifetime in milliseconds",
+            "color": "color — stroke or particle tint (rgba)",
+            "glowColor": "glowColor — outer glow tint for arcs",
+            "clickBurst": "clickBurst — extra arcs spawned on pointer down"
+          }
+        }
+      }
     },
     "imageToUi": {
-      "title": "Masterpiece Colors to shadcn Themes | Chase's CV",
-      "description": "Extract palettes from classic paintings, map them into UI color roles, and preview shadcn/Tailwind-style themes in real interface layouts."
+      "title": "Image Color Palette Extractor & UI Theme Preview | Chase's CV",
+      "description": "Extract UI color palettes from your own images or classic paintings, map surface, action, and support roles, and preview themes in realistic interface layouts—all processed locally in your browser.",
+      "ogImageAlt": "Image to UI tool: extract palette colors from an image and preview interface themes",
+      "applicationName": "Image to UI — Color Palette Extractor"
     },
     "flow": {
-      "title": "Flow editor | Chase's CV",
-      "description": "Visualize and edit SFC flow structure in an experimental editor."
+      "title": "SFC Flow Editor — Visual Tree for Structured Flows | Chase's CV",
+      "description": "Experiment with a browser-based flow editor for SFC-style structured flows: zoom the canvas, add branches and sequential steps, edit node properties, and preview runtime highlights.",
+      "ogImageAlt": "Flow editor: visualize and edit structured SFC flows in the browser",
+      "applicationName": "SFC Flow Editor"
     },
     "duduScanner": {
-      "title": "Dudu Scanner | Chase's CV",
-      "description": "A playful belly-scan console for family-friendly reveals. Configure themes, characters, and sound before the show begins."
+      "title": "Dudu Scanner — Belly Scan Mini-Game for Kids' Healthy Habits | Chase's CV",
+      "description": "Scan a tummy, lock a cartoon character, and get a kid-friendly healthy-habit tip. Mystery or operator mode, three themes, and ten characters—entertainment only, not a medical device.",
+      "ogImageAlt": "Dudu Scanner: belly-scan mini-game that reveals a character and a healthy-habit tip for kids",
+      "applicationName": "Dudu Scanner"
     },
     "notFound": {
       "title": "Page not found | Chase's CV",
@@ -44,7 +213,7 @@
         },
         "duduScanner": {
           "name": "Dudu Scanner",
-          "description": "Scan for a hidden character in a playful family reveal."
+          "description": "Scan a tummy, then suggest a healthy habit for kids."
         },
         "flowEditor": {
           "name": "Flow Editor",
@@ -120,6 +289,47 @@
       "resetDescription": "The current flow contains unsaved changes. Resetting restores the example and cannot be undone.",
       "confirmDelete": "Delete node",
       "confirmReset": "Reset example"
+    },
+    "landing": {
+      "purposeTitle": "What this editor does",
+      "purposeBody": "The Flow Editor is an experimental visual workspace for SFC-style structured flows. It renders the tree on a zoomable canvas, lets you add sequential steps or branches, and surfaces node properties in a side panel—useful when a JSON or YAML flow is too hard to hold in your head.",
+      "stepsTitle": "How to use it",
+      "step1": "Load the demo flow and pan or zoom the canvas to orient yourself.",
+      "step2": "Select a node to inspect IDs, descriptions, and branch metadata in the properties panel.",
+      "step3": "Use the toolbar to add sequential steps, branches, or expand supported branch nodes.",
+      "step4": "Toggle runtime highlight to see how execution might travel through the current structure.",
+      "useCasesTitle": "When teams reach for it",
+      "useCase1": "Sketch onboarding or approval flows before wiring them into production orchestration.",
+      "useCase2": "Explain branching logic to teammates without scrolling through nested config files.",
+      "useCase3": "Prototype how runtime highlighting could help operators debug stuck flows.",
+      "faqTitle": "FAQ",
+      "faq": {
+        "sfc": {
+          "question": "What kind of flows does it model?",
+          "answer": "It focuses on structured, tree-shaped flows similar to SFC drafts: sequential steps, condition nodes, and explicit branches—not a general-purpose whiteboard."
+        },
+        "edit": {
+          "question": "Can I import my own production flow?",
+          "answer": "Not in this playground release. The page ships with a demo tree so you can explore editing mechanics without connecting to a backend."
+        },
+        "demo": {
+          "question": "What does runtime highlight show?",
+          "answer": "A illustrative pass over the demo graph so you can discuss execution order and branch joins—it's a visual aid, not a live production trace."
+        },
+        "export": {
+          "question": "Can I export JSON or code?",
+          "answer": "No export yet. The tool is for visualization and hands-on editing practice inside the browser session."
+        },
+        "browser": {
+          "question": "Does it work on mobile?",
+          "answer": "The layout is responsive, but dense editing is most comfortable on a desktop-sized screen with a pointer."
+        }
+      },
+      "relatedTitle": "Keep exploring",
+      "relatedToolsTitle": "Other playground tools",
+      "relatedToolsDescription": "Jump to another experiment when you're done rearranging nodes.",
+      "workExperienceLink": "View work experience",
+      "contactLink": "Contact Chase"
     }
   },
   "themeToggle": {
@@ -154,9 +364,9 @@
           "entry": "Open Magic Cursor"
         },
         "duduScanner": {
-          "problem": "How do you turn a hidden-character reveal into a playful scan, not a static image?",
-          "tag1": "Scan & explore",
-          "tag2": "Family easter egg",
+          "problem": "How do you turn a silly belly scan into a mini-game that nudges kids toward healthy habits?",
+          "tag1": "Belly scan game",
+          "tag2": "Kids' habits",
           "entry": "Open Dudu Scanner"
         },
         "flowEditor": {
@@ -166,6 +376,16 @@
           "entry": "Open Flow Editor"
         }
       }
+    },
+    "focusChips": {
+      "product": "Product frontend",
+      "ai": "AI-assisted builder",
+      "tools": "Interaction tools"
+    },
+    "seo": {
+      "toolsTitle": "Playground tools",
+      "toolsIntro": "Each experiment below is a real, shippable slice of product frontend work—interaction design, design-system thinking, and browser-native tooling you can try immediately.",
+      "contactLink": "Contact Chase"
     },
     "contactTitle": "Contact me(Open to work)",
     "contact": {
@@ -209,12 +429,27 @@
     "copySuccess": "Copied to clipboard",
     "copyError": "Copy failed",
     "copy": "Copy",
-    "code": "Code"
+    "code": "Code",
+    "landing": {
+      "purposeTitle": "What this library is for",
+      "purposeBody": "Magic Cursor is a bilingual gallery of nine pointer effects built on magic-cursor-effect. Each page explains the behavior, shows a live demo with the same sidebar controls as production, and links to related effects you can compare side by side.",
+      "catalogTitle": "Browse every effect",
+      "catalogDescription": "Open a detail page to read behavior notes, parameter help, and copy integration code.",
+      "backToHub": "Back to Magic Cursor overview",
+      "relatedEffectsTitle": "Related effects",
+      "relatedEffectsDescription": "Compare nearby effects without losing your parameter context.",
+      "relatedToolsTitle": "More playground tools",
+      "relatedToolsDescription": "Continue exploring other browser-based experiments on this site.",
+      "behaviorTitle": "How it behaves",
+      "useCasesTitle": "Good fits",
+      "paramsTitle": "Key parameters",
+      "hubLinkLabel": "Magic Cursor overview"
+    }
   },
   "imageToUi": {
-    "title": "Turn Masterpiece Colors into UI Themes",
-    "stepOneDescription": "Choose a classic painting or upload an image, extract its primary, accent, and support colors, then preview a shadcn-style interface theme.",
-    "stepTwoDescription": "See how this painting-inspired palette feels across dashboard and landing page layouts, or go back to tune the colors.",
+    "title": "Image Color Palette Extractor & UI Theme Preview",
+    "stepOneDescription": "Upload your own image or pick a classic painting sample, extract dominant colors, map them into surface, action, and support roles, then preview how they feel in dashboard and landing layouts.",
+    "stepTwoDescription": "Review the themed interface preview, then return to adjust colors or try another image.",
     "backToEdit": "Back to edit",
     "sourceAria": "Image source",
     "sourceTitle": "Source",
@@ -222,8 +457,8 @@
     "previewAria": "Preview and palette",
     "previewTitle": "Current inspiration image",
     "previewDescription": "Review the full image and the source of the palette.",
-    "paletteTitle": "Extract UI colors from the painting",
-    "paletteDescription": "Choose three colors and the tool maps them into background, primary action, and support layers for a live interface preview.",
+    "paletteTitle": "Extract UI colors from your image",
+    "paletteDescription": "Pick three colors and the tool maps them into surface, action, and support roles for a live interface theme preview—not a downloadable theme file.",
     "uploadAria": "Upload image from local device",
     "uploadButton": "Choose local image",
     "uploadHelp": "Images are processed only in your browser and are not uploaded to the server.",
@@ -337,6 +572,57 @@
         "description": "Tropical color blocks and vivid contrast for expressive, memorable interface themes."
       }
     },
+    "landing": {
+      "purposeTitle": "What this tool does",
+      "purposeBody": "Image to UI is a browser-based color palette extractor for UI design. It pulls dominant colors from an uploaded image or curated painting sample, classifies them into surface, action, and support roles, and previews how the palette behaves in realistic SaaS layouts. Classic masterpieces remain built-in examples, but the workflow works for any image you bring.",
+      "stepsTitle": "How it works",
+      "step1": "Choose a sample painting or upload an image from your device.",
+      "step2": "Wait for the palette extraction to finish in your browser.",
+      "step3": "Select three colors to assign surface, action, and support roles.",
+      "step4": "Generate the interface preview and compare dashboard and landing layouts.",
+      "useCasesTitle": "When designers use it",
+      "useCase1": "Turn brand photography or mood boards into a first-pass UI palette before coding.",
+      "useCase2": "Stress-test contrast and hierarchy when borrowing colors from art or nature references.",
+      "useCase3": "Explore theme direction quickly without exporting tokens or installing a design-system package.",
+      "rolesTitle": "Surface, action, and support",
+      "rolesIntro": "Instead of listing raw hex values, the preview explains how each selected color is expected to behave in interface hierarchy.",
+      "roleSurfaceTitle": "Surface",
+      "roleSurfaceBody": "Backgrounds, cards, and large calm areas that carry most of the layout.",
+      "roleActionTitle": "Action",
+      "roleActionBody": "Primary buttons, links, and focus states that need readable contrast against surfaces.",
+      "roleSupportTitle": "Support",
+      "roleSupportBody": "Borders, inputs, secondary labels, and muted accents that structure the UI without competing with actions.",
+      "privacyTitle": "Local browser processing",
+      "privacyBody": "Uploaded images stay on your device. Palette extraction runs in the browser with client-side libraries, and this site does not receive your file contents or filenames for analytics.",
+      "faqTitle": "FAQ",
+      "faq": {
+        "upload": {
+          "question": "Can I use my own images?",
+          "answer": "Yes. Use the local upload control to pick JPG, PNG, or WebP files. Processing happens entirely in your browser."
+        },
+        "server": {
+          "question": "Are images uploaded to a server?",
+          "answer": "No. The tool reads the file locally to extract colors. Nothing is sent to Chase's servers for storage or analysis."
+        },
+        "roles": {
+          "question": "What do surface, action, and support mean?",
+          "answer": "They are UI color roles: surfaces hold layout, actions drive primary interaction, and support colors handle borders, inputs, and secondary emphasis."
+        },
+        "preview": {
+          "question": "What does the preview show?",
+          "answer": "A themed SaaS dashboard, settings panel, and marketing landing layout that demonstrate how your palette might feel in product UI—not production code."
+        },
+        "export": {
+          "question": "Can I export or copy a full shadcn theme?",
+          "answer": "Not yet. The current release focuses on extraction, role mapping, and visual preview. It does not generate installable theme files or copy-paste shadcn configuration."
+        }
+      },
+      "relatedTitle": "Keep exploring",
+      "relatedToolsTitle": "Other playground tools",
+      "relatedToolsDescription": "Try a different experiment when you are done tuning colors.",
+      "workExperienceLink": "View work experience",
+      "contactLink": "Contact Chase"
+    },
     "preview": {
       "surfaceAria": "SaaS status and settings preview",
       "subtitle": "Interface theme preview generated from painting-inspired colors",
@@ -437,6 +723,23 @@
     "targetsHeading": "Scan target",
     "soundLabel": "Sound effects",
     "soundDescription": "Soft scanner tones and gentle reveal cues when scanning starts.",
+    "howToPlay": {
+      "title": "How to play",
+      "description": "Move the mouse and place the probe on the person's belly.",
+      "demoLabel": "Demo",
+      "accessibleDescription": "Move the mouse-controlled probe over the person's belly, scan, then look at the monitor for the result.",
+      "bellyArea": "Person's belly",
+      "scanHere": "Scan here",
+      "screen": "Monitor",
+      "searching": "Searching",
+      "signalFound": "Signal found",
+      "stepsLabel": "Game instructions",
+      "steps": {
+        "move": "Move mouse",
+        "scan": "Touch belly",
+        "watch": "Watch screen"
+      }
+    },
     "shortcutsHeading": "Operator shortcuts",
     "shortcutsHint": "These keys work during the scan. Keep this list handy before you go live.",
     "startScan": "Start scan",
@@ -560,8 +863,52 @@
       "title": "Target locked!",
       "body": "Your silly belly-scan identified this character. Ready for another round?",
       "healthTask": "Today's healthy mission",
+      "playHealthTask": "Play healthy mission",
+      "stopHealthTask": "Stop healthy mission",
+      "healthTaskHint": "Tap play for the tip below, or read aloud a suggestion of your own.",
       "scanAgain": "Scan again",
       "changeTarget": "Change target"
+    },
+    "landing": {
+      "purposeTitle": "What Dudu Scanner is for",
+      "purposeBody": "Dudu Scanner is a belly-scan mini-game for kids. Pick a snack, creature, or healthy-buddies theme, choose mystery or operator mode, then scan a tummy to lock a cartoon character and hear a playful healthy-habit suggestion—entertainment only, not a medical device.",
+      "stepsTitle": "How a round works",
+      "step1": "Watch the how-to-play demo, then choose a theme, scan mode, and optional sound.",
+      "step2": "Start the scan and move the probe over the belly until the signal is strong enough to lock.",
+      "step3": "See who was hiding, then read or play today's healthy mission for the child.",
+      "step4": "Scan again, or switch characters to get another habit tip.",
+      "useCasesTitle": "When families play it",
+      "useCase1": "Play a short belly-scan round so kids can find who is hiding in the tummy.",
+      "useCase2": "Use the reveal as a cue for a small healthy habit—vegetables, water, sleep, or a screen break.",
+      "useCase3": "Let a parent pick the character in operator mode, or use mystery mode so kids discover it live.",
+      "faqTitle": "FAQ",
+      "faq": {
+        "family": {
+          "question": "Is it made for kids?",
+          "answer": "Yes—it's a cartoon belly-scan game with gentle sound. A grown-up should stay nearby, and the healthy missions are playful prompts, not medical advice."
+        },
+        "setup": {
+          "question": "What's the difference between mystery and operator mode?",
+          "answer": "Mystery mode secretly picks a character from your theme each round. Operator mode lets a parent choose the exact character before the scan starts."
+        },
+        "health": {
+          "question": "Are the healthy missions medical advice?",
+          "answer": "No. Each character ends with a light, kid-friendly suggestion such as drinking water or eating vegetables. It is a game prompt, not a diagnosis or treatment."
+        },
+        "sound": {
+          "question": "Can I mute the scanner?",
+          "answer": "Yes. Toggle sound on the setup screen or press M during a scan to silence effects. The result screen can also speak the healthy mission if the browser supports it."
+        },
+        "fullscreen": {
+          "question": "Does fullscreen work on phones?",
+          "answer": "Browsers vary. The UI offers a fullscreen retry shortcut, but the most reliable experience is landscape tablet or desktop."
+        }
+      },
+      "relatedTitle": "Keep exploring",
+      "relatedToolsTitle": "Other playground tools",
+      "relatedToolsDescription": "After the scan, try another playground experiment.",
+      "workExperienceLink": "View work experience",
+      "contactLink": "Contact Chase"
     }
   }
 }

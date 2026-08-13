@@ -2,24 +2,193 @@
   "metadata": {
     "siteName": "Chase's CV",
     "home": {
-      "title": "Chase's CV",
-      "description": "Chase 的个人网站，展示产品化前端、交互实验与设计系统相关作品。"
+      "title": "Chase — 产品化前端、交互工具与设计系统",
+      "description": "Chase 专注产品化前端、浏览器交互工具与设计系统实验。先逛游乐场，再看每个工具如何对应真实产品工作。",
+      "ogImageAlt": "Chase：产品化前端工程师与交互工具作者",
+      "personName": "Chase",
+      "personDescription": "产品化前端工程师，发布交互工具、设计系统实验与轻量浏览器演示。"
     },
     "magicCursor": {
-      "title": "Magic Cursor | Chase's CV",
-      "description": "用实时预览探索可配置的鼠标效果，并复制 magic-cursor-effect 代码。"
+      "hub": {
+        "title": "Magic Cursor 效果库 — 实时预览与可复制代码 | Chase's CV",
+        "description": "浏览九种可配置的鼠标效果，在侧栏实时调参，并复制 magic-cursor-effect 集成代码到你的页面。",
+        "ogImageAlt": "Magic Cursor 效果库：环形、拖尾、聚光灯等多种效果的实时预览",
+        "applicationName": "Magic Cursor 效果库",
+        "h1": "Magic Cursor 效果库",
+        "lead": "探索九种鼠标效果，实时调参预览，并复制集成代码。"
+      },
+      "effects": {
+        "ring": {
+          "title": "环形光标效果 — 平滑跟随圆环 | Chase's CV",
+          "description": "预览平滑跟随指针的圆环光标，可调尺寸、颜色、描边宽度与缓动。",
+          "ogImageAlt": "环形光标效果：可调尺寸与平滑度",
+          "applicationName": "Magic Cursor — 环形效果",
+          "h1": "环形光标效果",
+          "behavior": "绘制向指针插值移动的圆环。平滑度决定追赶速度，尺寸与描边决定光环形态。",
+          "useCases": "产品落地页、作品集首屏等需要轻量品牌指针、又不想上粒子效果的场景。",
+          "breadcrumb": "环形",
+          "params": {
+            "size": "size — 圆环或透镜外径",
+            "color": "color — 描边或粒子颜色（rgba）",
+            "borderWidth": "borderWidth — 圆环描边粗细",
+            "smoothing": "smoothing — 指针跟随缓动（0–1）"
+          }
+        },
+        "magnifier": {
+          "title": "放大镜光标效果 — 透镜放大预览 | Chase's CV",
+          "description": "在指针下放大内容，支持缩放、模糊、亮度、饱和度，并沿用环形效果的平滑跟随。",
+          "ogImageAlt": "放大镜光标：缩放与平滑控制",
+          "applicationName": "Magic Cursor — 放大镜效果",
+          "h1": "放大镜光标效果",
+          "behavior": "在跟随圆环上叠加透镜，放大并风格化指针下像素；模糊、亮度、饱和度塑造玻璃质感。",
+          "useCases": "设计展示、前后对比演示、希望用户用光标细看细节的版面。",
+          "breadcrumb": "放大镜",
+          "params": {
+            "size": "size — 圆环或透镜外径",
+            "zoom": "zoom — 放大镜缩放倍数",
+            "lensBlurPx": "lensBlurPx — 透镜内模糊",
+            "lensBrightness": "lensBrightness — 透镜下亮度增益",
+            "lensSaturate": "lensSaturate — 透镜下饱和度增益",
+            "smoothing": "smoothing — 指针跟随缓动（0–1）"
+          }
+        },
+        "trail": {
+          "title": "拖尾光标效果 — 指针后的点阵轨迹 | Chase's CV",
+          "description": "在移动路径上按节流间隔留下点阵拖尾，可调点数、尺寸、颜色与间隔。",
+          "ogImageAlt": "拖尾光标：可配置点阵轨迹",
+          "applicationName": "Magic Cursor — 拖尾效果",
+          "h1": "拖尾光标效果",
+          "behavior": "按节流时间在指针路径上生成点。maxDots 限制历史长度，size 与 color 定义每个印记。",
+          "useCases": "趣味品牌站、游戏宣传、用运动反馈强化互动感的作品页。",
+          "breadcrumb": "拖尾",
+          "params": {
+            "maxDots": "maxDots — 拖尾保留的最大点数",
+            "size": "size — 圆环或透镜外径",
+            "color": "color — 描边或粒子颜色（rgba）",
+            "throttleMs": "throttleMs — 拖尾点之间的最小间隔（毫秒）"
+          }
+        },
+        "spotlight": {
+          "title": "聚光灯光标效果 — 暗场中的光洞 | Chase's CV",
+          "description": "除跟随指针的圆形光区外压暗页面，可调半径与暗场颜色。",
+          "ogImageAlt": "聚光灯光标：暗色遮罩与光洞",
+          "applicationName": "Magic Cursor — 聚光灯效果",
+          "h1": "聚光灯光标效果",
+          "behavior": "以指针为中心在遮罩上挖出圆形亮区。radius 决定光照范围，dimColor 控制周围暗度。",
+          "useCases": "引导式浏览、叙事滚动、需要一次只聚焦一个区域的揭晓场景。",
+          "breadcrumb": "聚光灯",
+          "params": {
+            "radius": "radius — 聚光灯或电弧半径",
+            "dimColor": "dimColor — 聚光灯外遮罩颜色"
+          }
+        },
+        "magnetic": {
+          "title": "磁吸光标效果 — 元素向指针靠拢 | Chase's CV",
+          "description": "按 CSS 选择器匹配元素并向指针偏移，可调吸力强度与预览色块颜色。",
+          "ogImageAlt": "磁吸光标：吸引界面块",
+          "applicationName": "Magic Cursor — 磁吸效果",
+          "h1": "磁吸光标效果",
+          "behavior": "通过 selector（默认 [data-magnetic]）选中元素，按 strength 向指针偏移；itemColor 为预览块上色。",
+          "useCases": "按钮阵列、卡片堆叠、希望附近 UI 被光标吸引的微交互演示。",
+          "breadcrumb": "磁吸",
+          "params": {
+            "strength": "strength — 磁吸强度（0–1）",
+            "selector": "selector — 磁吸目标的 CSS 选择器",
+            "itemColor": "itemColor — 磁吸预览块颜色"
+          }
+        },
+        "flame": {
+          "title": "火焰光标效果 — 上升火焰粒子 | Chase's CV",
+          "description": "从指针发射上升火焰粒子，可调发射率、尺寸、寿命、上升速度、抖动与 DPR 上限。",
+          "ogImageAlt": "火焰光标粒子效果预览",
+          "applicationName": "Magic Cursor — 火焰效果",
+          "h1": "火焰光标效果",
+          "behavior": "生成带抖动上升并淡出的粒子。emission 控制频率，lifeMs 与 rise 塑造运动，maxDpr 限制画布密度。",
+          "useCases": "节日营销、游戏上线、需要火焰动感绑定光标的高能量首屏。",
+          "breadcrumb": "火焰",
+          "params": {
+            "emission": "emission — 每批发射的粒子数",
+            "size": "size — 圆环或透镜外径",
+            "lifeMs": "lifeMs — 粒子寿命（毫秒）",
+            "rise": "rise — 火焰/烟雾上升速度",
+            "jitter": "jitter — 火焰粒子随机抖动",
+            "maxDpr": "maxDpr — 火焰画布 DPR 上限"
+          }
+        },
+        "smoke": {
+          "title": "烟雾光标效果 — 飘散烟雾粒子 | Chase's CV",
+          "description": "从指针发射缓慢上升并漂移的烟雾，可调颜色、尺寸、寿命与运动参数。",
+          "ogImageAlt": "烟雾光标粒子效果预览",
+          "applicationName": "Magic Cursor — 烟雾效果",
+          "h1": "烟雾光标效果",
+          "behavior": "类似火焰但更慢上升并带水平漂移。color 为烟雾上色，emission 与 lifeMs 控制密度。",
+          "useCases": "氛围作品集、音乐发布、需要环境感运动的落地页。",
+          "breadcrumb": "烟雾",
+          "params": {
+            "emission": "emission — 每批发射的粒子数",
+            "size": "size — 圆环或透镜外径",
+            "lifeMs": "lifeMs — 粒子寿命（毫秒）",
+            "rise": "rise — 火焰/烟雾上升速度",
+            "drift": "drift — 烟雾水平漂移",
+            "color": "color — 描边或粒子颜色（rgba）"
+          }
+        },
+        "invertRing": {
+          "title": "反相环光标效果 — 混合模式光环 | Chase's CV",
+          "description": "通过混合模式（默认 difference）与背景相互作用，可选 blendBackground，并支持环平滑。",
+          "ogImageAlt": "反相环光标：混合模式控制",
+          "applicationName": "Magic Cursor — 反相环效果",
+          "h1": "反相环光标效果",
+          "behavior": "绘制与页面像素按 CSS 混合模式作用的光环。blendBackground 可指定衬底以获得稳定对比。",
+          "useCases": "大胆排版首屏、海报式版面、希望光标“切开”色块的实验。",
+          "breadcrumb": "反相环",
+          "params": {
+            "size": "size — 圆环或透镜外径",
+            "color": "color — 描边或粒子颜色（rgba）",
+            "borderWidth": "borderWidth — 圆环描边粗细",
+            "smoothing": "smoothing — 指针跟随缓动（0–1）",
+            "blendMode": "blendMode — 反相环的 CSS 混合模式",
+            "blendBackground": "blendBackground — 反相环可选衬底色"
+          }
+        },
+        "electricArc": {
+          "title": "电弧光标效果 — 移动与点击电弧 | Chase's CV",
+          "description": "在指针附近生成短寿命电弧，可调长度、半径、寿命、发光、发射率与点击爆发。",
+          "ogImageAlt": "电弧光标：霓虹发光效果",
+          "applicationName": "Magic Cursor — 电弧效果",
+          "h1": "电弧光标效果",
+          "behavior": "在指针附近绘制短寿命电弧。clickBurst 在点击时额外爆发；glowColor 柔化霓虹边缘。",
+          "useCases": "科幻产品预告、游戏界面、需要在移动与点击时给出强反馈的互动海报。",
+          "breadcrumb": "电弧",
+          "params": {
+            "emission": "emission — 每批发射的粒子数",
+            "length": "length — 电弧线段长度",
+            "radius": "radius — 聚光灯或电弧半径",
+            "lifeMs": "lifeMs — 粒子寿命（毫秒）",
+            "color": "color — 描边或粒子颜色（rgba）",
+            "glowColor": "glowColor — 电弧外发光颜色",
+            "clickBurst": "clickBurst — 点击时额外爆发的电弧数"
+          }
+        }
+      }
     },
     "imageToUi": {
-      "title": "把名画配色变成 UI 主题 | Chase's CV",
-      "description": "从经典画作中提取配色，映射为背景、主操作与辅助色，并实时预览成 shadcn / Tailwind 风格的界面主题。"
+      "title": "图片配色提取与界面主题预览 | Chase's CV",
+      "description": "从自有图片或经典名画中提取界面配色，映射表面、主操作与辅助色，并在拟真界面布局中预览主题效果；图片仅在浏览器本地处理，不会上传到服务器。",
+      "ogImageAlt": "Image to UI：从图片提取配色并预览界面主题",
+      "applicationName": "Image to UI 图片配色提取工具"
     },
     "flow": {
-      "title": "流程编辑器 | Chase's CV",
-      "description": "可视化查看与编辑 SFC 流程结构的实验工具。"
+      "title": "SFC 流程编辑器 — 结构化流程可视化 | Chase's CV",
+      "description": "在浏览器中试验 SFC 风格结构化流程：缩放画布、添加分支与顺序步骤、编辑节点属性，并预览运行时高亮路径。",
+      "ogImageAlt": "流程编辑器：在浏览器中可视化编辑结构化 SFC 流程",
+      "applicationName": "SFC 流程编辑器"
     },
     "duduScanner": {
-      "title": "肚肚扫描仪 | Chase's CV",
-      "description": "亲子向的趣味肚肚扫描控制台：先选好主题、角色和声音，再开始现场表演。"
+      "title": "肚肚扫描仪 — 扫描肚子小游戏，给小朋友健康习惯建议 | Chase's CV",
+      "description": "扫描肚子、锁定卡通角色，再给小朋友一条健康习惯小建议。支持神秘或操作员模式、三个主题与十个角色——仅供娱乐，不是医疗设备。",
+      "ogImageAlt": "肚肚扫描仪：扫描肚子小游戏，揭晓角色并给出健康习惯小建议",
+      "applicationName": "肚肚扫描仪"
     },
     "notFound": {
       "title": "页面未找到 | Chase's CV",
@@ -44,7 +213,7 @@
         },
         "duduScanner": {
           "name": "Dudu Scanner",
-          "description": "扫描寻找肚子里藏起来的角色。"
+          "description": "扫描肚子揭晓角色，再给小朋友健康习惯小建议。"
         },
         "flowEditor": {
           "name": "Flow Editor",
@@ -120,6 +289,47 @@
       "resetDescription": "当前流程包含尚未保留的修改。重置后将恢复示例内容，此操作无法撤销。",
       "confirmDelete": "确认删除",
       "confirmReset": "确认重置"
+    },
+    "landing": {
+      "purposeTitle": "这个编辑器做什么",
+      "purposeBody": "流程编辑器是一个面向 SFC 风格结构化流程的实验性可视化工作台。它在可缩放的画布上渲染流程树，支持添加顺序步骤或分支，并在侧栏展示节点属性——当 JSON/YAML 配置难以在脑中展开时尤其好用。",
+      "stepsTitle": "如何使用",
+      "step1": "从示例流程开始，缩放或平移画布熟悉结构。",
+      "step2": "选中节点，在属性面板查看 ID、描述与分支信息。",
+      "step3": "使用工具栏添加顺序步骤、分支，或扩展支持的分支节点。",
+      "step4": "切换运行时高亮，讨论执行路径可能如何穿过当前结构。",
+      "useCasesTitle": "适用场景",
+      "useCase1": "在接入生产编排前，先草拟 onboarding 或审批类流程。",
+      "useCase2": "向同事解释分支逻辑，而不用滚动嵌套配置文件。",
+      "useCase3": "原型化运行时高亮，帮助运营同学理解卡住的路径。",
+      "faqTitle": "常见问题",
+      "faq": {
+        "sfc": {
+          "question": "它建模哪类流程？",
+          "answer": "聚焦树形结构化流程，类似 SFC 草稿：顺序步骤、条件节点与显式分支，不是通用白板。"
+        },
+        "edit": {
+          "question": "能导入线上真实流程吗？",
+          "answer": "当前游乐场版本还不支持。页面内置示例树，方便在不连后端的情况下体验编辑能力。"
+        },
+        "demo": {
+          "question": "运行时高亮代表什么？",
+          "answer": "在示例图上做示意性路径展示，便于讨论执行顺序与分支汇合，并非真实生产 trace。"
+        },
+        "export": {
+          "question": "能导出 JSON 或代码吗？",
+          "answer": "暂不支持导出，工具用于浏览器会话内的可视化与动手编辑练习。"
+        },
+        "browser": {
+          "question": "手机上好用吗？",
+          "answer": "布局可响应，但密集编辑更适合桌面指针操作。"
+        }
+      },
+      "relatedTitle": "继续探索",
+      "relatedToolsTitle": "其他游乐场工具",
+      "relatedToolsDescription": "改完节点后，可以换另一个实验试试。",
+      "workExperienceLink": "查看工作经历",
+      "contactLink": "联系 Chase"
     }
   },
   "themeToggle": {
@@ -130,10 +340,10 @@
     "eyebrow": "本站就是瞎玩儿",
     "introLeadPrefix": "我是 ",
     "introLeadName": "Chase",
-    "introLeadSuffix": "自由职业程序员。",
-    "introPresent": "之前8年纯手搓，现在用",
+    "introLeadSuffix": "，一名从古法编程走来的程序员。",
+    "introPresent": "8 年工程经验，现在我用",
     "introPresentDetailLead": "AI",
-    "introPresentDetailRest": " , 变身天才程序员",
+    "introPresentDetailRest": " , 更好的coding。",
     "primaryCta": "探索游乐场",
     "secondaryCta": "工作经历",
     "workbenchLabel": "混合工作台预览",
@@ -154,9 +364,9 @@
           "entry": "进入 Magic Cursor"
         },
         "duduScanner": {
-          "problem": "怎样把「扫描找角色」做成可玩、可分享的互动，而不是一张静态图？",
-          "tag1": "扫描探索",
-          "tag2": "家庭向彩蛋",
+          "problem": "怎样把扫描肚子做成小游戏，再顺手给小朋友一条健康习惯建议？",
+          "tag1": "扫描肚子",
+          "tag2": "健康习惯",
           "entry": "进入 Dudu Scanner"
         },
         "flowEditor": {
@@ -166,6 +376,16 @@
           "entry": "进入 Flow Editor"
         }
       }
+    },
+    "focusChips": {
+      "product": "产品化前端",
+      "ai": "AI 辅助构建",
+      "tools": "交互工具"
+    },
+    "seo": {
+      "toolsTitle": "游乐场工具",
+      "toolsIntro": "下面每个实验都是可交付的产品前端切片——交互设计、设计系统思维，以及可以立刻上手的浏览器原生工具。",
+      "contactLink": "联系 Chase"
     },
     "contactTitle": "联系我(派点活儿)",
     "contact": {
@@ -209,12 +429,27 @@
     "copySuccess": "已复制到剪贴板",
     "copyError": "复制失败",
     "copy": "复制",
-    "code": "Code"
+    "code": "Code",
+    "landing": {
+      "purposeTitle": "这个效果库解决什么问题",
+      "purposeBody": "Magic Cursor 是基于 magic-cursor-effect 的九种指针效果双语画廊。每个详情页说明行为、提供与线上一致的侧栏控件实时演示，并链接可横向对比的相关效果。",
+      "catalogTitle": "浏览全部效果",
+      "catalogDescription": "进入详情页查看行为说明、参数提示，并复制集成代码。",
+      "backToHub": "返回 Magic Cursor 总览",
+      "relatedEffectsTitle": "相关效果",
+      "relatedEffectsDescription": "在不丢失参数上下文的情况下对比邻近效果。",
+      "relatedToolsTitle": "更多游乐场工具",
+      "relatedToolsDescription": "继续探索站点上的其他浏览器实验。",
+      "behaviorTitle": "行为说明",
+      "useCasesTitle": "适用场景",
+      "paramsTitle": "关键参数",
+      "hubLinkLabel": "Magic Cursor 总览"
+    }
   },
   "imageToUi": {
-    "title": "把名画配色变成 UI 主题",
-    "stepOneDescription": "选择一幅经典画作或上传图片，提取它的主色、强调色与辅助色，实时生成 shadcn 风格的界面主题预览。",
-    "stepTwoDescription": "查看这组名画配色在 dashboard 与 landing page 中的效果，也可以返回继续调整颜色。",
+    "title": "从图片提取界面配色",
+    "stepOneDescription": "上传自己的图片或选择一幅名画示例，提取主色并映射为表面、主操作与辅助色，再在 dashboard 与 landing 布局中预览主题效果。",
+    "stepTwoDescription": "查看界面主题预览，也可以返回继续调色或换一张图。",
     "backToEdit": "返回编辑",
     "sourceAria": "图片来源",
     "sourceTitle": "来源",
@@ -222,8 +457,8 @@
     "previewAria": "预览与色板",
     "previewTitle": "当前灵感图",
     "previewDescription": "选中图片后在此查看完整画面与配色来源。",
-    "paletteTitle": "从画作提取 UI 配色",
-    "paletteDescription": "选择 3 个颜色后，系统会自动映射为背景、主操作与辅助层级，并生成界面预览。",
+    "paletteTitle": "从图片提取界面配色",
+    "paletteDescription": "选择 3 个颜色后，会映射为表面、主操作与辅助层级，并生成本地界面预览（不提供可下载的完整主题文件）。",
     "uploadAria": "从本地上传图片",
     "uploadButton": "选择本地图片",
     "uploadHelp": "图片只在浏览器内处理，不会上传到服务器。",
@@ -337,6 +572,57 @@
         "description": "热带色块与浓烈对比，适合生成异域、醒目、富有表现力的界面。"
       }
     },
+    "landing": {
+      "purposeTitle": "这个工具解决什么问题",
+      "purposeBody": "Image to UI 是一款在浏览器里运行的界面配色提取工具：从你上传的图片或内置名画示例中提取主色，映射为表面、主操作与辅助色，并在拟真 SaaS 界面中预览效果。名画示例是差异化灵感来源，但流程同样适用于你自己的素材。",
+      "stepsTitle": "使用步骤",
+      "step1": "选择名画示例，或从本地上传一张图片。",
+      "step2": "等待浏览器完成色板提取。",
+      "step3": "点选 3 个颜色，对应表面、主操作与辅助角色。",
+      "step4": "生成界面预览，对比 dashboard 与 landing 布局观感。",
+      "useCasesTitle": "典型使用场景",
+      "useCase1": "把品牌摄影或情绪板快速转成第一版界面配色，再进入设计与开发。",
+      "useCase2": "借用艺术或自然参考色时，检查对比度与层级是否仍然可读。",
+      "useCase3": "在不确定主题方向时快速试色，而无需导出 token 或安装设计系统包。",
+      "rolesTitle": "表面、主操作与辅助色",
+      "rolesIntro": "预览不只罗列色值，还说明每种颜色在界面层级里大致承担什么职责。",
+      "roleSurfaceTitle": "表面",
+      "roleSurfaceBody": "背景、卡片等大面积区域，决定整体基调与留白。",
+      "roleActionTitle": "主操作",
+      "roleActionBody": "主按钮、链接与焦点态，需要在表面色上保持清晰对比。",
+      "roleSupportTitle": "辅助",
+      "roleSupportBody": "边框、输入框、次要文案等弱化层次，帮助结构界面但不抢主操作。",
+      "privacyTitle": "本地处理与隐私",
+      "privacyBody": "上传的图片只留在你的设备上。色板提取在浏览器端完成，本站不会接收文件内容或文件名，也不会把这类信息写入分析事件。",
+      "faqTitle": "常见问题",
+      "faq": {
+        "upload": {
+          "question": "可以用自己的图片吗？",
+          "answer": "可以。通过本地上传选择 JPG、PNG 或 WebP，处理全程在浏览器内完成。"
+        },
+        "server": {
+          "question": "图片会上传到服务器吗？",
+          "answer": "不会。工具只在本地读取文件以提取颜色，不会把图片存到服务器或用于后台分析。"
+        },
+        "roles": {
+          "question": "表面、主操作、辅助色分别指什么？",
+          "answer": "它们是界面配色角色：表面承载布局，主操作驱动关键交互，辅助色负责边框、输入与次要强调。"
+        },
+        "preview": {
+          "question": "预览里展示的是什么？",
+          "answer": "一套 SaaS dashboard、设置页与营销落地页示例，用来感受配色在产品界面中的效果，而不是可直接上线的生产代码。"
+        },
+        "export": {
+          "question": "能导出或复制完整 shadcn 主题吗？",
+          "answer": "目前还不支持。当前版本聚焦提取、角色映射与视觉预览，不会生成可安装的主题文件，也不会输出可粘贴的 shadcn 配置。"
+        }
+      },
+      "relatedTitle": "继续探索",
+      "relatedToolsTitle": "游乐场里的其他工具",
+      "relatedToolsDescription": "调色结束后，也可以试试别的交互实验。",
+      "workExperienceLink": "查看工作经历",
+      "contactLink": "联系 Chase"
+    },
     "preview": {
       "surfaceAria": "SaaS 状态和设置预览",
       "subtitle": "基于名画配色生成的界面主题预览",
@@ -437,6 +723,23 @@
     "targetsHeading": "扫描目标",
     "soundLabel": "音效",
     "soundDescription": "开始扫描后会有轻柔的扫描音和揭晓提示音。",
+    "howToPlay": {
+      "title": "玩法演示",
+      "description": "移动鼠标，把探头贴在人的肚子上。",
+      "demoLabel": "演示",
+      "accessibleDescription": "用鼠标控制探头，在人的肚子上移动扫描，然后观察屏幕上的结果。",
+      "bellyArea": "人的肚子",
+      "scanHere": "扫描这里",
+      "screen": "观察屏幕",
+      "searching": "寻找信号",
+      "signalFound": "发现信号",
+      "stepsLabel": "游戏玩法说明",
+      "steps": {
+        "move": "移动鼠标",
+        "scan": "贴住肚子",
+        "watch": "查看屏幕"
+      }
+    },
     "shortcutsHeading": "操作者快捷键",
     "shortcutsHint": "以下按键在扫描过程中可用，正式表演前可以先记一下。",
     "startScan": "开始扫描",
@@ -560,8 +863,52 @@
       "title": "目标已锁定！",
       "body": "肚肚扫描确认了这个神秘角色。要再来一轮吗？",
       "healthTask": "今日健康小任务",
+      "playHealthTask": "播放健康小任务",
+      "stopHealthTask": "停止播放健康小任务",
+      "healthTaskHint": "点击播放以下建议，或您人工朗读您现编的建议",
       "scanAgain": "再扫一次",
       "changeTarget": "更换目标"
+    },
+    "landing": {
+      "purposeTitle": "肚肚扫描仪是做什么的",
+      "purposeBody": "肚肚扫描仪是给小朋友玩的扫描肚子小游戏。选择零食、生物或健康小伙伴主题，用神秘或操作员模式扫描肚子、锁定卡通角色，再给出一条轻松的健康习惯建议——仅供娱乐，不是医疗设备。",
+      "stepsTitle": "一局怎么玩",
+      "step1": "先看玩法演示，再选择主题、扫描模式，以及是否开启音效。",
+      "step2": "开始扫描，把探头贴在肚子上移动，直到信号足够强可以锁定。",
+      "step3": "看看藏着谁，再读一读或播放今日健康小任务给小朋友听。",
+      "step4": "再扫一次，或换角色，拿到另一条习惯建议。",
+      "useCasesTitle": "什么时候适合玩",
+      "useCase1": "和小朋友玩一轮短短的扫描肚子游戏，找出肚肚里藏着谁。",
+      "useCase2": "用揭晓结果当作小提醒：多吃蔬菜、喝水、按时睡觉，或让眼睛休息一下。",
+      "useCase3": "家长用操作员模式指定角色，或用神秘模式让小朋友现场揭晓。",
+      "faqTitle": "常见问题",
+      "faq": {
+        "family": {
+          "question": "适合小朋友吗？",
+          "answer": "适合。这是卡通扫描肚子小游戏，音效比较温和。请家长陪在旁边；健康小任务只是玩梗提醒，不是医嘱。"
+        },
+        "setup": {
+          "question": "神秘模式和操作员模式有什么区别？",
+          "answer": "神秘模式每轮会从主题里悄悄抽一个角色；操作员模式则让家长提前指定角色再开始扫描。"
+        },
+        "health": {
+          "question": "健康小任务是医疗建议吗？",
+          "answer": "不是。每个角色结束时只会给出轻松的小朋友建议，比如喝水、吃蔬菜。这是游戏提示，不是诊断或治疗。"
+        },
+        "sound": {
+          "question": "可以关掉声音吗？",
+          "answer": "可以。在设置页切换音效，或在扫描中按 M 静音。结果页也可以朗读健康小任务（若浏览器支持语音）。"
+        },
+        "fullscreen": {
+          "question": "手机能全屏吗？",
+          "answer": "不同浏览器表现不一。界面提供全屏重试快捷键，但横屏平板或桌面通常最稳。"
+        }
+      },
+      "relatedTitle": "继续探索",
+      "relatedToolsTitle": "其他游乐场工具",
+      "relatedToolsDescription": "扫完肚子之后，还可以试试别的实验。",
+      "workExperienceLink": "查看工作经历",
+      "contactLink": "联系 Chase"
     }
   }
 }

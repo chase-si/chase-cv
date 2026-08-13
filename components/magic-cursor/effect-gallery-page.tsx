@@ -3,36 +3,32 @@
 import { useState } from "react";
 
 import type { EffectName } from "magic-cursor-effect";
-import { useTranslations } from "next-intl";
 
 import { MagicCursorDemoTile } from "@/components/magic-cursor/demo-tile";
 import { MagicCursorSidebar } from "@/components/magic-cursor/sidebar";
-import { Card } from "@/components/ui/card";
+import { ToolPageChrome } from "@/components/tool-page-chrome";
+import { Card, CardScrollArea } from "@/components/ui/card";
 import { defaultOptionsByEffect, MAGIC_CURSOR_EFFECT_ORDER } from "@/lib/constants/magic-cursor";
 
-export function MagicCursorEffectGalleryPage() {
+export function MagicCursorEffectGalleryPage({
+  heading,
+  description,
+}: {
+  heading: string;
+  description: string;
+}) {
   const [active, setActive] = useState<EffectName | null>(null);
-  const t = useTranslations("magicCursor");
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col">
-      <main className="mx-auto w-full flex-1 px-4 py-8 sm:px-6 sm:py-10">
-        <header className="mb-8 space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            {t("title")}
-          </h1>
-          <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-            {t("description")}
-          </p>
-        </header>
+    <ToolPageChrome title={heading} description={description}>
+      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-stretch">
+        <aside className="min-h-0 min-w-0 lg:max-h-full">
+          <MagicCursorSidebar activeEffect={null} />
+        </aside>
 
-        <div className="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)] xl:items-start xl:gap-8">
-          <section>
-            <MagicCursorSidebar activeEffect={null} />
-          </section>
-
-          <Card className="overflow-hidden p-0">
-            <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
+        <Card className="flex min-h-0 flex-col overflow-hidden p-0 lg:max-h-full">
+          <CardScrollArea className="min-h-0 flex-1 lg:max-h-full">
+            <div className="grid content-start items-start gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
               {MAGIC_CURSOR_EFFECT_ORDER.map((effect) => {
                 // ring 依赖 reach 激活，懒挂载时指针已在格内会永远进不了 activated 状态
                 const enabled = effect === "ring" || active === effect;
@@ -57,9 +53,9 @@ export function MagicCursorEffectGalleryPage() {
                 );
               })}
             </div>
-          </Card>
-        </div>
-      </main>
-    </div>
+          </CardScrollArea>
+        </Card>
+      </div>
+    </ToolPageChrome>
   );
 }

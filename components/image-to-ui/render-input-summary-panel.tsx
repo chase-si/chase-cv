@@ -93,17 +93,17 @@ export function RenderInputSummaryPanel({
       summaryDataAttr={model.summaryDataAttr}
       ariaLabel={labels.summaryRootAria}
     >
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] xl:items-start xl:gap-6">
-        <aside className="xl:sticky xl:top-24" aria-label={labels.summaryAsideAria}>
-          <Card size="sm">
-            <CardHeader className="pb-2">
+      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:items-stretch">
+        <aside className="flex min-h-0 min-w-0 flex-col" aria-label={labels.summaryAsideAria}>
+          <Card size="sm" className="flex min-h-0 flex-1 flex-col overflow-hidden lg:gap-0 lg:py-0">
+            <CardHeader className="shrink-0 pb-2">
               <CardTitle className="text-base">{labels.summaryTitle}</CardTitle>
               <CardDescription className="text-xs">
                 {labels.summaryDescription}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <CardScrollArea className="max-h-160 pr-1">
+            <CardContent className="flex min-h-0 flex-1 flex-col">
+              <CardScrollArea className="min-h-0 flex-1 pr-1">
                 <div className="flex flex-col gap-4">
                   <RenderInputImageSummary
                     activeImage={activeImage}
@@ -135,13 +135,13 @@ export function RenderInputSummaryPanel({
           </Card>
         </aside>
 
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="flex min-h-0 flex-1 flex-col overflow-hidden lg:gap-0 lg:py-0">
+          <CardHeader className="shrink-0 pb-2">
             <CardTitle className="text-base">{labels.renderTitle}</CardTitle>
             <CardDescription>{labels.renderDescription}</CardDescription>
           </CardHeader>
-          <CardContent>
-            <CardScrollArea className="max-h-[min(40rem,70vh)] pr-1">
+          <CardContent className="flex min-h-0 flex-1 flex-col">
+            <CardScrollArea className="min-h-0 flex-1 pr-1">
               <SaasThemePreviewSurface
                 previewRootStyle={model.previewRootStyle}
               />

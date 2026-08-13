@@ -8,6 +8,11 @@ export type ProjectNavigationItem = {
 
 export const projectNavigationItems: ProjectNavigationItem[] = [
   {
+    id: "duduScanner",
+    href: "/dudu-scanner",
+    analyticsTarget: "dudu_scanner",
+  },
+  {
     id: "magicCursor",
     href: "/magic-cursor",
     analyticsTarget: "magic_cursor",
@@ -18,11 +23,6 @@ export const projectNavigationItems: ProjectNavigationItem[] = [
     analyticsTarget: "image_to_ui",
   },
   {
-    id: "duduScanner",
-    href: "/dudu-scanner",
-    analyticsTarget: "dudu_scanner",
-  },
-  {
     id: "flowEditor",
     href: "/flow",
     analyticsTarget: "flow_editor",
@@ -31,7 +31,7 @@ export const projectNavigationItems: ProjectNavigationItem[] = [
 
 /** Homepage lab-bench showcase order (differs from nav menu order). */
 export const homepageProjectShowcaseOrder: ProjectId[] = [
+  "duduScanner",
   "imageToUi",
   "magicCursor",
-  "flowEditor",
 ];

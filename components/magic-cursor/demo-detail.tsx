@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import type { MagneticEffectOptions } from "@/components/magic-cursor/types";
 import { toMagneticLibraryOptions } from "@/lib/magic-cursor/magnetic-options";
 import { bindRingReachActivationSync } from "@/lib/magic-cursor/ring-reach-sync";
+import { useMagicCursorDemoRuntime } from "@/hooks/use-magic-cursor-demo-runtime";
 
 type Props = {
   effect: EffectName;
@@ -78,7 +79,7 @@ function create(effect: EffectName, root: HTMLDivElement, options: Props["option
 }
 
 const basicStyle =
-  "relative overflow-hidden border border-border bg-card min-h-[240px] flex items-center justify-center text-3xl bold uppercase";
+  "relative overflow-hidden border border-border bg-card mx-auto aspect-[16/9] w-full max-w-4xl min-h-[200px] max-h-80 flex items-center justify-center text-3xl font-bold uppercase";
 
 export function MagicCursorDemoDetail({
   effect,
@@ -88,8 +89,9 @@ export function MagicCursorDemoDetail({
 }: Props) {
   const { resolvedTheme } = useTheme();
   const isLight = resolvedTheme === "light";
-  const rootRef = useRef<HTMLDivElement | null>(null);
   const instanceRef = useRef<Destroyable | null>(null);
+  const { enabled: runtimeEnabled, demoRoot, setDemoRoot } =
+    useMagicCursorDemoRuntime(enabled);
 
   const optionsKey = useMemo(() => JSON.stringify(options), [options]);
   const MAGNETIC_ITEMS = useMemo(() => [
@@ -114,21 +116,20 @@ export function MagicCursorDemoDetail({
   ], []);
 
   useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
+    if (!demoRoot) return;
 
-    if (!enabled) {
+    if (!runtimeEnabled) {
       instanceRef.current?.destroy();
       instanceRef.current = null;
       return;
     }
 
     instanceRef.current?.destroy();
-    instanceRef.current = create(effect, root, options);
+    instanceRef.current = create(effect, demoRoot, options);
 
     let unbindRingReachSync: (() => void) | undefined;
     if (effect === MAGIC_CURSOR_EFFECTS.RING.type) {
-      unbindRingReachSync = bindRingReachActivationSync(root);
+      unbindRingReachSync = bindRingReachActivationSync(demoRoot);
     }
 
     return () => {
@@ -137,12 +138,12 @@ export function MagicCursorDemoDetail({
       instanceRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, effect, isLight, optionsKey]);
+  }, [runtimeEnabled, demoRoot, effect, isLight, optionsKey]);
 
   if (effect === MAGIC_CURSOR_EFFECTS.MAGNETIC.type) {
     const itemColor = (options as MagneticEffectOptions).itemColor?.trim();
     return (
-      <div ref={rootRef} className={cn(basicStyle, "flex items-center justify-center")}>
+      <div ref={setDemoRoot} className={cn(basicStyle, "flex items-center justify-center")}>
         <div>{effect}</div>
         {children}
         {MAGNETIC_ITEMS.map((item) => (
@@ -172,7 +173,7 @@ export function MagicCursorDemoDetail({
   if (effect === MAGIC_CURSOR_EFFECTS.INVERT_RING.type) {
     return (
       <div
-        ref={rootRef}
+        ref={setDemoRoot}
         className={cn(
           basicStyle,
           "bg-[conic-gradient(from_180deg,#22c55e,#06b6d4,#3b82f6,#a855f7,#ec4899,#f97316,#facc15,#22c55e)]",
@@ -185,7 +186,7 @@ export function MagicCursorDemoDetail({
     );
   }
   return (
-    <div ref={rootRef} className={cn(basicStyle)}>
+    <div ref={setDemoRoot} className={cn(basicStyle)}>
       {effect}
       {children}
     </div>

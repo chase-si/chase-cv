@@ -1,9 +1,18 @@
 import { describe, expect, it } from "vitest";
 
-import { homepageProjectShowcaseOrder } from "@/lib/projects";
+import { homepageProjectShowcaseOrder, projectNavigationItems } from "@/lib/projects";
 
-describe("homepageProjectShowcaseOrder", () => {
-  it("lists Image to UI, Magic Cursor, then Flow Editor", () => {
-    expect(homepageProjectShowcaseOrder).toEqual(["imageToUi", "magicCursor", "flowEditor"]);
+describe("project navigation and homepage showcase order", () => {
+  it("lists Dudu Scanner first in the Playground nav", () => {
+    expect(projectNavigationItems.map((item) => item.id)).toEqual([
+      "duduScanner",
+      "magicCursor",
+      "imageToUi",
+      "flowEditor",
+    ]);
+  });
+
+  it("lists Dudu Scanner, Image to UI, then Magic Cursor on the homepage", () => {
+    expect(homepageProjectShowcaseOrder).toEqual(["duduScanner", "imageToUi", "magicCursor"]);
   });
 });

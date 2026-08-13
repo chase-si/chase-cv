@@ -3,85 +3,57 @@
 import { useEffect, useState } from "react";
 
 import type { EffectName } from "magic-cursor-effect";
-import { useTranslations } from "next-intl";
 
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { Card, CardContent, CardScrollArea } from "@/components/ui/card";
 import { MagicCursorSidebar } from "@/components/magic-cursor/sidebar";
 import { MagicCursorDemoDetail } from "@/components/magic-cursor/demo-detail";
 import { MagicCursorEffectCode } from "@/components/magic-cursor/effect-code";
+import { ToolPageChrome } from "@/components/tool-page-chrome";
 import type { OptionsByEffect } from "@/components/magic-cursor/types";
-import { Link } from "@/i18n/navigation";
 import { defaultOptionsByEffect } from "@/lib/constants/magic-cursor";
 import { trackEvent } from "@/lib/analytics";
 
 type Props = {
   effect: EffectName;
+  description: string;
+  hubLabel: string;
+  breadcrumbLabel: string;
 };
 
-export function MagicCursorEffectPage({ effect }: Props) {
+export function MagicCursorEffectPage({
+  effect,
+  description,
+  hubLabel,
+  breadcrumbLabel,
+}: Props) {
   const [optionsByEffect, setOptionsByEffect] = useState<OptionsByEffect>(defaultOptionsByEffect);
   const options = optionsByEffect[effect];
-  const t = useTranslations("magicCursor");
 
   useEffect(() => {
     trackEvent("effect_view", { effect });
   }, [effect]);
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col">
-      <main className="mx-auto w-full flex-1 px-4 py-8 sm:px-6 sm:py-10">
-        <header className="mb-8 space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            {t("title")}
-          </h1>
-          <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-            {t("description")}
-          </p>
-        </header>
+    <ToolPageChrome title={`${hubLabel} / ${breadcrumbLabel}`} description={description}>
+      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-stretch">
+        <aside className="min-h-0 min-w-0 lg:max-h-full">
+          <MagicCursorSidebar
+            activeEffect={effect}
+            optionsByEffect={optionsByEffect}
+            setOptionsByEffect={setOptionsByEffect}
+            defaultOptionsByEffect={defaultOptionsByEffect}
+          />
+        </aside>
 
-        <div className="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)] xl:items-start xl:gap-8">
-          <section>
-            <MagicCursorSidebar
-              activeEffect={effect}
-              optionsByEffect={optionsByEffect}
-              setOptionsByEffect={setOptionsByEffect}
-              defaultOptionsByEffect={defaultOptionsByEffect}
-            />
-          </section>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink asChild>
-                      <Link href="/magic-cursor">Magic Cursor</Link>
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator>/</BreadcrumbSeparator>
-                  <BreadcrumbItem>
-                    <BreadcrumbPage className="first-letter:uppercase">
-                      {effect}
-                    </BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-            </CardHeader>
-            <CardContent>
+        <Card className="flex min-h-0 flex-col overflow-hidden lg:max-h-full">
+          <CardScrollArea className="min-h-0 flex-1">
+            <CardContent className="flex flex-col gap-4">
               <MagicCursorDemoDetail effect={effect} options={options} />
               <MagicCursorEffectCode effect={effect} options={options} />
             </CardContent>
-          </Card>
-        </div>
-      </main>
-    </div>
+          </CardScrollArea>
+        </Card>
+      </div>
+    </ToolPageChrome>
   );
 }

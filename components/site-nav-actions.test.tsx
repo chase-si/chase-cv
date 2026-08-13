@@ -61,25 +61,15 @@ describe("SiteNavActions", () => {
     fireEvent.click(projectsButton);
 
     const projects = within(nav).getByRole("menu", { name: "Playground" });
-    expect(within(projects).getByRole("menuitem", { name: /Magic Cursor/i })).toHaveAttribute(
-      "href",
-      "/magic-cursor",
-    );
-    expect(within(projects).getByRole("menuitem", { name: /Image to UI/i })).toHaveAttribute(
-      "href",
-      "/image-to-ui",
-    );
-    expect(within(projects).getByRole("menuitem", { name: /Dudu Scanner/i })).toHaveAttribute(
-      "href",
-      "/dudu-scanner",
-    );
-    expect(within(projects).getByRole("menuitem", { name: /Flow Editor/i })).toHaveAttribute(
-      "href",
-      "/flow",
-    );
+    const projectItems = within(projects)
+      .getAllByRole("menuitem")
+      .map((item) => item.getAttribute("href"));
+    expect(projectItems).toEqual(["/dudu-scanner", "/magic-cursor", "/image-to-ui", "/flow"]);
     expect(screen.getByText("Explore configurable cursor effects.")).toBeInTheDocument();
     expect(screen.getByText("Turn painting palettes into interface themes.")).toBeInTheDocument();
-    expect(screen.getByText("Scan for a hidden character in a playful family reveal.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Scan a tummy, then suggest a healthy habit for kids."),
+    ).toBeInTheDocument();
     expect(screen.getByText("Visualize and edit structured flows.")).toBeInTheDocument();
 
     fireEvent.keyDown(projectsButton, { key: "Escape" });
@@ -96,7 +86,7 @@ describe("SiteNavActions", () => {
     const projects = within(nav).getByRole("menu", { name: "游乐场" });
     expect(within(projects).getByText("探索可配置的鼠标特效。")).toBeInTheDocument();
     expect(within(projects).getByText("把名画配色变成界面主题。")).toBeInTheDocument();
-    expect(within(projects).getByText("扫描寻找藏起来的角色，开启亲子惊喜揭晓。")).toBeInTheDocument();
+    expect(within(projects).getByText("扫描肚子揭晓角色，再给小朋友健康习惯小建议。")).toBeInTheDocument();
     expect(within(projects).getByText("可视化编辑结构化流程。")).toBeInTheDocument();
 
     fireEvent.click(within(projects).getByRole("menuitem", { name: /Dudu Scanner/i }));
@@ -134,22 +124,11 @@ describe("SiteNavActions", () => {
     fireEvent.click(within(mobileNav).getByRole("button", { name: "Menu" }));
 
     const menu = within(mobileNav).getByRole("menu", { name: "Menu" });
-    expect(within(menu).getByRole("menuitem", { name: /Magic Cursor/i })).toHaveAttribute(
-      "href",
-      "/magic-cursor",
-    );
-    expect(within(menu).getByRole("menuitem", { name: /Image to UI/i })).toHaveAttribute(
-      "href",
-      "/image-to-ui",
-    );
-    expect(within(menu).getByRole("menuitem", { name: /Dudu Scanner/i })).toHaveAttribute(
-      "href",
-      "/dudu-scanner",
-    );
-    expect(within(menu).getByRole("menuitem", { name: /Flow Editor/i })).toHaveAttribute(
-      "href",
-      "/flow",
-    );
+    const projectItems = within(menu)
+      .getAllByRole("menuitem")
+      .filter((item) => item.getAttribute("href")?.startsWith("/"))
+      .map((item) => item.getAttribute("href"));
+    expect(projectItems).toEqual(["/dudu-scanner", "/magic-cursor", "/image-to-ui", "/flow"]);
     expect(within(menu).getByRole("menuitem", { name: "Blog" })).toHaveAttribute(
       "href",
       "https://blog.dashuaibi.vip/blog",

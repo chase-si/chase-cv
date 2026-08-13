@@ -75,6 +75,7 @@ describe("ImageToUiToolShell active image selection", () => {
   it("shows the selected sample in the main preview with contain fitting", () => {
     renderToolShell();
 
+    expect(screen.getByTestId("tool-page-chrome")).toBeInTheDocument();
     fireEvent.click(getSampleCard("great-wave"));
 
     const preview = screen.getByTestId("active-image-preview");
@@ -155,6 +156,7 @@ describe("ImageToUiToolShell render input summary", () => {
     fireEvent.click(screen.getByTestId("palette-render-button"));
 
     expect(screen.getByTestId("render-input-summary")).toBeInTheDocument();
+    expect(screen.getByTestId("tool-page-chrome")).toBeInTheDocument();
     expect(screen.getByTestId("saas-preview-surface")).toBeInTheDocument();
     expect(screen.queryByTestId("palette-selection")).not.toBeInTheDocument();
     expect(screen.getAllByText("生成界面预览").length).toBeGreaterThan(0);
@@ -202,8 +204,8 @@ describe("ImageToUiToolShell render input summary", () => {
     await selectThreePaletteSwatches();
     fireEvent.click(screen.getByTestId("palette-render-button"));
 
-    expect(screen.getByText("把名画配色变成 UI 主题")).toBeInTheDocument();
-    expect(screen.getByText("查看这组名画配色在 dashboard 与 landing page 中的效果，也可以返回继续调整颜色。")).toBeInTheDocument();
+    expect(screen.getByText("从图片提取界面配色")).toBeInTheDocument();
+    expect(screen.getByText("查看界面主题预览，也可以返回继续调色或换一张图。")).toBeInTheDocument();
 
     const preview = screen.getByTestId("saas-preview-surface");
     expect(within(preview).getByRole("tab", { name: "概览" })).toBeInTheDocument();

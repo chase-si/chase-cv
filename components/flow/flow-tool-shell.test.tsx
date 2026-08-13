@@ -30,6 +30,7 @@ describe("FlowToolShell", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "流程编辑器" }),
     ).toBeInTheDocument();
+    expect(screen.getByTestId("tool-page-chrome")).toBeInTheDocument();
     expect(screen.getByTestId("flow-editor-toolbar")).toBeInTheDocument();
     expect(screen.getByTestId("flow-editor-canvas")).toBeInTheDocument();
     expect(screen.getByTestId("flow-editor-properties")).toBeInTheDocument();
