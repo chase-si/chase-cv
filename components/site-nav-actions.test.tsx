@@ -61,22 +61,10 @@ describe("SiteNavActions", () => {
     fireEvent.click(projectsButton);
 
     const projects = within(nav).getByRole("menu", { name: "Playground" });
-    expect(within(projects).getByRole("menuitem", { name: /Magic Cursor/i })).toHaveAttribute(
-      "href",
-      "/magic-cursor",
-    );
-    expect(within(projects).getByRole("menuitem", { name: /Image to UI/i })).toHaveAttribute(
-      "href",
-      "/image-to-ui",
-    );
-    expect(within(projects).getByRole("menuitem", { name: /Dudu Scanner/i })).toHaveAttribute(
-      "href",
-      "/dudu-scanner",
-    );
-    expect(within(projects).getByRole("menuitem", { name: /Flow Editor/i })).toHaveAttribute(
-      "href",
-      "/flow",
-    );
+    const projectItems = within(projects)
+      .getAllByRole("menuitem")
+      .map((item) => item.getAttribute("href"));
+    expect(projectItems).toEqual(["/dudu-scanner", "/magic-cursor", "/image-to-ui", "/flow"]);
     expect(screen.getByText("Explore configurable cursor effects.")).toBeInTheDocument();
     expect(screen.getByText("Turn painting palettes into interface themes.")).toBeInTheDocument();
     expect(
@@ -136,22 +124,11 @@ describe("SiteNavActions", () => {
     fireEvent.click(within(mobileNav).getByRole("button", { name: "Menu" }));
 
     const menu = within(mobileNav).getByRole("menu", { name: "Menu" });
-    expect(within(menu).getByRole("menuitem", { name: /Magic Cursor/i })).toHaveAttribute(
-      "href",
-      "/magic-cursor",
-    );
-    expect(within(menu).getByRole("menuitem", { name: /Image to UI/i })).toHaveAttribute(
-      "href",
-      "/image-to-ui",
-    );
-    expect(within(menu).getByRole("menuitem", { name: /Dudu Scanner/i })).toHaveAttribute(
-      "href",
-      "/dudu-scanner",
-    );
-    expect(within(menu).getByRole("menuitem", { name: /Flow Editor/i })).toHaveAttribute(
-      "href",
-      "/flow",
-    );
+    const projectItems = within(menu)
+      .getAllByRole("menuitem")
+      .filter((item) => item.getAttribute("href")?.startsWith("/"))
+      .map((item) => item.getAttribute("href"));
+    expect(projectItems).toEqual(["/dudu-scanner", "/magic-cursor", "/image-to-ui", "/flow"]);
     expect(within(menu).getByRole("menuitem", { name: "Blog" })).toHaveAttribute(
       "href",
       "https://blog.dashuaibi.vip/blog",

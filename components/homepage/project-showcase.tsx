@@ -62,26 +62,30 @@ function ProjectPreviewArt({ id }: { id: ProjectId }) {
     return (
       <div
         aria-hidden
-        className="relative flex h-full min-h-56 flex-col justify-end overflow-hidden bg-muted/20 p-5 sm:p-6"
+        className="relative flex h-full min-h-56 items-center justify-center overflow-hidden bg-muted/20 p-5"
       >
-        <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-primary/15 to-transparent" />
-        <div className="relative mx-auto w-full max-w-xs rounded-2xl border-2 border-border bg-card p-4 shadow-[3px_3px_0_0] shadow-foreground/50">
-          <div className="flex items-center justify-between font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            <span>Signal</span>
-            <ScanLine className="size-4 text-primary" />
-          </div>
-          <div className="mt-3 h-2 overflow-hidden rounded-full border border-border bg-muted">
-            <span className="block h-full w-2/3 rounded-full bg-primary" />
-          </div>
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            {["0.42", "0.71", "0.89"].map((value) => (
-              <div key={value} className="rounded-lg border border-border bg-muted/40 px-2 py-1.5 text-center font-mono text-[10px] font-bold">
-                {value}
-              </div>
-            ))}
-          </div>
+        <div className="absolute left-1/2 top-12 flex size-28 -translate-x-1/2 items-center justify-center sm:size-32">
+          <span className="absolute inset-0 rounded-full border-2 border-dashed border-primary/70" />
+          <span className="size-14 rounded-full border border-border bg-primary shadow-[0_0_0_14px] shadow-primary/20 sm:size-16" />
+          <ScanLine className="absolute size-7 text-primary-foreground sm:size-8" />
         </div>
-        <span className="absolute bottom-8 left-1/2 size-16 -translate-x-1/2 rounded-full border-2 border-dashed border-primary/50" />
+        <div className="absolute bottom-5 left-5 w-48 rounded-xl border-2 border-border bg-card p-3 shadow-[3px_3px_0_0] shadow-foreground/50 sm:w-56">
+          {["Signal", "Lock", "Tip"].map((label, index) => (
+            <div key={label} className="mb-2 grid grid-cols-[4rem_1fr] items-center gap-3 last:mb-0">
+              <span className="font-mono text-[10px]">{label}</span>
+              <span className="relative h-1 rounded-full bg-muted">
+                <span
+                  className={cn(
+                    "absolute top-1/2 size-3 -translate-y-1/2 rounded-full border border-border bg-background",
+                    index === 0 && "left-2/3",
+                    index === 1 && "left-1/2",
+                    index === 2 && "left-1/3",
+                  )}
+                />
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
