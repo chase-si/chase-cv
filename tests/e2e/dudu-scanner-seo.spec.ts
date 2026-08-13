@@ -11,7 +11,7 @@ test.describe("dudu scanner SEO landing", () => {
     const schema = JSON.parse((await jsonLd.textContent()) ?? "{}");
     expect(schema["@type"]).toBe("WebApplication");
 
-    await expect(page.getByTestId("dudu-scanner-landing-content")).toBeVisible();
+    await expect(page.getByTestId("dudu-scanner-landing-content")).toBeHidden();
     await expect(page.getByTestId("dudu-scanner-faq")).toContainText(
       /not a diagnosis or treatment/i,
     );

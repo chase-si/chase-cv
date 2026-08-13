@@ -13,7 +13,7 @@ test.describe("magic cursor SEO landing", () => {
     const schema = JSON.parse((await jsonLdScripts.first().textContent()) ?? "{}");
     expect(schema["@type"]).toBe("WebApplication");
 
-    await expect(page.getByTestId("magic-cursor-landing-content")).toBeVisible();
+    await expect(page.getByTestId("magic-cursor-landing-content")).toBeHidden();
     await expect(page.getByTestId("magic-cursor-effect-catalog")).toContainText(/Ring cursor effect/i);
   });
 

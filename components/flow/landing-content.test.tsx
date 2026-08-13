@@ -50,7 +50,7 @@ describe("FlowLandingContent", () => {
 
     expect(screen.getByTestId("flow-landing-content")).toBeInTheDocument();
     expect(screen.getByTestId("flow-faq")).toHaveTextContent(/import my own production flow/i);
-    expect(screen.getByRole("link", { name: /Magic Cursor/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { hidden: true, name: /Magic Cursor/i })).toHaveAttribute(
       "href",
       "/magic-cursor",
     );

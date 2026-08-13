@@ -55,6 +55,9 @@ describe("DuduScannerLandingContent", () => {
     expect(screen.getByTestId("dudu-scanner-landing-content")).toHaveTextContent(
       /healthy-habit suggestion/i,
     );
-    expect(screen.getByRole("link", { name: /Flow Editor/i })).toHaveAttribute("href", "/flow");
+    expect(screen.getByRole("link", { hidden: true, name: /Flow Editor/i })).toHaveAttribute(
+      "href",
+      "/flow",
+    );
   });
 });

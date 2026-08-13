@@ -11,7 +11,7 @@ test.describe("flow SEO landing", () => {
     const schema = JSON.parse((await jsonLd.textContent()) ?? "{}");
     expect(schema["@type"]).toBe("WebApplication");
 
-    await expect(page.getByTestId("flow-landing-content")).toBeVisible();
+    await expect(page.getByTestId("flow-landing-content")).toBeHidden();
     await expect(page.getByTestId("flow-faq")).toContainText(/import my own production flow/i);
   });
 

@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { ArrowUpRight } from "lucide-react";
 
 import { DuduScannerLandingLinks } from "@/components/dudu-scanner/landing-links";
+import { SeoIndexCopy } from "@/components/seo/seo-index-copy";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { projectNavigationItems } from "@/lib/projects";
 
@@ -13,10 +14,7 @@ export async function DuduScannerLandingContent() {
   const relatedTools = projectNavigationItems.filter((item) => item.id !== "duduScanner");
 
   return (
-    <div
-      className="border-t border-border bg-muted/20"
-      data-testid="dudu-scanner-landing-content"
-    >
+    <SeoIndexCopy data-testid="dudu-scanner-landing-content">
       <div className="mx-auto w-full max-w-3xl space-y-10 px-4 py-12 sm:px-6 sm:py-16">
         <section aria-labelledby="dudu-purpose-heading" className="space-y-3">
           <h2
@@ -130,6 +128,6 @@ export async function DuduScannerLandingContent() {
           </div>
         </section>
       </div>
-    </div>
+    </SeoIndexCopy>
   );
 }

@@ -51,11 +51,11 @@ describe("HomepageSeoContent", () => {
     render(<NextIntlClientProvider locale="en">{ui}</NextIntlClientProvider>);
 
     expect(screen.getByTestId("homepage-seo-content")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Image to UI/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { hidden: true, name: /Image to UI/i })).toHaveAttribute(
       "href",
       "/image-to-ui",
     );
-    expect(screen.getByRole("link", { name: /Contact Chase/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { hidden: true, name: /Contact Chase/i })).toHaveAttribute(
       "href",
       "/#contact",
     );

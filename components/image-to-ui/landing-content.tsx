@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { ArrowUpRight } from "lucide-react";
 
 import { ImageToUiLandingLinks } from "@/components/image-to-ui/landing-links";
+import { SeoIndexCopy } from "@/components/seo/seo-index-copy";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { projectNavigationItems } from "@/lib/projects";
 
@@ -13,10 +14,7 @@ export async function ImageToUiLandingContent() {
   const relatedTools = projectNavigationItems.filter((item) => item.id !== "imageToUi");
 
   return (
-    <div
-      className="border-t border-border bg-muted/20"
-      data-testid="image-to-ui-landing-content"
-    >
+    <SeoIndexCopy data-testid="image-to-ui-landing-content">
       <div className="mx-auto w-full max-w-3xl space-y-10 px-4 py-12 sm:px-6 sm:py-16">
         <section aria-labelledby="image-to-ui-purpose-heading" className="space-y-3">
           <h2
@@ -180,6 +178,6 @@ export async function ImageToUiLandingContent() {
           </div>
         </section>
       </div>
-    </div>
+    </SeoIndexCopy>
   );
 }

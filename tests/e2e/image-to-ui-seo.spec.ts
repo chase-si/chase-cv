@@ -16,7 +16,7 @@ test.describe("image-to-ui SEO landing", () => {
     expect(schema["@type"]).toBe("WebApplication");
     expect(schema).not.toHaveProperty("aggregateRating");
 
-    await expect(page.getByTestId("image-to-ui-landing-content")).toBeVisible();
+    await expect(page.getByTestId("image-to-ui-landing-content")).toBeHidden();
     await expect(page.getByTestId("image-to-ui-faq")).toContainText(
       /does not generate installable theme files/i,
     );

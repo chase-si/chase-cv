@@ -49,10 +49,9 @@ describe("MagicCursorEffectLandingContent", () => {
     );
 
     expect(screen.getByTestId("magic-cursor-effect-landing-content")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Back to Magic Cursor overview/i })).toHaveAttribute(
-      "href",
-      "/magic-cursor",
-    );
+    expect(
+      screen.getByRole("link", { hidden: true, name: /Back to Magic Cursor overview/i }),
+    ).toHaveAttribute("href", "/magic-cursor");
     expect(screen.getByTestId("magic-cursor-effect-params")).toHaveTextContent(/smoothing/);
     expect(screen.getByTestId("magic-cursor-related-effects").querySelectorAll("a").length).toBe(3);
   });

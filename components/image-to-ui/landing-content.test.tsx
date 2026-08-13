@@ -59,18 +59,19 @@ describe("ImageToUiLandingContent", () => {
     );
 
     expect(screen.getByTestId("image-to-ui-landing-content")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /What this tool does/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { hidden: true, name: /What this tool does/i }),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("image-to-ui-faq")).toBeInTheDocument();
     expect(
       screen.getByText(/does not generate installable theme files/i),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Magic Cursor/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { hidden: true, name: /Magic Cursor/i })).toHaveAttribute(
       "href",
       "/magic-cursor",
     );
-    expect(screen.getByRole("link", { name: /View work experience/i })).toHaveAttribute(
-      "href",
-      "/#experience",
-    );
+    expect(
+      screen.getByRole("link", { hidden: true, name: /View work experience/i }),
+    ).toHaveAttribute("href", "/#experience");
   });
 });

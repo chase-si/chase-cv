@@ -4,7 +4,7 @@ test.describe("homepage SEO", () => {
   test("English home exposes ProfilePage JSON-LD and tool context links", async ({ page }) => {
     await page.goto("/");
 
-    await expect(page.getByTestId("homepage-seo-content")).toBeVisible();
+    await expect(page.getByTestId("homepage-seo-content")).toBeHidden();
     await expect(page.getByText("Product frontend", { exact: true })).toBeVisible();
 
     const jsonLd = page.locator('script[type="application/ld+json"]');

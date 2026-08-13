@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { ArrowUpRight } from "lucide-react";
 
 import { MagicCursorLandingLinks } from "@/components/magic-cursor/landing-links";
+import { SeoIndexCopy } from "@/components/seo/seo-index-copy";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MAGIC_CURSOR_EFFECT_ORDER } from "@/lib/constants/magic-cursor";
 import { magicCursorEffectMetadataNamespace } from "@/lib/magic-cursor/effect-seo-data";
@@ -24,10 +25,7 @@ export async function MagicCursorLandingContent() {
   );
 
   return (
-    <div
-      className="border-t border-border bg-muted/20"
-      data-testid="magic-cursor-landing-content"
-    >
+    <SeoIndexCopy data-testid="magic-cursor-landing-content">
       <div className="mx-auto w-full max-w-3xl space-y-10 px-4 py-12 sm:px-6 sm:py-16">
         <section aria-labelledby="magic-cursor-purpose-heading" className="space-y-3">
           <h2
@@ -100,6 +98,6 @@ export async function MagicCursorLandingContent() {
           </Card>
         </section>
       </div>
-    </div>
+    </SeoIndexCopy>
   );
 }

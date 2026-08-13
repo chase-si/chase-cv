@@ -49,7 +49,9 @@ describe("MagicCursorLandingContent", () => {
     );
 
     expect(screen.getByTestId("magic-cursor-landing-content")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /What this library is for/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { hidden: true, name: /What this library is for/i }),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("magic-cursor-effect-catalog").querySelectorAll("a").length).toBe(9);
     expect(
       screen.getByTestId("magic-cursor-effect-catalog").querySelector('a[href="/magic-cursor/ring"]'),

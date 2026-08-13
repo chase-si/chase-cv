@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { ArrowUpRight } from "lucide-react";
 
 import { HomepageSeoLinks } from "@/components/homepage/homepage-seo-links";
+import { SeoIndexCopy } from "@/components/seo/seo-index-copy";
 import { projectNavigationItems } from "@/lib/projects";
 
 export async function HomepageSeoContent() {
@@ -9,9 +10,8 @@ export async function HomepageSeoContent() {
   const tNav = await getTranslations("siteNav.projects.items");
 
   return (
-    <section
+    <SeoIndexCopy
       aria-labelledby="home-seo-heading"
-      className="border-t border-border bg-muted/20"
       data-testid="homepage-seo-content"
     >
       <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-12 sm:px-6 sm:py-16">
@@ -60,6 +60,6 @@ export async function HomepageSeoContent() {
           </HomepageSeoLinks>
         </div>
       </div>
-    </section>
+    </SeoIndexCopy>
   );
 }
