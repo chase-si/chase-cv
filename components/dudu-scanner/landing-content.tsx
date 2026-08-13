@@ -5,7 +5,7 @@ import { DuduScannerLandingLinks } from "@/components/dudu-scanner/landing-links
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { projectNavigationItems } from "@/lib/projects";
 
-const FAQ_KEYS = ["family", "setup", "sound", "fullscreen", "surprise"] as const;
+const FAQ_KEYS = ["family", "setup", "health", "sound", "fullscreen"] as const;
 
 export async function DuduScannerLandingContent() {
   const t = await getTranslations("duduScanner.landing");

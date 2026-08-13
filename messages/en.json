@@ -185,9 +185,9 @@
       "applicationName": "SFC Flow Editor"
     },
     "duduScanner": {
-      "title": "Dudu Scanner — Playful Belly Scan for Family Reveals | Chase's CV",
-      "description": "Configure themes, characters, and sound for a silly belly-scan performance. Mystery or operator mode, fullscreen-friendly controls, and gentle reveal cues for family easter eggs.",
-      "ogImageAlt": "Dudu Scanner: playful belly-scan console for family-friendly character reveals",
+      "title": "Dudu Scanner — Belly Scan Mini-Game for Kids' Healthy Habits | Chase's CV",
+      "description": "Scan a tummy, lock a cartoon character, and get a kid-friendly healthy-habit tip. Mystery or operator mode, three themes, and ten characters—entertainment only, not a medical device.",
+      "ogImageAlt": "Dudu Scanner: belly-scan mini-game that reveals a character and a healthy-habit tip for kids",
       "applicationName": "Dudu Scanner"
     },
     "notFound": {
@@ -213,7 +213,7 @@
         },
         "duduScanner": {
           "name": "Dudu Scanner",
-          "description": "Scan for a hidden character in a playful family reveal."
+          "description": "Scan a tummy, then suggest a healthy habit for kids."
         },
         "flowEditor": {
           "name": "Flow Editor",
@@ -364,9 +364,9 @@
           "entry": "Open Magic Cursor"
         },
         "duduScanner": {
-          "problem": "How do you turn a hidden-character reveal into a playful scan, not a static image?",
-          "tag1": "Scan & explore",
-          "tag2": "Family easter egg",
+          "problem": "How do you turn a silly belly scan into a mini-game that nudges kids toward healthy habits?",
+          "tag1": "Belly scan game",
+          "tag2": "Kids' habits",
           "entry": "Open Dudu Scanner"
         },
         "flowEditor": {
@@ -871,42 +871,42 @@
     },
     "landing": {
       "purposeTitle": "What Dudu Scanner is for",
-      "purposeBody": "Dudu Scanner is a playful belly-scan console for family-friendly reveals. Pick a snack or creature theme, choose mystery or operator mode, tune sound, then run a fullscreen-friendly scan that ends in a goofy character cameo—entertainment only, not a medical device.",
-      "stepsTitle": "How a scan show works",
-      "step1": "On the setup screen, choose a theme, scan mode, and optional sound.",
-      "step2": "Press start scan to enter the immersive view with keyboard shortcuts ready.",
-      "step3": "Sweep the probe (or let auto-scan run) until the signal is strong enough to lock.",
-      "step4": "Reveal the character, share the laugh, then reset for another round.",
-      "useCasesTitle": "When families use it",
-      "useCase1": "Turn a hidden stuffed animal or snack joke into a mini stage performance.",
-      "useCase2": "Let kids \"operate\" the scanner with printed shortcut cards before the big reveal.",
-      "useCase3": "Record a short clip of the scan UI as a playful pregnancy or party easter egg.",
+      "purposeBody": "Dudu Scanner is a belly-scan mini-game for kids. Pick a snack, creature, or healthy-buddies theme, choose mystery or operator mode, then scan a tummy to lock a cartoon character and hear a playful healthy-habit suggestion—entertainment only, not a medical device.",
+      "stepsTitle": "How a round works",
+      "step1": "Watch the how-to-play demo, then choose a theme, scan mode, and optional sound.",
+      "step2": "Start the scan and move the probe over the belly until the signal is strong enough to lock.",
+      "step3": "See who was hiding, then read or play today's healthy mission for the child.",
+      "step4": "Scan again, or switch characters to get another habit tip.",
+      "useCasesTitle": "When families play it",
+      "useCase1": "Play a short belly-scan round so kids can find who is hiding in the tummy.",
+      "useCase2": "Use the reveal as a cue for a small healthy habit—vegetables, water, sleep, or a screen break.",
+      "useCase3": "Let a parent pick the character in operator mode, or use mystery mode so kids discover it live.",
       "faqTitle": "FAQ",
       "faq": {
         "family": {
-          "question": "Is it safe for kids?",
-          "answer": "It's a silly browser toy with gentle sound and cartoon characters. Always supervise young operators and remember it's entertainment—not health advice."
+          "question": "Is it made for kids?",
+          "answer": "Yes—it's a cartoon belly-scan game with gentle sound. A grown-up should stay nearby, and the healthy missions are playful prompts, not medical advice."
         },
         "setup": {
           "question": "What's the difference between mystery and operator mode?",
-          "answer": "Mystery mode secretly picks a character from your theme each round. Operator mode lets you lock in the exact character before the show starts."
+          "answer": "Mystery mode secretly picks a character from your theme each round. Operator mode lets a parent choose the exact character before the scan starts."
+        },
+        "health": {
+          "question": "Are the healthy missions medical advice?",
+          "answer": "No. Each character ends with a light, kid-friendly suggestion such as drinking water or eating vegetables. It is a game prompt, not a diagnosis or treatment."
         },
         "sound": {
           "question": "Can I mute the scanner?",
-          "answer": "Yes. Toggle sound on the setup screen or press M during a scan to silence effects."
+          "answer": "Yes. Toggle sound on the setup screen or press M during a scan to silence effects. The result screen can also speak the healthy mission if the browser supports it."
         },
         "fullscreen": {
           "question": "Does fullscreen work on phones?",
           "answer": "Browsers vary. The UI offers a fullscreen retry shortcut, but the most reliable experience is landscape tablet or desktop."
-        },
-        "surprise": {
-          "question": "Will it spoil a real surprise?",
-          "answer": "Operator mode shows your pick up front. Use mystery mode when you want the audience to discover the character live."
         }
       },
       "relatedTitle": "Keep exploring",
       "relatedToolsTitle": "Other playground tools",
-      "relatedToolsDescription": "Try a different experiment after the belly laughs settle.",
+      "relatedToolsDescription": "After the scan, try another playground experiment.",
       "workExperienceLink": "View work experience",
       "contactLink": "Contact Chase"
     }

@@ -12,13 +12,18 @@ test.describe("dudu scanner SEO landing", () => {
     expect(schema["@type"]).toBe("WebApplication");
 
     await expect(page.getByTestId("dudu-scanner-landing-content")).toBeVisible();
-    await expect(page.getByTestId("dudu-scanner-faq")).toContainText(/silly browser toy/i);
+    await expect(page.getByTestId("dudu-scanner-faq")).toContainText(
+      /not a diagnosis or treatment/i,
+    );
   });
 
   test("Chinese page renders localized landing copy", async ({ page }) => {
     await page.goto("/zh/dudu-scanner");
 
     await expect(page.getByRole("heading", { level: 1, name: "肚肚扫描仪" })).toBeVisible();
-    await expect(page.getByTestId("dudu-scanner-landing-content")).toContainText(/仅供娱乐/);
+    await expect(page.getByTestId("dudu-scanner-landing-content")).toContainText(
+      /健康习惯建议/,
+    );
+    await expect(page.getByTestId("dudu-scanner-faq")).toContainText(/不是诊断或治疗/);
   });
 });

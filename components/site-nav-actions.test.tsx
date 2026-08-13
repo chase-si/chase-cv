@@ -79,7 +79,9 @@ describe("SiteNavActions", () => {
     );
     expect(screen.getByText("Explore configurable cursor effects.")).toBeInTheDocument();
     expect(screen.getByText("Turn painting palettes into interface themes.")).toBeInTheDocument();
-    expect(screen.getByText("Scan for a hidden character in a playful family reveal.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Scan a tummy, then suggest a healthy habit for kids."),
+    ).toBeInTheDocument();
     expect(screen.getByText("Visualize and edit structured flows.")).toBeInTheDocument();
 
     fireEvent.keyDown(projectsButton, { key: "Escape" });
@@ -96,7 +98,7 @@ describe("SiteNavActions", () => {
     const projects = within(nav).getByRole("menu", { name: "游乐场" });
     expect(within(projects).getByText("探索可配置的鼠标特效。")).toBeInTheDocument();
     expect(within(projects).getByText("把名画配色变成界面主题。")).toBeInTheDocument();
-    expect(within(projects).getByText("扫描寻找肚子里藏起来的角色。")).toBeInTheDocument();
+    expect(within(projects).getByText("扫描肚子揭晓角色，再给小朋友健康习惯小建议。")).toBeInTheDocument();
     expect(within(projects).getByText("可视化编辑结构化流程。")).toBeInTheDocument();
 
     fireEvent.click(within(projects).getByRole("menuitem", { name: /Dudu Scanner/i }));

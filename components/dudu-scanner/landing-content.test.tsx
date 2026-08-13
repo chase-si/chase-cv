@@ -44,12 +44,17 @@ vi.mock("@/i18n/navigation", () => ({
 }));
 
 describe("DuduScannerLandingContent", () => {
-  it("keeps playful FAQ copy and related links crawlable", async () => {
+  it("keeps kid-habit FAQ copy and related links crawlable", async () => {
     const ui = await DuduScannerLandingContent();
     render(<NextIntlClientProvider locale="en">{ui}</NextIntlClientProvider>);
 
     expect(screen.getByTestId("dudu-scanner-landing-content")).toBeInTheDocument();
-    expect(screen.getByTestId("dudu-scanner-faq")).toHaveTextContent(/silly browser toy/i);
+    expect(screen.getByTestId("dudu-scanner-faq")).toHaveTextContent(
+      /not a diagnosis or treatment/i,
+    );
+    expect(screen.getByTestId("dudu-scanner-landing-content")).toHaveTextContent(
+      /healthy-habit suggestion/i,
+    );
     expect(screen.getByRole("link", { name: /Flow Editor/i })).toHaveAttribute("href", "/flow");
   });
 });

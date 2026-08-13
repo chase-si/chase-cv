@@ -9,7 +9,7 @@ const MAJOR_CONTENT_UPDATES = {
   homepage: "2026-03-01",
   imageToUi: "2026-02-15",
   flow: "2026-02-20",
-  duduScanner: "2026-03-10",
+  duduScanner: "2026-08-13",
   magicCursorHub: "2026-01-20",
   magicCursorEffect: "2026-01-20",
 } as const;
