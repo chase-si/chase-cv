@@ -12,8 +12,8 @@ describe("ToolPageChrome", () => {
     );
 
     const chrome = screen.getByTestId("tool-page-chrome");
-    expect(chrome.className).toContain("lg:h-[calc(100dvh-4rem)]");
-    expect(chrome.className).toContain("lg:max-h-[calc(100dvh-4rem)]");
+    expect(chrome.className).toContain("lg:h-[calc(100dvh-4rem-1px)]");
+    expect(chrome.className).toContain("lg:max-h-[calc(100dvh-4rem-1px)]");
     expect(screen.getByRole("main").className).toContain("max-w-7xl");
     const header = screen.getByRole("heading", { level: 1, name: "Flow" }).closest("header");
     expect(header?.className).toContain("py-1");

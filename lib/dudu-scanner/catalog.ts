@@ -127,7 +127,7 @@ const TARGETS_BY_THEME: Record<DuduScannerThemeId, readonly DuduScannerTargetId[
 };
 
 export const DUDU_SCANNER_DEFAULT_CONFIG = {
-  scanMode: "mystery",
+  scanMode: "operator",
   themeId: "snack-scan",
   targetId: "fry-sprite",
   soundEnabled: true,

@@ -47,11 +47,9 @@ describe("Homepage content", () => {
   it("shows supplied Chinese hero positioning copy", () => {
     renderHomepage("zh");
 
+    expect(getByExactTextContent("我是 Chase自由职业程序员。")).toBeInTheDocument();
     expect(
-      getByExactTextContent("我是 Chase，一名从古法编程走来的程序员。"),
-    ).toBeInTheDocument();
-    expect(
-      getByExactTextContent("8 年工程经验，现在我用 AI , 更好的coding。"),
+      getByExactTextContent("之前8年纯手搓, 现在用 AI , 变身天才程序员"),
     ).toBeInTheDocument();
   });
 
