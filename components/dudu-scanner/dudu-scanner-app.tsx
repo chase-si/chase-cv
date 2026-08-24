@@ -351,6 +351,7 @@ function DuduScannerAppInner() {
     <div
       ref={rootRef}
       data-testid="dudu-scanner-app-root"
+      google-side-rail-overlap={immersive ? "false" : undefined}
       className={cn(
         "flex min-h-0 flex-1 flex-col",
         immersive && "fixed inset-0 z-50 overflow-hidden bg-background",
