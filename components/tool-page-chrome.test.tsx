@@ -12,6 +12,7 @@ describe("ToolPageChrome", () => {
     );
 
     const chrome = screen.getByTestId("tool-page-chrome");
+    expect(chrome).toHaveAttribute("google-side-rail-overlap", "false");
     expect(chrome.className).toContain("lg:h-[calc(100dvh-4rem-1px)]");
     expect(chrome.className).toContain("lg:max-h-[calc(100dvh-4rem-1px)]");
     expect(screen.getByRole("main").className).toContain("max-w-7xl");

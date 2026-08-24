@@ -144,6 +144,9 @@ describe("DuduScannerApp controls", () => {
 
   it("ignores scan shortcuts on config", async () => {
     renderApp();
+    expect(screen.getByTestId("dudu-scanner-app-root")).not.toHaveAttribute(
+      "google-side-rail-overlap",
+    );
     fireEvent.keyDown(window, { key: " " });
     expect(screen.getByRole("heading", { name: "Dudu Scanner" })).toBeInTheDocument();
   });

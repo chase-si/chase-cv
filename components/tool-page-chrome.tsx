@@ -23,6 +23,7 @@ export function ToolPageChrome({
   return (
     <div
       data-testid="tool-page-chrome"
+      google-side-rail-overlap="false"
       className={cn(
         "relative flex min-h-0 w-full flex-1 flex-col lg:h-[calc(100dvh-4rem-1px)] lg:max-h-[calc(100dvh-4rem-1px)] lg:overflow-hidden",
         className,

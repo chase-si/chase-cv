@@ -3,6 +3,7 @@ import { hasLocale } from "next-intl";
 import { getLocale } from "next-intl/server";
 
 import "./globals.css";
+import { GoogleAdSense } from "@/components/google-adsense";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { ThemeBlockingHeadScript } from "@/components/theme-blocking-head-script";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -24,6 +25,7 @@ const geistMono = Geist_Mono({
 });
 
 const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
+const adsenseClientId = process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID?.trim();
 
 export default async function RootLayout({
   children,
@@ -51,6 +53,7 @@ export default async function RootLayout({
     >
       <head>
         <ThemeBlockingHeadScript />
+        {adsenseClientId ? <GoogleAdSense clientId={adsenseClientId} /> : null}
       </head>
       <body className="flex min-h-full flex-col">
         <ThemeProvider

@@ -14,6 +14,20 @@ Flow is served at `/flow` and `/zh/flow` under the same `[locale]` routing as im
 3. 根布局会按需加载 [`@next/third-parties/google`](https://www.npmjs.com/package/@next/third-parties) 的 `GoogleAnalytics`，App Router 下**自动上报 pageview**（含客户端路由切换）。
 4. 自定义事件请使用 [`lib/analytics.ts`](lib/analytics.ts) 中的 `trackEvent`（内部为 `sendGAEvent`）；未配置 ID 时不会发送。
 
+## Google AdSense Auto Ads
+
+1. 在 `.env.local` 中设置 `NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID`，值为 AdSense Publisher ID（形如 `ca-pub-1234567890123456`）。未配置时不会加载 AdSense 脚本。
+2. 在 AdSense 后台打开 **Ads → Edit → Auto ads**。
+3. 关闭 **Intent-driven formats** 和 **In-page formats**；在 **Overlay formats** 中只开启 **Side rail ads**。
+4. 展开 Side rail 高级设置，将位置设为 **Right only**。
+5. 通过 **Page exclusions** 排除英文首页 `/`、中文首页 `/zh` 和不希望展示广告的其他页面。保留以下工具路由：
+   - `/flow`、`/zh/flow`
+   - `/image-to-ui`、`/zh/image-to-ui`
+   - `/magic-cursor`、`/zh/magic-cursor`，以及其效果详情页
+   - `/dudu-scanner`、`/zh/dudu-scanner`
+
+工具工作区带有 Google 官方的 `google-side-rail-overlap="false"` 标记，Side rail 不应覆盖交互区域。Dudu Scanner 进入扫描或结果阶段后也会对沉浸容器应用该标记；浏览器全屏成功时，页面外的 Side rail 不会进入全屏内容。
+
 ## Tech Stack
 - Frontend: NextJS, TailwindCSS, Shadcn
 - Backend: Supabase
@@ -48,4 +62,3 @@ Flow is served at `/flow` and `/zh/flow` under the same `[locale]` routing as im
     - [ ] Chart to show GA4 details?
     - [ ] Stripe demo
     - [ ] Email templates?
-
