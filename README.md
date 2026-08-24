@@ -16,11 +16,12 @@ Flow is served at `/flow` and `/zh/flow` under the same `[locale]` routing as im
 
 ## Google AdSense Auto Ads
 
-1. 在 `.env.local` 中设置 `NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID`，值为 AdSense Publisher ID（形如 `ca-pub-1234567890123456`）。未配置时不会加载 AdSense 脚本。
-2. 在 AdSense 后台打开 **Ads → Edit → Auto ads**。
-3. 关闭 **Intent-driven formats** 和 **In-page formats**；在 **Overlay formats** 中只开启 **Side rail ads**。
-4. 展开 Side rail 高级设置，将位置设为 **Right only**。
-5. 通过 **Page exclusions** 排除英文首页 `/`、中文首页 `/zh` 和不希望展示广告的其他页面。保留以下工具路由：
+1. 本地开发时，在 `.env.local` 中设置 `NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID`，值为 AdSense Publisher ID（形如 `ca-pub-1234567890123456`）。未配置时不会加载 AdSense 脚本。
+2. 生产部署前，在 GitHub 仓库 **Settings → Secrets and variables → Actions** 中创建同名 Repository secret。该值必须在 `yarn build` 阶段注入，新增或修改 Secret 后需要重新运行部署工作流。
+3. 在 AdSense 后台打开 **Ads → Edit → Auto ads**。
+4. 关闭 **Intent-driven formats** 和 **In-page formats**；在 **Overlay formats** 中只开启 **Side rail ads**。
+5. 展开 Side rail 高级设置，将位置设为 **Right only**。
+6. 通过 **Page exclusions** 排除英文首页 `/`、中文首页 `/zh` 和不希望展示广告的其他页面。保留以下工具路由：
    - `/flow`、`/zh/flow`
    - `/image-to-ui`、`/zh/image-to-ui`
    - `/magic-cursor`、`/zh/magic-cursor`，以及其效果详情页
