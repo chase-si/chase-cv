@@ -2,7 +2,7 @@ import { buildSitemapEntries } from "./sitemap-entries";
 import { siteUrl } from "./urls";
 
 export const INDEXNOW_KEY = "8f3c1a7e2b9d4f60a1c8e5d7b3f90214";
-export const INDEXNOW_KEY_PATH = "/.well-known/indexnow.txt";
+export const INDEXNOW_KEY_PATH = `/${INDEXNOW_KEY}.txt`;
 export const INDEXNOW_ENDPOINT = "https://api.indexnow.org/indexnow";
 
 export type IndexNowPayload = {
