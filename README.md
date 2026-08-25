@@ -29,6 +29,11 @@ Flow is served at `/flow` and `/zh/flow` under the same `[locale]` routing as im
 
 工具工作区带有 Google 官方的 `google-side-rail-overlap="false"` 标记，Side rail 不应覆盖交互区域。Dudu Scanner 进入扫描或结果阶段后也会对沉浸容器应用该标记；浏览器全屏成功时，页面外的 Side rail 不会进入全屏内容。
 
+## Bing SEO
+
+1. 在 [Bing Webmaster Tools](https://www.bing.com/webmasters) 添加 `https://dashuaibi.vip`，选择 **Meta tag** 验证，把 `content` 写入 `NEXT_PUBLIC_BING_SITE_VERIFICATION`（本地 `.env.local`，生产为 GitHub Actions secret）。该值必须在 `yarn build` 阶段注入。
+2. 验证通过后提交 `https://dashuaibi.vip/sitemap.xml`。IndexNow key 位于 `/.well-known/indexnow.txt`；合并到 `main` 并完成部署后，工作流会把 sitemap URL 提交给 Bing。
+
 ## Tech Stack
 - Frontend: NextJS, TailwindCSS, Shadcn
 - Backend: Supabase
