@@ -17,7 +17,7 @@ test.describe("dudu scanner desktop setup", () => {
       const appRoot = page.getByTestId("dudu-scanner-app-root");
       const howToPlay = page.getByTestId("dudu-scanner-how-to-play");
       const shortcutsCard = page
-        .getByText("Operator shortcuts", { exact: true })
+        .getByText("Grown-up controls", { exact: true })
         .locator("xpath=ancestor::*[@data-slot='card'][1]");
       const shortcutsContent = shortcutsCard.locator('[data-slot="card-content"]');
 
@@ -26,10 +26,10 @@ test.describe("dudu scanner desktop setup", () => {
 
       const layout = await appRoot.evaluate((root) => {
         const main = root.querySelector("main");
-        const shortcutsTitle = Array.from(
-          root.querySelectorAll<HTMLElement>('[data-slot="card-title"]'),
-        ).find((element) => element.textContent?.includes("Operator shortcuts"));
-        const shortcuts = shortcutsTitle?.closest<HTMLElement>('[data-slot="card"]');
+        const shortcutsSummary = Array.from(root.querySelectorAll<HTMLElement>("summary")).find(
+          (element) => element.textContent?.includes("Grown-up controls"),
+        );
+        const shortcuts = shortcutsSummary?.closest<HTMLElement>('[data-slot="card"]');
         const content = shortcuts?.querySelector<HTMLElement>('[data-slot="card-content"]');
 
         return {
@@ -52,7 +52,7 @@ test.describe("dudu scanner desktop setup", () => {
       await shortcutsContent.scrollIntoViewIfNeeded();
       await expect(shortcutsContent).toBeVisible();
 
-      await page.getByRole("button", { name: "Operator mode" }).click();
+      await page.getByRole("button", { name: "Grown-up mode" }).click();
       await expect(page.getByRole("button", { name: "Breakfast Wake-up Bird" })).toBeVisible();
 
       const operatorOverflow = await appRoot.evaluate((root) => {

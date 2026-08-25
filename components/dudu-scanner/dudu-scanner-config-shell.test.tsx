@@ -41,13 +41,13 @@ describe("DuduScannerConfigShell", () => {
     renderShell("en");
 
     expect(
-      screen.getByRole("heading", { name: "Dudu Scanner" }),
+      screen.getByRole("heading", { name: "Tummy Scanner" }),
     ).toBeInTheDocument();
     expect(screen.getByTestId("tool-page-chrome")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Operator mode", pressed: true }),
+      screen.getByRole("button", { name: "Grown-up mode", pressed: true }),
     ).toBeInTheDocument();
-    const operatorMode = screen.getByRole("button", { name: "Operator mode" });
+    const operatorMode = screen.getByRole("button", { name: "Grown-up mode" });
     const mysteryMode = screen.getByRole("button", { name: "Mystery scan" });
     const customMode = screen.getByRole("button", { name: "Custom scan" });
     expect(
@@ -66,9 +66,9 @@ describe("DuduScannerConfigShell", () => {
     );
     expect(screen.getByTestId("dudu-scanner-how-to-play")).toBeInTheDocument();
     expect(
-      screen.getByRole("img", { name: /Move the mouse-controlled probe/ }),
+      screen.getByRole("img", { name: /Move the mouse-controlled probe over the on-screen belly zone/ }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Person's belly")).toBeInTheDocument();
+    expect(screen.getByText("On-screen belly zone")).toBeInTheDocument();
     expect(screen.getByText("Scan here")).toBeInTheDocument();
     expect(screen.getByText("For entertainment only — not a medical device.")).toBeInTheDocument();
   });
@@ -78,15 +78,15 @@ describe("DuduScannerConfigShell", () => {
 
     expect(screen.getByRole("heading", { name: "肚肚扫描仪" })).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "操作者模式", pressed: true }),
+      screen.getByRole("button", { name: "成人协助模式", pressed: true }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "零食扫描" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "肚肚生物" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "薯条精灵" })).toBeInTheDocument();
     expect(screen.getByText("玩法演示")).toBeInTheDocument();
-    expect(screen.getByText("人的肚子")).toBeInTheDocument();
+    expect(screen.getByText("屏幕上的肚肚区域")).toBeInTheDocument();
     expect(screen.getByText("扫描这里")).toBeInTheDocument();
-    expect(screen.getByText("贴住肚子")).toBeInTheDocument();
+    expect(screen.getByText("对准肚肚区域")).toBeInTheDocument();
     expect(screen.getByText("仅供娱乐，非医疗工具。")).toBeInTheDocument();
   });
 
@@ -94,7 +94,7 @@ describe("DuduScannerConfigShell", () => {
     window.localStorage.setItem(DUDU_SCANNER_CONFIG_STORAGE_KEY, "{broken");
     renderShell("en");
     expect(
-      screen.getByRole("button", { name: "Operator mode", pressed: true }),
+      screen.getByRole("button", { name: "Grown-up mode", pressed: true }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Snack Scan" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Fry Sprite" })).toBeInTheDocument();
@@ -103,7 +103,7 @@ describe("DuduScannerConfigShell", () => {
   it("shows all targets together and keeps the selected target", () => {
     renderShell("en");
 
-    fireEvent.click(screen.getByRole("button", { name: "Operator mode" }));
+    fireEvent.click(screen.getByRole("button", { name: "Grown-up mode" }));
     const targets = [
       "Fry Sprite",
       "Candy Critter",
@@ -126,7 +126,7 @@ describe("DuduScannerConfigShell", () => {
   it("persists sound, theme, and target across reloads", () => {
     const { unmount } = renderShell("en");
 
-    fireEvent.click(screen.getByRole("button", { name: "Operator mode" }));
+    fireEvent.click(screen.getByRole("button", { name: "Grown-up mode" }));
     fireEvent.click(screen.getByRole("button", { name: "Rumble Monster" }));
     fireEvent.click(screen.getByRole("switch", { name: "Sound effects" }));
 
@@ -140,7 +140,7 @@ describe("DuduScannerConfigShell", () => {
 
     expect(screen.queryByRole("button", { name: "Tummy Creatures" })).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Operator mode", pressed: true }),
+      screen.getByRole("button", { name: "Grown-up mode", pressed: true }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Rumble Monster", pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("switch", { name: "Sound effects" })).toHaveAttribute(
@@ -151,13 +151,19 @@ describe("DuduScannerConfigShell", () => {
 
   it("lists localized shortcut guidance", () => {
     renderShell("en");
-    expect(screen.getByText("Operator shortcuts")).toBeInTheDocument();
+    expect(screen.getByText("Grown-up controls")).toBeInTheDocument();
+    const controls = screen.getByText("Grown-up controls").closest("details");
+    expect(controls).not.toHaveAttribute("open");
+
+    fireEvent.click(screen.getByText("Grown-up controls"));
+    expect(controls).toHaveAttribute("open");
     expect(screen.getByText("Force target discovery")).toBeInTheDocument();
   });
 
   it("keeps sound controls inside the operator shortcuts card", () => {
     renderShell("en");
-    const shortcutsHeading = screen.getByText("Operator shortcuts");
+    const shortcutsHeading = screen.getByText("Grown-up controls");
+    fireEvent.click(shortcutsHeading);
     const shortcutsCard = shortcutsHeading.closest("[data-slot='card']");
     expect(shortcutsCard).toBeTruthy();
     expect(shortcutsCard).toContainElement(screen.getByRole("switch", { name: "Sound effects" }));

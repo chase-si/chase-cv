@@ -9,7 +9,7 @@ import { DuduScannerCustomLibraryPanel } from "@/components/dudu-scanner/dudu-sc
 import { DuduScannerShortcutDeck } from "@/components/dudu-scanner/dudu-scanner-shortcut-deck";
 import { ToolPageChrome } from "@/components/tool-page-chrome";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardScrollArea, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardScrollArea } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import {
   DUDU_SCANNER_SCAN_MODE_IDS,
@@ -59,6 +59,8 @@ export function DuduScannerConfigShell({
           {t("assetLoadWarning")}
         </p>
       ) : null}
+
+      <p className="shrink-0 text-xs text-muted-foreground">{t("inputSafetyNote")}</p>
 
       <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-stretch">
         <Card className="flex min-h-0 flex-col overflow-hidden lg:gap-0 lg:py-0">
@@ -170,8 +172,26 @@ export function DuduScannerConfigShell({
 
           <Card className="min-h-0 overflow-hidden lg:gap-0 lg:py-0">
             <CardHeader className="items-center gap-1 border-b border-border px-4 py-3 [.border-b]:pb-3 lg:py-2 lg:[.border-b]:pb-2">
-              <CardTitle className="text-base">{t("shortcutsHeading")}</CardTitle>
-              <p className="text-xs text-muted-foreground lg:hidden">{t("shortcutsHint")}</p>
+              <details className="group w-full">
+                <summary className="cursor-pointer list-none text-base font-semibold text-foreground marker:content-none">
+                  <span className="flex items-center justify-between gap-3">
+                    {t("shortcutsHeading")}
+                    <span className="text-xs font-medium text-muted-foreground group-open:hidden">
+                      {t("shortcutsShow")}
+                    </span>
+                    <span className="hidden text-xs font-medium text-muted-foreground group-open:inline">
+                      {t("shortcutsHide")}
+                    </span>
+                  </span>
+                </summary>
+                <p className="mt-1 text-xs text-muted-foreground">{t("shortcutsHint")}</p>
+                <div className="mt-3 border-t border-border pt-3 lg:mt-2 lg:pt-2">
+                  <DuduScannerShortcutDeck
+                    layout="vertical"
+                    className="lg:grid lg:grid-cols-2 lg:gap-x-4"
+                  />
+                </div>
+              </details>
             </CardHeader>
             <CardContent className="flex min-w-0 flex-col gap-3 px-4 py-3 lg:gap-2 lg:py-2">
               <div className="flex items-center justify-between gap-4 border-b border-border pb-3 lg:pb-2">
@@ -185,10 +205,6 @@ export function DuduScannerConfigShell({
                   aria-label={t("soundLabel")}
                 />
               </div>
-              <DuduScannerShortcutDeck
-                layout="vertical"
-                className="lg:grid lg:grid-cols-2 lg:gap-x-4"
-              />
             </CardContent>
           </Card>
         </div>

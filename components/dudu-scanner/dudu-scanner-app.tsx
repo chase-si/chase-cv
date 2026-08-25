@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
 import { DuduScannerConfigShell } from "@/components/dudu-scanner/dudu-scanner-config-shell";
+import { DuduScannerDiscoveryProgress } from "@/components/dudu-scanner/dudu-scanner-discovery-progress";
 import { DuduScannerResultView } from "@/components/dudu-scanner/dudu-scanner-result-view";
 import { DuduScannerScanView } from "@/components/dudu-scanner/dudu-scanner-scan-view";
 import { exitAppFullscreen, requestAppFullscreen } from "@/lib/dudu-scanner/fullscreen";
@@ -35,6 +36,7 @@ import { type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
 import { prepareTargetRoundAsset, preloadTargetImage } from "@/lib/dudu-scanner/target-asset";
 import { resolveCustomRoundAssetId, resolveRoundTarget } from "@/lib/dudu-scanner/round-target";
 import { useDuduScannerCustomLibrary } from "@/lib/dudu-scanner/dudu-scanner-custom-library-provider";
+import { useDuduScannerDiscoveries } from "@/lib/dudu-scanner/use-dudu-scanner-discoveries";
 import {
   DUDU_SCANNER_AUTO_SCAN_DURATION_MS,
   DUDU_SCANNER_LOCK_RESULT_DELAY_MS,
@@ -76,6 +78,7 @@ function DuduScannerAppInner() {
   const revealEpochRef = useRef(0);
   const { config, setSoundEnabled } = useDuduScannerConfig();
   const customLibrary = useDuduScannerCustomLibrary();
+  const { discoveredCount, discoverTarget } = useDuduScannerDiscoveries();
   const [round, dispatch] = useReducer(duduScannerRoundReducer, undefined, createInitialRoundState);
   const [revealProgress, setRevealProgress] = useState(0);
   const [roundAsset, setRoundAsset] = useState<{
@@ -356,6 +359,12 @@ function DuduScannerAppInner() {
     : 0;
 
   useEffect(() => {
+    if (round.phase === "result" && roundAsset?.kind === "catalog") {
+      discoverTarget(roundAsset.targetId);
+    }
+  }, [discoverTarget, round.phase, roundAsset]);
+
+  useEffect(() => {
     if (!round.scan.locking) {
       return;
     }
@@ -469,6 +478,11 @@ function DuduScannerAppInner() {
           targetId={roundAsset?.kind === "catalog" ? immersiveTargetId : undefined}
           targetImageSrc={roundTargetImageSrc}
           customRound={roundAsset?.kind === "custom"}
+          discoveryProgress={
+            roundAsset?.kind === "catalog" ? (
+              <DuduScannerDiscoveryProgress discoveredCount={discoveredCount} />
+            ) : undefined
+          }
           onScanAgain={() => void handleScanAgain()}
           onChangeTarget={() => void handleChangeTarget()}
           onBack={() => void handleBackToConfig()}
