@@ -83,7 +83,7 @@ describe("DuduScannerResultView health suggestion speech", () => {
     renderResult();
 
     expect(
-      screen.getByText("Tap play for the tip below, or read aloud a suggestion of your own."),
+      screen.getByText("Tap play for the tiny mission below, or read aloud one of your own."),
     ).toBeInTheDocument();
   });
 

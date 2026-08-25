@@ -68,7 +68,7 @@ describe("SiteNavActions", () => {
     expect(screen.getByText("Explore configurable cursor effects.")).toBeInTheDocument();
     expect(screen.getByText("Turn painting palettes into interface themes.")).toBeInTheDocument();
     expect(
-      screen.getByText("Scan a tummy, then suggest a healthy habit for kids."),
+      screen.getByText("A playful tummy-scanning game that turns healthy habits into parent-child fun."),
     ).toBeInTheDocument();
     expect(screen.getByText("Visualize and edit structured flows.")).toBeInTheDocument();
 
@@ -89,7 +89,7 @@ describe("SiteNavActions", () => {
     expect(within(projects).getByText("扫描肚子揭晓角色，再给小朋友健康习惯小建议。")).toBeInTheDocument();
     expect(within(projects).getByText("可视化编辑结构化流程。")).toBeInTheDocument();
 
-    fireEvent.click(within(projects).getByRole("menuitem", { name: /Tummy Scanner/i }));
+    fireEvent.click(within(projects).getByRole("menuitem", { name: /肚肚扫描仪/i }));
 
     expect(trackEvent).toHaveBeenCalledWith("nav_click", {
       target: "dudu_scanner",
