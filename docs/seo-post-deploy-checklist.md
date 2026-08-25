@@ -6,7 +6,7 @@
 
 - [ ] [Google Search Console](https://search.google.com/search-console)（全站资源）已覆盖 `https://dashuaibi.vip` 及主要 locale 前缀。
 - [ ] [Bing Webmaster Tools](https://www.bing.com/webmasters) 已通过 Search Console 导入或独立验证。生产 HTML 含 `meta[name=msvalidate.01]`（`NEXT_PUBLIC_BING_SITE_VERIFICATION`）。
-- [ ] 生产 `https://dashuaibi.vip/.well-known/indexnow.txt` 返回 IndexNow key；部署后 IndexNow 工作流对 sitemap URL 返回 200/202。
+- [ ] 生产 `https://dashuaibi.vip/8f3c1a7e2b9d4f60a1c8e5d7b3f90214.txt` 返回 IndexNow key；部署后 IndexNow 工作流对 sitemap URL 返回 200/202。
 - [ ] `https://dashuaibi.vip/robots.txt` 允许 `bingbot` 并指向 sitemap。
 - [ ] 生产 `https://dashuaibi.vip/sitemap.xml` 仅包含注册表中的可索引 URL，且与页面 `link[rel=canonical]` 一致。
 - [ ] 对首页、各工具总览、至少一个 Magic Cursor 效果页分别执行 **URL 检查**，确认「已编入索引」或合理的抓取状态。

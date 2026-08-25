@@ -2,10 +2,21 @@
 
 const siteUrl = process.env.SITE_URL?.trim() || "https://dashuaibi.vip";
 const endpoint = "https://api.indexnow.org/indexnow";
-const keyPath = "/.well-known/indexnow.txt";
+const indexNowKey = "8f3c1a7e2b9d4f60a1c8e5d7b3f90214";
+const keyPath = `/${indexNowKey}.txt`;
 
 function parseSitemapLocs(xml) {
   return [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((match) => match[1]);
+}
+
+function urlsOnHost(urls, host) {
+  return urls.filter((url) => {
+    try {
+      return new URL(url).hostname === host;
+    } catch {
+      return false;
+    }
+  });
 }
 
 async function fetchText(url) {
@@ -18,17 +29,18 @@ async function fetchText(url) {
 
 async function main() {
   const origin = new URL(siteUrl).origin;
+  const host = new URL(origin).hostname;
   const [sitemapXml, key] = await Promise.all([
     fetchText(new URL("/sitemap.xml", origin).toString()),
     fetchText(new URL(keyPath, origin).toString()),
   ]);
-  const urlList = parseSitemapLocs(sitemapXml);
+  const urlList = urlsOnHost(parseSitemapLocs(sitemapXml), host);
   if (urlList.length === 0) {
-    throw new Error("sitemap.xml did not contain any <loc> URLs");
+    throw new Error("sitemap.xml did not contain any <loc> URLs for this host");
   }
 
   const payload = {
-    host: new URL(origin).hostname,
+    host,
     key: key.trim(),
     keyLocation: new URL(keyPath, origin).toString(),
     urlList,
