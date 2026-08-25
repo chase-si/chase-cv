@@ -11,8 +11,13 @@ export const FAN_SWEEP_RADIANS = (Math.PI * 5) / 6;
 export function computeFanGeometry(width: number, height: number): FanGeometry {
   const cx = width * 0.5;
   const cy = height * 0.92;
-  const radius = Math.min(width, height) * 0.78;
   const sweep = FAN_SWEEP_RADIANS;
+  const insetX = 2;
+  const insetY = Math.min(width, height) * 0.04;
+  const radiusFromBox = Math.min(width, height) * 0.78;
+  const radiusFromWidth = Math.max(0, (cx - insetX) / Math.sin(sweep / 2));
+  const radiusFromHeight = Math.max(0, cy - insetY);
+  const radius = Math.min(radiusFromBox, radiusFromWidth, radiusFromHeight);
   const startAngle = -Math.PI / 2 - sweep / 2;
   return { cx, cy, radius, sweep, startAngle };
 }

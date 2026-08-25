@@ -25,19 +25,25 @@ describe("DuduScannerOperatorControlBar", () => {
     cleanup();
   });
 
-  it("starts collapsed and expands to show every touch control", () => {
+  it("shows four touch controls in two columns without a collapse toggle or rescan", () => {
     renderBar();
-    expect(screen.queryByTestId("dudu-scanner-operator-reveal")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByTestId("dudu-scanner-operator-bar-toggle"));
+    expect(screen.queryByTestId("dudu-scanner-operator-bar-toggle")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("dudu-scanner-operator-reset")).not.toBeInTheDocument();
+    expect(DUDU_SCANNER_OPERATOR_TOUCH_CONTROLS).toEqual([
+      "pause-resume",
+      "reveal",
+      "lock",
+      "hide",
+    ]);
     for (const controlId of DUDU_SCANNER_OPERATOR_TOUCH_CONTROLS) {
       expect(screen.getByTestId(`dudu-scanner-operator-${controlId}`)).toBeInTheDocument();
     }
+    expect(screen.getByRole("group", { name: "Scanner controls" })).toHaveClass("grid-cols-2");
   });
 
   it("dispatches domain commands for each touch control", () => {
     const onDomainCommand = vi.fn();
     renderBar(onDomainCommand);
-    fireEvent.click(screen.getByTestId("dudu-scanner-operator-bar-toggle"));
 
     for (const controlId of DUDU_SCANNER_OPERATOR_TOUCH_CONTROLS) {
       onDomainCommand.mockClear();

@@ -75,7 +75,6 @@ export const DUDU_SCANNER_OPERATOR_TOUCH_CONTROLS = [
   "reveal",
   "lock",
   "hide",
-  "reset",
 ] as const;
 
 export type DuduScannerOperatorTouchControlId =
@@ -93,8 +92,6 @@ export function touchControlIdToDomainCommand(
       return { type: "LOCK_SIGNAL" };
     case "hide":
       return { type: "CANCEL_TARGET" };
-    case "reset":
-      return { type: "RESTART_SCAN" };
     default: {
       const _exhaustive: never = controlId;
       return _exhaustive;

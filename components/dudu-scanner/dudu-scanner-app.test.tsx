@@ -271,7 +271,6 @@ describe("DuduScannerApp controls", () => {
     await waitFor(() => {
       expect(screen.getByTestId("dudu-scanner-operator-bar")).toBeInTheDocument();
     });
-    fireEvent.click(screen.getByTestId("dudu-scanner-operator-bar-toggle"));
     fireEvent.click(screen.getByTestId("dudu-scanner-operator-reveal"));
     await waitFor(() => {
       expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent("Signal detected");
