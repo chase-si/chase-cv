@@ -65,6 +65,24 @@ describe("DuduScannerInstrumentPanel", () => {
     );
   });
 
+  it("can hide the keyboard shortcut strip", () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={enMessages}>
+        <DuduScannerInstrumentPanel
+          backButton={null}
+          canvas={<div>Canvas</div>}
+          metrics={{ ...baseMetrics, signalStrength: 0.2 }}
+          status="Scanning"
+          timestamp="00:00:00"
+          showShortcutDeck={false}
+        />
+      </NextIntlClientProvider>,
+    );
+
+    expect(screen.queryByText("Force target discovery")).not.toBeInTheDocument();
+    expect(screen.queryByText("Lock signal")).not.toBeInTheDocument();
+  });
+
   it("shows the double-click lock instruction when supplied", () => {
     render(
       <NextIntlClientProvider locale="en" messages={enMessages}>

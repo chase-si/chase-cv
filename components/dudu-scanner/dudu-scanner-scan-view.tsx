@@ -16,9 +16,11 @@ import type { ScannerVisualMetrics } from "@/lib/dudu-scanner/scanner-visual/ren
 import { usePrefersTouchOperatorControls } from "@/lib/dudu-scanner/use-prefers-touch-operator-controls";
 
 type DuduScannerScanViewProps = {
-  targetId: DuduScannerTargetId;
+  targetId: string;
+  catalogTargetId?: DuduScannerTargetId;
   targetImageSrc: string;
   mysteryMode: boolean;
+  customRound?: boolean;
   targetRevealed: boolean;
   revealComplete: boolean;
   revealProgress: number;
@@ -77,8 +79,10 @@ function scannerMetricsAffectHud(
 
 export function DuduScannerScanView({
   targetId,
+  catalogTargetId,
   targetImageSrc,
   mysteryMode,
+  customRound = false,
   targetRevealed,
   revealComplete,
   revealProgress,
@@ -94,7 +98,9 @@ export function DuduScannerScanView({
 }: DuduScannerScanViewProps) {
   const t = useTranslations("duduScanner");
   const prefersTouchControls = usePrefersTouchOperatorControls();
-  const targetMessageKey = DUDU_SCANNER_TARGET_MESSAGE_KEY[targetId];
+  const targetMessageKey = catalogTargetId
+    ? DUDU_SCANNER_TARGET_MESSAGE_KEY[catalogTargetId]
+    : null;
   const placementSeed = useMemo(
     () => hashTargetSeed(targetId) + placementVersion * 97,
     [placementVersion, targetId],
@@ -145,10 +151,16 @@ export function DuduScannerScanView({
       targetImageSrc={targetImageSrc}
       mysteryMode={mysteryMode}
       finaleEyebrow={t("scan.finaleEyebrow")}
-      finaleName={t(`targets.${targetMessageKey}.name`)}
-      finaleLine={t(`targets.${targetMessageKey}.revealLine`)}
+      finaleName={
+        customRound || !targetMessageKey ? t("scan.customFinaleName") : t(`targets.${targetMessageKey}.name`)
+      }
+      finaleLine={
+        customRound || !targetMessageKey
+          ? t("scan.customFinaleLine")
+          : t(`targets.${targetMessageKey}.revealLine`)
+      }
       hideCursor
-      className="min-h-[220px] w-full lg:min-h-0"
+      className="min-h-[220px] w-full max-lg:rounded-none max-lg:border-x-0 lg:min-h-0"
       onDiscovery={onDiscovery}
       onLockRequest={() => onDomainCommand?.({ type: "LOCK_SIGNAL" })}
       onMetricsChange={(next) => {
@@ -164,7 +176,7 @@ export function DuduScannerScanView({
 
   return (
     <div
-      className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden p-3 sm:gap-4 sm:p-6"
+      className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden px-0 py-3 sm:gap-4 sm:p-6"
       data-testid="dudu-scanner-scan-view"
     >
       <DuduScannerInstrumentPanel
@@ -178,11 +190,12 @@ export function DuduScannerScanView({
             ? t("scan.doubleClickLockHint")
             : null
         }
+        showShortcutDeck={!prefersTouchControls}
       />
 
       {transient ? (
         <p
-          className="shrink-0 rounded-xl border border-border bg-muted/50 px-4 py-2 text-center text-sm text-foreground"
+          className="mx-3 shrink-0 rounded-xl border border-border bg-muted/50 px-4 py-2 text-center text-sm text-foreground sm:mx-0"
           data-testid="dudu-scanner-transient"
           role="status"
         >
@@ -191,7 +204,11 @@ export function DuduScannerScanView({
       ) : null}
 
       {prefersTouchControls && onDomainCommand ? (
-        <DuduScannerOperatorControlBar paused={paused} onDomainCommand={onDomainCommand} />
+        <DuduScannerOperatorControlBar
+          className="px-3 sm:px-0"
+          paused={paused}
+          onDomainCommand={onDomainCommand}
+        />
       ) : null}
 
     </div>

@@ -6,7 +6,7 @@ export const DUDU_SCANNER_THEME_IDS = [
 
 export type DuduScannerThemeId = (typeof DUDU_SCANNER_THEME_IDS)[number];
 
-export const DUDU_SCANNER_SCAN_MODE_IDS = ["operator", "mystery"] as const;
+export const DUDU_SCANNER_SCAN_MODE_IDS = ["operator", "mystery", "custom"] as const;
 
 export type DuduScannerScanMode = (typeof DUDU_SCANNER_SCAN_MODE_IDS)[number];
 

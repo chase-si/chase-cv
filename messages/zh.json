@@ -186,7 +186,7 @@
     },
     "duduScanner": {
       "title": "肚肚扫描仪 — 扫描肚子小游戏，给小朋友健康习惯建议 | Chase's CV",
-      "description": "扫描肚子、锁定卡通角色，再给小朋友一条健康习惯小建议。支持神秘或操作员模式、三个主题与十个角色——仅供娱乐，不是医疗设备。",
+      "description": "扫描肚子、锁定卡通角色，再给小朋友一条健康习惯小建议。支持神秘或成人协助模式，共有十个角色——仅供娱乐，不是医疗设备。",
       "ogImageAlt": "肚肚扫描仪：扫描肚子小游戏，揭晓角色并给出健康习惯小建议",
       "applicationName": "肚肚扫描仪"
     },
@@ -212,7 +212,7 @@
           "description": "把名画配色变成界面主题。"
         },
         "duduScanner": {
-          "name": "Dudu Scanner",
+          "name": "肚肚扫描仪",
           "description": "扫描肚子揭晓角色，再给小朋友健康习惯小建议。"
         },
         "flowEditor": {
@@ -367,7 +367,7 @@
           "problem": "怎样把扫描肚子做成小游戏，再顺手给小朋友一条健康习惯建议？",
           "tag1": "扫描肚子",
           "tag2": "健康习惯",
-          "entry": "进入 Dudu Scanner"
+          "entry": "进入肚肚扫描仪"
         },
         "flowEditor": {
           "problem": "结构化流程一复杂，树形关系就容易在脑子里打结。",
@@ -703,32 +703,35 @@
   },
   "duduScanner": {
     "title": "肚肚扫描仪",
-    "subtitle": "选好扫描方式，调好声音，就可以开始神秘的肚肚扫描啦。",
+    "subtitle": "选择扫描方式，调好音效，开始一轮有趣的肚肚扫描。",
     "scanModeHeading": "扫描模式",
     "scanModes": {
       "mystery": {
         "name": "神秘扫描",
-        "description": "扫描仪会从全部角色中秘密选择一个。"
+        "description": "扫描仪会为这一轮悄悄选择一个角色。"
       },
       "operator": {
-        "name": "操作者模式",
-        "description": "表演开始前，由操作者指定确切角色。"
+        "name": "成人协助模式",
+        "description": "游戏开始前，由成人指定角色。"
+      },
+      "custom": {
+        "name": "自定义扫描",
+        "description": "上传自己的图片，扫描时把它们找出来。"
       }
     },
     "mysterySummary": {
       "title": "角色身份已加密",
-      "description": "每轮开始时会从十个信号中随机抽取一个。完成锁定，才能知道是谁藏在里面。"
+      "description": "每轮开始时会随机抽取一个神秘角色。完成锁定，才能知道是谁藏在里面。"
     },
-    "themesHeading": "扫描主题",
     "targetsHeading": "扫描目标",
     "soundLabel": "音效",
     "soundDescription": "开始扫描后会有轻柔的扫描音和揭晓提示音。",
     "howToPlay": {
       "title": "玩法演示",
-      "description": "移动鼠标，把探头贴在人的肚子上。",
+      "description": "移动屏幕上的探头，对准肚肚区域。",
       "demoLabel": "演示",
-      "accessibleDescription": "用鼠标控制探头，在人的肚子上移动扫描，然后观察屏幕上的结果。",
-      "bellyArea": "人的肚子",
+      "accessibleDescription": "用鼠标控制屏幕上的探头，在肚肚区域移动扫描，然后观察屏幕上的结果。",
+      "bellyArea": "屏幕上的肚肚区域",
       "scanHere": "扫描这里",
       "screen": "观察屏幕",
       "searching": "寻找信号",
@@ -736,21 +739,39 @@
       "stepsLabel": "游戏玩法说明",
       "steps": {
         "move": "移动鼠标",
-        "scan": "贴住肚子",
+        "scan": "对准肚肚区域",
         "watch": "查看屏幕"
       }
     },
-    "shortcutsHeading": "操作者快捷键",
-    "shortcutsHint": "以下按键在扫描过程中可用，正式表演前可以先记一下。",
+    "shortcutsHeading": "给大人的主持控制台",
+    "shortcutsHint": "成人协助时，可在扫描过程中使用这些按键。",
+    "shortcutsShow": "展开",
+    "shortcutsHide": "收起",
     "startScan": "开始扫描",
+    "customLibrary": {
+      "heading": "你的图片",
+      "description": "支持 PNG、JPEG、WebP，单张不超过 2 MB。HEIC 会在浏览器里转成 JPEG。最多 6 张。选中一张就扫选中的，不选则随机。图片只留在这台设备上。",
+      "upload": "上传",
+      "selectImage": "选中这张图片",
+      "removeImage": "删除这张图片",
+      "clear": "清空图库",
+      "clearTitle": "清空已上传的图片？",
+      "clearDescription": "这会删除这台设备上保存的全部自定义图片。",
+      "clearConfirm": "全部清空",
+      "startBlocked": "请先上传图片再开始扫描。",
+      "customNote": "自定义扫描使用你在这台设备上上传的图片。选中一张就扫这一张，不选则由扫描仪随机抽取。",
+      "persistWarning": "当前浏览器无法在刷新后记住图片，这次访问有效。",
+      "skip": {
+        "type": "请使用 PNG、JPEG、WebP 或 HEIC。",
+        "size": "每张图片不能超过 2 MB。",
+        "capacity": "最多保存 6 张，多出来的文件已跳过。",
+        "heic-failed": "这张 HEIC 无法转换，请改用 JPEG 或 PNG。"
+      }
+    },
+    "inputSafetyNote": "无需摄像头，只要移动屏幕上的探头。",
     "backToConfig": "返回设置",
     "assetLoadWarning": "这个角色图没加载成功，扫描时会先用备用轮廓。可以换别的角色或稍后再试一次。",
     "disclaimer": "仅供娱乐，非医疗工具。",
-    "themes": {
-      "snackScan": "零食扫描",
-      "tummyCreatures": "肚肚生物",
-      "healthyBuddies": "健康小伙伴"
-    },
     "targets": {
       "frySprite": {
         "name": "薯条精灵",
@@ -839,6 +860,8 @@
       "fullscreenHint": "无法进入全屏——按 F 可再试一次。",
       "doubleClickLockHint": "按 Enter 锁定；信号高于 90% 时，也可以双击目标锁定。",
       "finaleEyebrow": "神秘身份确认",
+      "customFinaleName": "自定义图片",
+      "customFinaleLine": "就是你上传的那张图！",
       "status": {
         "initializing": "正在初始化扫描仪…",
         "moveProbe": "移动探头寻找信号",
@@ -861,54 +884,15 @@
     "result": {
       "eyebrow": "扫描完成",
       "title": "目标已锁定！",
+      "customName": "上传的图片",
       "body": "肚肚扫描确认了这个神秘角色。要再来一轮吗？",
       "healthTask": "今日健康小任务",
       "playHealthTask": "播放健康小任务",
       "stopHealthTask": "停止播放健康小任务",
-      "healthTaskHint": "点击播放以下建议，或您人工朗读您现编的建议",
+      "healthTaskHint": "点击播放下方小任务，或由你来朗读一条自己编的建议。",
       "scanAgain": "再扫一次",
       "changeTarget": "更换目标"
     },
-    "landing": {
-      "purposeTitle": "肚肚扫描仪是做什么的",
-      "purposeBody": "肚肚扫描仪是给小朋友玩的扫描肚子小游戏。选择零食、生物或健康小伙伴主题，用神秘或操作员模式扫描肚子、锁定卡通角色，再给出一条轻松的健康习惯建议——仅供娱乐，不是医疗设备。",
-      "stepsTitle": "一局怎么玩",
-      "step1": "先看玩法演示，再选择主题、扫描模式，以及是否开启音效。",
-      "step2": "开始扫描，把探头贴在肚子上移动，直到信号足够强可以锁定。",
-      "step3": "看看藏着谁，再读一读或播放今日健康小任务给小朋友听。",
-      "step4": "再扫一次，或换角色，拿到另一条习惯建议。",
-      "useCasesTitle": "什么时候适合玩",
-      "useCase1": "和小朋友玩一轮短短的扫描肚子游戏，找出肚肚里藏着谁。",
-      "useCase2": "用揭晓结果当作小提醒：多吃蔬菜、喝水、按时睡觉，或让眼睛休息一下。",
-      "useCase3": "家长用操作员模式指定角色，或用神秘模式让小朋友现场揭晓。",
-      "faqTitle": "常见问题",
-      "faq": {
-        "family": {
-          "question": "适合小朋友吗？",
-          "answer": "适合。这是卡通扫描肚子小游戏，音效比较温和。请家长陪在旁边；健康小任务只是玩梗提醒，不是医嘱。"
-        },
-        "setup": {
-          "question": "神秘模式和操作员模式有什么区别？",
-          "answer": "神秘模式每轮会从主题里悄悄抽一个角色；操作员模式则让家长提前指定角色再开始扫描。"
-        },
-        "health": {
-          "question": "健康小任务是医疗建议吗？",
-          "answer": "不是。每个角色结束时只会给出轻松的小朋友建议，比如喝水、吃蔬菜。这是游戏提示，不是诊断或治疗。"
-        },
-        "sound": {
-          "question": "可以关掉声音吗？",
-          "answer": "可以。在设置页切换音效，或在扫描中按 M 静音。结果页也可以朗读健康小任务（若浏览器支持语音）。"
-        },
-        "fullscreen": {
-          "question": "手机能全屏吗？",
-          "answer": "不同浏览器表现不一。界面提供全屏重试快捷键，但横屏平板或桌面通常最稳。"
-        }
-      },
-      "relatedTitle": "继续探索",
-      "relatedToolsTitle": "其他游乐场工具",
-      "relatedToolsDescription": "扫完肚子之后，还可以试试别的实验。",
-      "workExperienceLink": "查看工作经历",
-      "contactLink": "联系 Chase"
-    }
+    "discoveryProgress": "已认识 {count}/{total} 位肚肚朋友，再扫一次，遇见下一位！"
   }
 }

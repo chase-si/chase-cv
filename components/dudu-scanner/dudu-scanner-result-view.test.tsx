@@ -83,7 +83,7 @@ describe("DuduScannerResultView health suggestion speech", () => {
     renderResult();
 
     expect(
-      screen.getByText("Tap play for the tip below, or read aloud a suggestion of your own."),
+      screen.getByText("Tap play for the tiny mission below, or read aloud one of your own."),
     ).toBeInTheDocument();
   });
 
@@ -139,5 +139,23 @@ describe("DuduScannerResultView health suggestion speech", () => {
     unmount();
 
     expect(cancel).toHaveBeenCalled();
+  });
+
+  it("hides character copy and health guidance for a custom round", () => {
+    stubSpeechSynthesis();
+    render(
+      <NextIntlClientProvider locale="en" messages={enMessages}>
+        <DuduScannerResultView
+          targetImageSrc="blob:custom"
+          customRound
+          onScanAgain={() => {}}
+          onChangeTarget={() => {}}
+        />
+      </NextIntlClientProvider>,
+    );
+
+    expect(screen.getByText("Uploaded picture")).toBeInTheDocument();
+    expect(screen.queryByTestId("dudu-scanner-health-guidance")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Play healthy mission" })).not.toBeInTheDocument();
   });
 });

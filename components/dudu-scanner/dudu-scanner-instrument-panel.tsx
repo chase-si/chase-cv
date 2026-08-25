@@ -53,6 +53,7 @@ export function DuduScannerInstrumentPanel({
   status,
   timestamp,
   interactionHint,
+  showShortcutDeck = true,
 }: {
   backButton: ReactNode;
   canvas: ReactNode;
@@ -60,6 +61,7 @@ export function DuduScannerInstrumentPanel({
   status: string;
   timestamp: string;
   interactionHint?: string | null;
+  showShortcutDeck?: boolean;
 }) {
   const t = useTranslations("duduScanner");
   const signalPercent = Math.round(metrics.signalStrength * 100);
@@ -67,7 +69,7 @@ export function DuduScannerInstrumentPanel({
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
-      <header className="flex shrink-0 items-center gap-3">
+      <header className="flex shrink-0 items-center gap-3 px-3 sm:px-0">
         {backButton}
         <div className="min-w-0 flex-1 border-l-4 border-primary pl-3">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -97,7 +99,7 @@ export function DuduScannerInstrumentPanel({
 
       <Card
         size="sm"
-        className="shrink-0 gap-3 border-primary/60 py-3"
+        className="mx-3 shrink-0 gap-3 border-primary/60 py-3 sm:mx-0"
         aria-label={t("shortcutsHeading")}
       >
         <div className="grid items-center gap-3 px-4 md:grid-cols-[minmax(11rem,0.7fr)_minmax(0,1.3fr)]">
@@ -157,7 +159,9 @@ export function DuduScannerInstrumentPanel({
           </dl>
         </div>
 
-        <DuduScannerShortcutDeck className="border-t border-border px-4 pt-3" />
+        {showShortcutDeck ? (
+          <DuduScannerShortcutDeck className="border-t border-border px-4 pt-3" />
+        ) : null}
       </Card>
     </div>
   );

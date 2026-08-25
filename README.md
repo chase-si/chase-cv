@@ -32,7 +32,7 @@ Flow is served at `/flow` and `/zh/flow` under the same `[locale]` routing as im
 ## Bing SEO
 
 1. 在 [Bing Webmaster Tools](https://www.bing.com/webmasters) 添加 `https://dashuaibi.vip`，选择 **Meta tag** 验证，把 `content` 写入 `NEXT_PUBLIC_BING_SITE_VERIFICATION`（本地 `.env.local`，生产为 GitHub Actions secret）。该值必须在 `yarn build` 阶段注入。
-2. 验证通过后提交 `https://dashuaibi.vip/sitemap.xml`。IndexNow key 位于 `/.well-known/indexnow.txt`；合并到 `main` 并完成部署后，工作流会把 sitemap URL 提交给 Bing。
+2. 验证通过后提交 `https://dashuaibi.vip/sitemap.xml`。IndexNow key 位于站点根路径 `/{key}.txt`（与 `lib/seo/indexnow.ts` 中的 key 一致）；合并到 `main` 并完成部署后，工作流会把 sitemap URL 提交给 Bing。
 
 ## Tech Stack
 - Frontend: NextJS, TailwindCSS, Shadcn

@@ -12,9 +12,12 @@ import {
 } from "./indexnow";
 
 describe("IndexNow payload", () => {
-  it("uses a public hex key and well-known key location", () => {
+  it("hosts the public hex key at the site root so all sitemap URLs are in scope", () => {
     expect(INDEXNOW_KEY).toMatch(/^[a-f0-9]{32}$/);
-    expect(INDEXNOW_KEY_PATH).toBe("/.well-known/indexnow.txt");
+    expect(INDEXNOW_KEY_PATH).toBe(`/${INDEXNOW_KEY}.txt`);
+    expect(INDEXNOW_KEY_PATH.split("/").filter(Boolean)).toEqual([
+      `${INDEXNOW_KEY}.txt`,
+    ]);
     expect(INDEXNOW_ENDPOINT).toBe("https://api.indexnow.org/indexnow");
   });
 

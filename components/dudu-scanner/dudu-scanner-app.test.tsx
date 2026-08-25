@@ -44,6 +44,7 @@ describe("DuduScannerApp controls", () => {
     resetTargetImageCacheForTests();
     window.localStorage.clear();
     window.sessionStorage.clear();
+    window.history.replaceState(null, "", "/");
     vi.spyOn(Math, "random").mockReturnValue(0);
     class OkImage {
       onload: (() => void) | null = null;
@@ -148,7 +149,7 @@ describe("DuduScannerApp controls", () => {
       "google-side-rail-overlap",
     );
     fireEvent.keyDown(window, { key: " " });
-    expect(screen.getByRole("heading", { name: "Dudu Scanner" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Tummy Scanner" })).toBeInTheDocument();
   });
 
   it("returns to config on browser back from scan", async () => {
@@ -159,7 +160,7 @@ describe("DuduScannerApp controls", () => {
 
     window.dispatchEvent(new PopStateEvent("popstate"));
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Dudu Scanner" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Tummy Scanner" })).toBeInTheDocument();
     });
   });
 
@@ -199,7 +200,7 @@ describe("DuduScannerApp controls", () => {
     vi.stubGlobal("Image", TrackingImage as unknown as typeof Image);
 
     renderApp();
-    fireEvent.click(screen.getByRole("button", { name: "Operator mode" }));
+    fireEvent.click(screen.getByRole("button", { name: "Grown-up mode" }));
     fireEvent.click(screen.getByRole("button", { name: "Boba Bubbles" }));
     await startScan();
 
@@ -223,6 +224,7 @@ describe("DuduScannerApp controls", () => {
     vi.stubGlobal("Image", TrackingImage as unknown as typeof Image);
 
     renderApp();
+    fireEvent.click(screen.getByRole("button", { name: "Mystery scan" }));
     expect(screen.queryByRole("button", { name: "Fry Sprite" })).not.toBeInTheDocument();
     await startScan();
 
@@ -246,7 +248,7 @@ describe("DuduScannerApp controls", () => {
     vi.stubGlobal("Image", FailImage as unknown as typeof Image);
 
     renderApp();
-    fireEvent.click(screen.getByRole("button", { name: "Operator mode" }));
+    fireEvent.click(screen.getByRole("button", { name: "Grown-up mode" }));
     await startScan();
     fireEvent.keyDown(window, { key: " " });
 
@@ -269,7 +271,6 @@ describe("DuduScannerApp controls", () => {
     await waitFor(() => {
       expect(screen.getByTestId("dudu-scanner-operator-bar")).toBeInTheDocument();
     });
-    fireEvent.click(screen.getByTestId("dudu-scanner-operator-bar-toggle"));
     fireEvent.click(screen.getByTestId("dudu-scanner-operator-reveal"));
     await waitFor(() => {
       expect(screen.getByTestId("dudu-scanner-status")).toHaveTextContent("Signal detected");
@@ -287,6 +288,7 @@ describe("DuduScannerApp controls", () => {
       return now;
     });
     renderApp();
+    fireEvent.click(screen.getByRole("button", { name: "Mystery scan" }));
     await startScan();
 
     fireEvent.keyDown(window, { key: " " });

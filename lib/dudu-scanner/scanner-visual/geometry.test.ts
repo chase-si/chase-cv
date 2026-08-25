@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   clampTargetInFan,
+  computeFanAxisAlignedBounds,
   computeFanGeometry,
   placeTargetInSafeRegion,
 } from "@/lib/dudu-scanner/scanner-visual/geometry";
@@ -34,5 +35,24 @@ describe("scanner visual geometry", () => {
     const clamped = clampTargetInFan({ x: fan.cx + fan.radius * 2, y: fan.cy }, fan, 20);
     const dist = Math.hypot(clamped.x - fan.cx, clamped.y - fan.cy);
     expect(dist).toBeLessThanOrEqual(fan.radius - 20 + 0.01);
+  });
+
+  it("keeps a narrow portrait fan inside the canvas", () => {
+    const width = 390;
+    const height = 280;
+    const bounds = computeFanAxisAlignedBounds(computeFanGeometry(width, height));
+    expect(bounds.minX).toBeGreaterThanOrEqual(0);
+    expect(bounds.maxX).toBeLessThanOrEqual(width);
+    expect(bounds.minY).toBeGreaterThanOrEqual(0);
+    expect(bounds.maxY).toBeLessThanOrEqual(height);
+  });
+
+  it("spans nearly the full canvas width on a tall phone stage", () => {
+    const width = 390;
+    const height = 510;
+    const bounds = computeFanAxisAlignedBounds(computeFanGeometry(width, height));
+    expect(bounds.maxX - bounds.minX).toBeGreaterThan(width * 0.97);
+    expect(bounds.minX).toBeGreaterThanOrEqual(0);
+    expect(bounds.maxX).toBeLessThanOrEqual(width);
   });
 });

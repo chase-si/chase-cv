@@ -57,8 +57,7 @@ describe("touchControlIdToDomainCommand", () => {
     expect(touchControlIdToDomainCommand("reveal")).toEqual({ type: "FORCE_DISCOVERY" });
     expect(touchControlIdToDomainCommand("lock")).toEqual({ type: "LOCK_SIGNAL" });
     expect(touchControlIdToDomainCommand("hide")).toEqual({ type: "CANCEL_TARGET" });
-    expect(touchControlIdToDomainCommand("reset")).toEqual({ type: "RESTART_SCAN" });
-    expect(DUDU_SCANNER_OPERATOR_TOUCH_CONTROLS).toHaveLength(5);
+    expect(DUDU_SCANNER_OPERATOR_TOUCH_CONTROLS).toHaveLength(4);
   });
 
   it("uses the same phase guards as keyboard commands", () => {

@@ -97,7 +97,7 @@ function WorkbenchScannerPane() {
   return (
     <div aria-hidden className="relative min-h-full overflow-hidden rounded-2xl border-2 border-border bg-background p-4">
       <div className="font-mono text-[10px] font-bold uppercase tracking-wide">
-        Dudu Scanner
+        Tummy Scanner
       </div>
       <div className="relative mt-5 flex min-h-64 flex-col justify-between gap-5">
         <div className="relative mx-auto flex size-36 items-center justify-center">

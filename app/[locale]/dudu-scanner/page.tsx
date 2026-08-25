@@ -1,7 +1,6 @@
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 
 import { DuduScannerApp } from "@/components/dudu-scanner/dudu-scanner-app";
-import { DuduScannerLandingContent } from "@/components/dudu-scanner/landing-content";
 import { JsonLd } from "@/components/seo/json-ld";
 import type { AppLocale } from "@/i18n/routing";
 import { openGraphLocaleByLocale } from "@/i18n/routing";
@@ -36,19 +35,21 @@ export default async function DuduScannerPage({ params }: Props) {
   await getMessages({ locale });
   const meta = await getTranslations({ locale, namespace: "metadata.duduScanner" });
   const jsonLd = buildWebApplicationJsonLd({
-    name: meta("applicationName"),
+    name: locale === "en" ? "Tummy Scanner" : meta("applicationName"),
+    alternateName: locale === "en" ? ["Dudu Scanner", "肚肚扫描仪"] : ["Tummy Scanner", "Dudu Scanner"],
     description: meta("description"),
     url: absoluteUrl(DUDU_SCANNER_PATHNAME, locale),
     applicationCategory: "GameApplication",
-    operatingSystem: "Web Browser",
+    operatingSystem: "Web",
     inLanguage: openGraphLocaleByLocale[locale],
+    type: "SoftwareApplication",
+    author: { name: "Chase", url: "https://dashuaibi.vip/" },
   });
 
   return (
     <>
       <JsonLd data={jsonLd} />
       <DuduScannerApp />
-      <DuduScannerLandingContent />
     </>
   );
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { pickMysteryTarget, resolveRoundTarget } from "@/lib/dudu-scanner/round-target";
+import { pickMysteryTarget, resolveCustomRoundAssetId, resolveRoundTarget } from "@/lib/dudu-scanner/round-target";
 
 describe("dudu scanner round target", () => {
   it("picks a target from the complete catalog", () => {
@@ -26,5 +26,25 @@ describe("dudu scanner round target", () => {
         () => 0,
       ),
     ).toBe("rumble-monster");
+  });
+
+  it("does not draw from the catalog in custom mode", () => {
+    expect(
+      resolveRoundTarget(
+        {
+          scanMode: "custom",
+          themeId: "snack-scan",
+          targetId: "fry-sprite",
+          soundEnabled: true,
+        },
+        () => 0.999,
+      ),
+    ).toBe("fry-sprite");
+  });
+
+  it("uses a selected custom asset and otherwise avoids repeating the last one", () => {
+    expect(resolveCustomRoundAssetId("b", ["a", "b", "c"])).toBe("b");
+    expect(resolveCustomRoundAssetId(null, ["a", "b", "c"], () => 0, "a")).toBe("b");
+    expect(resolveCustomRoundAssetId("missing", ["a"], () => 0, "a")).toBe("a");
   });
 });

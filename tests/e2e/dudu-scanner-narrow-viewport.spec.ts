@@ -40,7 +40,9 @@ test.describe("dudu scanner narrow viewport", () => {
     });
     expect(overflow).toBe(false);
 
-    await page.getByTestId("dudu-scanner-operator-bar-toggle").click();
+    await expect(page.getByTestId("dudu-scanner-operator-reveal")).toBeVisible();
+    await expect(page.getByTestId("dudu-scanner-operator-reset")).toHaveCount(0);
+    await expect(page.getByText("Force target discovery")).toHaveCount(0);
     await page.getByTestId("dudu-scanner-operator-reveal").click();
     await expect(page.getByTestId("dudu-scanner-status")).toHaveText("Signal detected", {
       timeout: 3000,
@@ -58,7 +60,7 @@ test.describe("dudu scanner narrow viewport", () => {
 
   test("shows all ten operator targets without horizontal overflow", async ({ page }) => {
     await page.goto(DUDU_SCANNER_PATH);
-    await page.getByRole("button", { name: "Operator mode" }).click();
+    await page.getByRole("button", { name: "Grown-up mode" }).click();
 
     await expect(page.getByRole("button", { name: "Eye Guard" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Motion Energy Ball" })).toBeVisible();

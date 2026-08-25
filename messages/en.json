@@ -185,10 +185,10 @@
       "applicationName": "SFC Flow Editor"
     },
     "duduScanner": {
-      "title": "Dudu Scanner — Belly Scan Mini-Game for Kids' Healthy Habits | Chase's CV",
-      "description": "Scan a tummy, lock a cartoon character, and get a kid-friendly healthy-habit tip. Mystery or operator mode, three themes, and ten characters—entertainment only, not a medical device.",
-      "ogImageAlt": "Dudu Scanner: belly-scan mini-game that reveals a character and a healthy-habit tip for kids",
-      "applicationName": "Dudu Scanner"
+      "title": "Tummy Scanner — Free Parent-Child Web Game",
+      "description": "Tummy Scanner is a free parent-child browser game. Scan a tummy, reveal a cartoon character, and receive a playful healthy-habit mission. No download required.",
+      "ogImageAlt": "Tummy Scanner: a parent-child belly-scan game that reveals a cartoon character and healthy-habit mission",
+      "applicationName": "Tummy Scanner"
     },
     "notFound": {
       "title": "Page not found | Chase's CV",
@@ -212,8 +212,8 @@
           "description": "Turn painting palettes into interface themes."
         },
         "duduScanner": {
-          "name": "Dudu Scanner",
-          "description": "Scan a tummy, then suggest a healthy habit for kids."
+          "name": "Tummy Scanner",
+          "description": "A playful tummy-scanning game that turns healthy habits into parent-child fun."
         },
         "flowEditor": {
           "name": "Flow Editor",
@@ -367,7 +367,7 @@
           "problem": "How do you turn a silly belly scan into a mini-game that nudges kids toward healthy habits?",
           "tag1": "Belly scan game",
           "tag2": "Kids' habits",
-          "entry": "Open Dudu Scanner"
+          "entry": "Open Tummy Scanner"
         },
         "flowEditor": {
           "problem": "Complex structured flows are hard to hold in your head without a visual tree.",
@@ -702,33 +702,36 @@
     }
   },
   "duduScanner": {
-    "title": "Dudu Scanner",
-    "subtitle": "Choose how much to reveal and get ready for a silly belly scan.",
+    "title": "Tummy Scanner",
+    "subtitle": "A playful tummy-scanning game for kids and grown-ups.",
     "scanModeHeading": "Scan mode",
     "scanModes": {
       "mystery": {
         "name": "Mystery scan",
-        "description": "The scanner secretly chooses one of the characters."
+        "description": "The scanner secretly chooses a character for this round."
       },
       "operator": {
-        "name": "Operator mode",
-        "description": "Choose the exact character before the performance."
+        "name": "Grown-up mode",
+        "description": "A grown-up chooses the character before the game begins."
+      },
+      "custom": {
+        "name": "Custom scan",
+        "description": "Upload your own pictures and scan to find them."
       }
     },
     "mysterySummary": {
       "title": "Identity classified",
-      "description": "One of ten signals will be selected at the start of every round. Lock it to reveal who is hiding inside."
+      "description": "A mystery character is selected at the start of every round. Lock the signal to reveal who is hiding inside."
     },
-    "themesHeading": "Scan theme",
     "targetsHeading": "Scan target",
     "soundLabel": "Sound effects",
     "soundDescription": "Soft scanner tones and gentle reveal cues when scanning starts.",
     "howToPlay": {
       "title": "How to play",
-      "description": "Move the mouse and place the probe on the person's belly.",
+      "description": "Move the on-screen probe over the belly zone.",
       "demoLabel": "Demo",
-      "accessibleDescription": "Move the mouse-controlled probe over the person's belly, scan, then look at the monitor for the result.",
-      "bellyArea": "Person's belly",
+      "accessibleDescription": "Move the mouse-controlled probe over the on-screen belly zone, scan, then look at the monitor for the result.",
+      "bellyArea": "On-screen belly zone",
       "scanHere": "Scan here",
       "screen": "Monitor",
       "searching": "Searching",
@@ -736,21 +739,39 @@
       "stepsLabel": "Game instructions",
       "steps": {
         "move": "Move mouse",
-        "scan": "Touch belly",
+        "scan": "Scan the belly zone",
         "watch": "Watch screen"
       }
     },
-    "shortcutsHeading": "Operator shortcuts",
-    "shortcutsHint": "These keys work during the scan. Keep this list handy before you go live.",
+    "shortcutsHeading": "Grown-up controls",
+    "shortcutsHint": "These keys work during a scan when a grown-up is helping.",
+    "shortcutsShow": "Show",
+    "shortcutsHide": "Hide",
     "startScan": "Start scan",
+    "customLibrary": {
+      "heading": "Your pictures",
+      "description": "PNG, JPEG, or WebP up to 2 MB. HEIC is converted to JPEG in the browser. Up to 6 pictures. Select one to scan it, or select none to pick at random. Pictures stay on this device.",
+      "upload": "Upload",
+      "selectImage": "Select this picture",
+      "removeImage": "Remove this picture",
+      "clear": "Clear library",
+      "clearTitle": "Clear uploaded pictures?",
+      "clearDescription": "This removes every custom picture stored on this device.",
+      "clearConfirm": "Clear all",
+      "startBlocked": "Upload a picture before starting this scan.",
+      "customNote": "Custom scan uses pictures you upload on this device. Pick one to hunt, or leave none selected so the scanner chooses at random.",
+      "persistWarning": "This browser could not remember pictures after refresh. They will last for this visit only.",
+      "skip": {
+        "type": "Use PNG, JPEG, WebP, or HEIC.",
+        "size": "Each picture must be 2 MB or smaller.",
+        "capacity": "You can keep up to 6 pictures. Extra files were skipped.",
+        "heic-failed": "That HEIC file could not be converted. Try JPEG or PNG."
+      }
+    },
+    "inputSafetyNote": "No camera is used — just move the on-screen probe.",
     "backToConfig": "Back to setup",
     "assetLoadWarning": "We couldn't load this character's art. A standby silhouette will show during the scan—you can try again or pick another target.",
     "disclaimer": "For entertainment only — not a medical device.",
-    "themes": {
-      "snackScan": "Snack Scan",
-      "tummyCreatures": "Tummy Creatures",
-      "healthyBuddies": "Healthy Buddies"
-    },
     "targets": {
       "frySprite": {
         "name": "Fry Sprite",
@@ -839,6 +860,8 @@
       "fullscreenHint": "Fullscreen unavailable — press F to try again.",
       "doubleClickLockHint": "Press Enter to lock. Above 90% signal, you can also double-click the target.",
       "finaleEyebrow": "Mystery identity confirmed",
+      "customFinaleName": "Custom picture",
+      "customFinaleLine": "That's the picture you uploaded!",
       "status": {
         "initializing": "Initializing scanner…",
         "moveProbe": "Move the probe to find a signal",
@@ -861,54 +884,15 @@
     "result": {
       "eyebrow": "Scan complete",
       "title": "Target locked!",
+      "customName": "Uploaded picture",
       "body": "Your silly belly-scan identified this character. Ready for another round?",
       "healthTask": "Today's healthy mission",
       "playHealthTask": "Play healthy mission",
       "stopHealthTask": "Stop healthy mission",
-      "healthTaskHint": "Tap play for the tip below, or read aloud a suggestion of your own.",
+      "healthTaskHint": "Tap play for the tiny mission below, or read aloud one of your own.",
       "scanAgain": "Scan again",
       "changeTarget": "Change target"
     },
-    "landing": {
-      "purposeTitle": "What Dudu Scanner is for",
-      "purposeBody": "Dudu Scanner is a belly-scan mini-game for kids. Pick a snack, creature, or healthy-buddies theme, choose mystery or operator mode, then scan a tummy to lock a cartoon character and hear a playful healthy-habit suggestion—entertainment only, not a medical device.",
-      "stepsTitle": "How a round works",
-      "step1": "Watch the how-to-play demo, then choose a theme, scan mode, and optional sound.",
-      "step2": "Start the scan and move the probe over the belly until the signal is strong enough to lock.",
-      "step3": "See who was hiding, then read or play today's healthy mission for the child.",
-      "step4": "Scan again, or switch characters to get another habit tip.",
-      "useCasesTitle": "When families play it",
-      "useCase1": "Play a short belly-scan round so kids can find who is hiding in the tummy.",
-      "useCase2": "Use the reveal as a cue for a small healthy habit—vegetables, water, sleep, or a screen break.",
-      "useCase3": "Let a parent pick the character in operator mode, or use mystery mode so kids discover it live.",
-      "faqTitle": "FAQ",
-      "faq": {
-        "family": {
-          "question": "Is it made for kids?",
-          "answer": "Yes—it's a cartoon belly-scan game with gentle sound. A grown-up should stay nearby, and the healthy missions are playful prompts, not medical advice."
-        },
-        "setup": {
-          "question": "What's the difference between mystery and operator mode?",
-          "answer": "Mystery mode secretly picks a character from your theme each round. Operator mode lets a parent choose the exact character before the scan starts."
-        },
-        "health": {
-          "question": "Are the healthy missions medical advice?",
-          "answer": "No. Each character ends with a light, kid-friendly suggestion such as drinking water or eating vegetables. It is a game prompt, not a diagnosis or treatment."
-        },
-        "sound": {
-          "question": "Can I mute the scanner?",
-          "answer": "Yes. Toggle sound on the setup screen or press M during a scan to silence effects. The result screen can also speak the healthy mission if the browser supports it."
-        },
-        "fullscreen": {
-          "question": "Does fullscreen work on phones?",
-          "answer": "Browsers vary. The UI offers a fullscreen retry shortcut, but the most reliable experience is landscape tablet or desktop."
-        }
-      },
-      "relatedTitle": "Keep exploring",
-      "relatedToolsTitle": "Other playground tools",
-      "relatedToolsDescription": "After the scan, try another playground experiment.",
-      "workExperienceLink": "View work experience",
-      "contactLink": "Contact Chase"
-    }
+    "discoveryProgress": "You've met {count}/{total} tummy friends. Scan again to meet another!"
   }
 }
