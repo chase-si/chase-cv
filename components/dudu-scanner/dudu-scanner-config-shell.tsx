@@ -1,22 +1,24 @@
 "use client";
 
 import Image from "next/image";
-import { ScanSearch, SlidersHorizontal } from "lucide-react";
+import { ScanSearch, SlidersHorizontal, ImagePlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { DuduScannerHowToPlay } from "@/components/dudu-scanner/dudu-scanner-how-to-play";
+import { DuduScannerCustomLibraryPanel } from "@/components/dudu-scanner/dudu-scanner-custom-library-panel";
 import { DuduScannerShortcutDeck } from "@/components/dudu-scanner/dudu-scanner-shortcut-deck";
 import { ToolPageChrome } from "@/components/tool-page-chrome";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardScrollArea, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import {
+  DUDU_SCANNER_SCAN_MODE_IDS,
   DUDU_SCANNER_TARGET_IDS,
   getTargetRecord,
-  type DuduScannerScanMode,
 } from "@/lib/dudu-scanner/catalog";
 import { DUDU_SCANNER_TARGET_MESSAGE_KEY } from "@/lib/dudu-scanner/i18n-keys";
 import { useDuduScannerConfig } from "@/lib/dudu-scanner/use-dudu-scanner-config";
+import { useDuduScannerCustomLibrary } from "@/lib/dudu-scanner/dudu-scanner-custom-library-provider";
 import { cn } from "@/lib/utils";
 
 export function DuduScannerConfigShell({
@@ -28,13 +30,22 @@ export function DuduScannerConfigShell({
 }) {
   const t = useTranslations("duduScanner");
   const { config, setScanMode, setTargetId, setSoundEnabled } = useDuduScannerConfig();
+  const { items: customItems } = useDuduScannerCustomLibrary();
+  const startDisabled = config.scanMode === "custom" && customItems.length === 0;
 
   return (
     <ToolPageChrome
       title={t("title")}
       description={t("subtitle")}
       actions={
-        <Button type="button" size="lg" className="w-full shrink-0 sm:w-auto" onClick={onStartScan}>
+        <Button
+          type="button"
+          size="lg"
+          className="w-full shrink-0 sm:w-auto"
+          onClick={onStartScan}
+          disabled={startDisabled}
+          aria-describedby={startDisabled ? "dudu-scanner-start-blocked" : undefined}
+        >
           {t("startScan")}
         </Button>
       }
@@ -55,10 +66,15 @@ export function DuduScannerConfigShell({
           <CardContent className="flex flex-col gap-4 px-4 py-3 lg:min-h-0 lg:gap-3">
             <div className="space-y-2">
               <h2 className="text-sm font-medium text-foreground">{t("scanModeHeading")}</h2>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {(["operator", "mystery"] as const).map((scanMode) => {
+              <div className="grid gap-2 sm:grid-cols-3">
+                {DUDU_SCANNER_SCAN_MODE_IDS.map((scanMode) => {
                   const selected = config.scanMode === scanMode;
-                  const Icon = scanMode === "mystery" ? ScanSearch : SlidersHorizontal;
+                  const Icon =
+                    scanMode === "mystery"
+                      ? ScanSearch
+                      : scanMode === "custom"
+                        ? ImagePlus
+                        : SlidersHorizontal;
                   return (
                     <Button
                       key={scanMode}
@@ -67,7 +83,7 @@ export function DuduScannerConfigShell({
                       aria-pressed={selected}
                       aria-label={t(`scanModes.${scanMode}.name`)}
                       className="h-auto min-h-16 items-start justify-start whitespace-normal px-3 py-2.5 text-left"
-                      onClick={() => setScanMode(scanMode as DuduScannerScanMode)}
+                      onClick={() => setScanMode(scanMode)}
                     >
                       <Icon className="mt-0.5 size-4 shrink-0" aria-hidden />
                       <span className="min-w-0">
@@ -127,7 +143,8 @@ export function DuduScannerConfigShell({
                   })}
                 </div>
               </div>
-            ) : (
+            ) : null}
+            {config.scanMode === "mystery" ? (
               <div
                 className="flex min-h-32 flex-1 items-center gap-4 rounded-2xl border border-dashed border-primary/50 bg-primary/5 px-4 py-5"
                 data-testid="dudu-scanner-mystery-summary"
@@ -142,7 +159,8 @@ export function DuduScannerConfigShell({
                   </p>
                 </div>
               </div>
-            )}
+            ) : null}
+            {config.scanMode === "custom" ? <DuduScannerCustomLibraryPanel /> : null}
           </CardContent>
           </CardScrollArea>
         </Card>

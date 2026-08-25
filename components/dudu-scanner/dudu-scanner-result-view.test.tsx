@@ -140,4 +140,22 @@ describe("DuduScannerResultView health suggestion speech", () => {
 
     expect(cancel).toHaveBeenCalled();
   });
+
+  it("hides character copy and health guidance for a custom round", () => {
+    stubSpeechSynthesis();
+    render(
+      <NextIntlClientProvider locale="en" messages={enMessages}>
+        <DuduScannerResultView
+          targetImageSrc="blob:custom"
+          customRound
+          onScanAgain={() => {}}
+          onChangeTarget={() => {}}
+        />
+      </NextIntlClientProvider>,
+    );
+
+    expect(screen.getByText("Uploaded picture")).toBeInTheDocument();
+    expect(screen.queryByTestId("dudu-scanner-health-guidance")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Play healthy mission" })).not.toBeInTheDocument();
+  });
 });

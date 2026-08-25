@@ -29,6 +29,7 @@ function renderShell(locale: "en" | "zh") {
 describe("DuduScannerConfigShell", () => {
   beforeEach(() => {
     window.localStorage.clear();
+    window.history.replaceState(null, "", "/");
   });
 
   afterEach(() => {
@@ -36,7 +37,7 @@ describe("DuduScannerConfigShell", () => {
     window.localStorage.clear();
   });
 
-  it("renders English defaults in mystery mode with sound enabled", () => {
+  it("renders English defaults in operator mode with sound enabled", () => {
     renderShell("en");
 
     expect(
@@ -44,17 +45,21 @@ describe("DuduScannerConfigShell", () => {
     ).toBeInTheDocument();
     expect(screen.getByTestId("tool-page-chrome")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Mystery scan", pressed: true }),
+      screen.getByRole("button", { name: "Operator mode", pressed: true }),
     ).toBeInTheDocument();
     const operatorMode = screen.getByRole("button", { name: "Operator mode" });
     const mysteryMode = screen.getByRole("button", { name: "Mystery scan" });
+    const customMode = screen.getByRole("button", { name: "Custom scan" });
     expect(
       screen.getAllByRole("button").indexOf(operatorMode),
     ).toBeLessThan(screen.getAllByRole("button").indexOf(mysteryMode));
+    expect(
+      screen.getAllByRole("button").indexOf(mysteryMode),
+    ).toBeLessThan(screen.getAllByRole("button").indexOf(customMode));
     expect(screen.queryByRole("button", { name: "Snack Scan" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Tummy Creatures" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Fry Sprite" })).not.toBeInTheDocument();
-    expect(screen.getByTestId("dudu-scanner-mystery-summary")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Fry Sprite" })).toBeInTheDocument();
+    expect(screen.queryByTestId("dudu-scanner-mystery-summary")).not.toBeInTheDocument();
     expect(screen.getByRole("switch", { name: "Sound effects" })).toHaveAttribute(
       "aria-checked",
       "true",
@@ -73,11 +78,11 @@ describe("DuduScannerConfigShell", () => {
 
     expect(screen.getByRole("heading", { name: "肚肚扫描仪" })).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "神秘扫描", pressed: true }),
+      screen.getByRole("button", { name: "操作者模式", pressed: true }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "零食扫描" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "肚肚生物" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "薯条精灵" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "薯条精灵" })).toBeInTheDocument();
     expect(screen.getByText("玩法演示")).toBeInTheDocument();
     expect(screen.getByText("人的肚子")).toBeInTheDocument();
     expect(screen.getByText("扫描这里")).toBeInTheDocument();
@@ -89,10 +94,10 @@ describe("DuduScannerConfigShell", () => {
     window.localStorage.setItem(DUDU_SCANNER_CONFIG_STORAGE_KEY, "{broken");
     renderShell("en");
     expect(
-      screen.getByRole("button", { name: "Mystery scan", pressed: true }),
+      screen.getByRole("button", { name: "Operator mode", pressed: true }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Snack Scan" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Fry Sprite" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Fry Sprite" })).toBeInTheDocument();
   });
 
   it("shows all targets together and keeps the selected target", () => {
@@ -157,5 +162,15 @@ describe("DuduScannerConfigShell", () => {
     expect(shortcutsCard).toBeTruthy();
     expect(shortcutsCard).toContainElement(screen.getByRole("switch", { name: "Sound effects" }));
     expect(shortcutsCard).toContainElement(screen.getByText("Force target discovery"));
+  });
+
+  it("blocks start in custom mode until a picture is uploaded", () => {
+    renderShell("en");
+    fireEvent.click(screen.getByRole("button", { name: "Custom scan" }));
+    expect(screen.getByRole("button", { name: "Start scan" })).toBeDisabled();
+    expect(screen.getByTestId("dudu-scanner-start-blocked")).toHaveTextContent(
+      "Upload a picture before starting this scan.",
+    );
+    expect(screen.getByTestId("dudu-scanner-custom-library")).toBeInTheDocument();
   });
 });

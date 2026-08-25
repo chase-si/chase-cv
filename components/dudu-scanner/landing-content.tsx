@@ -6,7 +6,7 @@ import { SeoIndexCopy } from "@/components/seo/seo-index-copy";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { projectNavigationItems } from "@/lib/projects";
 
-const FAQ_KEYS = ["family", "setup", "health", "sound", "fullscreen"] as const;
+const FAQ_KEYS = ["family", "setup", "custom", "health", "sound", "fullscreen"] as const;
 
 export async function DuduScannerLandingContent() {
   const t = await getTranslations("duduScanner.landing");

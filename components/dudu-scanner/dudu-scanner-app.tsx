@@ -32,8 +32,9 @@ import {
   useDuduScannerConfig,
 } from "@/lib/dudu-scanner/dudu-scanner-config-provider";
 import { type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
-import { prepareTargetRoundAsset } from "@/lib/dudu-scanner/target-asset";
-import { resolveRoundTarget } from "@/lib/dudu-scanner/round-target";
+import { prepareTargetRoundAsset, preloadTargetImage } from "@/lib/dudu-scanner/target-asset";
+import { resolveCustomRoundAssetId, resolveRoundTarget } from "@/lib/dudu-scanner/round-target";
+import { useDuduScannerCustomLibrary } from "@/lib/dudu-scanner/dudu-scanner-custom-library-provider";
 import {
   DUDU_SCANNER_AUTO_SCAN_DURATION_MS,
   DUDU_SCANNER_LOCK_RESULT_DELAY_MS,
@@ -74,18 +75,25 @@ function DuduScannerAppInner() {
   const rootRef = useRef<HTMLDivElement>(null);
   const revealEpochRef = useRef(0);
   const { config, setSoundEnabled } = useDuduScannerConfig();
+  const customLibrary = useDuduScannerCustomLibrary();
   const [round, dispatch] = useReducer(duduScannerRoundReducer, undefined, createInitialRoundState);
   const [revealProgress, setRevealProgress] = useState(0);
   const [roundAsset, setRoundAsset] = useState<{
+    kind: "catalog" | "custom";
     targetId: DuduScannerTargetId;
+    customAssetId?: string;
     displaySrc: string;
+    concealUntilLock: boolean;
   } | null>(null);
   const [failedPreloadTargetId, setFailedPreloadTargetId] =
     useState<DuduScannerTargetId | null>(null);
   const immersive = round.phase === "scan" || round.phase === "result";
   const assetLoadWarning = failedPreloadTargetId !== null;
-  const immersiveTargetId = roundAsset?.targetId ?? config.targetId;
+  const immersiveTargetId = roundAsset?.kind === "catalog" ? roundAsset.targetId : config.targetId;
   const roundTargetImageSrc = roundAsset?.displaySrc ?? "";
+  const mysteryPresentation =
+    config.scanMode === "mystery" ||
+    (roundAsset?.kind === "custom" && roundAsset.concealUntilLock);
 
   const { unlockFromUserGesture, handleScanMetrics } = useDuduScannerScanSoundscape({
     soundEnabled: config.soundEnabled,
@@ -97,7 +105,7 @@ function DuduScannerAppInner() {
     targetRevealedKey: `${round.phase}-${round.scan.targetRevealed}`,
     lockingKey: `${round.phase}-${round.scan.locking}`,
     targetId: immersiveTargetId,
-    mysteryMode: config.scanMode === "mystery",
+    mysteryMode: mysteryPresentation,
   });
 
   const attemptFullscreen = useCallback(async () => {
@@ -129,11 +137,40 @@ function DuduScannerAppInner() {
 
   const handleStartScan = useCallback(async () => {
     resetRevealProgress();
+    if (config.scanMode === "custom") {
+      const assetId = resolveCustomRoundAssetId(
+        customLibrary.selectedAssetId,
+        customLibrary.items.map((item) => item.id),
+      );
+      const item = customLibrary.items.find((entry) => entry.id === assetId);
+      if (!item) {
+        return;
+      }
+      const loaded = await preloadTargetImage(item.objectUrl);
+      setRoundAsset({
+        kind: "custom",
+        targetId: config.targetId,
+        customAssetId: item.id,
+        displaySrc: item.objectUrl,
+        concealUntilLock: customLibrary.selectedAssetId !== item.id,
+      });
+      setFailedPreloadTargetId(loaded ? null : config.targetId);
+      dispatch({ type: "START_SCAN" });
+      enterImmersiveHistory();
+      const ok = await requestAppFullscreen(rootRef.current);
+      if (!ok) {
+        dispatch({ type: "FULLSCREEN_UNAVAILABLE" });
+      }
+      void unlockFromUserGesture();
+      return;
+    }
     const targetId = resolveRoundTarget(config);
     const prepared = await prepareTargetRoundAsset(targetId);
     setRoundAsset({
+      kind: "catalog",
       targetId: prepared.targetId,
       displaySrc: prepared.displaySrc,
+      concealUntilLock: config.scanMode === "mystery",
     });
     setFailedPreloadTargetId(prepared.productionLoaded ? null : prepared.targetId);
     dispatch({ type: "START_SCAN" });
@@ -143,21 +180,64 @@ function DuduScannerAppInner() {
       dispatch({ type: "FULLSCREEN_UNAVAILABLE" });
     }
     void unlockFromUserGesture();
-  }, [config, enterImmersiveHistory, resetRevealProgress, unlockFromUserGesture]);
+  }, [
+    config,
+    customLibrary.items,
+    customLibrary.selectedAssetId,
+    enterImmersiveHistory,
+    resetRevealProgress,
+    unlockFromUserGesture,
+  ]);
 
   const handleScanAgain = useCallback(async () => {
+    if (config.scanMode === "custom") {
+      const assetId = resolveCustomRoundAssetId(
+        customLibrary.selectedAssetId,
+        customLibrary.items.map((item) => item.id),
+        Math.random,
+        roundAsset?.customAssetId,
+      );
+      const item = customLibrary.items.find((entry) => entry.id === assetId);
+      if (!item) {
+        return;
+      }
+      const loaded = await preloadTargetImage(item.objectUrl);
+      setRoundAsset({
+        kind: "custom",
+        targetId: config.targetId,
+        customAssetId: item.id,
+        displaySrc: item.objectUrl,
+        concealUntilLock: customLibrary.selectedAssetId !== item.id,
+      });
+      setFailedPreloadTargetId(loaded ? null : config.targetId);
+      dispatch({ type: "SCAN_AGAIN" });
+      resetRevealProgress();
+      await requestAppFullscreen(rootRef.current);
+      void unlockFromUserGesture();
+      return;
+    }
     const targetId = resolveRoundTarget(config, Math.random, roundAsset?.targetId);
     const prepared = await prepareTargetRoundAsset(targetId);
     setRoundAsset({
+      kind: "catalog",
       targetId: prepared.targetId,
       displaySrc: prepared.displaySrc,
+      concealUntilLock: config.scanMode === "mystery",
     });
     setFailedPreloadTargetId(prepared.productionLoaded ? null : prepared.targetId);
     dispatch({ type: "SCAN_AGAIN" });
     resetRevealProgress();
     await requestAppFullscreen(rootRef.current);
     void unlockFromUserGesture();
-  }, [config, resetRevealProgress, roundAsset?.targetId, unlockFromUserGesture]);
+  }, [
+    config,
+    customLibrary.items,
+    customLibrary.selectedAssetId,
+    resetRevealProgress,
+    roundAsset?.customAssetId,
+    roundAsset?.targetId,
+    unlockFromUserGesture,
+  ]);
 
   const handleChangeTarget = useCallback(async () => {
     dispatch({ type: "CHANGE_TARGET" });
@@ -365,9 +445,11 @@ function DuduScannerAppInner() {
       ) : null}
       {round.phase === "scan" ? (
         <DuduScannerScanView
-          targetId={immersiveTargetId}
+          targetId={roundAsset?.customAssetId ?? immersiveTargetId}
+          catalogTargetId={roundAsset?.kind === "catalog" ? immersiveTargetId : undefined}
           targetImageSrc={roundTargetImageSrc}
-          mysteryMode={config.scanMode === "mystery"}
+          mysteryMode={mysteryPresentation}
+          customRound={roundAsset?.kind === "custom"}
           targetRevealed={round.scan.targetRevealed}
           revealComplete={round.scan.revealComplete}
           revealProgress={effectiveRevealProgress}
@@ -384,8 +466,9 @@ function DuduScannerAppInner() {
       ) : null}
       {round.phase === "result" ? (
         <DuduScannerResultView
-          targetId={immersiveTargetId}
+          targetId={roundAsset?.kind === "catalog" ? immersiveTargetId : undefined}
           targetImageSrc={roundTargetImageSrc}
+          customRound={roundAsset?.kind === "custom"}
           onScanAgain={() => void handleScanAgain()}
           onChangeTarget={() => void handleChangeTarget()}
           onBack={() => void handleBackToConfig()}

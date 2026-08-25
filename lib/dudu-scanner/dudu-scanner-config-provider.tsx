@@ -9,6 +9,7 @@ import type {
   DuduScannerThemeId,
 } from "@/lib/dudu-scanner/catalog";
 import { useDuduScannerConfigState } from "@/lib/dudu-scanner/use-dudu-scanner-config-state";
+import { DuduScannerCustomLibraryProvider } from "@/lib/dudu-scanner/dudu-scanner-custom-library-provider";
 
 type DuduScannerConfigContextValue = {
   config: DuduScannerConfigShape;
@@ -23,7 +24,9 @@ const DuduScannerConfigContext = createContext<DuduScannerConfigContextValue | n
 export function DuduScannerConfigProvider({ children }: { children: ReactNode }) {
   const value = useDuduScannerConfigState();
   return (
-    <DuduScannerConfigContext.Provider value={value}>{children}</DuduScannerConfigContext.Provider>
+    <DuduScannerConfigContext.Provider value={value}>
+      <DuduScannerCustomLibraryProvider>{children}</DuduScannerCustomLibraryProvider>
+    </DuduScannerConfigContext.Provider>
   );
 }
 

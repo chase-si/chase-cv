@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  DUDU_SCANNER_SCAN_MODE_IDS,
   DUDU_SCANNER_TARGET_IDS,
   DUDU_SCANNER_THEME_IDS,
   getTargetIdsForTheme,
@@ -14,6 +15,9 @@ import zhMessages from "@/messages/zh.json";
 const TARGET_COPY_FIELDS = ["name", "revealLine", "description", "suggestion"] as const;
 
 describe("dudu scanner catalog", () => {
+  it("exposes operator, mystery, and custom scan modes", () => {
+    expect(DUDU_SCANNER_SCAN_MODE_IDS).toEqual(["operator", "mystery", "custom"]);
+  });
   it("maps each target to stable production character assets", () => {
     const geminiProductionTargets = new Set([
       "fry-sprite",

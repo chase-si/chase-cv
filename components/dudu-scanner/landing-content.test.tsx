@@ -52,6 +52,9 @@ describe("DuduScannerLandingContent", () => {
     expect(screen.getByTestId("dudu-scanner-faq")).toHaveTextContent(
       /not a diagnosis or treatment/i,
     );
+    expect(screen.getByTestId("dudu-scanner-faq")).toHaveTextContent(
+      /Custom scan keeps up to six pictures/i,
+    );
     expect(screen.getByTestId("dudu-scanner-landing-content")).toHaveTextContent(
       /healthy-habit suggestion/i,
     );

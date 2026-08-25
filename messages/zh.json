@@ -713,6 +713,10 @@
       "operator": {
         "name": "操作者模式",
         "description": "表演开始前，由操作者指定确切角色。"
+      },
+      "custom": {
+        "name": "自定义扫描",
+        "description": "上传自己的图片，扫描时把它们找出来。"
       }
     },
     "mysterySummary": {
@@ -725,7 +729,7 @@
     "soundDescription": "开始扫描后会有轻柔的扫描音和揭晓提示音。",
     "howToPlay": {
       "title": "玩法演示",
-      "description": "移动鼠标，把探头贴在人的肚子上。",
+      "description": "移动鼠标，把\"探头\"贴在人的肚子上。",
       "demoLabel": "演示",
       "accessibleDescription": "用鼠标控制探头，在人的肚子上移动扫描，然后观察屏幕上的结果。",
       "bellyArea": "人的肚子",
@@ -743,6 +747,26 @@
     "shortcutsHeading": "操作者快捷键",
     "shortcutsHint": "以下按键在扫描过程中可用，正式表演前可以先记一下。",
     "startScan": "开始扫描",
+    "customLibrary": {
+      "heading": "你的图片",
+      "description": "支持 PNG、JPEG、WebP，单张不超过 2 MB。HEIC 会在浏览器里转成 JPEG。最多 6 张。选中一张就扫选中的，不选则随机。图片只留在这台设备上。",
+      "upload": "上传",
+      "selectImage": "选中这张图片",
+      "removeImage": "删除这张图片",
+      "clear": "清空图库",
+      "clearTitle": "清空已上传的图片？",
+      "clearDescription": "这会删除这台设备上保存的全部自定义图片。",
+      "clearConfirm": "全部清空",
+      "startBlocked": "请先上传图片再开始扫描。",
+      "customNote": "自定义扫描使用你在这台设备上上传的图片。选中一张就扫这一张，不选则由扫描仪随机抽取。",
+      "persistWarning": "当前浏览器无法在刷新后记住图片，这次访问有效。",
+      "skip": {
+        "type": "请使用 PNG、JPEG、WebP 或 HEIC。",
+        "size": "每张图片不能超过 2 MB。",
+        "capacity": "最多保存 6 张，多出来的文件已跳过。",
+        "heic-failed": "这张 HEIC 无法转换，请改用 JPEG 或 PNG。"
+      }
+    },
     "backToConfig": "返回设置",
     "assetLoadWarning": "这个角色图没加载成功，扫描时会先用备用轮廓。可以换别的角色或稍后再试一次。",
     "disclaimer": "仅供娱乐，非医疗工具。",
@@ -839,6 +863,8 @@
       "fullscreenHint": "无法进入全屏——按 F 可再试一次。",
       "doubleClickLockHint": "按 Enter 锁定；信号高于 90% 时，也可以双击目标锁定。",
       "finaleEyebrow": "神秘身份确认",
+      "customFinaleName": "自定义图片",
+      "customFinaleLine": "就是你上传的那张图！",
       "status": {
         "initializing": "正在初始化扫描仪…",
         "moveProbe": "移动探头寻找信号",
@@ -861,6 +887,7 @@
     "result": {
       "eyebrow": "扫描完成",
       "title": "目标已锁定！",
+      "customName": "上传的图片",
       "body": "肚肚扫描确认了这个神秘角色。要再来一轮吗？",
       "healthTask": "今日健康小任务",
       "playHealthTask": "播放健康小任务",
@@ -890,6 +917,10 @@
         "setup": {
           "question": "神秘模式和操作员模式有什么区别？",
           "answer": "神秘模式每轮会从主题里悄悄抽一个角色；操作员模式则让家长提前指定角色再开始扫描。"
+        },
+        "custom": {
+          "question": "可以扫描我自己上传的图片吗？",
+          "answer": "可以。自定义扫描最多在本浏览器保存六张图片，不会传到服务器。没上传图片时不能开始。选中一张就扫这一张，不选则由扫描仪随机抽取。"
         },
         "health": {
           "question": "健康小任务是医疗建议吗？",

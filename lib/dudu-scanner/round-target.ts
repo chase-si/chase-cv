@@ -28,8 +28,36 @@ export function resolveRoundTarget(
   random: () => number = Math.random,
   excludedTargetId?: DuduScannerTargetId | null,
 ): DuduScannerTargetId {
-  if (config.scanMode === "operator") {
-    return config.targetId;
+  if (config.scanMode === "mystery") {
+    return pickMysteryTarget(random, excludedTargetId);
   }
-  return pickMysteryTarget(random, excludedTargetId);
+  return config.targetId;
+}
+
+export function pickCustomAssetId(
+  assetIds: readonly string[],
+  random: () => number = Math.random,
+  excludedAssetId?: string | null,
+): string | null {
+  if (assetIds.length === 0) {
+    return null;
+  }
+  const candidates =
+    excludedAssetId && assetIds.length > 1
+      ? assetIds.filter((assetId) => assetId !== excludedAssetId)
+      : [...assetIds];
+  const index = Math.floor(clampRandomUnit(random()) * candidates.length);
+  return candidates[index] ?? null;
+}
+
+export function resolveCustomRoundAssetId(
+  selectedAssetId: string | null,
+  assetIds: readonly string[],
+  random: () => number = Math.random,
+  excludedAssetId?: string | null,
+): string | null {
+  if (selectedAssetId && assetIds.includes(selectedAssetId)) {
+    return selectedAssetId;
+  }
+  return pickCustomAssetId(assetIds, random, excludedAssetId);
 }

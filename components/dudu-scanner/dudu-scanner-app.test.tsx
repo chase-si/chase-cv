@@ -44,6 +44,7 @@ describe("DuduScannerApp controls", () => {
     resetTargetImageCacheForTests();
     window.localStorage.clear();
     window.sessionStorage.clear();
+    window.history.replaceState(null, "", "/");
     vi.spyOn(Math, "random").mockReturnValue(0);
     class OkImage {
       onload: (() => void) | null = null;
@@ -223,6 +224,7 @@ describe("DuduScannerApp controls", () => {
     vi.stubGlobal("Image", TrackingImage as unknown as typeof Image);
 
     renderApp();
+    fireEvent.click(screen.getByRole("button", { name: "Mystery scan" }));
     expect(screen.queryByRole("button", { name: "Fry Sprite" })).not.toBeInTheDocument();
     await startScan();
 
@@ -287,6 +289,7 @@ describe("DuduScannerApp controls", () => {
       return now;
     });
     renderApp();
+    fireEvent.click(screen.getByRole("button", { name: "Mystery scan" }));
     await startScan();
 
     fireEvent.keyDown(window, { key: " " });

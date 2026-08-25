@@ -10,6 +10,7 @@ import {
   type DuduScannerThemeId,
 } from "@/lib/dudu-scanner/catalog";
 import { readDuduScannerConfig, writeDuduScannerConfig } from "@/lib/dudu-scanner/config-persistence";
+import { readScanModeFromSearch, syncScanModeQueryParam } from "@/lib/dudu-scanner/mode-query";
 import {
   applySoundChange,
   applyScanModeChange,
@@ -25,7 +26,11 @@ export function useDuduScannerConfigState() {
 
   useEffect(() => {
     startTransition(() => {
-      setConfig(readDuduScannerConfig(window.localStorage));
+      const stored = readDuduScannerConfig(window.localStorage);
+      const modeFromUrl = readScanModeFromSearch(window.location.search);
+      setConfig(
+        modeFromUrl ? applyScanModeChange(stored, modeFromUrl) : stored,
+      );
       setHydratedFromStorage(true);
     });
   }, []);
@@ -35,6 +40,7 @@ export function useDuduScannerConfigState() {
       return;
     }
     writeDuduScannerConfig(window.localStorage, config);
+    syncScanModeQueryParam(window.history, window.location, config.scanMode);
   }, [config, hydratedFromStorage]);
 
   const setThemeId = useCallback((themeId: DuduScannerThemeId) => {

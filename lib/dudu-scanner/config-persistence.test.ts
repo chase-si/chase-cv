@@ -43,7 +43,12 @@ describe("dudu scanner config persistence", () => {
           soundEnabled: true,
         }),
       ),
-    ).toEqual(DUDU_SCANNER_DEFAULT_CONFIG);
+    ).toEqual({
+      scanMode: "mystery",
+      themeId: "snack-scan",
+      targetId: "fry-sprite",
+      soundEnabled: true,
+    });
   });
 
   it("recovers valid stored preferences after reload", () => {
@@ -76,6 +81,17 @@ describe("dudu scanner config persistence", () => {
       scanMode: "operator",
       targetId: "candy-critter",
     });
+  });
+
+  it("round-trips custom scan mode", () => {
+    const storage = createMemoryStorage();
+    writeDuduScannerConfig(storage, {
+      scanMode: "custom",
+      themeId: "snack-scan",
+      targetId: "fry-sprite",
+      soundEnabled: true,
+    });
+    expect(readDuduScannerConfig(storage).scanMode).toBe("custom");
   });
 
   it("uses a versioned storage key", () => {

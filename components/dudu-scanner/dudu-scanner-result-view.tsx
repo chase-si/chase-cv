@@ -33,8 +33,9 @@ function pickVoice(lang: string) {
 }
 
 type DuduScannerResultViewProps = {
-  targetId: DuduScannerTargetId;
+  targetId?: DuduScannerTargetId;
   targetImageSrc: string;
+  customRound?: boolean;
   onScanAgain: () => void;
   onChangeTarget: () => void;
   onBack?: () => void;
@@ -43,14 +44,15 @@ type DuduScannerResultViewProps = {
 export function DuduScannerResultView({
   targetId,
   targetImageSrc,
+  customRound = false,
   onScanAgain,
   onChangeTarget,
   onBack,
 }: DuduScannerResultViewProps) {
   const t = useTranslations("duduScanner");
   const locale = useLocale() as AppLocale;
-  const targetMessageKey = DUDU_SCANNER_TARGET_MESSAGE_KEY[targetId];
-  const suggestion = t(`targets.${targetMessageKey}.suggestion`);
+  const targetMessageKey = targetId ? DUDU_SCANNER_TARGET_MESSAGE_KEY[targetId] : null;
+  const suggestion = targetMessageKey ? t(`targets.${targetMessageKey}.suggestion`) : "";
   const speechSupported = useSyncExternalStore(
     subscribeToNothing,
     isSpeechSynthesisSupported,
@@ -110,26 +112,43 @@ export function DuduScannerResultView({
 
       <div className="flex w-full max-w-md flex-col items-center gap-3 rounded-2xl border border-border bg-card px-4 py-5 shadow-xs sm:px-8 sm:py-6">
         <div className="relative flex size-40 items-center justify-center rounded-2xl border border-primary/30 bg-muted/30">
-          <Image
-            src={targetImageSrc}
-            alt=""
-            width={140}
-            height={140}
-            loading="eager"
-            className="size-32 object-contain"
-            data-testid="dudu-scanner-result-target"
-          />
+          {customRound ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={targetImageSrc}
+              alt=""
+              className="size-32 object-contain"
+              data-testid="dudu-scanner-result-target"
+            />
+          ) : (
+            <Image
+              src={targetImageSrc}
+              alt=""
+              width={140}
+              height={140}
+              loading="eager"
+              className="size-32 object-contain"
+              data-testid="dudu-scanner-result-target"
+            />
+          )}
         </div>
-        <p className="text-lg font-medium text-foreground">
-          {t(`targets.${targetMessageKey}.name`)}
-        </p>
-        <p className="max-w-sm text-sm text-muted-foreground">
-          {t(`targets.${targetMessageKey}.description`)}
-        </p>
-        <div
-          className="flex w-full max-w-sm items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 px-3 py-3 text-left"
-          data-testid="dudu-scanner-health-guidance"
-        >
+        {customRound ? (
+          <p className="text-lg font-medium text-foreground">{t("result.customName")}</p>
+        ) : targetMessageKey ? (
+          <>
+            <p className="text-lg font-medium text-foreground">
+              {t(`targets.${targetMessageKey}.name`)}
+            </p>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              {t(`targets.${targetMessageKey}.description`)}
+            </p>
+          </>
+        ) : null}
+        {customRound || !targetMessageKey ? null : (
+          <div
+            className="flex w-full max-w-sm items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 px-3 py-3 text-left"
+            data-testid="dudu-scanner-health-guidance"
+          >
           <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Heart className="size-4" aria-hidden />
           </div>
@@ -154,6 +173,7 @@ export function DuduScannerResultView({
             <p className="mt-1 text-sm font-medium leading-relaxed text-foreground">{suggestion}</p>
           </div>
         </div>
+        )}
       </div>
 
       <p className="text-sm text-muted-foreground">{t("disclaimer")}</p>
