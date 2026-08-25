@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Heart, Square, Volume2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { DuduScannerBackButton } from "@/components/dudu-scanner/dudu-scanner-back-button";
@@ -38,6 +38,7 @@ type DuduScannerResultViewProps = {
   onScanAgain: () => void;
   onChangeTarget: () => void;
   onBack?: () => void;
+  discoveryProgress?: ReactNode;
 };
 
 export function DuduScannerResultView({
@@ -46,6 +47,7 @@ export function DuduScannerResultView({
   onScanAgain,
   onChangeTarget,
   onBack,
+  discoveryProgress,
 }: DuduScannerResultViewProps) {
   const t = useTranslations("duduScanner");
   const locale = useLocale() as AppLocale;
@@ -157,6 +159,8 @@ export function DuduScannerResultView({
       </div>
 
       <p className="text-sm text-muted-foreground">{t("disclaimer")}</p>
+
+      {discoveryProgress}
 
       <div className="flex w-full max-w-md flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
         <Button type="button" size="lg" className="w-full sm:w-auto" onClick={onScanAgain} data-testid="dudu-scanner-scan-again">

@@ -89,7 +89,7 @@ describe("SiteNavActions", () => {
     expect(within(projects).getByText("扫描肚子揭晓角色，再给小朋友健康习惯小建议。")).toBeInTheDocument();
     expect(within(projects).getByText("可视化编辑结构化流程。")).toBeInTheDocument();
 
-    fireEvent.click(within(projects).getByRole("menuitem", { name: /Dudu Scanner/i }));
+    fireEvent.click(within(projects).getByRole("menuitem", { name: /Tummy Scanner/i }));
 
     expect(trackEvent).toHaveBeenCalledWith("nav_click", {
       target: "dudu_scanner",

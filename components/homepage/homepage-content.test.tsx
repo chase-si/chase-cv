@@ -81,7 +81,7 @@ describe("Homepage content", () => {
     );
   });
 
-  it("lists project cards in Dudu Scanner, Image to UI, Magic Cursor order with entry links", () => {
+  it("lists project cards in Tummy Scanner, Image to UI, Magic Cursor order with entry links", () => {
     renderHomepage("en");
 
     const section = screen.getByRole("region", { name: "Playground" });
@@ -89,9 +89,9 @@ describe("Homepage content", () => {
       .getAllByRole("heading", { level: 3 })
       .map((heading) => heading.textContent);
 
-    expect(titles).toEqual(["Dudu Scanner", "Image to UI", "Magic Cursor"]);
+    expect(titles).toEqual(["Tummy Scanner", "Image to UI", "Magic Cursor"]);
 
-    expect(within(section).getByRole("button", { name: /Open Dudu Scanner/i })).toHaveAttribute(
+    expect(within(section).getByRole("button", { name: /Open Tummy Scanner/i })).toHaveAttribute(
       "href",
       "/dudu-scanner",
     );
@@ -106,11 +106,11 @@ describe("Homepage content", () => {
     expect(within(section).queryByRole("button", { name: /Open Flow Editor/i })).not.toBeInTheDocument();
   });
 
-  it("shows Dudu Scanner in the hero workbench instead of Flow Editor", () => {
+  it("shows Tummy Scanner in the hero workbench instead of Flow Editor", () => {
     renderHomepage("en");
 
     const workbench = screen.getByLabelText("Mixed workbench preview");
-    expect(workbench).toHaveTextContent("Dudu Scanner");
+    expect(workbench).toHaveTextContent("Tummy Scanner");
     expect(workbench).not.toHaveTextContent("Flow Editor");
   });
 
