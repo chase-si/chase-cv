@@ -58,7 +58,7 @@ test.describe("dudu scanner narrow viewport", () => {
 
   test("shows all ten operator targets without horizontal overflow", async ({ page }) => {
     await page.goto(DUDU_SCANNER_PATH);
-    await page.getByRole("button", { name: "Operator mode" }).click();
+    await page.getByRole("button", { name: "Grown-up mode" }).click();
 
     await expect(page.getByRole("button", { name: "Eye Guard" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Motion Energy Ball" })).toBeVisible();

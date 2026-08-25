@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
 import { DuduScannerConfigShell } from "@/components/dudu-scanner/dudu-scanner-config-shell";
+import { DuduScannerDiscoveryProgress } from "@/components/dudu-scanner/dudu-scanner-discovery-progress";
 import { DuduScannerResultView } from "@/components/dudu-scanner/dudu-scanner-result-view";
 import { DuduScannerScanView } from "@/components/dudu-scanner/dudu-scanner-scan-view";
 import { exitAppFullscreen, requestAppFullscreen } from "@/lib/dudu-scanner/fullscreen";
@@ -34,6 +35,7 @@ import {
 import { type DuduScannerTargetId } from "@/lib/dudu-scanner/catalog";
 import { prepareTargetRoundAsset } from "@/lib/dudu-scanner/target-asset";
 import { resolveRoundTarget } from "@/lib/dudu-scanner/round-target";
+import { useDuduScannerDiscoveries } from "@/lib/dudu-scanner/use-dudu-scanner-discoveries";
 import {
   DUDU_SCANNER_AUTO_SCAN_DURATION_MS,
   DUDU_SCANNER_LOCK_RESULT_DELAY_MS,
@@ -74,6 +76,7 @@ function DuduScannerAppInner() {
   const rootRef = useRef<HTMLDivElement>(null);
   const revealEpochRef = useRef(0);
   const { config, setSoundEnabled } = useDuduScannerConfig();
+  const { discoveredCount, discoverTarget } = useDuduScannerDiscoveries();
   const [round, dispatch] = useReducer(duduScannerRoundReducer, undefined, createInitialRoundState);
   const [revealProgress, setRevealProgress] = useState(0);
   const [roundAsset, setRoundAsset] = useState<{
@@ -276,6 +279,12 @@ function DuduScannerAppInner() {
     : 0;
 
   useEffect(() => {
+    if (round.phase === "result" && roundAsset) {
+      discoverTarget(roundAsset.targetId);
+    }
+  }, [discoverTarget, round.phase, roundAsset]);
+
+  useEffect(() => {
     if (!round.scan.locking) {
       return;
     }
@@ -386,6 +395,7 @@ function DuduScannerAppInner() {
         <DuduScannerResultView
           targetId={immersiveTargetId}
           targetImageSrc={roundTargetImageSrc}
+          discoveryProgress={<DuduScannerDiscoveryProgress discoveredCount={discoveredCount} />}
           onScanAgain={() => void handleScanAgain()}
           onChangeTarget={() => void handleChangeTarget()}
           onBack={() => void handleBackToConfig()}
