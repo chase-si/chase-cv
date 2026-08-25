@@ -7,12 +7,10 @@ import enMessages from "@/messages/en.json";
 
 const mockRouteState = vi.hoisted(() => ({
   pathname: "/magic-cursor",
-  push: vi.fn(),
 }));
 
 vi.mock("@/i18n/navigation", () => ({
   usePathname: () => mockRouteState.pathname,
-  useRouter: () => ({ push: mockRouteState.push }),
 }));
 
 vi.mock("@/lib/analytics", () => ({
@@ -29,7 +27,6 @@ function renderSwitcher(locale = "en") {
 
 describe("LanguageSwitcher", () => {
   beforeEach(() => {
-    mockRouteState.push.mockReset();
     mockRouteState.pathname = "/magic-cursor";
     document.cookie = "NEXT_LOCALE=; Max-Age=0; path=/";
     window.history.replaceState(null, "", "/magic-cursor?demo=ring#preview");
@@ -42,26 +39,21 @@ describe("LanguageSwitcher", () => {
   it("marks the current locale as active", () => {
     renderSwitcher("en");
 
-    expect(screen.getByRole("button", { name: "EN" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
+    expect(screen.getByRole("link", { name: "EN" })).toHaveAttribute(
+      "aria-current",
+      "page",
     );
-    expect(screen.getByRole("button", { name: "中文" })).toHaveAttribute(
-      "aria-pressed",
-      "false",
-    );
+    expect(screen.getByRole("link", { name: "中文" })).not.toHaveAttribute("aria-current");
   });
 
   it("preserves path, query, and hash when switching languages", async () => {
     const { trackEvent } = await import("@/lib/analytics");
     renderSwitcher("en");
 
-    fireEvent.click(screen.getByRole("button", { name: "中文" }));
+    const chineseLink = screen.getByRole("link", { name: "中文" });
+    fireEvent.click(chineseLink);
 
-    expect(mockRouteState.push).toHaveBeenCalledWith(
-      "/magic-cursor?demo=ring#preview",
-      { locale: "zh" },
-    );
+    expect(chineseLink).toHaveAttribute("href", "/zh/magic-cursor?demo=ring#preview");
     expect(document.cookie).toContain("NEXT_LOCALE=zh");
     expect(trackEvent).toHaveBeenCalledWith("language_switch", {
       from: "en",
@@ -70,15 +62,15 @@ describe("LanguageSwitcher", () => {
     });
   });
 
-  it("switches back to English with locale option", async () => {
+  it("links back to English while preserving the current location", () => {
     renderSwitcher("zh");
 
-    fireEvent.click(screen.getByRole("button", { name: "EN" }));
-
-    expect(mockRouteState.push).toHaveBeenCalledWith(
+    expect(screen.getByRole("link", { name: "EN" })).toHaveAttribute(
+      "href",
       "/magic-cursor?demo=ring#preview",
-      { locale: "en" },
     );
+
+    fireEvent.click(screen.getByRole("link", { name: "EN" }));
     expect(document.cookie).toContain("NEXT_LOCALE=en");
   });
 });
