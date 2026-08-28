@@ -147,6 +147,28 @@ body {
 .mystery-title { font-weight: 700; margin-bottom: 0.25rem; }
 .notice { color: #8a1f1f; }
 
+.custom-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.custom-library {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.custom-library-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.custom-library-head h2 { margin: 0; }
+.custom-library-head .btn { flex-shrink: 0; }
+.custom-library-desc,
+.custom-library-note {
+  line-height: 1.55;
+}
 .custom-actions { display: flex; gap: 0.5rem; }
 .custom-thumbs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
 .custom-thumb {
@@ -186,7 +208,8 @@ body {
   border-radius: 1rem;
   padding: 0.75rem;
 }
-.game-guide-title { font-size: 0.85rem; font-weight: 800; }
+.game-guide-title { font-size: 0.85rem; font-weight: 800; line-height: 1.4; }
+.game-guide .muted { margin-top: 0.35rem; line-height: 1.55; }
 .game-guide-steps {
   list-style: none;
   display: grid;

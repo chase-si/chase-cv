@@ -1168,7 +1168,9 @@
       unlockFromUserGesture: function () {
         var ctx = ensureContext();
         if (!ctx) return Promise.resolve(false);
-        var resume = ctx.state === "suspended" ? ctx.resume() : Promise.resolve();
+        var resume = (ctx.state === "suspended" || ctx.state === "interrupted")
+          ? ctx.resume()
+          : Promise.resolve();
         return resume.then(function () {
           unlocked = ctx.state === "running";
           applyMaster();

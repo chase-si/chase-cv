@@ -15,6 +15,7 @@
     signalDetected: "已检测到信号",
     targetReady: "目标已显形——可以锁定",
     mysteryReady: "未知信号已稳定——锁定后揭晓身份",
+    customReady: "食物信号已稳定——锁定后揭晓答案",
     locking: "正在锁定画面…",
   };
 
@@ -49,6 +50,7 @@
     customThumbs: document.getElementById("custom-thumbs"),
     customNotice: document.getElementById("custom-notice"),
     startBlocked: document.getElementById("start-blocked"),
+    customLibraryNote: document.getElementById("custom-library-note"),
     soundToggle: document.getElementById("sound-toggle"),
     assetWarning: document.getElementById("asset-warning"),
     stage: document.getElementById("fan-stage"),
@@ -56,6 +58,7 @@
     scanStatus: document.getElementById("scan-status"),
     lockHint: document.getElementById("lock-hint"),
     finale: document.getElementById("finale-copy"),
+    finaleEyebrow: document.getElementById("finale-eyebrow"),
     finaleName: document.getElementById("finale-name"),
     finaleLine: document.getElementById("finale-line"),
     transient: document.getElementById("transient"),
@@ -71,9 +74,12 @@
     resultImage: document.getElementById("result-image"),
     resultName: document.getElementById("result-name"),
     resultDesc: document.getElementById("result-desc"),
+    resultDisclaimer: document.getElementById("result-disclaimer"),
     healthBox: document.getElementById("health-box"),
     healthText: document.getElementById("health-text"),
     discovery: document.getElementById("discovery-progress"),
+    scanAgain: document.getElementById("btn-scan-again"),
+    changeTarget: document.getElementById("btn-change-target"),
     bridgeNotice: document.getElementById("bridge-notice"),
   };
 
@@ -190,6 +196,8 @@
     var startBlocked = config.scanMode === "custom" && customItems.length === 0;
     els.start.disabled = startBlocked;
     els.startBlocked.hidden = !startBlocked;
+    if (els.customLibraryNote) els.customLibraryNote.hidden = !startBlocked;
+    document.getElementById("btn-clear-custom").hidden = customItems.length === 0;
     els.operatorTargets.hidden = config.scanMode !== "operator";
     els.mysterySummary.hidden = config.scanMode !== "mystery";
     els.customPanel.hidden = config.scanMode !== "custom";
@@ -289,6 +297,7 @@
     if (scan.locking) return STATUS_COPY.locking;
     if (scan.targetRevealed) {
       if (scan.revealComplete) {
+        if (roundAsset && roundAsset.kind === "custom") return STATUS_COPY.customReady;
         return roundAsset && roundAsset.concealUntilLock ? STATUS_COPY.mysteryReady : STATUS_COPY.targetReady;
       }
       return STATUS_COPY.signalDetected;
@@ -417,6 +426,7 @@
   }
 
   function startScan(fromResult) {
+    soundscape.unlockFromUserGesture();
     revealEpoch += 1;
     revealProgress = 0;
     var prep = config.scanMode === "custom"
@@ -427,7 +437,6 @@
       lastRevealed = false;
       lastLocking = false;
       dispatch({ type: fromResult ? "SCAN_AGAIN" : "START_SCAN" });
-      soundscape.unlockFromUserGesture();
     });
   }
 
@@ -511,11 +520,15 @@
   function renderResult() {
     if (!roundAsset) return;
     els.resultImage.src = roundAsset.displaySrc;
-    if (roundAsset.kind === "custom") {
-      els.resultName.textContent = "上传的图片";
-      els.resultDesc.textContent = "";
+    var isCustom = roundAsset.kind === "custom";
+    if (isCustom) {
+      els.resultName.textContent = "原来今天吃的是这个！";
+      els.resultDesc.textContent = "说说它叫什么、是什么味道，再回想一下是什么时候吃的吧。";
       els.healthBox.hidden = true;
       els.discovery.hidden = true;
+      els.resultDisclaimer.textContent = "仅供娱乐，扫描结果来自预先准备的照片，并非真实识别或医疗判断。";
+      els.scanAgain.textContent = "再猜一道";
+      els.changeTarget.textContent = "换食物照片";
     } else {
       var rec = NS.getTarget(roundAsset.targetId);
       els.resultName.textContent = rec.name;
@@ -526,6 +539,9 @@
       var count = readDiscoveries().length;
       els.discovery.hidden = false;
       els.discovery.textContent = "已认识 " + count + "/" + NS.TARGET_IDS.length + " 位肚肚朋友，再扫一次，遇见下一位！";
+      els.resultDisclaimer.textContent = "仅供娱乐，非医疗工具。";
+      els.scanAgain.textContent = "再扫一次";
+      els.changeTarget.textContent = "更换目标";
     }
     els.bridgeNotice.hidden = true;
     var mini = getMiniTool();
@@ -557,9 +573,12 @@
         window.clearTimeout(timers.finale);
         timers.finale = window.setTimeout(function () {
           if (!roundAsset) return;
-          var rec = roundAsset.kind === "catalog" ? NS.getTarget(roundAsset.targetId) : null;
-          els.finaleName.textContent = rec ? rec.name : "自定义图片";
-          els.finaleLine.textContent = rec ? "“" + rec.revealLine + "”" : "“就是你上传的那张图！”";
+          var isCustom = roundAsset.kind === "custom";
+          var rec = !isCustom ? NS.getTarget(roundAsset.targetId) : null;
+          els.finaleEyebrow.textContent = isCustom ? "扫描完成" : "神秘身份确认";
+          els.finaleName.textContent = isCustom ? "目标已锁定" : rec.name;
+          els.finaleLine.hidden = isCustom;
+          els.finaleLine.textContent = rec ? "“" + rec.revealLine + "”" : "";
           els.finale.hidden = false;
         }, reducedMotion ? 0 : 1100);
       }
@@ -590,6 +609,7 @@
       if (renderer) renderer.updateInput(event.clientX, event.clientY, event.timeStamp);
     }
     function onDown(event) {
+      soundscape.unlockFromUserGesture();
       if (stage.setPointerCapture) stage.setPointerCapture(event.pointerId);
       onMove(event);
     }
@@ -659,6 +679,7 @@
   els.soundToggle.addEventListener("change", function () {
     config.soundEnabled = els.soundToggle.checked;
     soundscape.setSoundEnabled(config.soundEnabled);
+    if (config.soundEnabled) soundscape.unlockFromUserGesture();
   });
   els.operatorBar.addEventListener("click", function (event) {
     var btn = event.target.closest("[data-cmd]");
@@ -725,9 +746,9 @@
   });
   document.addEventListener("visibilitychange", function () {
     if (renderer) renderer.setPageVisible(!document.hidden);
+    if (document.hidden) soundscape.handleWindowBlur();
+    else soundscape.handleWindowFocus();
   });
-  window.addEventListener("blur", function () { soundscape.handleWindowBlur(); });
-  window.addEventListener("focus", function () { soundscape.handleWindowFocus(); });
   if (window.matchMedia) {
     var media = window.matchMedia("(prefers-reduced-motion: reduce)");
     reducedMotion = media.matches;
