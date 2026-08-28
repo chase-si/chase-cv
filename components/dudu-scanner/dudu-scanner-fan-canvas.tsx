@@ -60,6 +60,7 @@ type DuduScannerFanCanvasProps = {
   onLockRequest?: () => void;
   explorationEnabled?: boolean;
   hideCursor?: boolean;
+  regionShape?: "fan" | "rect";
 };
 
 export function DuduScannerFanCanvas({
@@ -80,6 +81,7 @@ export function DuduScannerFanCanvas({
   onLockRequest,
   explorationEnabled = false,
   hideCursor = false,
+  regionShape = "fan",
 }: DuduScannerFanCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -234,6 +236,7 @@ export function DuduScannerFanCanvas({
       canvas,
       getStageRect: () => getStageContentRect(stage),
       getTargetImage: () => targetImageRef.current,
+      regionShape,
       spotlightRadius: window.matchMedia?.("(pointer: coarse)").matches
         ? DUDU_SCANNER_MOBILE_SPOTLIGHT_RADIUS
         : DUDU_SCANNER_DESKTOP_SPOTLIGHT_RADIUS,
@@ -303,7 +306,7 @@ export function DuduScannerFanCanvas({
       renderer.destroy();
       rendererRef.current = null;
     };
-  }, []);
+  }, [regionShape]);
 
   useEffect(() => {
     const renderer = rendererRef.current;
@@ -350,6 +353,7 @@ export function DuduScannerFanCanvas({
         className,
       )}
       data-testid="dudu-scanner-fan-stage"
+      data-scan-shape={regionShape}
     >
       <canvas ref={canvasRef} className="size-full touch-none" aria-hidden />
       {effectiveLockFrameVisible && lockTargetPosition ? (

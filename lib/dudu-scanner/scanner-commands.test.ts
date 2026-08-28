@@ -53,11 +53,19 @@ describe("shouldPreventDefaultForScannerKey", () => {
 
 describe("touchControlIdToDomainCommand", () => {
   it("maps every operator touch control to the keyboard-equivalent domain command", () => {
+    expect(touchControlIdToDomainCommand("lock")).toEqual({ type: "LOCK_SIGNAL" });
     expect(touchControlIdToDomainCommand("pause-resume")).toEqual({ type: "TOGGLE_PAUSE" });
     expect(touchControlIdToDomainCommand("reveal")).toEqual({ type: "FORCE_DISCOVERY" });
-    expect(touchControlIdToDomainCommand("lock")).toEqual({ type: "LOCK_SIGNAL" });
-    expect(touchControlIdToDomainCommand("hide")).toEqual({ type: "CANCEL_TARGET" });
-    expect(DUDU_SCANNER_OPERATOR_TOUCH_CONTROLS).toHaveLength(4);
+    expect(touchControlIdToDomainCommand("reveal", { targetRevealed: true })).toEqual({
+      type: "CANCEL_TARGET",
+    });
+    expect(touchControlIdToDomainCommand("reset")).toEqual({ type: "RESTART_SCAN" });
+    expect(DUDU_SCANNER_OPERATOR_TOUCH_CONTROLS).toEqual([
+      "lock",
+      "pause-resume",
+      "reveal",
+      "reset",
+    ]);
   });
 
   it("uses the same phase guards as keyboard commands", () => {

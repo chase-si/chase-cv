@@ -704,6 +704,7 @@
   "duduScanner": {
     "title": "Tummy Scanner",
     "subtitle": "A playful tummy-scanning game for kids and grown-ups.",
+    "customSubtitle": "A grown-up hides photos of today's food, then kids scan the tummy, follow the signal, and guess what they ate.",
     "scanModeHeading": "Scan mode",
     "scanModes": {
       "mystery": {
@@ -715,8 +716,8 @@
         "description": "A grown-up chooses the character before the game begins."
       },
       "custom": {
-        "name": "Custom scan",
-        "description": "Upload your own pictures and scan to find them."
+        "name": "Custom mode",
+        "description": "A grown-up uploads food photos, then kids scan the tummy and guess."
       }
     },
     "mysterySummary": {
@@ -741,6 +742,16 @@
         "move": "Move mouse",
         "scan": "Scan the belly zone",
         "watch": "Watch screen"
+      },
+      "custom": {
+        "title": "How to play: What did you eat?",
+        "description": "A grown-up hides the answer before handing over the screen.",
+        "accessibleDescription": "A grown-up hides food photos, then a child moves the on-screen probe over the tummy zone and guesses today's food after finding the signal.",
+        "steps": {
+          "hide": "Grown-up hides answer",
+          "scan": "Scan the tummy",
+          "guess": "Reveal and guess"
+        }
       }
     },
     "shortcutsHeading": "Grown-up controls",
@@ -749,17 +760,25 @@
     "shortcutsHide": "Hide",
     "startScan": "Start scan",
     "customLibrary": {
-      "heading": "Your pictures",
-      "description": "PNG, JPEG, or WebP up to 2 MB. HEIC is converted to JPEG in the browser. Up to 6 pictures. Select one to scan it, or select none to pick at random. Pictures stay on this device.",
-      "upload": "Upload",
-      "selectImage": "Select this picture",
-      "removeImage": "Remove this picture",
+      "gameTitle": "Prepare today's food mystery (recommended way to play)",
+      "gameDescription": "Made for playing together: a grown-up prepares the answer and a child scans and guesses.",
+      "gameStepsLabel": "Food guessing game setup",
+      "gameSteps": {
+        "upload": "Upload food eaten today",
+        "hide": "Keep the answer hidden from the child",
+        "guess": "Scan the tummy, lock, and reveal"
+      },
+      "heading": "Photos of food eaten today",
+      "description": "Select one photo to set the answer, or select none for a random pick. Up to 6 PNG, JPEG, WebP, or HEIC photos, each no larger than 2 MB. Photos stay on this device.",
+      "upload": "Upload food photo",
+      "selectImage": "Set this food photo as the answer",
+      "removeImage": "Remove this food photo",
       "clear": "Clear library",
       "clearTitle": "Clear uploaded pictures?",
       "clearDescription": "This removes every custom picture stored on this device.",
       "clearConfirm": "Clear all",
-      "startBlocked": "Upload a picture before starting this scan.",
-      "customNote": "Custom scan uses pictures you upload on this device. Pick one to hunt, or leave none selected so the scanner chooses at random.",
+      "startBlocked": "A grown-up needs to upload at least one photo of food eaten today before the game starts.",
+      "customNote": "Once ready, hide the answer before handing the screen to the child.",
       "persistWarning": "This browser could not remember pictures after refresh. They will last for this visit only.",
       "skip": {
         "type": "Use PNG, JPEG, WebP, or HEIC.",
@@ -769,9 +788,11 @@
       }
     },
     "inputSafetyNote": "No camera is used — just move the on-screen probe.",
+    "customInputSafetyNote": "No camera is used. Uploaded food photos are processed only on this device.",
     "backToConfig": "Back to setup",
     "assetLoadWarning": "We couldn't load this character's art. A standby silhouette will show during the scan—you can try again or pick another target.",
     "disclaimer": "For entertainment only — not a medical device.",
+    "customDisclaimer": "For entertainment only. Results come from prepared photos, not real detection or medical analysis.",
     "targets": {
       "frySprite": {
         "name": "Fry Sprite",
@@ -850,7 +871,7 @@
       "reveal": "Force discovery",
       "lock": "Lock signal",
       "hide": "Hide target",
-      "reset": "Reset scan"
+      "reset": "Rescan"
     },
     "scan": {
       "hudLabel": "Scanner",
@@ -860,8 +881,6 @@
       "fullscreenHint": "Fullscreen unavailable — press F to try again.",
       "doubleClickLockHint": "Press Enter to lock. Above 90% signal, you can also double-click the target.",
       "finaleEyebrow": "Mystery identity confirmed",
-      "customFinaleName": "Custom picture",
-      "customFinaleLine": "That's the picture you uploaded!",
       "status": {
         "initializing": "Initializing scanner…",
         "moveProbe": "Move the probe to find a signal",
@@ -872,6 +891,7 @@
         "signalDetected": "Signal detected",
         "targetReady": "Target revealed — ready to lock",
         "mysteryReady": "Unknown signal stabilized — lock to identify",
+        "customReady": "Food signal stabilized — lock to reveal the answer",
         "locking": "Locking frame…"
       },
       "hud": {
@@ -884,14 +904,17 @@
     "result": {
       "eyebrow": "Scan complete",
       "title": "Target locked!",
-      "customName": "Uploaded picture",
+      "customName": "So this is what you ate today!",
+      "customDescription": "Name the food, describe how it tasted, and remember when you ate it.",
       "body": "Your silly belly-scan identified this character. Ready for another round?",
       "healthTask": "Today's healthy mission",
       "playHealthTask": "Play healthy mission",
       "stopHealthTask": "Stop healthy mission",
       "healthTaskHint": "Tap play for the tiny mission below, or read aloud one of your own.",
       "scanAgain": "Scan again",
-      "changeTarget": "Change target"
+      "changeTarget": "Change target",
+      "customScanAgain": "Guess another",
+      "customChangeTarget": "Change food photos"
     },
     "discoveryProgress": "You've met {count}/{total} tummy friends. Scan again to meet another!"
   }

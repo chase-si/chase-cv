@@ -49,7 +49,7 @@ describe("DuduScannerConfigShell", () => {
     ).toBeInTheDocument();
     const operatorMode = screen.getByRole("button", { name: "Grown-up mode" });
     const mysteryMode = screen.getByRole("button", { name: "Mystery scan" });
-    const customMode = screen.getByRole("button", { name: "Custom scan" });
+    const customMode = screen.getByRole("button", { name: "Custom mode" });
     expect(
       screen.getAllByRole("button").indexOf(operatorMode),
     ).toBeLessThan(screen.getAllByRole("button").indexOf(mysteryMode));
@@ -82,6 +82,7 @@ describe("DuduScannerConfigShell", () => {
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "零食扫描" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "肚肚生物" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "自定义模式" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "薯条精灵" })).toBeInTheDocument();
     expect(screen.getByText("玩法演示")).toBeInTheDocument();
     expect(screen.getByText("屏幕上的肚肚区域")).toBeInTheDocument();
@@ -172,11 +173,28 @@ describe("DuduScannerConfigShell", () => {
 
   it("blocks start in custom mode until a picture is uploaded", () => {
     renderShell("en");
-    fireEvent.click(screen.getByRole("button", { name: "Custom scan" }));
+    fireEvent.click(screen.getByRole("button", { name: "Custom mode" }));
     expect(screen.getByRole("button", { name: "Start scan" })).toBeDisabled();
     expect(screen.getByTestId("dudu-scanner-start-blocked")).toHaveTextContent(
-      "Upload a picture before starting this scan.",
+      "A grown-up needs to upload at least one photo of food eaten today",
     );
     expect(screen.getByTestId("dudu-scanner-custom-library")).toBeInTheDocument();
+    expect(screen.getByTestId("dudu-scanner-custom-game-guide")).toHaveTextContent(
+      "Prepare today's food mystery (recommended way to play)",
+    );
+    expect(screen.getByText("Keep the answer hidden from the child")).toBeInTheDocument();
+    expect(screen.getByText("How to play: What did you eat?")).toBeInTheDocument();
+  });
+
+  it("uses the food guessing guidance when custom mode comes from the URL", () => {
+    window.history.replaceState(null, "", "/en/dudu-scanner?mode=custom");
+    renderShell("en");
+
+    expect(
+      screen.getByRole("button", { name: "Custom mode", pressed: true }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/A grown-up hides photos of today's food/)).toBeInTheDocument();
+    expect(screen.getByText("Photos of food eaten today")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Start scan" })).toBeDisabled();
   });
 });

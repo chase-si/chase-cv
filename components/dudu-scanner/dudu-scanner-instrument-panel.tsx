@@ -54,6 +54,8 @@ export function DuduScannerInstrumentPanel({
   timestamp,
   interactionHint,
   showShortcutDeck = true,
+  copyOverlay,
+  compactHeader = false,
 }: {
   backButton: ReactNode;
   canvas: ReactNode;
@@ -62,6 +64,8 @@ export function DuduScannerInstrumentPanel({
   timestamp: string;
   interactionHint?: string | null;
   showShortcutDeck?: boolean;
+  copyOverlay?: ReactNode;
+  compactHeader?: boolean;
 }) {
   const t = useTranslations("duduScanner");
   const signalPercent = Math.round(metrics.signalStrength * 100);
@@ -69,7 +73,12 @@ export function DuduScannerInstrumentPanel({
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
-      <header className="flex shrink-0 items-center gap-3 px-3 sm:px-0">
+      <header
+        className={cn(
+          "flex shrink-0 items-center gap-3 px-3 sm:px-0",
+          compactHeader && "h-14",
+        )}
+      >
         {backButton}
         <div className="min-w-0 flex-1 border-l-4 border-primary pl-3">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -94,6 +103,11 @@ export function DuduScannerInstrumentPanel({
           >
             {interactionHint}
           </p>
+        ) : null}
+        {copyOverlay !== undefined ? (
+          <div className="pointer-events-none absolute inset-x-3 bottom-3 grid min-h-18 items-end">
+            {copyOverlay}
+          </div>
         ) : null}
       </div>
 

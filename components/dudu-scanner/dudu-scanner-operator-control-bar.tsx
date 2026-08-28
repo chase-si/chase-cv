@@ -15,17 +15,19 @@ const TOUCH_CONTROL_MESSAGE_KEY = {
   "pause-resume": "pauseResume",
   reveal: "reveal",
   lock: "lock",
-  hide: "hide",
+  reset: "reset",
 } as const satisfies Record<DuduScannerOperatorTouchControlId, string>;
 
 type DuduScannerOperatorControlBarProps = {
   paused: boolean;
+  targetRevealed: boolean;
   onDomainCommand: (command: DuduScannerDomainCommand) => void;
   className?: string;
 };
 
 export function DuduScannerOperatorControlBar({
   paused,
+  targetRevealed,
   onDomainCommand,
   className,
 }: DuduScannerOperatorControlBarProps) {
@@ -47,15 +49,19 @@ export function DuduScannerOperatorControlBar({
           <Button
             key={controlId}
             type="button"
-            variant="secondary"
+            variant={controlId === "lock" ? "default" : "ghost"}
             size="sm"
             className="h-auto min-h-9 whitespace-normal py-2 text-xs sm:text-sm"
             data-testid={`dudu-scanner-operator-${controlId}`}
-            onClick={() => onDomainCommand(touchControlIdToDomainCommand(controlId))}
+            onClick={() =>
+              onDomainCommand(touchControlIdToDomainCommand(controlId, { targetRevealed }))
+            }
           >
             {controlId === "pause-resume" && paused
               ? t("resume")
-              : t(TOUCH_CONTROL_MESSAGE_KEY[controlId])}
+              : controlId === "reveal" && targetRevealed
+                ? t("hide")
+                : t(TOUCH_CONTROL_MESSAGE_KEY[controlId])}
           </Button>
         ))}
       </div>

@@ -135,7 +135,12 @@ export function DuduScannerResultView({
           )}
         </div>
         {customRound ? (
-          <p className="text-lg font-medium text-foreground">{t("result.customName")}</p>
+          <div className="space-y-1">
+            <p className="text-lg font-medium text-foreground">{t("result.customName")}</p>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              {t("result.customDescription")}
+            </p>
+          </div>
         ) : targetMessageKey ? (
           <>
             <p className="text-lg font-medium text-foreground">
@@ -178,13 +183,15 @@ export function DuduScannerResultView({
         )}
       </div>
 
-      <p className="text-sm text-muted-foreground">{t("disclaimer")}</p>
+      <p className="text-sm text-muted-foreground">
+        {customRound ? t("customDisclaimer") : t("disclaimer")}
+      </p>
 
       {discoveryProgress}
 
       <div className="flex w-full max-w-md flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
         <Button type="button" size="lg" className="w-full sm:w-auto" onClick={onScanAgain} data-testid="dudu-scanner-scan-again">
-          {t("result.scanAgain")}
+          {customRound ? t("result.customScanAgain") : t("result.scanAgain")}
         </Button>
         <Button
           type="button"
@@ -194,7 +201,7 @@ export function DuduScannerResultView({
           onClick={onChangeTarget}
           data-testid="dudu-scanner-change-target"
         >
-          {t("result.changeTarget")}
+          {customRound ? t("result.customChangeTarget") : t("result.changeTarget")}
         </Button>
       </div>
     </div>

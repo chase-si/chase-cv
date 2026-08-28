@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>肚肚扫描仪</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+  </style>
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body>
+  <div id="app" class="app">
+    <section id="view-config" class="view view-config">
+      <header class="page-header">
+        <div class="page-header-copy">
+          <h1>肚肚扫描仪</h1>
+          <p>选择扫描方式，调好音效，开始一轮有趣的肚肚扫描。</p>
+        </div>
+      </header>
+      <p class="safety-note">无需摄像头，只要移动屏幕上的探头。</p>
+      <p id="asset-warning" class="banner" hidden>这个角色图没加载成功，可以换别的角色或稍后再试一次。</p>
+
+      <div class="config-grid">
+        <article class="card">
+          <div class="card-scroll">
+            <h2>扫描模式</h2>
+            <div class="mode-grid" id="mode-grid" role="group" aria-label="扫描模式"></div>
+
+            <div id="operator-targets">
+              <h2>扫描目标</h2>
+              <div class="target-grid" id="target-grid"></div>
+            </div>
+
+            <div id="mystery-summary" class="mystery-box" hidden>
+              <p class="mystery-title">角色身份已加密</p>
+              <p>每轮开始时会随机抽取一个神秘角色。完成锁定，才能知道是谁藏在里面。</p>
+            </div>
+
+            <div id="custom-panel" class="custom-panel" hidden>
+              <div class="game-guide">
+                <p class="game-guide-title">先准备今天的食物谜题（玩法推荐）</p>
+                <p class="muted">适合亲子一起玩：大人负责准备答案，小朋友负责扫描和猜。</p>
+                <ol class="game-guide-steps" aria-label="猜食物玩法准备步骤">
+                  <li>上传今天吃过的食物</li>
+                  <li>别让小朋友提前看到答案</li>
+                  <li>扫描肚肚，锁定后一起揭晓</li>
+                </ol>
+              </div>
+              <div class="custom-library">
+                <div class="custom-library-head">
+                  <h2>今天吃过的食物照片</h2>
+                  <button type="button" class="btn btn-ghost" id="btn-clear-custom">清空图库</button>
+                </div>
+                <p id="start-blocked" class="notice" hidden>大人先上传至少一张今天吃过的食物照片，再开始游戏。</p>
+                <p class="custom-library-note muted" id="custom-library-note">准备好后，记得把答案藏好，再把屏幕交给小朋友。</p>
+                <p class="custom-library-desc muted">选中一张可指定本轮答案；不选则由扫描仪随机抽取。</p>
+                <p class="custom-library-desc muted">最多 6 张，支持 PNG、JPEG、WebP，单张不超过 2 MB。</p>
+                <div class="custom-actions">
+                  <button type="button" class="btn btn-outline" id="btn-upload">上传食物照片</button>
+                </div>
+                <input id="custom-file" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden />
+                <p id="custom-notice" class="notice" hidden></p>
+                <div class="custom-thumbs" id="custom-thumbs"></div>
+              </div>
+            </div>
+
+            <label class="sound-row">
+              <span>
+                <strong>音效</strong>
+                <span class="muted">开始扫描后会有轻柔的扫描音和揭晓提示音。</span>
+              </span>
+              <input type="checkbox" id="sound-toggle" checked />
+            </label>
+          </div>
+        </article>
+      </div>
+      <div class="config-start-bar">
+        <button type="button" class="btn btn-primary" id="btn-start-scan">开始扫描</button>
+      </div>
+    </section>
+
+    <section id="view-scan" class="view view-scan" hidden>
+      <header class="scan-header">
+        <button type="button" class="btn btn-ghost btn-back" id="btn-scan-back">返回设置</button>
+        <div class="scan-status-wrap">
+          <p class="hud-kicker">扫描仪</p>
+          <p id="scan-status">正在初始化扫描仪…</p>
+        </div>
+      </header>
+      <div class="fan-stage" id="fan-stage">
+        <canvas id="scan-canvas" aria-hidden="true"></canvas>
+        <p id="lock-hint" class="lock-hint" hidden>点锁定按钮，或信号高于 90% 时双击目标锁定。</p>
+        <div id="finale-copy" class="finale" hidden>
+          <p class="finale-eyebrow" id="finale-eyebrow">神秘身份确认</p>
+          <p class="finale-name" id="finale-name"></p>
+          <p class="finale-line" id="finale-line"></p>
+        </div>
+        <div class="scan-copy-slot">
+          <p id="transient" class="banner" hidden></p>
+        </div>
+      </div>
+      <div class="hud-card">
+        <div class="hud-signal">
+          <div class="hud-bolt" id="hud-bolt">⚡</div>
+          <div class="hud-signal-meta">
+            <span>信号</span>
+            <strong id="hud-signal">0%</strong>
+          </div>
+          <div class="progress"><span id="hud-progress"></span></div>
+        </div>
+        <dl class="hud-meters">
+          <div><dt>增益</dt><dd id="hud-gain">0.42</dd></div>
+          <div><dt>扫描频率</dt><dd id="hud-freq">0.90 Hz</dd></div>
+          <div><dt>时间戳</dt><dd id="hud-time">00:00:00</dd></div>
+        </dl>
+      </div>
+      <div class="operator-bar" id="operator-bar" hidden>
+        <button type="button" class="btn btn-primary" data-cmd="LOCK_SIGNAL">锁定信号</button>
+        <button type="button" class="btn btn-ghost" data-cmd="TOGGLE_PAUSE" id="btn-pause">暂停扫描</button>
+        <button type="button" class="btn btn-ghost" data-cmd="FORCE_DISCOVERY" id="btn-reveal-hide">强制发现</button>
+        <button type="button" class="btn btn-ghost" data-cmd="RESTART_SCAN">重新扫描</button>
+      </div>
+    </section>
+
+    <section id="view-result" class="view view-result" hidden>
+      <button type="button" class="btn btn-ghost btn-back result-back" id="btn-result-back">返回设置</button>
+      <p class="hud-kicker">扫描完成</p>
+      <h2>目标已锁定！</h2>
+      <article class="card result-card" id="result-card">
+        <div class="result-art">
+          <img id="result-image" alt="" />
+        </div>
+        <p class="result-name" id="result-name"></p>
+        <p class="muted" id="result-desc"></p>
+        <div class="health-box" id="health-box">
+          <p class="health-title">今日健康小任务</p>
+          <p class="muted tiny">点播放听一听，或自己朗读这条建议。</p>
+          <p id="health-text"></p>
+          <button type="button" class="btn btn-ghost" id="btn-speak">播放</button>
+        </div>
+      </article>
+      <p class="muted" id="result-disclaimer">仅供娱乐，非医疗工具。</p>
+      <p id="discovery-progress" class="muted"></p>
+      <div class="result-actions">
+        <button type="button" class="btn btn-primary" id="btn-scan-again">再扫一次</button>
+        <button type="button" class="btn btn-outline" id="btn-change-target">更换目标</button>
+        <button type="button" class="btn btn-outline" id="btn-save-album">保存到相册</button>
+        <button type="button" class="btn btn-outline" id="btn-post-note">发笔记</button>
+      </div>
+      <p id="bridge-notice" class="notice" hidden></p>
+    </section>
+  </div>
+  <script src="./assets/catalog.js"></script>
+  <script src="./assets/engine.js"></script>
+  <script src="./assets/app.js"></script>
+</body>
+</html>

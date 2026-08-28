@@ -20,7 +20,7 @@ test.describe("dudu scanner narrow viewport", () => {
             addEventListener: () => {},
             removeEventListener: () => {},
             dispatchEvent: () => true,
-          } as MediaQueryList;
+          } as unknown as MediaQueryList;
         }
         return original(mediaQuery);
       };
@@ -40,8 +40,9 @@ test.describe("dudu scanner narrow viewport", () => {
     });
     expect(overflow).toBe(false);
 
+    await expect(page.getByTestId("dudu-scanner-operator-lock")).toBeVisible();
     await expect(page.getByTestId("dudu-scanner-operator-reveal")).toBeVisible();
-    await expect(page.getByTestId("dudu-scanner-operator-reset")).toHaveCount(0);
+    await expect(page.getByTestId("dudu-scanner-operator-reset")).toBeVisible();
     await expect(page.getByText("Force target discovery")).toHaveCount(0);
     await page.getByTestId("dudu-scanner-operator-reveal").click();
     await expect(page.getByTestId("dudu-scanner-status")).toHaveText("Signal detected", {
@@ -53,6 +54,15 @@ test.describe("dudu scanner narrow viewport", () => {
     );
     await page.getByTestId("dudu-scanner-operator-lock").click();
     await expect(page.getByTestId("dudu-scanner-lock-frame")).toBeVisible();
+    const stageBox = await page.getByTestId("dudu-scanner-fan-stage").boundingBox();
+    const targetBox = await page.getByTestId("dudu-scanner-lock-frame").boundingBox();
+    expect(stageBox).not.toBeNull();
+    expect(targetBox).not.toBeNull();
+    const pad = 2;
+    expect(targetBox!.x).toBeGreaterThanOrEqual(stageBox!.x - pad);
+    expect(targetBox!.y).toBeGreaterThanOrEqual(stageBox!.y - pad);
+    expect(targetBox!.x + targetBox!.width).toBeLessThanOrEqual(stageBox!.x + stageBox!.width + pad);
+    expect(targetBox!.y + targetBox!.height).toBeLessThanOrEqual(stageBox!.y + stageBox!.height + pad);
     await expect(page.getByTestId("dudu-scanner-result-view")).toBeVisible({ timeout: 5000 });
     await expect(page.getByTestId("dudu-scanner-health-guidance")).toBeVisible();
     await expect(page.getByTestId("dudu-scanner-scan-again")).toBeVisible();

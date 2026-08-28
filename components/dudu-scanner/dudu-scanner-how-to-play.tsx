@@ -40,7 +40,7 @@ function ScannerProbe({ active }: { active: boolean }) {
   );
 }
 
-export function DuduScannerHowToPlay() {
+export function DuduScannerHowToPlay({ customMode = false }: { customMode?: boolean }) {
   const t = useTranslations("duduScanner.howToPlay");
   const [phase, setPhase] = useState(0);
 
@@ -59,7 +59,9 @@ export function DuduScannerHowToPlay() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const stepLabels = [t("steps.move"), t("steps.scan"), t("steps.watch")];
+  const stepLabels = customMode
+    ? [t("custom.steps.hide"), t("custom.steps.scan"), t("custom.steps.guess")]
+    : [t("steps.move"), t("steps.scan"), t("steps.watch")];
 
   return (
     <Card
@@ -71,9 +73,11 @@ export function DuduScannerHowToPlay() {
         <div className="min-w-0">
           <CardTitle className="flex items-center gap-2 text-sm font-semibold">
             <ScanLine className="size-4 text-primary" aria-hidden />
-            {t("title")}
+            {customMode ? t("custom.title") : t("title")}
           </CardTitle>
-          <p className="mt-0.5 text-xs text-muted-foreground">{t("description")}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {customMode ? t("custom.description") : t("description")}
+          </p>
         </div>
         <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
           {t("demoLabel")}
@@ -84,7 +88,9 @@ export function DuduScannerHowToPlay() {
         <div
           className="mx-auto grid aspect-[16/10] h-auto w-full min-h-56 max-h-72 shrink-0 grid-cols-[minmax(0,1.35fr)_minmax(5.5rem,0.65fr)] items-stretch gap-2"
           role="img"
-          aria-label={t("accessibleDescription")}
+          aria-label={
+            customMode ? t("custom.accessibleDescription") : t("accessibleDescription")
+          }
         >
           <div className="relative min-h-0 min-w-0 overflow-hidden rounded-sm border border-border bg-muted/35">
             <SceneLabel>{t("bellyArea")}</SceneLabel>

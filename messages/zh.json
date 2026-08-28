@@ -704,6 +704,7 @@
   "duduScanner": {
     "title": "肚肚扫描仪",
     "subtitle": "选择扫描方式，调好音效，开始一轮有趣的肚肚扫描。",
+    "customSubtitle": "大人藏好今天吃过的食物照片，让小朋友扫描肚肚、寻找信号，再猜猜今天吃了什么。",
     "scanModeHeading": "扫描模式",
     "scanModes": {
       "mystery": {
@@ -715,8 +716,8 @@
         "description": "游戏开始前，由成人指定角色。"
       },
       "custom": {
-        "name": "自定义扫描",
-        "description": "上传自己的图片，扫描时把它们找出来。"
+        "name": "自定义模式",
+        "description": "大人先上传食物照片，再让小朋友扫描肚肚猜答案。"
       }
     },
     "mysterySummary": {
@@ -741,6 +742,16 @@
         "move": "移动鼠标",
         "scan": "对准肚肚区域",
         "watch": "查看屏幕"
+      },
+      "custom": {
+        "title": "这样玩：猜猜你今天吃了什么",
+        "description": "大人先藏好答案，再把屏幕交给小朋友。",
+        "accessibleDescription": "大人先藏好食物照片，小朋友移动屏幕上的探头扫描肚肚区域，发现信号后猜出今天吃过的食物。",
+        "steps": {
+          "hide": "大人藏好答案",
+          "scan": "扫描肚肚",
+          "guess": "揭晓并猜一猜"
+        }
       }
     },
     "shortcutsHeading": "给大人的主持控制台",
@@ -749,17 +760,25 @@
     "shortcutsHide": "收起",
     "startScan": "开始扫描",
     "customLibrary": {
-      "heading": "你的图片",
-      "description": "支持 PNG、JPEG、WebP，单张不超过 2 MB。HEIC 会在浏览器里转成 JPEG。最多 6 张。选中一张就扫选中的，不选则随机。图片只留在这台设备上。",
-      "upload": "上传",
-      "selectImage": "选中这张图片",
-      "removeImage": "删除这张图片",
+      "gameTitle": "先准备今天的食物谜题（玩法推荐）",
+      "gameDescription": "适合亲子一起玩：大人负责准备答案，小朋友负责扫描和猜。",
+      "gameStepsLabel": "猜食物玩法准备步骤",
+      "gameSteps": {
+        "upload": "上传今天吃过的食物",
+        "hide": "别让小朋友提前看到答案",
+        "guess": "扫描肚肚，锁定后一起揭晓"
+      },
+      "heading": "今天吃过的食物照片",
+      "description": "选中一张可指定本轮答案；不选则由扫描仪随机抽取。最多 6 张，支持 PNG、JPEG、WebP、HEIC，单张不超过 2 MB。照片只留在这台设备上。",
+      "upload": "上传食物照片",
+      "selectImage": "把这张食物照片设为答案",
+      "removeImage": "删除这张食物照片",
       "clear": "清空图库",
       "clearTitle": "清空已上传的图片？",
       "clearDescription": "这会删除这台设备上保存的全部自定义图片。",
       "clearConfirm": "全部清空",
-      "startBlocked": "请先上传图片再开始扫描。",
-      "customNote": "自定义扫描使用你在这台设备上上传的图片。选中一张就扫这一张，不选则由扫描仪随机抽取。",
+      "startBlocked": "大人先上传至少一张今天吃过的食物照片，再开始游戏。",
+      "customNote": "准备好后，记得把答案藏好，再把屏幕交给小朋友。",
       "persistWarning": "当前浏览器无法在刷新后记住图片，这次访问有效。",
       "skip": {
         "type": "请使用 PNG、JPEG、WebP 或 HEIC。",
@@ -769,9 +788,11 @@
       }
     },
     "inputSafetyNote": "无需摄像头，只要移动屏幕上的探头。",
+    "customInputSafetyNote": "无需摄像头；上传的食物照片只在这台设备上处理。",
     "backToConfig": "返回设置",
     "assetLoadWarning": "这个角色图没加载成功，扫描时会先用备用轮廓。可以换别的角色或稍后再试一次。",
     "disclaimer": "仅供娱乐，非医疗工具。",
+    "customDisclaimer": "仅供娱乐，扫描结果来自预先准备的照片，并非真实识别或医疗判断。",
     "targets": {
       "frySprite": {
         "name": "薯条精灵",
@@ -860,8 +881,6 @@
       "fullscreenHint": "无法进入全屏——按 F 可再试一次。",
       "doubleClickLockHint": "按 Enter 锁定；信号高于 90% 时，也可以双击目标锁定。",
       "finaleEyebrow": "神秘身份确认",
-      "customFinaleName": "自定义图片",
-      "customFinaleLine": "就是你上传的那张图！",
       "status": {
         "initializing": "正在初始化扫描仪…",
         "moveProbe": "移动探头寻找信号",
@@ -872,6 +891,7 @@
         "signalDetected": "已检测到信号",
         "targetReady": "目标已显形——可以锁定",
         "mysteryReady": "未知信号已稳定——锁定后揭晓身份",
+        "customReady": "食物信号已稳定——锁定后揭晓答案",
         "locking": "正在锁定画面…"
       },
       "hud": {
@@ -884,14 +904,17 @@
     "result": {
       "eyebrow": "扫描完成",
       "title": "目标已锁定！",
-      "customName": "上传的图片",
+      "customName": "原来今天吃的是这个！",
+      "customDescription": "说说它叫什么、是什么味道，再回想一下是什么时候吃的吧。",
       "body": "肚肚扫描确认了这个神秘角色。要再来一轮吗？",
       "healthTask": "今日健康小任务",
       "playHealthTask": "播放健康小任务",
       "stopHealthTask": "停止播放健康小任务",
       "healthTaskHint": "点击播放下方小任务，或由你来朗读一条自己编的建议。",
       "scanAgain": "再扫一次",
-      "changeTarget": "更换目标"
+      "changeTarget": "更换目标",
+      "customScanAgain": "再猜一道",
+      "customChangeTarget": "换食物照片"
     },
     "discoveryProgress": "已认识 {count}/{total} 位肚肚朋友，再扫一次，遇见下一位！"
   }
