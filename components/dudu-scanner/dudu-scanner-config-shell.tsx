@@ -36,7 +36,7 @@ export function DuduScannerConfigShell({
   return (
     <ToolPageChrome
       title={t("title")}
-      description={t("subtitle")}
+      description={config.scanMode === "custom" ? t("customSubtitle") : t("subtitle")}
       actions={
         <Button
           type="button"
@@ -60,7 +60,9 @@ export function DuduScannerConfigShell({
         </p>
       ) : null}
 
-      <p className="shrink-0 text-xs text-muted-foreground">{t("inputSafetyNote")}</p>
+      <p className="shrink-0 text-xs text-muted-foreground">
+        {config.scanMode === "custom" ? t("customInputSafetyNote") : t("inputSafetyNote")}
+      </p>
 
       <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-stretch">
         <Card className="flex min-h-0 flex-col overflow-hidden lg:gap-0 lg:py-0">
@@ -168,7 +170,7 @@ export function DuduScannerConfigShell({
         </Card>
 
         <div className="grid min-h-0 gap-3 sm:grid-cols-[minmax(0,1.2fr)_minmax(11rem,0.8fr)] lg:min-h-0 lg:grid-cols-1 lg:grid-rows-[auto_auto] lg:content-start">
-          <DuduScannerHowToPlay />
+          <DuduScannerHowToPlay customMode={config.scanMode === "custom"} />
 
           <Card className="min-h-0 overflow-hidden lg:gap-0 lg:py-0">
             <CardHeader className="items-center gap-1 border-b border-border px-4 py-3 [.border-b]:pb-3 lg:py-2 lg:[.border-b]:pb-2">
@@ -211,7 +213,7 @@ export function DuduScannerConfigShell({
       </div>
 
       <p className="shrink-0 text-center text-xs text-muted-foreground sm:text-left">
-        {t("disclaimer")}
+        {config.scanMode === "custom" ? t("customDisclaimer") : t("disclaimer")}
       </p>
     </ToolPageChrome>
   );

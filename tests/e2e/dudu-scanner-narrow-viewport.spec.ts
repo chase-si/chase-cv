@@ -40,8 +40,9 @@ test.describe("dudu scanner narrow viewport", () => {
     });
     expect(overflow).toBe(false);
 
+    await expect(page.getByTestId("dudu-scanner-operator-lock")).toBeVisible();
     await expect(page.getByTestId("dudu-scanner-operator-reveal")).toBeVisible();
-    await expect(page.getByTestId("dudu-scanner-operator-reset")).toHaveCount(0);
+    await expect(page.getByTestId("dudu-scanner-operator-reset")).toBeVisible();
     await expect(page.getByText("Force target discovery")).toHaveCount(0);
     await page.getByTestId("dudu-scanner-operator-reveal").click();
     await expect(page.getByTestId("dudu-scanner-status")).toHaveText("Signal detected", {

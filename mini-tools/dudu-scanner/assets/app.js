@@ -67,6 +67,7 @@
     hudBolt: document.getElementById("hud-bolt"),
     operatorBar: document.getElementById("operator-bar"),
     pauseBtn: document.getElementById("btn-pause"),
+    revealHideBtn: document.getElementById("btn-reveal-hide"),
     resultImage: document.getElementById("result-image"),
     resultName: document.getElementById("result-name"),
     resultDesc: document.getElementById("result-desc"),
@@ -318,6 +319,11 @@
     els.lockHint.hidden = !showHint;
     els.operatorBar.hidden = !prefersTouch();
     els.pauseBtn.textContent = state.scan.paused ? "继续扫描" : "暂停扫描";
+    els.revealHideBtn.textContent = state.scan.targetRevealed ? "隐藏目标" : "强制发现";
+    els.revealHideBtn.setAttribute(
+      "data-cmd",
+      state.scan.targetRevealed ? "CANCEL_TARGET" : "FORCE_DISCOVERY",
+    );
   }
 
   function clearTimers() {

@@ -1,6 +1,6 @@
 "use client";
 
-import { ImagePlus, Trash2 } from "lucide-react";
+import { EyeOff, ImagePlus, ScanSearch, Trash2, Utensils } from "lucide-react";
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -32,6 +32,41 @@ export function DuduScannerCustomLibraryPanel() {
 
   return (
     <div className="space-y-2" data-testid="dudu-scanner-custom-library">
+      <div
+        className="rounded-2xl border border-primary/30 bg-primary/5 p-3"
+        data-testid="dudu-scanner-custom-game-guide"
+      >
+        <div className="flex items-start gap-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Utensils className="size-4" aria-hidden />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground">{t("gameTitle")}</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              {t("gameDescription")}
+            </p>
+          </div>
+        </div>
+        <ol className="mt-3 grid gap-2 sm:grid-cols-3" aria-label={t("gameStepsLabel")}>
+          {[
+            { icon: ImagePlus, text: t("gameSteps.upload") },
+            { icon: EyeOff, text: t("gameSteps.hide") },
+            { icon: ScanSearch, text: t("gameSteps.guess") },
+          ].map(({ icon: Icon, text }, index) => (
+            <li
+              key={text}
+              className="flex min-w-0 items-start gap-2 rounded-xl border border-border bg-card px-2.5 py-2 text-xs text-foreground shadow-xs"
+            >
+              <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                {index + 1}
+              </span>
+              <Icon className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden />
+              <span className="leading-relaxed">{text}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-sm font-medium text-foreground">{t("heading")}</h2>
         {items.length > 0 ? (
@@ -61,7 +96,7 @@ export function DuduScannerCustomLibraryPanel() {
           </AlertDescription>
         </Alert>
       ) : null}
-      <p className="text-xs text-muted-foreground">{t("description")}</p>
+      <p className="text-xs leading-relaxed text-muted-foreground">{t("description")}</p>
       {persistFailed ? (
         <p className="text-xs text-muted-foreground" role="status" data-testid="dudu-scanner-custom-persist-warning">
           {t("persistWarning")}

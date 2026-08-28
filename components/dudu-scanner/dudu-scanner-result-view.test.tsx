@@ -154,7 +154,12 @@ describe("DuduScannerResultView health suggestion speech", () => {
       </NextIntlClientProvider>,
     );
 
-    expect(screen.getByText("Uploaded picture")).toBeInTheDocument();
+    expect(screen.getByText("Scan complete")).toBeInTheDocument();
+    expect(screen.getByText("Target locked!")).toBeInTheDocument();
+    expect(screen.getByText("So this is what you ate today!")).toBeInTheDocument();
+    expect(screen.getByText(/Name the food, describe how it tasted/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Guess another" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Change food photos" })).toBeInTheDocument();
     expect(screen.queryByTestId("dudu-scanner-health-guidance")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Play healthy mission" })).not.toBeInTheDocument();
   });
