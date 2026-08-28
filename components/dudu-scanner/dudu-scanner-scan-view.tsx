@@ -15,7 +15,7 @@ import type { DuduScannerDomainCommand } from "@/lib/dudu-scanner/scanner-comman
 import type { ScannerVisualMetrics } from "@/lib/dudu-scanner/scanner-visual/renderer";
 import { usePrefersTouchOperatorControls } from "@/lib/dudu-scanner/use-prefers-touch-operator-controls";
 
-type DuduScannerScanViewProps = {
+export type DuduScannerScanViewProps = {
   targetId: string;
   catalogTargetId?: DuduScannerTargetId;
   targetImageSrc: string;
@@ -160,7 +160,12 @@ export function DuduScannerScanView({
         customRound || !targetMessageKey ? undefined : t(`targets.${targetMessageKey}.revealLine`)
       }
       hideCursor
-      className="min-h-[220px] w-full max-lg:rounded-none max-lg:border-x-0 lg:min-h-0"
+      regionShape={prefersTouchControls ? "rect" : "fan"}
+      className={
+        prefersTouchControls
+          ? "h-full min-h-0 w-full rounded-none border-x-0"
+          : "min-h-[220px] w-full max-lg:rounded-none max-lg:border-x-0 lg:min-h-0"
+      }
       onDiscovery={onDiscovery}
       onLockRequest={() => onDomainCommand?.({ type: "LOCK_SIGNAL" })}
       onMetricsChange={(next) => {
@@ -191,9 +196,25 @@ export function DuduScannerScanView({
             : null
         }
         showShortcutDeck={!prefersTouchControls}
+        compactHeader={prefersTouchControls}
+        copyOverlay={
+          prefersTouchControls ? (
+            transient ? (
+              <p
+                className="rounded-xl border border-border bg-background/90 px-4 py-2 text-center text-sm text-foreground shadow-sm"
+                data-testid="dudu-scanner-transient"
+                role="status"
+              >
+                {transient === "no-signal" ? t("scan.noSignal") : t("scan.fullscreenHint")}
+              </p>
+            ) : (
+              <div className="h-18" />
+            )
+          ) : undefined
+        }
       />
 
-      {transient ? (
+      {!prefersTouchControls && transient ? (
         <p
           className="mx-3 shrink-0 rounded-xl border border-border bg-muted/50 px-4 py-2 text-center text-sm text-foreground sm:mx-0"
           data-testid="dudu-scanner-transient"

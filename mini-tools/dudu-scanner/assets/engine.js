@@ -207,6 +207,66 @@
     return angle >= fan.startAngle && angle <= fan.startAngle + fan.sweep;
   };
 
+  NS.computeScanField = function (width, height, shape) {
+    if (shape === "rect") {
+      return { kind: "rect", x: 0, y: 0, width: Math.max(0, width), height: Math.max(0, height) };
+    }
+    var fan = NS.computeFanGeometry(width, height);
+    return {
+      kind: "fan",
+      cx: fan.cx,
+      cy: fan.cy,
+      radius: fan.radius,
+      sweep: fan.sweep,
+      startAngle: fan.startAngle,
+    };
+  };
+
+  NS.isPointInScanField = function (point, field) {
+    if (field.kind === "rect") {
+      return point.x >= field.x && point.x <= field.x + field.width && point.y >= field.y && point.y <= field.y + field.height;
+    }
+    return NS.isPointInFan(point, field);
+  };
+
+  NS.clampTargetInScanField = function (point, field, targetRadius) {
+    if (field.kind === "fan") return clampTargetInFan(point, field, targetRadius);
+    var insetX = Math.min(targetRadius, field.width / 2);
+    var insetY = Math.min(targetRadius, field.height / 2);
+    return {
+      x: Math.min(field.x + field.width - insetX, Math.max(field.x + insetX, point.x)),
+      y: Math.min(field.y + field.height - insetY, Math.max(field.y + insetY, point.y)),
+    };
+  };
+
+  NS.placeTargetInScanField = function (seed, field, targetRadius) {
+    if (field.kind === "fan") return NS.placeTargetInSafeRegion(seed, field, targetRadius);
+    var inset = Math.min(targetRadius + 8, field.width / 2, field.height / 2);
+    var innerWidth = Math.max(1, field.width - inset * 2);
+    var innerHeight = Math.max(1, field.height - inset * 2);
+    return NS.clampTargetInScanField(
+      {
+        x: field.x + inset + innerWidth * (0.18 + seededUnit(seed, 1) * 0.64),
+        y: field.y + inset + innerHeight * (0.18 + seededUnit(seed, 2) * 0.64),
+      },
+      field,
+      targetRadius,
+    );
+  };
+
+  NS.scanFieldContainsTargetDisc = function (field, point, targetRadius) {
+    if (field.kind === "rect") {
+      return (
+        point.x - targetRadius >= field.x - 0.01 &&
+        point.x + targetRadius <= field.x + field.width + 0.01 &&
+        point.y - targetRadius >= field.y - 0.01 &&
+        point.y + targetRadius <= field.y + field.height + 0.01
+      );
+    }
+    var dist = Math.hypot(point.x - field.cx, point.y - field.cy);
+    return dist + targetRadius <= field.radius + 0.01 && NS.isPointInFan(point, field);
+  };
+
   function seededUnit(seed, channel) {
     var value = Math.sin(seed * 12.9898 + channel * 78.233) * 43758.5453;
     return value - Math.floor(value);
@@ -416,6 +476,7 @@
     var onMetrics = options.onMetrics;
     var metricsIntervalMs = options.metricsIntervalMs || 80;
     var maxFramesPerSecond = options.maxFramesPerSecond || 30;
+    var regionShape = options.regionShape || "fan";
 
     var state = {
       active: true,
@@ -450,6 +511,9 @@
     var cssHeight = 1;
     var lastRenderedAt = Number.NEGATIVE_INFINITY;
     var noiseTextures = [];
+    function getField() {
+      return NS.computeScanField(cssWidth, cssHeight, regionShape);
+    }
 
     function buildNoiseTextures(width, height) {
       var textureWidth = Math.max(1, Math.ceil(width));
@@ -476,8 +540,8 @@
     }
 
     function resetTargetMotion() {
-      var fan = NS.computeFanGeometry(cssWidth, cssHeight);
-      targetMotion = { position: NS.placeTargetInSafeRegion(state.placementSeed, fan, targetDisplayRadius), clarityBoost: 0 };
+      var field = getField();
+      targetMotion = { position: NS.placeTargetInScanField(state.placementSeed, field, targetDisplayRadius), clarityBoost: 0 };
     }
 
     function applyCanvasSize(layout) {
@@ -488,8 +552,9 @@
       canvas.style.width = layout.cssWidth + "px";
       canvas.style.height = layout.cssHeight + "px";
       context.setTransform(layout.devicePixelRatio, 0, 0, layout.devicePixelRatio, 0, 0);
-      var fan = NS.computeFanGeometry(cssWidth, cssHeight);
-      buildNoiseTextures(fan.radius * 2, fan.radius);
+      var field = getField();
+      if (field.kind === "rect") buildNoiseTextures(field.width, field.height);
+      else buildNoiseTextures(field.radius * 2, field.radius);
       resetTargetMotion();
     }
 
@@ -538,39 +603,58 @@
       };
     }
 
-    function drawFanMask(fan) {
-      context.save();
+    function clipScanField(field) {
       context.beginPath();
-      context.moveTo(fan.cx, fan.cy);
-      context.arc(fan.cx, fan.cy, fan.radius, fan.startAngle, fan.startAngle + fan.sweep);
-      context.closePath();
+      if (field.kind === "rect") {
+        context.moveTo(field.x, field.y);
+        context.lineTo(field.x + field.width, field.y);
+        context.lineTo(field.x + field.width, field.y + field.height);
+        context.lineTo(field.x, field.y + field.height);
+        context.closePath();
+      } else {
+        context.moveTo(field.cx, field.cy);
+        context.arc(field.cx, field.cy, field.radius, field.startAngle, field.startAngle + field.sweep);
+        context.closePath();
+      }
       context.clip();
     }
 
-    function drawNoiseLayer(fan, motionScale) {
+    function fieldBox(field) {
+      if (field.kind === "rect") return { x: field.x, y: field.y, width: field.width, height: field.height };
+      return { x: field.cx - field.radius, y: field.cy - field.radius, width: field.radius * 2, height: field.radius };
+    }
+
+    function drawNoiseLayer(field, motionScale) {
       if (!noiseTextures.length) return;
       var textureFrame = Math.floor(frame * Math.max(0.25, motionScale) * 0.18);
       var texture = noiseTextures[textureFrame % noiseTextures.length];
-      context.drawImage(texture, fan.cx - fan.radius, fan.cy - fan.radius, fan.radius * 2, fan.radius);
+      var box = fieldBox(field);
+      context.drawImage(texture, box.x, box.y, box.width, field.kind === "rect" ? box.height : field.radius);
     }
 
-    function drawTextureLayer(fan, motionScale, offsetX, offsetY) {
+    function drawTextureLayer(field, motionScale, offsetX, offsetY) {
+      var box = fieldBox(field);
+      var scale = field.kind === "rect" ? Math.min(field.width, field.height) : field.radius;
+      var cx = field.kind === "rect" ? field.x + field.width * 0.5 : field.cx;
+      var cy = field.kind === "rect" ? field.y + field.height * 0.5 : field.cy;
       var index, phase, bx, by, gradient;
       for (index = 0; index < 5; index += 1) {
         phase = frame * 0.008 * motionScale + index * 1.7;
-        bx = fan.cx + Math.cos(phase) * fan.radius * 0.35 + offsetX * fan.radius;
-        by = fan.cy - fan.radius * (0.35 + index * 0.08) + offsetY * fan.radius;
-        gradient = context.createRadialGradient(bx, by, 4, bx, by, fan.radius * 0.22);
+        bx = cx + Math.cos(phase) * scale * 0.35 + offsetX * scale;
+        by = cy - scale * (0.15 + index * 0.08) + offsetY * scale;
+        gradient = context.createRadialGradient(bx, by, 4, bx, by, scale * 0.22);
         gradient.addColorStop(0, "rgba(120, 140, 120, 0.12)");
         gradient.addColorStop(1, "rgba(40, 50, 40, 0)");
         context.fillStyle = gradient;
-        context.fillRect(fan.cx - fan.radius, fan.cy - fan.radius, fan.radius * 2, fan.radius);
+        context.fillRect(box.x, box.y, box.width, field.kind === "rect" ? box.height : field.radius);
       }
     }
 
-    function drawSpotlight(fan, motionScale) {
+    function drawSpotlight(field, motionScale) {
+      var box = fieldBox(field);
+      var coverHeight = field.kind === "rect" ? box.height : field.radius * 2;
       context.fillStyle = palette.spotlightOverlay;
-      context.fillRect(fan.cx - fan.radius, fan.cy - fan.radius, fan.radius * 2, fan.radius * 2);
+      context.fillRect(box.x, box.y, box.width, coverHeight);
       if (!probeInside) return;
       var probeX = probe.x * cssWidth;
       var probeY = probe.y * cssHeight;
@@ -580,8 +664,8 @@
       context.arc(probeX, probeY, spotlightRadius, 0, Math.PI * 2);
       context.clip();
       context.globalAlpha = 0.65 + signalStrength * 0.35;
-      drawNoiseLayer(fan, motionScale);
-      drawTextureLayer(fan, motionScale, probe.textureOffsetX, probe.textureOffsetY);
+      drawNoiseLayer(field, motionScale);
+      drawTextureLayer(field, motionScale, probe.textureOffsetX, probe.textureOffsetY);
       var feather = context.createRadialGradient(probeX, probeY, spotlightRadius * 0.55, probeX, probeY, spotlightRadius);
       feather.addColorStop(0, "transparent");
       feather.addColorStop(1, palette.spotlightFeather);
@@ -660,18 +744,19 @@
       context.restore();
     }
 
-    function drawLockFinale(fan, motion, progress) {
+    function drawLockFinale(field, motion, progress) {
       var targetImage = getTargetImage();
       var waveProgress = easeOutCubic(progress / 0.34);
       var travelProgress = easeInOutCubic((progress - 0.16) / 0.46);
       var colorProgress = easeInOutCubic((progress - 0.46) / 0.38);
       var particleProgress = easeOutCubic((progress - 0.5) / 0.5);
-      var finaleX = fan.cx;
-      var finaleY = fan.cy - fan.radius * 0.48;
+      var finaleX = field.kind === "rect" ? field.x + field.width * 0.5 : field.cx;
+      var finaleY = field.kind === "rect" ? field.y + field.height * 0.42 : field.cy - field.radius * 0.48;
       var x = lerp(motion.position.x, finaleX, travelProgress);
       var y = lerp(motion.position.y, finaleY, travelProgress);
       var startSize = targetDisplayRadius * 2;
-      var finaleSize = Math.min(280, Math.max(150, fan.radius * 0.5));
+      var span = field.kind === "rect" ? Math.min(field.width, field.height) : field.radius;
+      var finaleSize = Math.min(280, Math.max(150, span * 0.5));
       var size = lerp(startSize, finaleSize, easeOutCubic(travelProgress));
       context.save();
       context.strokeStyle = palette.spotlightAccent;
@@ -682,7 +767,7 @@
         context.globalAlpha = (1 - ringProgress) * 0.8;
         context.lineWidth = 2 + (1 - ringProgress) * 3;
         context.beginPath();
-        context.arc(motion.position.x, motion.position.y, targetDisplayRadius + ringProgress * fan.radius * 0.62, 0, Math.PI * 2);
+        context.arc(motion.position.x, motion.position.y, targetDisplayRadius + ringProgress * span * 0.62, 0, Math.PI * 2);
         context.stroke();
       }
       context.restore();
@@ -727,7 +812,7 @@
       var deltaMs = Math.max(0, now - lastFrameAt);
       lastFrameAt = now;
       lastRenderedAt = now;
-      var fan = NS.computeFanGeometry(cssWidth, cssHeight);
+      var field = getField();
       var policy = motionPolicy(state.reducedMotion);
       var elapsedSeconds = (now - startedAt) / 1000;
 
@@ -747,41 +832,75 @@
       }
 
       if (targetMotion && state.targetRevealed && !state.locking) {
-        targetMotion = advanceTargetMotion(targetMotion, fan, targetDisplayRadius, elapsedSeconds, state.placementSeed, policy.driftSpeed);
+        if (field.kind === "fan") {
+          targetMotion = advanceTargetMotion(targetMotion, field, targetDisplayRadius, elapsedSeconds, state.placementSeed, policy.driftSpeed);
+        } else {
+          var driftAngle = elapsedSeconds * 0.22 * policy.driftSpeed + state.placementSeed * 0.7;
+          var driftRadius = 6 + Math.sin(elapsedSeconds * 0.31 * policy.driftSpeed + state.placementSeed) * 4;
+          targetMotion = {
+            position: NS.clampTargetInScanField(
+              {
+                x: targetMotion.position.x + Math.cos(driftAngle) * driftRadius * 0.016 * policy.driftSpeed,
+                y: targetMotion.position.y + Math.sin(driftAngle * 0.9) * driftRadius * 0.012 * policy.driftSpeed,
+              },
+              field,
+              targetDisplayRadius,
+            ),
+            clarityBoost: Math.max(0, targetMotion.clarityBoost * 0.92),
+          };
+        }
       }
 
       context.clearRect(0, 0, cssWidth, cssHeight);
       context.save();
-      drawFanMask(fan);
-      drawNoiseLayer(fan, policy.textureMotion);
-      drawTextureLayer(fan, policy.textureMotion, probe.textureOffsetX, probe.textureOffsetY);
-      if (state.explorationEnabled) drawSpotlight(fan, policy.textureMotion);
+      clipScanField(field);
+      drawNoiseLayer(field, policy.textureMotion);
+      drawTextureLayer(field, policy.textureMotion, probe.textureOffsetX, probe.textureOffsetY);
+      if (state.explorationEnabled) drawSpotlight(field, policy.textureMotion);
 
-      var beamBase = fan.startAngle + fan.sweep * 0.5;
-      var beamWobble = Math.sin(frame * 0.04 * policy.textureMotion) * (fan.sweep * 0.35);
-      var beamAngle = beamBase + beamWobble + probe.scanLineBias * fan.sweep * 0.25;
-
-      if (state.active) {
-        context.save();
-        context.translate(fan.cx, fan.cy);
-        context.rotate(beamAngle);
-        context.beginPath();
-        context.moveTo(0, 0);
-        context.lineTo(0, -fan.radius);
-        context.strokeStyle = "rgba(74, 222, 128, 0.85)";
-        context.lineWidth = 3;
-        context.stroke();
-        context.restore();
+      var beamAngle = 0;
+      var scanLineY = 0;
+      if (field.kind === "fan") {
+        var beamBase = field.startAngle + field.sweep * 0.5;
+        var beamWobble = Math.sin(frame * 0.04 * policy.textureMotion) * (field.sweep * 0.35);
+        beamAngle = beamBase + beamWobble + probe.scanLineBias * field.sweep * 0.25;
+        if (state.active) {
+          context.save();
+          context.translate(field.cx, field.cy);
+          context.rotate(beamAngle);
+          context.beginPath();
+          context.moveTo(0, 0);
+          context.lineTo(0, -field.radius);
+          context.strokeStyle = "rgba(74, 222, 128, 0.85)";
+          context.lineWidth = 3;
+          context.stroke();
+          context.restore();
+        }
+      } else {
+        var sweep = 0.5 + Math.sin(frame * 0.04 * policy.textureMotion) * 0.42 + probe.scanLineBias * 0.12;
+        scanLineY = field.y + Math.min(0.94, Math.max(0.06, sweep)) * field.height;
+        if (state.active) {
+          context.save();
+          context.beginPath();
+          context.moveTo(field.x, scanLineY);
+          context.lineTo(field.x + field.width, scanLineY);
+          context.strokeStyle = "rgba(74, 222, 128, 0.85)";
+          context.lineWidth = 3;
+          context.stroke();
+          context.restore();
+        }
       }
 
       if (targetMotion && state.targetRevealed) {
-        var boost = scanLineCrossBoost(beamAngle, targetMotion.position, fan);
+        var boost = field.kind === "fan"
+          ? scanLineCrossBoost(beamAngle, targetMotion.position, field)
+          : Math.max(0, 1 - Math.abs(targetMotion.position.y - scanLineY) / 14);
         targetMotion = { position: targetMotion.position, clarityBoost: Math.min(1, Math.max(targetMotion.clarityBoost, boost)) };
         var reveal = state.revealProgress / policy.revealDurationScale + (state.locking ? 0.25 : 0);
         var prox = getProximity();
         var spotlightHovered = state.locking || (probeInside && prox && prox.distance <= spotlightRadius);
         if (state.locking && lockStartedAt !== null) {
-          drawLockFinale(fan, targetMotion, clamp01((now - lockStartedAt) / LOCK_DELAY_MS));
+          drawLockFinale(field, targetMotion, clamp01((now - lockStartedAt) / LOCK_DELAY_MS));
         } else {
           drawTarget(targetMotion, Math.min(1, reveal), spotlightHovered);
         }
@@ -790,15 +909,25 @@
 
       context.save();
       context.beginPath();
-      context.moveTo(fan.cx, fan.cy);
-      context.arc(fan.cx, fan.cy, fan.radius, fan.startAngle, fan.startAngle + fan.sweep);
-      context.closePath();
-      var gradient = context.createRadialGradient(fan.cx, fan.cy, fan.radius * 0.1, fan.cx, fan.cy, fan.radius);
-      gradient.addColorStop(0, "rgba(34, 197, 94, 0.35)");
-      gradient.addColorStop(0.55, "rgba(34, 197, 94, 0.12)");
-      gradient.addColorStop(1, "rgba(34, 197, 94, 0.02)");
-      context.fillStyle = gradient;
-      context.fill();
+      if (field.kind === "rect") {
+        context.moveTo(field.x, field.y);
+        context.lineTo(field.x + field.width, field.y);
+        context.lineTo(field.x + field.width, field.y + field.height);
+        context.lineTo(field.x, field.y + field.height);
+        context.closePath();
+        context.fillStyle = "rgba(34, 197, 94, 0.12)";
+        context.fill();
+      } else {
+        context.moveTo(field.cx, field.cy);
+        context.arc(field.cx, field.cy, field.radius, field.startAngle, field.startAngle + field.sweep);
+        context.closePath();
+        var gradient = context.createRadialGradient(field.cx, field.cy, field.radius * 0.1, field.cx, field.cy, field.radius);
+        gradient.addColorStop(0, "rgba(34, 197, 94, 0.35)");
+        gradient.addColorStop(0.55, "rgba(34, 197, 94, 0.12)");
+        gradient.addColorStop(1, "rgba(34, 197, 94, 0.02)");
+        context.fillStyle = gradient;
+        context.fill();
+      }
       context.strokeStyle = "rgba(34, 197, 94, 0.55)";
       context.lineWidth = 2;
       context.stroke();
@@ -806,7 +935,7 @@
 
       if (state.showLockFrame && targetMotion) {
         context.save();
-        drawFanMask(fan);
+        clipScanField(field);
         context.strokeStyle = "rgba(74, 222, 128, 0.9)";
         context.lineWidth = 3;
         context.strokeRect(
@@ -856,7 +985,7 @@
       updateInput: function (clientX, clientY, timestamp) {
         var rect = getStageRect();
         var localPoint = { x: clientX - rect.left, y: clientY - rect.top };
-        if (!NS.isPointInFan(localPoint, NS.computeFanGeometry(cssWidth, cssHeight))) {
+        if (!NS.isPointInScanField(localPoint, getField())) {
           probeInside = false;
           return;
         }

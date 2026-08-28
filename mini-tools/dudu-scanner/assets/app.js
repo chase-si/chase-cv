@@ -154,6 +154,7 @@
       getStageRect: getStageRect,
       getTargetImage: function () { return targetImage; },
       spotlightRadius: coarse ? NS.MOBILE_SPOTLIGHT : NS.DESKTOP_SPOTLIGHT,
+      regionShape: (coarse || window.matchMedia("(max-width: 1023px)").matches) ? "rect" : "fan",
       onDiscovery: function () { dispatch({ type: "DISCOVER_TARGET" }); },
       onMetrics: function (next) {
         metrics = next;

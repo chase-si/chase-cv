@@ -49,7 +49,7 @@ export function DuduScannerOperatorControlBar({
           <Button
             key={controlId}
             type="button"
-            variant={controlId === "lock" ? "default" : "secondary"}
+            variant={controlId === "lock" ? "default" : "ghost"}
             size="sm"
             className="h-auto min-h-9 whitespace-normal py-2 text-xs sm:text-sm"
             data-testid={`dudu-scanner-operator-${controlId}`}

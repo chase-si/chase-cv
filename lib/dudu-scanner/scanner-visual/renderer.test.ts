@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  computeScanField,
+  scanFieldContainsTargetDisc,
+} from "@/lib/dudu-scanner/scanner-visual/geometry";
+import {
   createScannerVisualRenderer,
   resolveMysteryTargetPresentation,
 } from "@/lib/dudu-scanner/scanner-visual/renderer";
@@ -343,6 +347,38 @@ describe("scanner visual renderer lifecycle", () => {
     nextFrame!(now);
     expect(onDiscovery).toHaveBeenCalledTimes(1);
     expect(renderer.getMetrics().dwellProgress).toBe(1);
+    renderer.destroy();
+  });
+
+  it("keeps the rendered target disc inside a phone rectangle field", () => {
+    const { canvas } = createTestCanvas();
+    const stage = {
+      left: 0,
+      top: 0,
+      right: 390,
+      bottom: 506,
+      width: 390,
+      height: 506,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    };
+    const renderer = createScannerVisualRenderer({
+      canvas,
+      getStageRect: () => stage,
+      requestFrame: () => 0,
+      cancelFrame: () => {},
+      regionShape: "rect",
+      targetDisplayRadius: 28,
+    });
+    renderer.resize(true);
+    const field = computeScanField(390, 506, "rect");
+    for (let seed = 1; seed <= 40; seed += 1) {
+      renderer.setState({ placementSeed: seed, explorationEnabled: true });
+      const target = renderer.getTargetPosition();
+      expect(target).not.toBeNull();
+      expect(scanFieldContainsTargetDisc(field, target!, 28)).toBe(true);
+    }
     renderer.destroy();
   });
 });

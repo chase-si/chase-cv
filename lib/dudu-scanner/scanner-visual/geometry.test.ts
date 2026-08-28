@@ -2,9 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import {
   clampTargetInFan,
+  clampTargetInScanField,
   computeFanAxisAlignedBounds,
   computeFanGeometry,
+  computeScanField,
   placeTargetInSafeRegion,
+  placeTargetInScanField,
+  scanFieldContainsTargetDisc,
 } from "@/lib/dudu-scanner/scanner-visual/geometry";
 
 describe("scanner visual geometry", () => {
@@ -54,5 +58,25 @@ describe("scanner visual geometry", () => {
     expect(bounds.maxX - bounds.minX).toBeGreaterThan(width * 0.97);
     expect(bounds.minX).toBeGreaterThanOrEqual(0);
     expect(bounds.maxX).toBeLessThanOrEqual(width);
+  });
+
+  it("keeps the target disc inside a phone rectangle for many seeds", () => {
+    const field = computeScanField(390, 506, "rect");
+    for (let seed = 1; seed <= 80; seed += 1) {
+      const point = placeTargetInScanField(seed, field, 28);
+      expect(scanFieldContainsTargetDisc(field, point, 28)).toBe(true);
+    }
+  });
+
+  it("clamps a target that drifts outside the rectangle back inside", () => {
+    const field = computeScanField(390, 506, "rect");
+    const clamped = clampTargetInScanField({ x: -40, y: 900 }, field, 28);
+    expect(scanFieldContainsTargetDisc(field, clamped, 28)).toBe(true);
+  });
+
+  it("keeps fan-placed targets inside the fan disc", () => {
+    const field = computeScanField(640, 480, "fan");
+    const point = placeTargetInScanField(42, field, 28);
+    expect(scanFieldContainsTargetDisc(field, point, 28)).toBe(true);
   });
 });

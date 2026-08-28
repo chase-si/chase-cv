@@ -108,6 +108,111 @@ export function clampTargetInFan(
   return { x, y };
 }
 
+export type RectScanField = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type ScanField =
+  | ({ kind: "fan" } & FanGeometry)
+  | ({ kind: "rect" } & RectScanField);
+
+export function computeRectScanField(width: number, height: number): RectScanField {
+  const inset = 0;
+  return {
+    x: inset,
+    y: inset,
+    width: Math.max(0, width - inset * 2),
+    height: Math.max(0, height - inset * 2),
+  };
+}
+
+export function computeScanField(
+  width: number,
+  height: number,
+  shape: "fan" | "rect" = "fan",
+): ScanField {
+  if (shape === "rect") {
+    return { kind: "rect", ...computeRectScanField(width, height) };
+  }
+  return { kind: "fan", ...computeFanGeometry(width, height) };
+}
+
+export function isPointInScanField(point: NormalizedPoint, field: ScanField): boolean {
+  if (field.kind === "rect") {
+    return (
+      point.x >= field.x &&
+      point.x <= field.x + field.width &&
+      point.y >= field.y &&
+      point.y <= field.y + field.height
+    );
+  }
+  return isPointInFan(point, field);
+}
+
+export function placeTargetInScanField(
+  seed: number,
+  field: ScanField,
+  targetRadius: number,
+): NormalizedPoint {
+  if (field.kind === "fan") {
+    return placeTargetInSafeRegion(seed, field, targetRadius);
+  }
+  const inset = targetRadius + 8;
+  const innerWidth = Math.max(1, field.width - inset * 2);
+  const innerHeight = Math.max(1, field.height - inset * 2);
+  return clampTargetInScanField(
+    {
+      x: field.x + inset + innerWidth * (0.18 + seededUnit(seed, 1) * 0.64),
+      y: field.y + inset + innerHeight * (0.18 + seededUnit(seed, 2) * 0.64),
+    },
+    field,
+    targetRadius,
+  );
+}
+
+export function clampTargetInScanField(
+  point: NormalizedPoint,
+  field: ScanField,
+  targetRadius: number,
+): NormalizedPoint {
+  if (field.kind === "fan") {
+    return clampTargetInFan(point, field, targetRadius);
+  }
+  const insetX = Math.min(targetRadius, field.width / 2);
+  const insetY = Math.min(targetRadius, field.height / 2);
+  return {
+    x: Math.min(field.x + field.width - insetX, Math.max(field.x + insetX, point.x)),
+    y: Math.min(field.y + field.height - insetY, Math.max(field.y + insetY, point.y)),
+  };
+}
+
+export function scanFieldContainsTargetDisc(
+  field: ScanField,
+  point: NormalizedPoint,
+  targetRadius: number,
+): boolean {
+  if (field.kind === "rect") {
+    return (
+      point.x - targetRadius >= field.x - 0.01 &&
+      point.x + targetRadius <= field.x + field.width + 0.01 &&
+      point.y - targetRadius >= field.y - 0.01 &&
+      point.y + targetRadius <= field.y + field.height + 0.01
+    );
+  }
+  const dist = Math.hypot(point.x - field.cx, point.y - field.cy);
+  return dist + targetRadius <= field.radius + 0.01 && isPointInFan(point, field);
+}
+
+export function scanFieldAnchor(field: ScanField): NormalizedPoint {
+  if (field.kind === "fan") {
+    return { x: field.cx, y: field.cy - field.radius * 0.48 };
+  }
+  return { x: field.x + field.width * 0.5, y: field.y + field.height * 0.42 };
+}
+
 function seededUnit(seed: number, channel: number): number {
   const value = Math.sin(seed * 12.9898 + channel * 78.233) * 43758.5453;
   return value - Math.floor(value);

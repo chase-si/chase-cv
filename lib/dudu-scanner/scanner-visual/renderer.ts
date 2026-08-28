@@ -5,9 +5,12 @@ import {
   shouldThrottleResize,
 } from "@/lib/dudu-scanner/scanner-visual/canvas-size";
 import {
-  computeFanGeometry,
-  isPointInFan,
-  placeTargetInSafeRegion,
+  clampTargetInScanField,
+  computeScanField,
+  isPointInScanField,
+  placeTargetInScanField,
+  scanFieldAnchor,
+  type ScanField,
 } from "@/lib/dudu-scanner/scanner-visual/geometry";
 import {
   advanceDiscoveryDwell,
@@ -96,6 +99,7 @@ export type CreateScannerVisualRendererOptions = {
   onDiscovery?: () => void;
   metricsIntervalMs?: number;
   maxFramesPerSecond?: number;
+  regionShape?: "fan" | "rect";
 };
 
 const defaultState: ScannerVisualRenderState = {
@@ -211,6 +215,7 @@ export function createScannerVisualRenderer(
     onDiscovery,
     metricsIntervalMs = 80,
     maxFramesPerSecond = 30,
+    regionShape = "fan",
   } = options;
 
   const context = canvas.getContext("2d");
@@ -241,6 +246,7 @@ export function createScannerVisualRenderer(
   let cssHeight = 1;
   let lastRenderedAt = Number.NEGATIVE_INFINITY;
   let noiseTextures: HTMLCanvasElement[] = [];
+  const getField = () => computeScanField(cssWidth, cssHeight, regionShape);
 
   const buildNoiseTextures = (width: number, height: number) => {
     const textureWidth = Math.max(1, Math.ceil(width));
@@ -268,8 +274,8 @@ export function createScannerVisualRenderer(
   };
 
   const resetTargetMotion = () => {
-    const fan = computeFanGeometry(cssWidth, cssHeight);
-    const position = placeTargetInSafeRegion(state.placementSeed, fan, targetDisplayRadius);
+    const field = getField();
+    const position = placeTargetInScanField(state.placementSeed, field, targetDisplayRadius);
     targetMotion = { position, clarityBoost: 0 };
   };
 
@@ -281,8 +287,12 @@ export function createScannerVisualRenderer(
     canvas.style.width = `${layout.cssWidth}px`;
     canvas.style.height = `${layout.cssHeight}px`;
     context.setTransform(layout.devicePixelRatio, 0, 0, layout.devicePixelRatio, 0, 0);
-    const fan = computeFanGeometry(cssWidth, cssHeight);
-    buildNoiseTextures(fan.radius * 2, fan.radius);
+    const field = getField();
+    if (field.kind === "rect") {
+      buildNoiseTextures(field.width, field.height);
+    } else {
+      buildNoiseTextures(field.radius * 2, field.radius);
+    }
     resetTargetMotion();
   };
 
@@ -337,64 +347,75 @@ export function createScannerVisualRenderer(
     };
   };
 
-  const drawFanMask = (fan: ReturnType<typeof computeFanGeometry>) => {
-    const { cx, cy, radius, sweep, startAngle } = fan;
-    context.save();
+  const clipScanField = (field: ScanField) => {
     context.beginPath();
-    context.moveTo(cx, cy);
-    context.arc(cx, cy, radius, startAngle, startAngle + sweep);
-    context.closePath();
+    if (field.kind === "rect") {
+      context.moveTo(field.x, field.y);
+      context.lineTo(field.x + field.width, field.y);
+      context.lineTo(field.x + field.width, field.y + field.height);
+      context.lineTo(field.x, field.y + field.height);
+      context.closePath();
+    } else {
+      context.moveTo(field.cx, field.cy);
+      context.arc(field.cx, field.cy, field.radius, field.startAngle, field.startAngle + field.sweep);
+      context.closePath();
+    }
     context.clip();
   };
 
-  const drawNoiseLayer = (
-    fan: ReturnType<typeof computeFanGeometry>,
-    motionScale: number,
-  ) => {
+  const fieldOrigin = (field: ScanField) => {
+    if (field.kind === "rect") {
+      return { x: field.x, y: field.y, width: field.width, height: field.height };
+    }
+    return {
+      x: field.cx - field.radius,
+      y: field.cy - field.radius,
+      width: field.radius * 2,
+      height: field.radius,
+    };
+  };
+
+  const drawNoiseLayer = (field: ScanField, motionScale: number) => {
     if (noiseTextures.length === 0) {
       return;
     }
     const textureFrame = Math.floor(frame * Math.max(0.25, motionScale) * 0.18);
     const texture = noiseTextures[textureFrame % noiseTextures.length];
-    context.drawImage(
-      texture,
-      fan.cx - fan.radius,
-      fan.cy - fan.radius,
-      fan.radius * 2,
-      fan.radius,
-    );
+    const box = fieldOrigin(field);
+    context.drawImage(texture, box.x, box.y, box.width, field.kind === "rect" ? box.height : field.radius);
   };
 
   const drawTextureLayer = (
-    fan: ReturnType<typeof computeFanGeometry>,
+    field: ScanField,
     motionScale: number,
     offsetX: number,
     offsetY: number,
   ) => {
+    const box = fieldOrigin(field);
+    const scale = field.kind === "rect" ? Math.min(field.width, field.height) : field.radius;
+    const cx = field.kind === "rect" ? field.x + field.width * 0.5 : field.cx;
+    const cy = field.kind === "rect" ? field.y + field.height * 0.5 : field.cy;
     const blobCount = 5;
     for (let index = 0; index < blobCount; index += 1) {
       const phase = frame * 0.008 * motionScale + index * 1.7;
-      const bx = fan.cx + Math.cos(phase) * fan.radius * 0.35 + offsetX * fan.radius;
-      const by = fan.cy - fan.radius * (0.35 + index * 0.08) + offsetY * fan.radius;
-      const gradient = context.createRadialGradient(bx, by, 4, bx, by, fan.radius * 0.22);
+      const bx = cx + Math.cos(phase) * scale * 0.35 + offsetX * scale;
+      const by = cy - scale * (0.15 + index * 0.08) + offsetY * scale;
+      const gradient = context.createRadialGradient(bx, by, 4, bx, by, scale * 0.22);
       gradient.addColorStop(0, "rgba(120, 140, 120, 0.12)");
       gradient.addColorStop(1, "rgba(40, 50, 40, 0)");
       context.fillStyle = gradient;
-      context.fillRect(fan.cx - fan.radius, fan.cy - fan.radius, fan.radius * 2, fan.radius);
+      context.fillRect(box.x, box.y, box.width, field.kind === "rect" ? box.height : field.radius);
     }
   };
 
   const drawSpotlight = (
-    fan: ReturnType<typeof computeFanGeometry>,
+    field: ScanField,
     motionScale: number,
   ) => {
+    const box = fieldOrigin(field);
+    const coverHeight = field.kind === "rect" ? box.height : field.radius * 2;
     context.fillStyle = palette.spotlightOverlay;
-    context.fillRect(
-      fan.cx - fan.radius,
-      fan.cy - fan.radius,
-      fan.radius * 2,
-      fan.radius * 2,
-    );
+    context.fillRect(box.x, box.y, box.width, coverHeight);
 
     if (!probeInside) {
       return;
@@ -408,9 +429,9 @@ export function createScannerVisualRenderer(
     context.arc(probeX, probeY, spotlightRadius, 0, Math.PI * 2);
     context.clip();
     context.globalAlpha = 0.65 + signalStrength * 0.35;
-    drawNoiseLayer(fan, motionScale);
+    drawNoiseLayer(field, motionScale);
     drawTextureLayer(
-      fan,
+      field,
       motionScale,
       probe.textureOffsetX,
       probe.textureOffsetY,
@@ -470,7 +491,7 @@ export function createScannerVisualRenderer(
   };
 
   const drawTarget = (
-    fan: ReturnType<typeof computeFanGeometry>,
+    _field: ScanField,
     motion: TargetMotionState,
     reveal: number,
     spotlightHovered: boolean,
@@ -533,7 +554,7 @@ export function createScannerVisualRenderer(
   };
 
   const drawLockFinale = (
-    fan: ReturnType<typeof computeFanGeometry>,
+    field: ScanField,
     motion: TargetMotionState,
     progress: number,
   ) => {
@@ -542,12 +563,14 @@ export function createScannerVisualRenderer(
     const travelProgress = easeInOutCubic((progress - 0.16) / 0.46);
     const colorProgress = easeInOutCubic((progress - 0.46) / 0.38);
     const particleProgress = easeOutCubic((progress - 0.5) / 0.5);
-    const finaleX = fan.cx;
-    const finaleY = fan.cy - fan.radius * 0.48;
+    const anchor = scanFieldAnchor(field);
+    const finaleX = anchor.x;
+    const finaleY = anchor.y;
     const x = lerp(motion.position.x, finaleX, travelProgress);
     const y = lerp(motion.position.y, finaleY, travelProgress);
     const startSize = targetDisplayRadius * 2;
-    const finaleSize = Math.min(280, Math.max(150, fan.radius * 0.5));
+    const span = field.kind === "rect" ? Math.min(field.width, field.height) : field.radius;
+    const finaleSize = Math.min(280, Math.max(150, span * 0.5));
     const size = lerp(startSize, finaleSize, easeOutCubic(travelProgress));
 
     context.save();
@@ -564,7 +587,7 @@ export function createScannerVisualRenderer(
       context.arc(
         motion.position.x,
         motion.position.y,
-        targetDisplayRadius + ringProgress * fan.radius * 0.62,
+        targetDisplayRadius + ringProgress * span * 0.62,
         0,
         Math.PI * 2,
       );
@@ -635,7 +658,7 @@ export function createScannerVisualRenderer(
     const deltaMs = Math.max(0, now - lastFrameAt);
     lastFrameAt = now;
     lastRenderedAt = now;
-    const fan = computeFanGeometry(cssWidth, cssHeight);
+    const field = getField();
     const motionPolicy = resolveScannerMotionPolicy(state.reducedMotion);
     const elapsedSeconds = (now - startedAt) / 1000;
 
@@ -659,51 +682,86 @@ export function createScannerVisualRenderer(
     }
 
     if (targetMotion && state.targetRevealed && !state.locking) {
-      targetMotion = advanceTargetMotion(
-        targetMotion,
-        fan,
-        targetDisplayRadius,
-        elapsedSeconds,
-        state.placementSeed,
-        motionPolicy.driftSpeed,
-      );
+      if (field.kind === "fan") {
+        targetMotion = advanceTargetMotion(
+          targetMotion,
+          field,
+          targetDisplayRadius,
+          elapsedSeconds,
+          state.placementSeed,
+          motionPolicy.driftSpeed,
+        );
+      } else {
+        const driftAngle = elapsedSeconds * 0.22 * motionPolicy.driftSpeed + state.placementSeed * 0.7;
+        const driftRadius = 6 + Math.sin(elapsedSeconds * 0.31 * motionPolicy.driftSpeed + state.placementSeed) * 4;
+        targetMotion = {
+          position: clampTargetInScanField(
+            {
+              x: targetMotion.position.x + Math.cos(driftAngle) * driftRadius * 0.016 * motionPolicy.driftSpeed,
+              y: targetMotion.position.y + Math.sin(driftAngle * 0.9) * driftRadius * 0.012 * motionPolicy.driftSpeed,
+            },
+            field,
+            targetDisplayRadius,
+          ),
+          clarityBoost: Math.max(0, targetMotion.clarityBoost * 0.92),
+        };
+      }
     }
 
     context.clearRect(0, 0, cssWidth, cssHeight);
     context.save();
-    drawFanMask(fan);
+    clipScanField(field);
 
-    drawNoiseLayer(fan, motionPolicy.textureMotion);
+    drawNoiseLayer(field, motionPolicy.textureMotion);
     drawTextureLayer(
-      fan,
+      field,
       motionPolicy.textureMotion,
       probe.textureOffsetX,
       probe.textureOffsetY,
     );
 
     if (state.explorationEnabled) {
-      drawSpotlight(fan, motionPolicy.textureMotion);
+      drawSpotlight(field, motionPolicy.textureMotion);
     }
 
-    const beamBase = fan.startAngle + fan.sweep * 0.5;
-    const beamWobble = Math.sin(frame * 0.04 * motionPolicy.textureMotion) * (fan.sweep * 0.35);
-    const beamAngle = beamBase + beamWobble + probe.scanLineBias * fan.sweep * 0.25;
-
-    if (state.active) {
-      context.save();
-      context.translate(fan.cx, fan.cy);
-      context.rotate(beamAngle);
-      context.beginPath();
-      context.moveTo(0, 0);
-      context.lineTo(0, -fan.radius);
-      context.strokeStyle = "rgba(74, 222, 128, 0.85)";
-      context.lineWidth = 3;
-      context.stroke();
-      context.restore();
+    let beamAngle = 0;
+    let scanLineY = 0;
+    if (field.kind === "fan") {
+      const beamBase = field.startAngle + field.sweep * 0.5;
+      const beamWobble = Math.sin(frame * 0.04 * motionPolicy.textureMotion) * (field.sweep * 0.35);
+      beamAngle = beamBase + beamWobble + probe.scanLineBias * field.sweep * 0.25;
+      if (state.active) {
+        context.save();
+        context.translate(field.cx, field.cy);
+        context.rotate(beamAngle);
+        context.beginPath();
+        context.moveTo(0, 0);
+        context.lineTo(0, -field.radius);
+        context.strokeStyle = "rgba(74, 222, 128, 0.85)";
+        context.lineWidth = 3;
+        context.stroke();
+        context.restore();
+      }
+    } else {
+      const sweep = 0.5 + Math.sin(frame * 0.04 * motionPolicy.textureMotion) * 0.42 + probe.scanLineBias * 0.12;
+      scanLineY = field.y + Math.min(0.94, Math.max(0.06, sweep)) * field.height;
+      if (state.active) {
+        context.save();
+        context.beginPath();
+        context.moveTo(field.x, scanLineY);
+        context.lineTo(field.x + field.width, scanLineY);
+        context.strokeStyle = "rgba(74, 222, 128, 0.85)";
+        context.lineWidth = 3;
+        context.stroke();
+        context.restore();
+      }
     }
 
     if (targetMotion && state.targetRevealed) {
-      const boost = scanLineCrossBoost(beamAngle, targetMotion.position, fan);
+      const boost =
+        field.kind === "fan"
+          ? scanLineCrossBoost(beamAngle, targetMotion.position, field)
+          : Math.max(0, 1 - Math.abs(targetMotion.position.y - scanLineY) / 14);
       targetMotion = applyScanLineClarity(targetMotion, boost);
       const reveal =
         state.revealProgress / motionPolicy.revealDurationScale +
@@ -716,12 +774,12 @@ export function createScannerVisualRenderer(
           proximity.distance <= spotlightRadius);
       if (state.locking && lockStartedAt !== null) {
         drawLockFinale(
-          fan,
+          field,
           targetMotion,
           clamp01((now - lockStartedAt) / DUDU_SCANNER_LOCK_RESULT_DELAY_MS),
         );
       } else {
-        drawTarget(fan, targetMotion, Math.min(1, reveal), spotlightHovered);
+        drawTarget(field, targetMotion, Math.min(1, reveal), spotlightHovered);
       }
     }
 
@@ -729,22 +787,32 @@ export function createScannerVisualRenderer(
 
     context.save();
     context.beginPath();
-    context.moveTo(fan.cx, fan.cy);
-    context.arc(fan.cx, fan.cy, fan.radius, fan.startAngle, fan.startAngle + fan.sweep);
-    context.closePath();
-    const gradient = context.createRadialGradient(
-      fan.cx,
-      fan.cy,
-      fan.radius * 0.1,
-      fan.cx,
-      fan.cy,
-      fan.radius,
-    );
-    gradient.addColorStop(0, "rgba(34, 197, 94, 0.35)");
-    gradient.addColorStop(0.55, "rgba(34, 197, 94, 0.12)");
-    gradient.addColorStop(1, "rgba(34, 197, 94, 0.02)");
-    context.fillStyle = gradient;
-    context.fill();
+    if (field.kind === "rect") {
+      context.moveTo(field.x, field.y);
+      context.lineTo(field.x + field.width, field.y);
+      context.lineTo(field.x + field.width, field.y + field.height);
+      context.lineTo(field.x, field.y + field.height);
+      context.closePath();
+      context.fillStyle = "rgba(34, 197, 94, 0.12)";
+      context.fill();
+    } else {
+      context.moveTo(field.cx, field.cy);
+      context.arc(field.cx, field.cy, field.radius, field.startAngle, field.startAngle + field.sweep);
+      context.closePath();
+      const gradient = context.createRadialGradient(
+        field.cx,
+        field.cy,
+        field.radius * 0.1,
+        field.cx,
+        field.cy,
+        field.radius,
+      );
+      gradient.addColorStop(0, "rgba(34, 197, 94, 0.35)");
+      gradient.addColorStop(0.55, "rgba(34, 197, 94, 0.12)");
+      gradient.addColorStop(1, "rgba(34, 197, 94, 0.02)");
+      context.fillStyle = gradient;
+      context.fill();
+    }
     context.strokeStyle = "rgba(34, 197, 94, 0.55)";
     context.lineWidth = 2;
     context.stroke();
@@ -752,7 +820,7 @@ export function createScannerVisualRenderer(
 
     if (state.showLockFrame && targetMotion) {
       context.save();
-      drawFanMask(fan);
+      clipScanField(field);
       context.strokeStyle = "rgba(74, 222, 128, 0.9)";
       context.lineWidth = 3;
       context.strokeRect(
@@ -816,7 +884,7 @@ export function createScannerVisualRenderer(
         x: clientX - rect.left,
         y: clientY - rect.top,
       };
-      if (!isPointInFan(localPoint, computeFanGeometry(cssWidth, cssHeight))) {
+      if (!isPointInScanField(localPoint, getField())) {
         probeInside = false;
         return;
       }
