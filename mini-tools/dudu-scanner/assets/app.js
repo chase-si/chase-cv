@@ -3,7 +3,7 @@
   var MODE_COPY = {
     operator: { name: "成人协助模式", description: "游戏开始前，由成人指定角色。" },
     mystery: { name: "神秘扫描", description: "扫描仪会为这一轮悄悄选择一个角色。" },
-    custom: { name: "自定义扫描", description: "上传自己的图片，扫描时把它们找出来。" },
+    custom: { name: "自定义模式", description: "大人先上传食物照片，再让小朋友扫描肚肚猜答案。" },
   };
   var STATUS_COPY = {
     initializing: "正在初始化扫描仪…",
@@ -30,7 +30,7 @@
   var selectedCustomId = null;
   var lastRevealed = false;
   var lastLocking = false;
-  var timers = { auto: 0, lock: 0, transient: 0, revealRaf: 0, hud: 0, finale: 0, how: 0 };
+  var timers = { auto: 0, lock: 0, transient: 0, revealRaf: 0, hud: 0, finale: 0 };
   var reducedMotion = false;
   var targetImage = null;
   var speaking = false;
@@ -75,10 +75,6 @@
     healthText: document.getElementById("health-text"),
     discovery: document.getElementById("discovery-progress"),
     bridgeNotice: document.getElementById("bridge-notice"),
-    howProbe: document.getElementById("how-probe"),
-    howSpark: document.getElementById("how-spark"),
-    howStatus: document.getElementById("how-status"),
-    howSteps: document.getElementById("how-steps"),
   };
 
   function dispatch(action) {
@@ -615,25 +611,6 @@
     });
   }
 
-  function startHowDemo() {
-    var phase = 0;
-    function paint() {
-      var steps = els.howSteps.querySelectorAll("li");
-      Array.prototype.forEach.call(steps, function (li, index) {
-        li.classList.toggle("is-active", index === phase);
-      });
-      els.howProbe.classList.toggle("is-scan", phase > 0);
-      els.howSpark.classList.toggle("is-found", phase === 2);
-      els.howStatus.textContent = phase === 2 ? "发现信号" : "寻找信号";
-    }
-    paint();
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    timers.how = window.setInterval(function () {
-      phase = (phase + 1) % 3;
-      paint();
-    }, 1800);
-  }
-
   els.start.addEventListener("click", function () { startScan(false); });
   document.getElementById("btn-scan-back").addEventListener("click", returnToConfig);
   document.getElementById("btn-result-back").addEventListener("click", returnToConfig);
@@ -762,7 +739,6 @@
   renderTargets();
   updateConfigUi();
   showView("config");
-  startHowDemo();
   window.setInterval(function () {
     if (state.phase === "scan") els.hudTime.textContent = formatHudTime();
   }, 1000);

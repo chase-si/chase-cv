@@ -39,7 +39,7 @@ body {
 [hidden] { display: none !important; }
 
 .view-config {
-  padding: calc(0.75rem + var(--safe-top)) 1rem calc(1rem + var(--safe-bottom));
+  padding: calc(0.75rem + var(--safe-top)) 1rem 0;
   overflow: hidden;
 }
 
@@ -65,8 +65,20 @@ body {
   min-height: 0;
   flex: 1;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
   overflow: hidden;
+}
+
+.config-start-bar {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  padding: 0.65rem 1rem calc(0.75rem + var(--safe-bottom));
+  background: var(--background);
+}
+.config-start-bar .btn {
+  width: min(16rem, 100%);
 }
 
 .card {
@@ -168,91 +180,44 @@ body {
 }
 .sound-row span { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
 
-.how-card { display: flex; flex-direction: column; padding: 0.9rem; gap: 0.7rem; }
-.how-head { display: flex; justify-content: space-between; gap: 0.5rem; align-items: flex-start; }
-.chip {
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  background: rgba(168, 85, 247, 0.12);
-  color: var(--primary);
-  border-radius: 999px;
-  padding: 0.2rem 0.55rem;
-  font-size: 0.65rem;
-  font-weight: 700;
-}
-.how-demo {
-  display: grid;
-  grid-template-columns: 1.4fr 0.8fr;
-  gap: 0.5rem;
-  min-height: 8.5rem;
-}
-.how-belly, .how-screen {
-  position: relative;
-  border: 1px solid var(--border);
-  border-radius: 0.9rem;
-  background: var(--muted);
-  overflow: hidden;
-}
-.scene-label {
-  position: absolute;
-  left: 0.4rem;
-  top: 0.4rem;
-  z-index: 2;
-  font-size: 0.6rem;
-  font-weight: 700;
-  background: var(--background);
+.game-guide {
   border: 1px solid rgba(168, 85, 247, 0.35);
-  border-radius: 999px;
-  padding: 0.1rem 0.4rem;
-  color: var(--primary);
+  background: rgba(168, 85, 247, 0.08);
+  border-radius: 1rem;
+  padding: 0.75rem;
 }
-.how-probe {
-  position: absolute;
-  width: 1.1rem;
-  height: 1.8rem;
-  border: 2px solid var(--primary);
-  border-radius: 999px;
-  background: var(--card);
-  left: 18%;
-  top: 55%;
-  transition: transform 0.7s ease;
-}
-.how-probe.is-scan { transform: translate(70px, -18px) rotate(-12deg); }
-.how-spark {
-  display: flex;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  color: var(--primary);
-  opacity: 0.2;
-}
-.how-spark.is-found { opacity: 1; }
-.how-status {
-  position: absolute;
-  left: 0.4rem;
-  right: 0.4rem;
-  bottom: 0.4rem;
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--muted-foreground);
-}
-.how-steps {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.4rem;
+.game-guide-title { font-size: 0.85rem; font-weight: 800; }
+.game-guide-steps {
   list-style: none;
-  font-size: 0.7rem;
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+  counter-reset: game-step;
 }
-.how-steps li {
-  border-radius: 0.7rem;
-  padding: 0.45rem 0.4rem;
-  background: var(--muted);
-  color: var(--muted-foreground);
+.game-guide-steps li {
+  counter-increment: game-step;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: var(--card);
+  padding: 0.5rem 0.6rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
 }
-.how-steps li.is-active {
-  background: rgba(168, 85, 247, 0.12);
-  color: var(--foreground);
-  font-weight: 700;
+.game-guide-steps li::before {
+  content: counter(game-step);
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1.25rem;
+  text-align: center;
 }
 
 .btn {
@@ -400,6 +365,17 @@ body {
   gap: 0.5rem;
   flex-shrink: 0;
 }
+.operator-bar .btn {
+  white-space: normal;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.55rem;
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+.operator-bar .btn-ghost {
+  border-color: var(--border);
+  background: var(--card);
+}
 
 .view-result {
   align-items: center;
@@ -441,8 +417,8 @@ body {
 }
 
 @media (min-width: 720px) {
-  .config-grid { grid-template-columns: 1.4fr 1fr; }
   .mode-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .game-guide-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .target-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .hud-card { grid-template-columns: minmax(11rem, 0.8fr) minmax(0, 1.2fr); align-items: center; }
   .result-actions { grid-template-columns: 1fr 1fr; }

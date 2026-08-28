@@ -27,7 +27,6 @@
           <h1>肚肚扫描仪</h1>
           <p>选择扫描方式，调好音效，开始一轮有趣的肚肚扫描。</p>
         </div>
-        <button type="button" class="btn btn-primary" id="btn-start-scan">开始扫描</button>
       </header>
       <p class="safety-note">无需摄像头，只要移动屏幕上的探头。</p>
       <p id="asset-warning" class="banner" hidden>这个角色图没加载成功，可以换别的角色或稍后再试一次。</p>
@@ -49,15 +48,24 @@
             </div>
 
             <div id="custom-panel" hidden>
-              <h2>你的图片</h2>
-              <p class="muted">支持 PNG、JPEG、WebP，单张不超过 2 MB。最多 6 张。选中一张就扫选中的，不选则随机。</p>
+              <div class="game-guide">
+                <p class="game-guide-title">先准备今天的食物谜题（玩法推荐）</p>
+                <p class="muted">适合亲子一起玩：大人负责准备答案，小朋友负责扫描和猜。</p>
+                <ol class="game-guide-steps" aria-label="猜食物玩法准备步骤">
+                  <li>上传今天吃过的食物</li>
+                  <li>别让小朋友提前看到答案</li>
+                  <li>扫描肚肚，锁定后一起揭晓</li>
+                </ol>
+              </div>
+              <h2>今天吃过的食物照片</h2>
+              <p class="muted">选中一张可指定本轮答案；不选则由扫描仪随机抽取。最多 6 张，支持 PNG、JPEG、WebP，单张不超过 2 MB。</p>
               <div class="custom-actions">
-                <button type="button" class="btn btn-outline" id="btn-upload">上传</button>
+                <button type="button" class="btn btn-outline" id="btn-upload">上传食物照片</button>
                 <button type="button" class="btn btn-ghost" id="btn-clear-custom">清空图库</button>
               </div>
               <input id="custom-file" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden />
               <p id="custom-notice" class="notice" hidden></p>
-              <p id="start-blocked" class="notice" hidden>请先上传图片再开始扫描。</p>
+              <p id="start-blocked" class="notice" hidden>大人先上传至少一张今天吃过的食物照片，再开始游戏。</p>
               <div class="custom-thumbs" id="custom-thumbs"></div>
             </div>
 
@@ -70,32 +78,9 @@
             </label>
           </div>
         </article>
-
-        <article class="card how-card">
-          <div class="how-head">
-            <div>
-              <h2>玩法演示</h2>
-              <p class="muted">移动屏幕上的探头，对准肚肚区域。</p>
-            </div>
-            <span class="chip">演示</span>
-          </div>
-          <div class="how-demo" role="img" aria-label="用手指或鼠标控制探头，在肚肚区域移动扫描，然后观察结果。">
-            <div class="how-belly">
-              <span class="scene-label">屏幕上的肚肚区域</span>
-              <span class="how-probe" id="how-probe"></span>
-            </div>
-            <div class="how-screen">
-              <span class="scene-label">观察屏幕</span>
-              <span class="how-spark" id="how-spark">✦</span>
-              <p class="how-status" id="how-status">寻找信号</p>
-            </div>
-          </div>
-          <ol class="how-steps" id="how-steps">
-            <li class="is-active">移动探头</li>
-            <li>对准肚肚区域</li>
-            <li>查看屏幕</li>
-          </ol>
-        </article>
+      </div>
+      <div class="config-start-bar">
+        <button type="button" class="btn btn-primary" id="btn-start-scan">开始扫描</button>
       </div>
     </section>
 
@@ -136,9 +121,9 @@
       </div>
       <div class="operator-bar" id="operator-bar" hidden>
         <button type="button" class="btn btn-primary" data-cmd="LOCK_SIGNAL">锁定信号</button>
-        <button type="button" class="btn btn-secondary" data-cmd="TOGGLE_PAUSE" id="btn-pause">暂停扫描</button>
-        <button type="button" class="btn btn-secondary" data-cmd="FORCE_DISCOVERY" id="btn-reveal-hide">强制发现</button>
-        <button type="button" class="btn btn-secondary" data-cmd="RESTART_SCAN">重新扫描</button>
+        <button type="button" class="btn btn-ghost" data-cmd="TOGGLE_PAUSE" id="btn-pause">暂停扫描</button>
+        <button type="button" class="btn btn-ghost" data-cmd="FORCE_DISCOVERY" id="btn-reveal-hide">强制发现</button>
+        <button type="button" class="btn btn-ghost" data-cmd="RESTART_SCAN">重新扫描</button>
       </div>
     </section>
 
