@@ -1,0 +1,13 @@
+{
+  "viewport": {
+    "width": 432,
+    "height": 768
+  },
+  "output": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30
+  },
+  "target": "sleepy-bug",
+  "rawVideoPath": "/Users/chasewu/Documents/project/chase-cv/mini-tools/dudu-scanner/xiaohongshu/recording-raw.webm"
+}
