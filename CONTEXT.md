@@ -21,6 +21,8 @@ Flow **logic** lives under `lib/flow/`; presentation tokens in `lib/flow/svg-pre
 
 ## Floor-plan language
 
+Floor-plan domain **logic, types, and validators** live under `lib/floor-plan/`; contract specifications in `docs/floor-plan-contract.md`.
+
 **FloorPlan**:
 The canonical, scale-aware topology shared by templates, user edits, and image importers. It describes vertices, walls, ordered room boundaries, wall-bound openings, and furniture in real-world units.
 _Avoid_: Canvas state, CubiCasa result
