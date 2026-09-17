@@ -1,0 +1,270 @@
+import type { StandardFloorPlan } from "../types";
+import { VALID_STANDARD_FLOOR_PLAN } from "./valid-standard-plan";
+
+/**
+ * Modern Compact Studio (24 m²)
+ * Single large living/sleeping studio + modern bathroom
+ */
+export const STUDIO_STANDARD_FLOOR_PLAN: StandardFloorPlan = {
+  version: 1,
+  unit: "mm",
+  meta: {
+    id: "plan-std-studio-01",
+    name: "Modern Compact Studio",
+    source: "template",
+    isStandard: true,
+    createdAt: "2026-09-17T09:00:00.000Z",
+    updatedAt: "2026-09-17T09:00:00.000Z",
+    description: "Efficient open-concept studio apartment with integrated sleeping zone and separate bathroom",
+  },
+  vertices: [
+    { id: "sv1", x: 0, y: 0 },
+    { id: "sv2", x: 4000, y: 0 },
+    { id: "sv3", x: 4000, y: 4000 },
+    { id: "sv4", x: 4000, y: 6000 },
+    { id: "sv5", x: 0, y: 6000 },
+    { id: "sv6", x: 0, y: 4000 },
+  ],
+  walls: [
+    { id: "sw1", from: "sv1", to: "sv2", thickness: 200, lockAxis: "horizontal" },
+    { id: "sw2", from: "sv2", to: "sv3", thickness: 200, lockAxis: "vertical" },
+    { id: "sw3", from: "sv3", to: "sv4", thickness: 200, lockAxis: "vertical" },
+    { id: "sw4", from: "sv4", to: "sv5", thickness: 200, lockAxis: "horizontal" },
+    { id: "sw5", from: "sv5", to: "sv6", thickness: 200, lockAxis: "vertical" },
+    { id: "sw6", from: "sv6", to: "sv1", thickness: 200, lockAxis: "vertical" },
+    { id: "sw7", from: "sv6", to: "sv3", thickness: 120, lockAxis: "horizontal" },
+  ],
+  openings: [
+    {
+      id: "s-win1",
+      type: "window",
+      wallId: "sw1",
+      position: 0.5,
+      width: 1800,
+      height: 1500,
+    },
+    {
+      id: "s-door1",
+      type: "door",
+      wallId: "sw5",
+      position: 0.5,
+      width: 900,
+      height: 2100,
+    },
+    {
+      id: "s-door2",
+      type: "door",
+      wallId: "sw7",
+      position: 0.3,
+      width: 800,
+      height: 2100,
+    },
+  ],
+  rooms: [
+    {
+      id: "sr1",
+      type: "living_room",
+      name: "Studio Suite",
+      boundaryWallIds: ["sw1", "sw2", "sw7", "sw6"],
+    },
+    {
+      id: "sr2",
+      type: "bathroom",
+      name: "Bathroom",
+      boundaryWallIds: ["sw7", "sw3", "sw4", "sw5"],
+    },
+  ],
+  furniture: [
+    {
+      id: "sf1",
+      definitionId: "bed-single",
+      x: 1000,
+      y: 1100,
+      width: 1200,
+      depth: 2000,
+      rotation: 0,
+    },
+    {
+      id: "sf2",
+      definitionId: "desk",
+      x: 3200,
+      y: 1100,
+      width: 1200,
+      depth: 600,
+      rotation: 90,
+    },
+    {
+      id: "sf3",
+      definitionId: "sofa-3seat",
+      x: 2000,
+      y: 2800,
+      width: 2100,
+      depth: 900,
+      rotation: 0,
+    },
+  ],
+};
+
+/**
+ * 3BR Family Suite (63 m²)
+ * Living room + Master bedroom + Guest room/Study
+ */
+export const THREE_BED_STANDARD_FLOOR_PLAN: StandardFloorPlan = {
+  version: 1,
+  unit: "mm",
+  meta: {
+    id: "plan-std-3br-01",
+    name: "3BR Family Residence",
+    source: "template",
+    isStandard: true,
+    createdAt: "2026-09-17T09:30:00.000Z",
+    updatedAt: "2026-09-17T09:30:00.000Z",
+    description: "Family apartment featuring separate master suite, flexible study/guest bedroom, and bright central living zone",
+  },
+  vertices: [
+    { id: "tv1", x: 0, y: 0 },
+    { id: "tv2", x: 4500, y: 0 },
+    { id: "tv3", x: 9000, y: 0 },
+    { id: "tv4", x: 9000, y: 3500 },
+    { id: "tv5", x: 9000, y: 7000 },
+    { id: "tv6", x: 4500, y: 7000 },
+    { id: "tv7", x: 0, y: 7000 },
+    { id: "tv8", x: 4500, y: 3500 },
+  ],
+  walls: [
+    { id: "tw1", from: "tv1", to: "tv2", thickness: 200, lockAxis: "horizontal" },
+    { id: "tw2", from: "tv2", to: "tv3", thickness: 200, lockAxis: "horizontal" },
+    { id: "tw3", from: "tv3", to: "tv4", thickness: 200, lockAxis: "vertical" },
+    { id: "tw4", from: "tv4", to: "tv5", thickness: 200, lockAxis: "vertical" },
+    { id: "tw5", from: "tv5", to: "tv6", thickness: 200, lockAxis: "horizontal" },
+    { id: "tw6", from: "tv6", to: "tv7", thickness: 200, lockAxis: "horizontal" },
+    { id: "tw7", from: "tv7", to: "tv1", thickness: 200, lockAxis: "vertical" },
+    // Interior partition walls
+    { id: "tw8", from: "tv2", to: "tv8", thickness: 120, lockAxis: "vertical" },
+    { id: "tw9", from: "tv8", to: "tv6", thickness: 120, lockAxis: "vertical" },
+    { id: "tw10", from: "tv8", to: "tv4", thickness: 120, lockAxis: "horizontal" },
+  ],
+  openings: [
+    {
+      id: "t-win1",
+      type: "window",
+      wallId: "tw1",
+      position: 0.5,
+      width: 1800,
+      height: 1500,
+    },
+    {
+      id: "t-win2",
+      type: "window",
+      wallId: "tw2",
+      position: 0.5,
+      width: 1800,
+      height: 1500,
+    },
+    {
+      id: "t-win3",
+      type: "window",
+      wallId: "tw4",
+      position: 0.5,
+      width: 1500,
+      height: 1500,
+    },
+    {
+      id: "t-door1",
+      type: "door",
+      wallId: "tw7",
+      position: 0.5,
+      width: 1000,
+      height: 2100,
+    },
+    {
+      id: "t-door2",
+      type: "door",
+      wallId: "tw8",
+      position: 0.5,
+      width: 900,
+      height: 2100,
+    },
+    {
+      id: "t-door3",
+      type: "door",
+      wallId: "tw9",
+      position: 0.5,
+      width: 900,
+      height: 2100,
+    },
+  ],
+  rooms: [
+    {
+      id: "tr1",
+      type: "living_room",
+      name: "Living & Dining Room",
+      boundaryWallIds: ["tw1", "tw8", "tw9", "tw6", "tw7"],
+    },
+    {
+      id: "tr2",
+      type: "master_bedroom",
+      name: "Master Suite",
+      boundaryWallIds: ["tw2", "tw3", "tw10", "tw8"],
+    },
+    {
+      id: "tr3",
+      type: "bedroom",
+      name: "Second Bedroom",
+      boundaryWallIds: ["tw10", "tw4", "tw5", "tw9"],
+    },
+  ],
+  furniture: [
+    {
+      id: "tf1",
+      definitionId: "sofa-3seat",
+      x: 1500,
+      y: 2000,
+      width: 2100,
+      depth: 900,
+      rotation: 0,
+    },
+    {
+      id: "tf2",
+      definitionId: "dining-table-4",
+      x: 1500,
+      y: 5000,
+      width: 1400,
+      depth: 800,
+      rotation: 0,
+    },
+    {
+      id: "tf3",
+      definitionId: "bed-double",
+      x: 6500,
+      y: 1800,
+      width: 1800,
+      depth: 2000,
+      rotation: 0,
+    },
+    {
+      id: "tf4",
+      definitionId: "bed-single",
+      x: 6500,
+      y: 5200,
+      width: 1200,
+      depth: 2000,
+      rotation: 0,
+    },
+    {
+      id: "tf5",
+      definitionId: "wardrobe-large",
+      x: 8200,
+      y: 1800,
+      width: 1800,
+      depth: 600,
+      rotation: 90,
+    },
+  ],
+};
+
+export const STANDARD_FLOOR_PLANS: StandardFloorPlan[] = [
+  VALID_STANDARD_FLOOR_PLAN,
+  STUDIO_STANDARD_FLOOR_PLAN,
+  THREE_BED_STANDARD_FLOOR_PLAN,
+];

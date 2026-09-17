@@ -3,3 +3,6 @@ export * from "./validators";
 export * from "./migrations";
 export * from "./repository";
 export * from "./fixtures";
+export * from "./geometry";
+export * from "./view-transform";
+export * from "./catalog";
