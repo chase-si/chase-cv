@@ -89,6 +89,7 @@ export interface FloorPlanMeta {
   createdAt: string; // ISO 8601 string
   updatedAt: string; // ISO 8601 string
   isStandard?: boolean;
+  templateId?: string; // References original template ID if derived from a standard plan
   thumbnail?: string;
   description?: string;
 }

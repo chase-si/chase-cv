@@ -9,11 +9,15 @@ import {
   Layers,
   Maximize2,
   Minimize2,
+  Plus,
+  RotateCw,
   Square,
+  Trash2,
   X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { FloorPlan } from "@/lib/floor-plan";
 import {
   computeOpeningGeometry,
@@ -28,6 +32,8 @@ import type { EntitySelectHandler, SelectedEntity } from "./types";
 
 interface FloorPlanInspectorProps {
   plan: FloorPlan;
+  isDraftMode?: boolean;
+  onUpdatePlan?: (updated: FloorPlan) => void;
   selectedEntity: SelectedEntity | null;
   onSelect: EntitySelectHandler;
   className?: string;
@@ -35,6 +41,8 @@ interface FloorPlanInspectorProps {
 
 export function FloorPlanInspector({
   plan,
+  isDraftMode = false,
+  onUpdatePlan,
   selectedEntity,
   onSelect,
   className = "",
@@ -260,6 +268,53 @@ export function FloorPlanInspector({
               </span>
             </div>
           </div>
+
+          {isDraftMode && (
+            <div className="flex items-center gap-2 pt-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                data-testid="rotate-furniture-btn"
+                onClick={() => {
+                  const nextRot = ((selectedFurniture.rotation || 0) + 90) % 360;
+                  const updatedFurniture = plan.furniture.map((f) =>
+                    f.id === selectedFurniture.id ? { ...f, rotation: nextRot } : f,
+                  );
+                  onUpdatePlan?.({
+                    ...plan,
+                    furniture: updatedFurniture,
+                  });
+                }}
+                className="flex-1 h-8 text-xs flex items-center justify-center gap-1.5"
+              >
+                <RotateCw className="h-3.5 w-3.5 text-primary" />
+                <span>Rotate 90°</span>
+              </Button>
+
+              <Button
+                type="button"
+                size="sm"
+                variant="destructive"
+                data-testid="delete-furniture-btn"
+                onClick={() => {
+                  const updatedFurniture = plan.furniture.filter(
+                    (f) => f.id !== selectedFurniture.id,
+                  );
+                  onSelect(null);
+                  onUpdatePlan?.({
+                    ...plan,
+                    furniture: updatedFurniture,
+                  });
+                }}
+                className="h-8 px-2.5 text-xs flex items-center justify-center gap-1"
+                title="Delete furniture item"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>Delete</span>
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
@@ -272,10 +327,33 @@ export function FloorPlanInspector({
           </div>
 
           <div className="rounded-xl border border-border/80 bg-muted/20 p-3 space-y-2">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Plan Name</span>
-              <span className="font-semibold text-foreground">{plan.meta.name}</span>
-            </div>
+            {isDraftMode ? (
+              <div className="space-y-1">
+                <span className="text-[11px] text-muted-foreground block font-medium">
+                  Plan Name
+                </span>
+                <Input
+                  data-testid="edit-plan-name-input"
+                  value={plan.meta.name}
+                  onChange={(e) => {
+                    onUpdatePlan?.({
+                      ...plan,
+                      meta: {
+                        ...plan.meta,
+                        name: e.target.value,
+                      },
+                    });
+                  }}
+                  className="h-8 text-xs font-semibold bg-background"
+                  placeholder="Custom Plan Name"
+                />
+              </div>
+            ) : (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Plan Name</span>
+                <span className="font-semibold text-foreground">{plan.meta.name}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Total Area</span>
               <span className="font-mono font-semibold text-foreground">{totalArea.formattedAreaM2}</span>
@@ -289,6 +367,38 @@ export function FloorPlanInspector({
               <span className="font-mono text-foreground">v{plan.version}</span>
             </div>
           </div>
+
+          {isDraftMode && (
+            <div className="pt-1">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                data-testid="add-furniture-btn"
+                onClick={() => {
+                  const newId = `f-custom-${Date.now()}`;
+                  const newFurniture = {
+                    id: newId,
+                    definitionId: "chair-arm",
+                    x: 2000,
+                    y: 2000,
+                    width: 800,
+                    depth: 800,
+                    rotation: 0,
+                  };
+                  onUpdatePlan?.({
+                    ...plan,
+                    furniture: [...plan.furniture, newFurniture],
+                  });
+                  onSelect({ type: "furniture", id: newId });
+                }}
+                className="w-full h-8 text-xs flex items-center justify-center gap-1.5"
+              >
+                <Plus className="h-3.5 w-3.5 text-primary" />
+                <span>Add Furniture</span>
+              </Button>
+            </div>
+          )}
 
           <div className="space-y-1.5 pt-1">
             <span className="text-[11px] text-muted-foreground block">Topology Elements</span>

@@ -1,5 +1,9 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { MemoryDraftStorage } from "@/lib/floor-plan/draft-storage";
+import { getStandardPlans } from "@/lib/floor-plan/catalog";
+import { createOrResumeUserPlan } from "@/lib/floor-plan/user-plan";
+import { validateFloorPlan } from "@/lib/floor-plan/validators";
 import { FloorPlanShell } from "./floor-plan-shell";
 
 // Mock ResizeObserver for jsdom
@@ -34,6 +38,7 @@ describe("FloorPlanShell Integration", () => {
     expect(screen.getByTestId("floor-plan-catalog")).toBeInTheDocument();
     expect(screen.getByTestId("floor-plan-viewer-surface")).toBeInTheDocument();
     expect(screen.getByTestId("floor-plan-inspector")).toBeInTheDocument();
+    expect(screen.getByTestId("customize-plan-btn")).toBeInTheDocument();
   });
 
   it("switches plan when clicking on a different standard plan in the catalog", () => {
@@ -74,5 +79,145 @@ describe("FloorPlanShell Integration", () => {
     fireEvent.click(deselectBtn);
 
     expect(screen.getByTestId("inspector-plan-summary")).toBeInTheDocument();
+  });
+
+  describe("AC-2: Starting an edit creates User plan while source Standard plan remains unchanged", () => {
+    it("converts to User plan and keeps the source Standard plan byte-for-byte unchanged", async () => {
+      const standardPlans = getStandardPlans();
+      const standardPlan = standardPlans[0].plan;
+      const initialStandardJson = JSON.stringify(standardPlan);
+
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} initialPlans={standardPlans} />);
+
+      // Click "Customize Plan"
+      const customizeBtn = screen.getByTestId("customize-plan-btn");
+      fireEvent.click(customizeBtn);
+
+      // Now in draft mode: save status badge is shown
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+
+      // Edit plan name in inspector
+      const nameInput = screen.getByTestId("edit-plan-name-input");
+      fireEvent.change(nameInput, { target: { value: "My Modified Custom Suite" } });
+
+      // Check that header displays new name
+      await waitFor(() => {
+        expect(screen.getAllByText("My Modified Custom Suite").length).toBeGreaterThanOrEqual(1);
+      });
+
+      // Ensure the source Standard plan in memory remained byte-for-byte unchanged (AC-2)
+      expect(JSON.stringify(standardPlan)).toBe(initialStandardJson);
+    });
+  });
+
+  describe("AC-15: Autosave, Status Badge, Restore Prompt & Restart", () => {
+    it("automatically persists edits into storage with saved status badge", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // Start customize
+      fireEvent.click(screen.getByTestId("customize-plan-btn"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toHaveTextContent(/saved/i);
+      });
+
+      // Verify draft exists in storage
+      const draft = await storage.getDraft("plan-std-2br-01");
+      expect(draft).not.toBeNull();
+      expect(draft?.meta.source).toBe("user");
+
+      // Edit name
+      const nameInput = screen.getByTestId("edit-plan-name-input");
+      fireEvent.change(nameInput, { target: { value: "Autosaved User Plan" } });
+
+      await waitFor(async () => {
+        const updatedDraft = await storage.getDraft("plan-std-2br-01");
+        expect(updatedDraft?.meta.name).toBe("Autosaved User Plan");
+      });
+    });
+
+    it("displays restore prompt banner when standard plan has an existing draft", async () => {
+      const storage = new MemoryDraftStorage();
+      const standardPlans = getStandardPlans();
+      const template = standardPlans[0].plan;
+      const existingDraft = createOrResumeUserPlan(template);
+      existingDraft.meta.name = "Pre-existing Stored Draft";
+      await storage.saveDraft("plan-std-2br-01", existingDraft);
+
+      render(<FloorPlanShell storage={storage} initialPlans={standardPlans} />);
+
+      // Restore prompt banner is visible
+      await waitFor(() => {
+        expect(screen.getByTestId("draft-restore-banner")).toBeInTheDocument();
+        expect(screen.getByTestId("continue-draft-btn")).toBeInTheDocument();
+        expect(screen.getByTestId("discard-draft-btn")).toBeInTheDocument();
+      });
+
+      // Click "Continue draft"
+      fireEvent.click(screen.getByTestId("continue-draft-btn"));
+
+      // Banner closes and draft is loaded
+      await waitFor(() => {
+        expect(screen.queryByTestId("draft-restore-banner")).not.toBeInTheDocument();
+        expect(screen.getAllByText("Pre-existing Stored Draft").length).toBeGreaterThanOrEqual(1);
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+    });
+
+    it("restarts from template when clicking restart button, removing draft from storage", async () => {
+      const storage = new MemoryDraftStorage();
+      const standardPlans = getStandardPlans();
+      const template = standardPlans[0].plan;
+      const existingDraft = createOrResumeUserPlan(template);
+      existingDraft.meta.name = "Draft To Be Discarded";
+      await storage.saveDraft("plan-std-2br-01", existingDraft);
+
+      render(<FloorPlanShell storage={storage} initialPlans={standardPlans} />);
+
+      // Click "Restart from template" in banner
+      await waitFor(() => {
+        expect(screen.getByTestId("discard-draft-btn")).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByTestId("discard-draft-btn"));
+
+      // Banner gone, draft removed from storage, back to clean template
+      await waitFor(async () => {
+        expect(screen.queryByTestId("draft-restore-banner")).not.toBeInTheDocument();
+        expect(await storage.hasDraft("plan-std-2br-01")).toBe(false);
+        expect(screen.getAllByText("2BR-Nordic-Standard").length).toBeGreaterThanOrEqual(1);
+      });
+    });
+  });
+
+  describe("AC-16: Download / Export current User plan as valid JSON", () => {
+    it("exports current User plan as JSON that passes canonical validateFloorPlan", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // Start customize
+      fireEvent.click(screen.getByTestId("customize-plan-btn"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("export-json-btn")).toBeInTheDocument();
+      });
+
+      // Mock URL.createObjectURL and document.createElement
+      const createObjectURLSpy = vi.fn().mockReturnValue("blob:mock-url");
+      const revokeObjectURLSpy = vi.fn();
+      vi.stubGlobal("URL", {
+        createObjectURL: createObjectURLSpy,
+        revokeObjectURL: revokeObjectURLSpy,
+      });
+
+      // Click Export JSON
+      const exportBtn = screen.getByTestId("export-json-btn");
+      fireEvent.click(exportBtn);
+
+      expect(createObjectURLSpy).toHaveBeenCalled();
+    });
   });
 });
