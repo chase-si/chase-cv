@@ -7,6 +7,7 @@
  */
 
 export const FLOOR_PLAN_INTERNAL_ROUTE = "/floor-plan";
+export const FLOOR_PLAN_LAB_ROUTE = "/floor-plan/lab";
 
 export const FLOOR_PLAN_ROBOTS_METADATA = {
   index: false,
