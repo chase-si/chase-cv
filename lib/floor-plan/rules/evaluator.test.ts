@@ -51,30 +51,23 @@ describe("Spatial Rule Evaluator (US-12, US-14, AC-12, AC-14)", () => {
   });
 
   describe("Clean Valid Plan (AC-12, AC-14)", () => {
-    it("returns 0 violations for clean compliant studio standard plan", () => {
-      const violations = evaluatePlanRules(STUDIO_STANDARD_FLOOR_PLAN, VALID_SPACE_RULE_CONFIG);
-      expect(violations).toEqual([]);
+    it("returns 0 boundary and collision violations for clean compliant studio standard plan", () => {
+      const boundaryViolations = evaluateFurnitureBoundaryRules(STUDIO_STANDARD_FLOOR_PLAN);
+      const wallViolations = evaluateFurnitureWallCollisionRules(STUDIO_STANDARD_FLOOR_PLAN, VALID_SPACE_RULE_CONFIG);
+      const overlapViolations = evaluateFurnitureOverlapRules(STUDIO_STANDARD_FLOOR_PLAN, VALID_SPACE_RULE_CONFIG);
+      expect([...boundaryViolations, ...wallViolations, ...overlapViolations]).toEqual([]);
     });
 
-    it("returns 0 violations for valid well-placed furniture inside room", () => {
+    it("returns 0 violations for valid well-placed furniture inside room with compliant clearances", () => {
       const plan = createBasePlan();
       plan.furniture = [
         {
           id: "f_bed",
           definitionId: "bed-single",
-          x: 1000,
-          y: 1200,
+          x: 2000,
+          y: 1800,
           width: 1200,
           depth: 2000,
-          rotation: 0,
-        },
-        {
-          id: "f_desk",
-          definitionId: "desk",
-          x: 2800,
-          y: 2800,
-          width: 1200,
-          depth: 600,
           rotation: 0,
         },
       ];

@@ -98,8 +98,10 @@ export function RuleFeedbackPanel({
         <div className="flex items-center gap-2">
           {violations.length === 0 ? (
             <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
-          ) : (
+          ) : errorCount > 0 ? (
             <ShieldAlert className="h-4 w-4 text-destructive shrink-0" />
+          ) : (
+            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
           )}
           <span className="font-semibold text-xs text-foreground">Spatial Rules</span>
         </div>
@@ -112,13 +114,21 @@ export function RuleFeedbackPanel({
             >
               0 Issues
             </Badge>
+          ) : errorCount > 0 ? (
+            <Badge
+              data-testid="rule-violations-count-badge"
+              variant="outline"
+              className="text-[10px] font-mono px-2 py-0.5 border-destructive/40 text-destructive bg-destructive/10"
+            >
+              {violations.length} {violations.length === 1 ? "Issue" : "Issues"}
+            </Badge>
           ) : (
             <Badge
               data-testid="rule-violations-count-badge"
-              variant="destructive"
-              className="text-[10px] font-mono px-2 py-0.5"
+              variant="outline"
+              className="text-[10px] font-mono border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5"
             >
-              {violations.length} {violations.length === 1 ? "Issue" : "Issues"}
+              {violations.length} {violations.length === 1 ? "Warning" : "Warnings"}
             </Badge>
           )}
 
@@ -146,7 +156,7 @@ export function RuleFeedbackPanel({
             >
               <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
               <span className="leading-snug">
-                All room boundaries, wall clearance, and overlap rules passed.
+                All room boundaries, clearances, passages, and spatial rules passed.
               </span>
             </div>
           ) : (
@@ -155,11 +165,13 @@ export function RuleFeedbackPanel({
                 const isError = v.severity === "error";
                 const isWarning = v.severity === "warning";
 
+                const isAreaRule =
+                  v.ruleId === "furniture-wall-collision" || v.ruleId === "furniture-overlap";
                 const formattedMeasured =
                   v.measuredValue !== undefined
-                    ? v.ruleId === "furniture-boundary"
-                      ? `${v.measuredValue} mm`
-                      : `${v.measuredValue} mm²`
+                    ? isAreaRule
+                      ? `${v.measuredValue} mm²`
+                      : `${v.measuredValue} mm`
                     : null;
 
                 return (

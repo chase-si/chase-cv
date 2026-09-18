@@ -4,6 +4,9 @@ export type SpatialRuleId =
   | "furniture-boundary"
   | "furniture-wall-collision"
   | "furniture-overlap"
+  | "opening-keep-clear"
+  | "furniture-clearance"
+  | "local-passage"
   | string;
 
 /**

@@ -155,4 +155,84 @@ describe("FloorPlanSvgViewer (AC-3 & AC-4)", () => {
     expect(fEl).toHaveAttribute("data-has-violation", "true");
     expect(screen.getByTestId("furniture-violation-badge-f_violating")).toBeInTheDocument();
   });
+
+  it("renders opening keep-clear overlay when door is selected or has clearance violation (AC-13)", () => {
+    const onSelect = vi.fn();
+    const { rerender } = render(
+      <FloorPlanSvgViewer
+        plan={VALID_STANDARD_FLOOR_PLAN}
+        selectedEntity={{ type: "opening", id: "door1" }}
+        onSelect={onSelect}
+      />,
+    );
+
+    // Opening clearance overlay should appear when door1 is selected
+    expect(screen.getByTestId("floor-plan-clearance-layer")).toBeInTheDocument();
+    expect(screen.getByTestId("opening-clearance-overlay-door1")).toBeInTheDocument();
+
+    // Rerender with active violation
+    const violationResult = [
+      {
+        ruleId: "opening-keep-clear" as const,
+        severity: "warning" as const,
+        relatedEntityIds: ["door1", "f1"],
+        relatedObjectIds: ["door1", "f1"],
+        measuredValue: 400,
+        recommendedValue: "900 mm",
+        title: "Opening Keep-Clear Zone",
+        message: "Door clearance encroached",
+      },
+    ];
+
+    rerender(
+      <FloorPlanSvgViewer
+        plan={VALID_STANDARD_FLOOR_PLAN}
+        selectedEntity={null}
+        violations={violationResult}
+        onSelect={onSelect}
+      />,
+    );
+
+    expect(screen.getByTestId("opening-clearance-overlay-door1")).toBeInTheDocument();
+  });
+
+  it("renders furniture clearance zone overlay when furniture is selected or has clearance violation (AC-13)", () => {
+    const onSelect = vi.fn();
+    const { rerender } = render(
+      <FloorPlanSvgViewer
+        plan={VALID_STANDARD_FLOOR_PLAN}
+        selectedEntity={{ type: "furniture", id: "f2" }} // f2 is bed-double
+        onSelect={onSelect}
+      />,
+    );
+
+    // Bed f2 has clearance zones (left, right, front)
+    expect(screen.getByTestId("furniture-clearance-overlay-f2")).toBeInTheDocument();
+
+    // Rerender with furniture clearance violation
+    const clearanceViolation = [
+      {
+        ruleId: "furniture-clearance" as const,
+        severity: "warning" as const,
+        relatedEntityIds: ["f2", "w7"],
+        relatedObjectIds: ["f2", "w7"],
+        measuredValue: 300,
+        recommendedValue: "600 mm",
+        title: "Furniture Clearance Guidance",
+        message: "Bed side clearance encroached",
+      },
+    ];
+
+    rerender(
+      <FloorPlanSvgViewer
+        plan={VALID_STANDARD_FLOOR_PLAN}
+        selectedEntity={null}
+        violations={clearanceViolation}
+        onSelect={onSelect}
+      />,
+    );
+
+    expect(screen.getByTestId("furniture-clearance-overlay-f2")).toBeInTheDocument();
+  });
 });
+

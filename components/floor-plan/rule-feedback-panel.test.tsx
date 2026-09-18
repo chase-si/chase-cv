@@ -140,4 +140,61 @@ describe("RuleFeedbackPanel Component (US-12, US-14, AC-12, AC-14)", () => {
     fireEvent.click(toggleBtn);
     expect(screen.getByTestId("rule-violations-list")).toBeInTheDocument();
   });
+
+  it("renders clearance and passage warnings with mm units and distinct warning styling (AC-13, AC-14)", () => {
+    const handleSelect = vi.fn();
+    const clearanceViolations: RuleResult[] = [
+      {
+        ruleId: "opening-keep-clear",
+        severity: "warning",
+        relatedEntityIds: ["door1", "f1"],
+        relatedObjectIds: ["door1", "f1"],
+        measuredValue: 350,
+        recommendedValue: "900 mm",
+        title: "Opening Keep-Clear Zone",
+        message: 'Layout guidance: Door "door1" keep-clear zone is encroached by furniture "f1". Clear distance is 350 mm (recommended at least 900 mm).',
+      },
+      {
+        ruleId: "furniture-clearance",
+        severity: "warning",
+        relatedEntityIds: ["f1", "w1"],
+        relatedObjectIds: ["f1", "w1"],
+        measuredValue: 200,
+        recommendedValue: "600 mm",
+        title: "Furniture Clearance Guidance",
+        message: 'Layout guidance: Furniture "f1" left side clearance is encroached by wall "w1".',
+      },
+      {
+        ruleId: "local-passage",
+        severity: "warning",
+        relatedEntityIds: ["f1", "f2"],
+        relatedObjectIds: ["f1", "f2"],
+        measuredValue: 400,
+        recommendedValue: "600 mm",
+        title: "Local Passage Clearance",
+        message: 'Layout guidance: Local passage width between "f1" and "f2" is 400 mm.',
+      },
+    ];
+
+    render(
+      <RuleFeedbackPanel
+        plan={STUDIO_STANDARD_FLOOR_PLAN}
+        ruleResults={clearanceViolations}
+        selectedEntity={null}
+        onSelect={handleSelect}
+      />,
+    );
+
+    // Verify warning rules are rendered with mm units
+    expect(screen.getByTestId("rule-violation-opening-keep-clear")).toBeInTheDocument();
+    expect(screen.getByTestId("measured-val-opening-keep-clear")).toHaveTextContent("350 mm");
+    expect(screen.getByTestId("recommended-val-opening-keep-clear")).toHaveTextContent("900 mm");
+
+    expect(screen.getByTestId("rule-violation-furniture-clearance")).toBeInTheDocument();
+    expect(screen.getByTestId("measured-val-furniture-clearance")).toHaveTextContent("200 mm");
+
+    expect(screen.getByTestId("rule-violation-local-passage")).toBeInTheDocument();
+    expect(screen.getByTestId("measured-val-local-passage")).toHaveTextContent("400 mm");
+  });
 });
+
