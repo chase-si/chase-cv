@@ -1,5 +1,6 @@
 import type { StandardFloorPlan } from "../types";
 import { VALID_STANDARD_FLOOR_PLAN } from "./valid-standard-plan";
+import { CHINA_REPRESENTATIVE_FLOOR_PLANS } from "./china-representative-plans";
 
 /**
  * Modern Compact Studio (24 m²)
@@ -267,4 +268,5 @@ export const STANDARD_FLOOR_PLANS: StandardFloorPlan[] = [
   VALID_STANDARD_FLOOR_PLAN,
   STUDIO_STANDARD_FLOOR_PLAN,
   THREE_BED_STANDARD_FLOOR_PLAN,
+  ...CHINA_REPRESENTATIVE_FLOOR_PLANS,
 ];

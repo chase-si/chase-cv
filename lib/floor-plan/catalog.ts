@@ -48,10 +48,40 @@ const PLAN_TAGS: Record<string, string[]> = {
   "plan-std-3br-01": ["Family", "3-Room", "Spacious"],
 };
 
+export function resolvePlanTags(plan: StandardFloorPlan): string[] {
+  const id = (plan.meta.id ?? "").toLowerCase();
+  if (PLAN_TAGS[id]) {
+    return PLAN_TAGS[id];
+  }
+
+  const tags: string[] = [];
+  if (id.includes("studio")) {
+    tags.push("Studio", "Compact", "Open Plan");
+  } else if (id.includes("1b1l")) {
+    tags.push("1-Bedroom", "Couples", "Standard");
+  } else if (id.includes("2b1l")) {
+    tags.push("2-Bedroom", "Single-Bath", "Starter");
+  } else if (id.includes("2b2l")) {
+    tags.push("2-Bedroom", "Double-Living", "Balanced");
+  } else if (id.includes("3b1l")) {
+    tags.push("3-Bedroom", "Family", "Practical");
+  } else if (id.includes("3b2l")) {
+    tags.push("3-Bedroom", "Double-Bath", "Comfort");
+  } else if (id.includes("4b2l")) {
+    tags.push("4-Bedroom", "Multi-Gen", "Spacious");
+  } else if (id.includes("5b2l")) {
+    tags.push("5-Bedroom", "Penthouse", "Luxury");
+  } else {
+    tags.push("Standard");
+  }
+
+  return tags;
+}
+
 export function buildStandardPlanSummary(plan: StandardFloorPlan): StandardPlanSummary {
   const id = plan.meta.id ?? plan.meta.name;
   const areaResult = computePlanTotalArea(plan);
-  const tags = PLAN_TAGS[id] ?? ["Standard"];
+  const tags = resolvePlanTags(plan);
 
   return {
     id,
