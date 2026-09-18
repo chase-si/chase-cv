@@ -3,4 +3,6 @@ export * from "./floor-plan-thumbnail";
 export * from "./floor-plan-catalog";
 export * from "./floor-plan-svg-viewer";
 export * from "./floor-plan-inspector";
+export * from "./room-span-editor";
+export * from "./opening-editor";
 export * from "./floor-plan-shell";

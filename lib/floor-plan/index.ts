@@ -9,3 +9,4 @@ export * from "./catalog";
 export * from "./user-plan";
 export * from "./draft-storage";
 export * from "./room-adjustment";
+export * from "./opening-adjustment";
