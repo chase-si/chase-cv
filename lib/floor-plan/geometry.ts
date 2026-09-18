@@ -275,35 +275,60 @@ export function computeRoomPolygon(
   }
 
   const walls: Wall[] = [];
+  const seenWallIds = new Set<string>();
   for (const id of room.boundaryWallIds) {
+    if (seenWallIds.has(id)) continue;
+    seenWallIds.add(id);
     const w = wallMap.get(id);
-    if (w) walls.push(w);
+    if (w && w.from !== w.to) {
+      walls.push(w);
+    }
   }
 
   if (walls.length === 0) return [];
 
-  // Chain vertices in contiguous order
-  const orderedVertexIds: string[] = [];
-
   if (walls.length === 1) {
-    orderedVertexIds.push(walls[0].from, walls[0].to);
-  } else {
-    // Determine direction of first wall based on wall 1
-    const w0 = walls[0];
-    const w1 = walls[1];
-    let curr = (w1.from === w0.to || w1.to === w0.to) ? w0.to : w0.from;
-    const startVertex = (curr === w0.to) ? w0.from : w0.to;
+    const p1 = vertexMap.get(walls[0].from);
+    const p2 = vertexMap.get(walls[0].to);
+    const pts: Point[] = [];
+    if (p1) pts.push({ x: p1.x, y: p1.y });
+    if (p2) pts.push({ x: p2.x, y: p2.y });
+    return pts;
+  }
 
-    orderedVertexIds.push(startVertex, curr);
+  // Build adjacency graph: vertexId -> array of connected vertexIds
+  const adj = new Map<string, string[]>();
+  for (const w of walls) {
+    if (!adj.has(w.from)) adj.set(w.from, []);
+    if (!adj.has(w.to)) adj.set(w.to, []);
+    const fromList = adj.get(w.from)!;
+    const toList = adj.get(w.to)!;
+    if (!fromList.includes(w.to)) fromList.push(w.to);
+    if (!toList.includes(w.from)) toList.push(w.from);
+  }
 
-    for (let i = 1; i < walls.length; i++) {
-      const w = walls[i];
-      const next = (w.from === curr) ? w.to : (w.to === curr) ? w.from : (w.from !== orderedVertexIds[orderedVertexIds.length - 1] ? w.from : w.to);
-      if (next && next !== startVertex && !orderedVertexIds.includes(next)) {
-        orderedVertexIds.push(next);
-      }
-      curr = next;
+  // If there's an endpoint with degree 1 (open chain), start there; otherwise start at walls[0].from
+  let startVertex = walls[0].from;
+  for (const [vid, neighbors] of adj.entries()) {
+    if (neighbors.length === 1) {
+      startVertex = vid;
+      break;
     }
+  }
+
+  const orderedVertexIds: string[] = [startVertex];
+  let curr = startVertex;
+  let prev: string | null = null;
+
+  while (orderedVertexIds.length < adj.size) {
+    const neighbors = adj.get(curr) || [];
+    const next = neighbors.find((n) => n !== prev && !orderedVertexIds.includes(n));
+    if (!next) {
+      break;
+    }
+    orderedVertexIds.push(next);
+    prev = curr;
+    curr = next;
   }
 
   const points: Point[] = [];
@@ -314,6 +339,7 @@ export function computeRoomPolygon(
 
   return points;
 }
+
 
 /**
  * Compute polygon area using the Shoelace formula.

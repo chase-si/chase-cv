@@ -13,6 +13,7 @@ import {
 } from "./geometry";
 import { VALID_STANDARD_FLOOR_PLAN } from "./fixtures/valid-standard-plan";
 import { STUDIO_STANDARD_FLOOR_PLAN, THREE_BED_STANDARD_FLOOR_PLAN } from "./fixtures/standard-plans";
+import { PLAN_CN_STUDIO_01 } from "./fixtures/china-representative-plans";
 
 describe("FloorPlan geometry calculations", () => {
   it("computes accurate plan bounds including walls and furniture", () => {
@@ -69,6 +70,46 @@ describe("FloorPlan geometry calculations", () => {
     expect(centroid.x).toBeCloseTo(1500, -1);
     expect(centroid.y).toBeCloseTo(2500, -1);
   });
+
+  it("computes complete closed polygon even when boundary wall IDs are shuffled / unordered", () => {
+    const vertexMap = getVertexMap(VALID_STANDARD_FLOOR_PLAN);
+    const wallMap = getWallMap(VALID_STANDARD_FLOOR_PLAN);
+    const room1 = VALID_STANDARD_FLOOR_PLAN.rooms[0];
+
+    // Artificially shuffle boundary walls: [w1, w3, w4, w2] or non-consecutive opposite walls
+    const shuffledRoom = {
+      ...room1,
+      boundaryWallIds: [room1.boundaryWallIds[0], room1.boundaryWallIds[2], room1.boundaryWallIds[1], room1.boundaryWallIds[3]],
+    };
+
+    const polygon = computeRoomPolygon(shuffledRoom, wallMap, vertexMap);
+    expect(polygon.length).toBe(4);
+
+    const area = computePolygonArea(polygon);
+    expect(area.areaM2).toBeCloseTo(15.0, 1);
+  });
+
+  it("resolves all room polygons accurately in China representative floor plan", () => {
+    const vMap = getVertexMap(PLAN_CN_STUDIO_01);
+    const wMap = getWallMap(PLAN_CN_STUDIO_01);
+
+    const bedroom = PLAN_CN_STUDIO_01.rooms.find((r) => r.id === "r1")!;
+    const kitchen = PLAN_CN_STUDIO_01.rooms.find((r) => r.id === "r2")!;
+    const bathroom = PLAN_CN_STUDIO_01.rooms.find((r) => r.id === "r3")!;
+
+    const polyBed = computeRoomPolygon(bedroom, wMap, vMap);
+    expect(polyBed.length).toBe(5);
+    expect(computePolygonArea(polyBed).areaM2).toBeCloseTo(16.8, 1);
+
+    const polyKit = computeRoomPolygon(kitchen, wMap, vMap);
+    expect(polyKit.length).toBe(4);
+    expect(computePolygonArea(polyKit).areaM2).toBeCloseTo(5.67, 1);
+
+    const polyBath = computeRoomPolygon(bathroom, wMap, vMap);
+    expect(polyBath.length).toBe(4);
+    expect(computePolygonArea(polyBath).areaM2).toBeCloseTo(4.41, 1);
+  });
+
 
   it("computes total plan area across rooms", () => {
     const totalArea2Br = computePlanTotalArea(VALID_STANDARD_FLOOR_PLAN);
