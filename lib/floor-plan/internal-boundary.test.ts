@@ -4,10 +4,12 @@ import { buildSitemapEntries } from "@/lib/seo/sitemap-entries";
 import { projectNavigationItems } from "@/lib/projects";
 import {
   FLOOR_PLAN_INTERNAL_ROUTE,
+  FLOOR_PLAN_LAB_ROUTE,
   FLOOR_PLAN_ROBOTS_METADATA,
   isFloorPlanInternalEnabled,
 } from "./internal-boundary";
-import { generateMetadata } from "@/app/[locale]/floor-plan/page";
+import { generateMetadata as generateEditorMetadata } from "@/app/[locale]/floor-plan/page";
+import { generateMetadata as generateLabMetadata } from "@/app/[locale]/floor-plan/lab/page";
 
 describe("Floor Plan Internal Release Boundary (AC-19)", () => {
   describe("Route Registry and Sitemap Exclusions", () => {
@@ -18,6 +20,9 @@ describe("Floor Plan Internal Release Boundary (AC-19)", () => {
       expect(indexedPathnames).not.toContain("/floor-plan");
       expect(indexedPathnames).not.toContain("/zh/floor-plan");
       expect(indexedPathnames).not.toContain("/en/floor-plan");
+      expect(indexedPathnames).not.toContain("/floor-plan/lab");
+      expect(indexedPathnames).not.toContain("/zh/floor-plan/lab");
+      expect(indexedPathnames).not.toContain("/en/floor-plan/lab");
 
       const hasFloorPlanInRoutes = indexedRoutes.some(
         (r) => r.pathname.includes("floor-plan") || r.pathname.includes("recognition"),
@@ -39,6 +44,7 @@ describe("Floor Plan Internal Release Boundary (AC-19)", () => {
       const projectHrefs = projectNavigationItems.map((p) => p.href);
       expect(projectHrefs).not.toContain("/floor-plan");
       expect(projectHrefs).not.toContain(FLOOR_PLAN_INTERNAL_ROUTE);
+      expect(projectHrefs).not.toContain(FLOOR_PLAN_LAB_ROUTE);
       expect(projectNavigationItems.some((p) => p.id as string === "floorPlan")).toBe(false);
     });
   });
@@ -52,13 +58,27 @@ describe("Floor Plan Internal Release Boundary (AC-19)", () => {
     });
 
     it("emits noindex and nofollow metadata from the floor plan page route", async () => {
-      const metaZh = await generateMetadata({ params: Promise.resolve({ locale: "zh" }) });
+      const metaZh = await generateEditorMetadata({ params: Promise.resolve({ locale: "zh" }) });
       expect(metaZh.robots).toEqual({
         index: false,
         follow: false,
       });
 
-      const metaEn = await generateMetadata({ params: Promise.resolve({ locale: "en" }) });
+      const metaEn = await generateEditorMetadata({ params: Promise.resolve({ locale: "en" }) });
+      expect(metaEn.robots).toEqual({
+        index: false,
+        follow: false,
+      });
+    });
+
+    it("emits noindex and nofollow metadata from the recognition lab page route", async () => {
+      const metaZh = await generateLabMetadata({ params: Promise.resolve({ locale: "zh" }) });
+      expect(metaZh.robots).toEqual({
+        index: false,
+        follow: false,
+      });
+
+      const metaEn = await generateLabMetadata({ params: Promise.resolve({ locale: "en" }) });
       expect(metaEn.robots).toEqual({
         index: false,
         follow: false,

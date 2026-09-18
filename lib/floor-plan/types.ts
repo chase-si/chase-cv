@@ -92,6 +92,9 @@ export interface FloorPlanMeta {
   templateId?: string; // References original template ID if derived from a standard plan
   thumbnail?: string;
   description?: string;
+  unscaled?: boolean;
+  scaled?: boolean;
+  scaleMmPerPixel?: number;
 }
 
 /**

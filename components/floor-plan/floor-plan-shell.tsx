@@ -54,8 +54,10 @@ import { MobileBottomSheet } from "./mobile-bottom-sheet";
 import { FurnitureCatalogPalette } from "./furniture-catalog-palette";
 import { RuleFeedbackPanel } from "./rule-feedback-panel";
 
-interface FloorPlanShellProps {
+export interface FloorPlanShellProps {
   initialPlans?: StandardPlanSummary[];
+  initialActivePlan?: FloorPlan;
+  onPlanChange?: (plan: FloorPlan) => void;
   storage?: FloorPlanDraftStorage;
   isMobile?: boolean;
 }
@@ -103,6 +105,8 @@ export function useIsMobile(propIsMobile?: boolean): boolean {
 
 export function FloorPlanShell({
   initialPlans,
+  initialActivePlan,
+  onPlanChange,
   storage: customStorage,
   isMobile: propIsMobile,
 }: FloorPlanShellProps) {
@@ -110,9 +114,31 @@ export function FloorPlanShell({
   const defaultStorage = React.useMemo(() => createDraftStorage(), []);
   const storage = customStorage ?? defaultStorage;
 
-  const plans = React.useMemo(() => initialPlans ?? getStandardPlans(), [initialPlans]);
+  const recognizedSummary = React.useMemo<StandardPlanSummary | null>(() => {
+    if (!initialActivePlan) return null;
+    return {
+      id: initialActivePlan.meta.id ?? "plan-custom-recognized",
+      name: initialActivePlan.meta.name,
+      description: initialActivePlan.meta.unscaled ? "CubiCasa Uncalibrated Plan" : "CubiCasa Calibrated Plan",
+      areaM2: 0,
+      formattedArea: initialActivePlan.meta.unscaled ? "Uncalibrated" : "Calibrated",
+      roomCount: initialActivePlan.rooms.length,
+      roomBreakdown: `${initialActivePlan.rooms.length} rooms`,
+      tags: [initialActivePlan.meta.source, initialActivePlan.meta.unscaled ? "Unscaled" : "Calibrated"],
+      plan: initialActivePlan as unknown as StandardPlanSummary["plan"],
+    };
+  }, [initialActivePlan]);
+
+  const basePlans = React.useMemo(() => initialPlans ?? getStandardPlans(), [initialPlans]);
+  const plans = React.useMemo(() => {
+    if (recognizedSummary) {
+      return [recognizedSummary, ...basePlans.filter((p) => p.id !== recognizedSummary.id)];
+    }
+    return basePlans;
+  }, [basePlans, recognizedSummary]);
+
   const [activePlanId, setActivePlanId] = React.useState<string>(
-    plans[0]?.id ?? "plan-std-2br-01",
+    initialActivePlan?.meta.id ?? plans[0]?.id ?? "plan-std-2br-01",
   );
   const [selectedEntity, setSelectedEntity] = React.useState<SelectedEntity | null>(null);
 
@@ -131,12 +157,14 @@ export function FloorPlanShell({
 
   // Active FloorPlan being viewed or edited
   const [currentPlan, setCurrentPlan] = React.useState<FloorPlan>(
-    activePlanSummary ? activePlanSummary.plan : ({} as FloorPlan),
+    initialActivePlan ?? (activePlanSummary ? activePlanSummary.plan : ({} as FloorPlan)),
   );
   const [history, setHistory] = React.useState<PlanHistory>(() =>
-    createPlanHistory(activePlanSummary ? activePlanSummary.plan : ({} as FloorPlan)),
+    createPlanHistory(
+      initialActivePlan ?? (activePlanSummary ? activePlanSummary.plan : ({} as FloorPlan)),
+    ),
   );
-  const [isDraftMode, setIsDraftMode] = React.useState<boolean>(false);
+  const [isDraftMode, setIsDraftMode] = React.useState<boolean>(Boolean(initialActivePlan));
   const [saveStatus, setSaveStatus] = React.useState<"idle" | "saving" | "saved" | "failed">("idle");
   const [storedDraft, setStoredDraft] = React.useState<FloorPlan | null>(null);
   const [promptRestore, setPromptRestore] = React.useState<boolean>(false);
@@ -229,6 +257,7 @@ export function FloorPlanShell({
   const handleUpdatePlan = React.useCallback(
     async (updatedPlan: FloorPlan, description?: string) => {
       setCurrentPlan(updatedPlan);
+      onPlanChange?.(updatedPlan);
       setHistory((prev) => commitPlanChange(prev, updatedPlan, description));
       setSaveStatus("saving");
 
@@ -240,7 +269,7 @@ export function FloorPlanShell({
         setSaveStatus("failed");
       }
     },
-    [activePlanId, storage],
+    [activePlanId, storage, onPlanChange],
   );
 
   // Undo committed operation (AC-8)
@@ -463,6 +492,19 @@ export function FloorPlanShell({
                 ? "Issues"
                 : "Warnings"}
           </span>
+        </Badge>
+      )}
+
+      {/* Uncalibrated Scale Advisory Badge (AC-21) */}
+      {currentPlan.meta?.unscaled && (
+        <Badge
+          data-testid="shell-unscaled-badge"
+          variant="outline"
+          className="inline-flex items-center gap-1.5 text-xs font-mono px-2 py-0.5 border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10"
+          title="Uncalibrated geometry: Dimension-dependent clearance rules are suppressed"
+        >
+          <AlertTriangle className="h-3 w-3 text-amber-500" />
+          <span>Uncalibrated (Clearances Suppressed)</span>
         </Badge>
       )}
 

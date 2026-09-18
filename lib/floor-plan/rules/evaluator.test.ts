@@ -389,4 +389,40 @@ describe("Spatial Rule Evaluator (US-12, US-14, AC-12, AC-14)", () => {
       expect(overlapResults).toHaveLength(0);
     });
   });
+
+  describe("Unscaled Plan Clearance Suppression (AC-21)", () => {
+    it("suppresses dimension-dependent clearance rules when plan is marked unscaled", () => {
+      const plan = createBasePlan();
+      plan.meta.unscaled = true;
+
+      // Add a door opening with furniture in keep-clear zone
+      plan.openings = [
+        { id: "door-1", type: "door", wallId: "w_top", position: 0.5, width: 900 },
+      ];
+      plan.furniture = [
+        {
+          id: "bed-1",
+          definitionId: "bed_double_1800",
+          x: 2000,
+          y: 400, // Encroaching into 900mm door zone and near walls
+          width: 1800,
+          depth: 2000,
+          rotation: 0,
+        },
+      ];
+
+      // When unscaled, clearance conclusions must be suppressed
+      const resultsUnscaled = evaluatePlanRules(plan, VALID_SPACE_RULE_CONFIG);
+      const clearanceRuleIds = ["opening-keep-clear", "furniture-clearance", "local-passage"];
+      const suppressedResults = resultsUnscaled.filter((r) => clearanceRuleIds.includes(r.ruleId));
+      expect(suppressedResults).toHaveLength(0);
+
+      // When scaled, clearance conclusions ARE emitted
+      plan.meta.unscaled = false;
+      plan.meta.scaled = true;
+      const resultsScaled = evaluatePlanRules(plan, VALID_SPACE_RULE_CONFIG);
+      const activeClearanceResults = resultsScaled.filter((r) => clearanceRuleIds.includes(r.ruleId));
+      expect(activeClearanceResults.length).toBeGreaterThan(0);
+    });
+  });
 });
