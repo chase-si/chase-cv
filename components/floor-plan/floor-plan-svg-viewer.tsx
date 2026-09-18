@@ -19,7 +19,12 @@ import {
 } from "@/lib/floor-plan/view-transform";
 import type { EntitySelectHandler, SelectedEntity } from "./types";
 import { moveFurnitureInstance, rotateFurnitureInstance } from "@/lib/floor-plan/furniture-operations";
-import { evaluatePlanRules, type RuleResult } from "@/lib/floor-plan/rules";
+import {
+  computeFurnitureClearanceZones,
+  computeOpeningKeepClearZone,
+  evaluatePlanRules,
+  type RuleResult,
+} from "@/lib/floor-plan/rules";
 import { SvgDimension } from "./svg/svg-dimension";
 import { SvgFurniture } from "./svg/svg-furniture";
 import { SvgOpening } from "./svg/svg-opening";
@@ -79,6 +84,34 @@ export function FloorPlanSvgViewer({
       for (const entityId of v.relatedEntityIds) {
         if (plan.furniture.some((f) => f.id === entityId)) {
           set.add(entityId);
+        }
+      }
+    }
+    return set;
+  }, [evaluatedViolations, plan.furniture]);
+
+  const openingViolationIds = React.useMemo(() => {
+    const set = new Set<string>();
+    for (const v of evaluatedViolations) {
+      if (v.ruleId === "opening-keep-clear") {
+        for (const entityId of v.relatedEntityIds) {
+          if (plan.openings.some((o) => o.id === entityId)) {
+            set.add(entityId);
+          }
+        }
+      }
+    }
+    return set;
+  }, [evaluatedViolations, plan.openings]);
+
+  const furnitureClearanceViolationIds = React.useMemo(() => {
+    const set = new Set<string>();
+    for (const v of evaluatedViolations) {
+      if (v.ruleId === "furniture-clearance" || v.ruleId === "local-passage") {
+        for (const entityId of v.relatedEntityIds) {
+          if (plan.furniture.some((f) => f.id === entityId)) {
+            set.add(entityId);
+          }
         }
       }
     }
@@ -341,6 +374,99 @@ export function FloorPlanSvgViewer({
                 onSelect={onSelect}
               />
             ))}
+          </g>
+
+          {/* Clearance & Keep-Clear Overlays Layer (AC-13) */}
+          <g data-testid="floor-plan-clearance-layer" className="pointer-events-none select-none">
+            {/* Door Keep-Clear Overlays */}
+            {plan.openings.map((op) => {
+              if (op.type !== "door") return null;
+              const wall = wallMap.get(op.wallId);
+              if (!wall) return null;
+
+              const isSelected = selectedEntity?.type === "opening" && selectedEntity.id === op.id;
+              const hasViolation = openingViolationIds.has(op.id);
+
+              if (!isSelected && !hasViolation) return null;
+
+              const zone = computeOpeningKeepClearZone(op, wall, vertexMap);
+              if (!zone) return null;
+
+              const sideAStr = zone.sideAPoints.map((p) => `${p.x},${p.y}`).join(" ");
+              const sideBStr = zone.sideBPoints.map((p) => `${p.x},${p.y}`).join(" ");
+
+              const strokeColor = hasViolation ? "#f59e0b" : "#3b82f6";
+              const fillColor = hasViolation ? "rgba(245, 158, 11, 0.12)" : "rgba(59, 130, 246, 0.08)";
+
+              return (
+                <g
+                  key={`clearance-door-${op.id}`}
+                  data-testid={`opening-clearance-overlay-${op.id}`}
+                  data-violation={hasViolation ? "true" : "false"}
+                >
+                  <polygon
+                    points={sideAStr}
+                    fill={fillColor}
+                    stroke={strokeColor}
+                    strokeWidth={14}
+                    strokeDasharray="40 20"
+                  />
+                  <polygon
+                    points={sideBStr}
+                    fill={fillColor}
+                    stroke={strokeColor}
+                    strokeWidth={14}
+                    strokeDasharray="40 20"
+                  />
+                </g>
+              );
+            })}
+
+            {/* Furniture Clearance Overlays */}
+            {plan.furniture.map((f) => {
+              const isSelected = selectedEntity?.type === "furniture" && selectedEntity.id === f.id;
+              const hasViolation = furnitureClearanceViolationIds.has(f.id);
+
+              if (!isSelected && !hasViolation) return null;
+
+              const renderedFurniture =
+                draggingFurniture?.id === f.id
+                  ? {
+                      ...f,
+                      x: draggingFurniture.currentX,
+                      y: draggingFurniture.currentY,
+                    }
+                  : f;
+
+              const zones = computeFurnitureClearanceZones(renderedFurniture);
+              if (zones.length === 0) return null;
+
+              const strokeColor = hasViolation ? "#f59e0b" : "#3b82f6";
+              const fillColor = hasViolation ? "rgba(245, 158, 11, 0.12)" : "rgba(59, 130, 246, 0.08)";
+
+              return (
+                <g
+                  key={`clearance-furniture-${f.id}`}
+                  data-testid={`furniture-clearance-overlay-${f.id}`}
+                  data-violation={hasViolation ? "true" : "false"}
+                >
+                  {zones.map((zone, zIdx) => {
+                    const pointsStr = zone.zonePolygon.map((p) => `${p.x},${p.y}`).join(" ");
+                    return (
+                      <polygon
+                        key={`${f.id}-zone-${zone.side}-${zIdx}`}
+                        data-clearance-side={zone.side}
+                        points={pointsStr}
+                        fill={fillColor}
+                        stroke={strokeColor}
+                        strokeWidth={14}
+                        strokeDasharray="40 20"
+                      />
+                    );
+                  })}
+                </g>
+              );
+            })}
           </g>
 
           {/* 3. Openings Layer */}

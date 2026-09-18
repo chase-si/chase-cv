@@ -11,6 +11,11 @@ import {
   computeOverlapArea,
   isPointInPolygon,
 } from "./geometry";
+import {
+  evaluateFurnitureClearanceRules,
+  evaluateLocalPassageRules,
+  evaluateOpeningClearanceRules,
+} from "./clearance";
 import type { RuleResult } from "./types";
 
 /**
@@ -18,6 +23,7 @@ import type { RuleResult } from "./types";
  * 10 mm² is 0.00001 m², well below meaningful furniture placement tolerances.
  */
 const OVERLAP_AREA_THRESHOLD_MM2 = 10;
+
 
 /**
  * Evaluate boundary violations (AC-12, AC-14).
@@ -215,8 +221,18 @@ export function evaluatePlanRules(
   const boundaryViolations = evaluateFurnitureBoundaryRules(plan, config);
   const wallViolations = evaluateFurnitureWallCollisionRules(plan, config);
   const overlapViolations = evaluateFurnitureOverlapRules(plan, config);
+  const openingViolations = evaluateOpeningClearanceRules(plan, config);
+  const furnitureClearanceViolations = evaluateFurnitureClearanceRules(plan, config);
+  const passageViolations = evaluateLocalPassageRules(plan, config);
 
-  const all = [...boundaryViolations, ...wallViolations, ...overlapViolations];
+  const all = [
+    ...boundaryViolations,
+    ...wallViolations,
+    ...overlapViolations,
+    ...openingViolations,
+    ...furnitureClearanceViolations,
+    ...passageViolations,
+  ];
 
   // Deterministic sorting by severity ("error" -> "warning" -> "info"), then ruleId, then first entity id
   const severityOrder: Record<string, number> = { error: 0, warning: 1, info: 2 };

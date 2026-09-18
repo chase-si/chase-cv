@@ -237,3 +237,122 @@ export function computeMinDistanceToPolygon(point: Point, polygon: Point[]): num
 
   return minDist;
 }
+
+/**
+ * Check if two line segments intersect.
+ */
+export function doSegmentsIntersect(
+  a1: Point,
+  a2: Point,
+  b1: Point,
+  b2: Point,
+): boolean {
+  const cross = (p: Point, q: Point, r: Point) =>
+    (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+
+  const onSegment = (p: Point, q: Point, r: Point) =>
+    q.x <= Math.max(p.x, r.x) + 1e-6 &&
+    q.x >= Math.min(p.x, r.x) - 1e-6 &&
+    q.y <= Math.max(p.y, r.y) + 1e-6 &&
+    q.y >= Math.min(p.y, r.y) - 1e-6;
+
+  const d1 = cross(b1, b2, a1);
+  const d2 = cross(b1, b2, a2);
+  const d3 = cross(a1, a2, b1);
+  const d4 = cross(a1, a2, b2);
+
+  if (
+    ((d1 > 1e-6 && d2 < -1e-6) || (d1 < -1e-6 && d2 > 1e-6)) &&
+    ((d3 > 1e-6 && d4 < -1e-6) || (d3 < -1e-6 && d4 > 1e-6))
+  ) {
+    return true;
+  }
+
+  if (Math.abs(d1) <= 1e-6 && onSegment(b1, a1, b2)) return true;
+  if (Math.abs(d2) <= 1e-6 && onSegment(b1, a2, b2)) return true;
+  if (Math.abs(d3) <= 1e-6 && onSegment(a1, b1, a2)) return true;
+  if (Math.abs(d4) <= 1e-6 && onSegment(a1, b2, a2)) return true;
+
+  return false;
+}
+
+/**
+ * Calculate the minimum Euclidean distance between two line segments.
+ */
+export function segmentToSegmentDistance(
+  a1: Point,
+  a2: Point,
+  b1: Point,
+  b2: Point,
+): number {
+  if (doSegmentsIntersect(a1, a2, b1, b2)) {
+    return 0;
+  }
+  return Math.min(
+    pointToSegmentDistance(a1, b1, b2),
+    pointToSegmentDistance(a2, b1, b2),
+    pointToSegmentDistance(b1, a1, a2),
+    pointToSegmentDistance(b2, a1, a2),
+  );
+}
+
+/**
+ * Calculate the minimum Euclidean distance from a polygon to a line segment.
+ */
+export function polygonToSegmentDistance(
+  poly: Point[],
+  s1: Point,
+  s2: Point,
+): number {
+  if (poly.length === 0) return Infinity;
+  if (isPointInPolygon(s1, poly) || isPointInPolygon(s2, poly)) return 0;
+
+  let minDist = Infinity;
+  const n = poly.length;
+  for (let i = 0; i < n; i++) {
+    const p1 = poly[i];
+    const p2 = poly[(i + 1) % n];
+    const dist = segmentToSegmentDistance(p1, p2, s1, s2);
+    if (dist < minDist) {
+      minDist = dist;
+    }
+  }
+
+  return minDist;
+}
+
+/**
+ * Calculate the minimum Euclidean distance between two polygons.
+ */
+export function polygonToPolygonDistance(
+  polyA: Point[],
+  polyB: Point[],
+): number {
+  if (polyA.length === 0 || polyB.length === 0) return Infinity;
+  if (doConvexPolygonsIntersect(polyA, polyB)) return 0;
+
+  // Also check if any vertex is inside the other
+  if (polyA.some((p) => isPointInPolygon(p, polyB)) || polyB.some((p) => isPointInPolygon(p, polyA))) {
+    return 0;
+  }
+
+  let minDist = Infinity;
+  const nA = polyA.length;
+  const nB = polyB.length;
+
+  for (let i = 0; i < nA; i++) {
+    const a1 = polyA[i];
+    const a2 = polyA[(i + 1) % nA];
+    for (let j = 0; j < nB; j++) {
+      const b1 = polyB[j];
+      const b2 = polyB[(j + 1) % nB];
+      const dist = segmentToSegmentDistance(a1, a2, b1, b2);
+      if (dist < minDist) {
+        minDist = dist;
+      }
+    }
+  }
+
+  return minDist;
+}
+
