@@ -14,7 +14,7 @@ import { createOrResumeUserPlan } from "./user-plan";
 
 describe("AC-15: Draft Storage Repository & Dual Adapters", () => {
   const templatePlan = VALID_STANDARD_FLOOR_PLAN;
-  const templateId = templatePlan.meta.id ?? "plan-std-2br-01";
+  const templateId = templatePlan.meta.id ?? "floor-plan-std-2b1l-01";
 
   describe("MemoryDraftStorage", () => {
     let storage: FloorPlanDraftStorage;
@@ -53,8 +53,8 @@ describe("AC-15: Draft Storage Repository & Dual Adapters", () => {
     });
 
     it("isolates drafts across different template IDs", async () => {
-      const template1 = "plan-std-2br-01";
-      const template2 = "plan-std-studio-01";
+      const template1 = "floor-plan-std-2b1l-01";
+      const template2 = "floor-plan-std-studio-01";
 
       const plan1 = createOrResumeUserPlan(templatePlan);
       plan1.meta.name = "Plan 1 Draft";

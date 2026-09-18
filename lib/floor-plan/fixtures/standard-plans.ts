@@ -1,6 +1,4 @@
 import type { StandardFloorPlan } from "../types";
-import { VALID_STANDARD_FLOOR_PLAN } from "./valid-standard-plan";
-import { CHINA_REPRESENTATIVE_FLOOR_PLANS } from "./china-representative-plans";
 
 /**
  * Modern Compact Studio (24 m²)
@@ -10,7 +8,7 @@ export const STUDIO_STANDARD_FLOOR_PLAN: StandardFloorPlan = {
   version: 1,
   unit: "mm",
   meta: {
-    id: "plan-std-studio-01",
+    id: "floor-plan-std-studio-01",
     name: "Modern Compact Studio",
     source: "template",
     isStandard: true,
@@ -114,7 +112,7 @@ export const THREE_BED_STANDARD_FLOOR_PLAN: StandardFloorPlan = {
   version: 1,
   unit: "mm",
   meta: {
-    id: "plan-std-3br-01",
+    id: "floor-plan-std-3b1l-01",
     name: "3BR Family Residence",
     source: "template",
     isStandard: true,
@@ -263,10 +261,3 @@ export const THREE_BED_STANDARD_FLOOR_PLAN: StandardFloorPlan = {
     },
   ],
 };
-
-export const STANDARD_FLOOR_PLANS: StandardFloorPlan[] = [
-  VALID_STANDARD_FLOOR_PLAN,
-  STUDIO_STANDARD_FLOOR_PLAN,
-  THREE_BED_STANDARD_FLOOR_PLAN,
-  ...CHINA_REPRESENTATIVE_FLOOR_PLANS,
-];

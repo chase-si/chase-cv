@@ -44,13 +44,13 @@ describe("FloorPlanShell Integration", () => {
   it("switches plan when clicking on a different standard plan in the catalog", () => {
     render(<FloorPlanShell />);
 
-    // Default plan is 2BR-Nordic-Standard
+    // The catalogue begins with the first standardized studio plan.
     expect(
-      screen.getByTestId("plan-name-plan-std-2br-01"),
-    ).toHaveTextContent("2BR-Nordic-Standard");
+      screen.getByTestId("plan-name-floor-plan-std-studio-01"),
+    ).toHaveTextContent("Modern Compact Studio");
 
     // Select Studio plan
-    const studioOpenBtn = screen.getByTestId("open-plan-btn-plan-std-studio-01");
+    const studioOpenBtn = screen.getByTestId("open-plan-btn-floor-plan-std-studio-01");
     fireEvent.click(studioOpenBtn);
 
     // Header badge updates
@@ -126,7 +126,7 @@ describe("FloorPlanShell Integration", () => {
       });
 
       // Verify draft exists in storage
-      const draft = await storage.getDraft("plan-std-2br-01");
+      const draft = await storage.getDraft("floor-plan-std-2b1l-01");
       expect(draft).not.toBeNull();
       expect(draft?.meta.source).toBe("user");
 
@@ -135,7 +135,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.change(nameInput, { target: { value: "Autosaved User Plan" } });
 
       await waitFor(async () => {
-        const updatedDraft = await storage.getDraft("plan-std-2br-01");
+        const updatedDraft = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(updatedDraft?.meta.name).toBe("Autosaved User Plan");
       });
     });
@@ -146,7 +146,7 @@ describe("FloorPlanShell Integration", () => {
       const template = standardPlans[0].plan;
       const existingDraft = createOrResumeUserPlan(template);
       existingDraft.meta.name = "Pre-existing Stored Draft";
-      await storage.saveDraft("plan-std-2br-01", existingDraft);
+      await storage.saveDraft("floor-plan-std-2b1l-01", existingDraft);
 
       render(<FloorPlanShell storage={storage} initialPlans={standardPlans} />);
 
@@ -174,7 +174,7 @@ describe("FloorPlanShell Integration", () => {
       const template = standardPlans[0].plan;
       const existingDraft = createOrResumeUserPlan(template);
       existingDraft.meta.name = "Draft To Be Discarded";
-      await storage.saveDraft("plan-std-2br-01", existingDraft);
+      await storage.saveDraft("floor-plan-std-2b1l-01", existingDraft);
 
       render(<FloorPlanShell storage={storage} initialPlans={standardPlans} />);
 
@@ -187,7 +187,7 @@ describe("FloorPlanShell Integration", () => {
       // Banner gone, draft removed from storage, back to clean template
       await waitFor(async () => {
         expect(screen.queryByTestId("draft-restore-banner")).not.toBeInTheDocument();
-        expect(await storage.hasDraft("plan-std-2br-01")).toBe(false);
+        expect(await storage.hasDraft("floor-plan-std-2b1l-01")).toBe(false);
         expect(screen.getAllByText("2BR-Nordic-Standard").length).toBeGreaterThanOrEqual(1);
       });
     });
@@ -252,7 +252,7 @@ describe("FloorPlanShell Integration", () => {
 
       // 5. Verify plan updated and autosaved to storage
       await waitFor(async () => {
-        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        const savedDraft = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(savedDraft).not.toBeNull();
         const v2 = savedDraft?.vertices.find((v) => v.id === "v2");
         expect(v2?.x).toBe(3600);
@@ -292,7 +292,7 @@ describe("FloorPlanShell Integration", () => {
       expect(screen.getByTestId("span-error-message")).toHaveTextContent(/at least 600 mm/i);
 
       // Storage has not been mutated to invalid state
-      const savedDraft = await storage.getDraft("plan-std-2br-01");
+      const savedDraft = await storage.getDraft("floor-plan-std-2b1l-01");
       const v2 = savedDraft?.vertices.find((v) => v.id === "v2");
       expect(v2?.x).toBe(3000); // Original intact
     });
@@ -328,7 +328,7 @@ describe("FloorPlanShell Integration", () => {
 
       // 5. Verify autosaved in storage
       await waitFor(async () => {
-        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        const savedDraft = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(savedDraft).not.toBeNull();
         const door = savedDraft?.openings.find((o) => o.id === "door1");
         expect(door?.width).toBe(1100);
@@ -368,7 +368,7 @@ describe("FloorPlanShell Integration", () => {
 
       // 5. Verify furniture item added with default dimensions (1400 x 800) and autosaved
       await waitFor(async () => {
-        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        const savedDraft = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(savedDraft).not.toBeNull();
         const added = savedDraft?.furniture.find((f) => f.definitionId === "dining-table-4");
         expect(added).toBeDefined();
@@ -401,7 +401,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("rotate-furniture-btn"));
 
       await waitFor(async () => {
-        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        const savedDraft = await storage.getDraft("floor-plan-std-2b1l-01");
         const sofa = savedDraft?.furniture.find((f) => f.id === "f1");
         expect(sofa?.rotation).toBe(90);
       });
@@ -422,7 +422,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("apply-furniture-btn"));
 
       await waitFor(async () => {
-        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        const savedDraft = await storage.getDraft("floor-plan-std-2b1l-01");
         const sofa = savedDraft?.furniture.find((f) => f.id === "f1");
         expect(sofa?.width).toBe(2200);
         expect(sofa?.depth).toBe(950);
@@ -432,7 +432,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("delete-furniture-btn"));
 
       await waitFor(async () => {
-        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        const savedDraft = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(savedDraft?.furniture.some((f) => f.id === "f1")).toBe(false);
       });
     });
@@ -505,7 +505,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("apply-span-btn"));
 
       await waitFor(async () => {
-        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        const savedDraft = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(savedDraft?.vertices.find((v) => v.id === "v2")?.x).toBe(3600);
       });
 
@@ -514,7 +514,7 @@ describe("FloorPlanShell Integration", () => {
 
       // Vertex x should be reverted to 3000 in storage and room display
       await waitFor(async () => {
-        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        const savedDraft = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(savedDraft?.vertices.find((v) => v.id === "v2")?.x).toBe(3000);
         expect(screen.getByTestId("floor-plan-room-r1")).toHaveTextContent("15.0 m²");
       });
@@ -524,7 +524,7 @@ describe("FloorPlanShell Integration", () => {
 
       // Vertex x should be restored to 3600
       await waitFor(async () => {
-        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        const savedDraft = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(savedDraft?.vertices.find((v) => v.id === "v2")?.x).toBe(3600);
         expect(screen.getByTestId("floor-plan-room-r1")).toHaveTextContent("18.0 m²");
       });
@@ -552,7 +552,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("apply-opening-btn"));
 
       await waitFor(async () => {
-        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        const savedDraft = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(savedDraft?.openings.find((o) => o.id === "door1")?.width).toBe(1100);
       });
 
@@ -560,7 +560,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("undo-btn"));
 
       await waitFor(async () => {
-        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        const savedDraft = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(savedDraft?.openings.find((o) => o.id === "door1")?.width).toBe(900);
       });
 
@@ -568,7 +568,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("redo-btn"));
 
       await waitFor(async () => {
-        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        const savedDraft = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(savedDraft?.openings.find((o) => o.id === "door1")?.width).toBe(1100);
       });
     });
@@ -593,7 +593,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("rotate-furniture-btn"));
 
       await waitFor(async () => {
-        const saved = await storage.getDraft("plan-std-2br-01");
+        const saved = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(90);
       });
 
@@ -601,7 +601,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("delete-furniture-btn"));
 
       await waitFor(async () => {
-        const saved = await storage.getDraft("plan-std-2br-01");
+        const saved = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(saved?.furniture.some((f) => f.id === "f1")).toBe(false);
       });
 
@@ -609,7 +609,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("undo-btn"));
 
       await waitFor(async () => {
-        const saved = await storage.getDraft("plan-std-2br-01");
+        const saved = await storage.getDraft("floor-plan-std-2b1l-01");
         const sofa = saved?.furniture.find((f) => f.id === "f1");
         expect(sofa).toBeDefined();
         expect(sofa?.rotation).toBe(90);
@@ -619,7 +619,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("undo-btn"));
 
       await waitFor(async () => {
-        const saved = await storage.getDraft("plan-std-2br-01");
+        const saved = await storage.getDraft("floor-plan-std-2b1l-01");
         const sofa = saved?.furniture.find((f) => f.id === "f1");
         expect(sofa?.rotation).toBe(0);
       });
@@ -628,7 +628,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("redo-btn"));
 
       await waitFor(async () => {
-        const saved = await storage.getDraft("plan-std-2br-01");
+        const saved = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(90);
       });
 
@@ -636,7 +636,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("redo-btn"));
 
       await waitFor(async () => {
-        const saved = await storage.getDraft("plan-std-2br-01");
+        const saved = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(saved?.furniture.some((f) => f.id === "f1")).toBe(false);
       });
     });
@@ -659,7 +659,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("rotate-furniture-btn"));
 
       await waitFor(async () => {
-        const saved = await storage.getDraft("plan-std-2br-01");
+        const saved = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(90);
       });
 
@@ -667,7 +667,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.keyDown(window, { key: "z", metaKey: true });
 
       await waitFor(async () => {
-        const saved = await storage.getDraft("plan-std-2br-01");
+        const saved = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(0);
       });
 
@@ -675,7 +675,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.keyDown(window, { key: "z", metaKey: true, shiftKey: true });
 
       await waitFor(async () => {
-        const saved = await storage.getDraft("plan-std-2br-01");
+        const saved = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(90);
       });
 
@@ -683,7 +683,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.keyDown(window, { key: "z", ctrlKey: true });
 
       await waitFor(async () => {
-        const saved = await storage.getDraft("plan-std-2br-01");
+        const saved = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(0);
       });
 
@@ -691,7 +691,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.keyDown(window, { key: "y", ctrlKey: true });
 
       await waitFor(async () => {
-        const saved = await storage.getDraft("plan-std-2br-01");
+        const saved = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(90);
       });
     });
@@ -714,7 +714,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("rotate-furniture-btn"));
 
       await waitFor(async () => {
-        const saved = await storage.getDraft("plan-std-2br-01");
+        const saved = await storage.getDraft("floor-plan-std-2b1l-01");
         expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(90);
       });
 
@@ -726,7 +726,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.keyDown(input, { key: "z", metaKey: true });
 
       // Plan should NOT have undone
-      const saved = await storage.getDraft("plan-std-2br-01");
+      const saved = await storage.getDraft("floor-plan-std-2b1l-01");
       expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(90);
     });
 
@@ -774,7 +774,7 @@ describe("FloorPlanShell Integration", () => {
       render(<FloorPlanShell storage={storage} />);
 
       // Switch to studio plan (which has 0 violations initially)
-      fireEvent.click(screen.getByTestId("catalog-plan-card-plan-std-studio-01"));
+      fireEvent.click(screen.getByTestId("catalog-plan-card-floor-plan-std-studio-01"));
 
       // Customize plan into editable draft
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
@@ -807,4 +807,3 @@ describe("FloorPlanShell Integration", () => {
     });
   });
 });
-

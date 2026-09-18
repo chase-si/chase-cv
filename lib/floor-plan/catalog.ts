@@ -1,4 +1,4 @@
-import { STANDARD_FLOOR_PLANS } from "./fixtures/standard-plans";
+import { FLOOR_PLAN_CATALOG_DATA } from "./catalog-data";
 import { computePlanTotalArea } from "./geometry";
 import type { StandardFloorPlan } from "./types";
 
@@ -53,9 +53,9 @@ export function resolvePlanCategory(plan: StandardFloorPlan): FloorPlanCategoryK
   const id = (plan.meta.id ?? "").toLowerCase();
   if (id.includes("studio")) return "studio";
   if (id.includes("1b1l")) return "1b1l";
-  if (id.includes("2b1l") || id === "plan-std-2br-01") return "2b1l";
+  if (id.includes("2b1l")) return "2b1l";
   if (id.includes("2b2l")) return "2b2l";
-  if (id.includes("3b1l") || id === "plan-std-3br-01") return "3b1l";
+  if (id.includes("3b1l")) return "3b1l";
   if (id.includes("3b2l")) return "3b2l";
   if (id.includes("4b2l") || id.includes("5b2l") || id.includes("4b") || id.includes("5b")) return "4b_plus";
 
@@ -79,13 +79,13 @@ export function resolvePlanTags(plan: StandardFloorPlan, locale?: string): strin
   if (id.includes("1b1l")) {
     return [isZh ? "一室一厅" : "1B1L"];
   }
-  if (id.includes("2b1l") || id === "plan-std-2br-01") {
+  if (id.includes("2b1l")) {
     return [isZh ? "两室一厅" : "2B1L"];
   }
   if (id.includes("2b2l")) {
     return [isZh ? "两室两厅" : "2B2L"];
   }
-  if (id.includes("3b1l") || id === "plan-std-3br-01") {
+  if (id.includes("3b1l")) {
     return [isZh ? "三室一厅" : "3B1L"];
   }
   if (id.includes("3b2l")) {
@@ -130,7 +130,7 @@ export function buildStandardPlanSummary(plan: StandardFloorPlan, locale?: strin
 }
 
 export function getStandardPlans(locale?: string): StandardPlanSummary[] {
-  return STANDARD_FLOOR_PLANS.map((p) => buildStandardPlanSummary(p, locale));
+  return FLOOR_PLAN_CATALOG_DATA.map((p) => buildStandardPlanSummary(p, locale));
 }
 
 export function getStandardPlanById(id: string, locale?: string): StandardPlanSummary | undefined {

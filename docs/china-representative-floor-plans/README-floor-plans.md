@@ -19,8 +19,7 @@
 
 ## 文件
 
-- `china-representative-floor-plans.ts`：42 个显式 `StandardFloorPlan` 对象与总索引 `CHINA_REPRESENTATIVE_FLOOR_PLANS`。
-- `floor-plan-summary.json`：每套户型的对象数量摘要，便于快速检查和生成 UI 列表。
+- `../../lib/floor-plan/catalog-data.ts`：唯一的户型目录数据源，包含 42 个显式 `StandardFloorPlan` 对象与 `FLOOR_PLAN_CATALOG_DATA` 索引。
 - `generate-floor-plans.mjs`：可重复生成数据的脚本；生成后会自动做 ID 与引用完整性检查。
 
 ## 使用方法
@@ -32,10 +31,10 @@ import type { StandardFloorPlan } from "@/types/floor-plan";
 ```
 
 ```ts
-import { CHINA_REPRESENTATIVE_FLOOR_PLANS } from "./china-representative-floor-plans";
+import { FLOOR_PLAN_CATALOG_DATA } from "../../lib/floor-plan/catalog-data";
 
-const threeBedroomPlans = CHINA_REPRESENTATIVE_FLOOR_PLANS.filter((plan) =>
-  plan.meta.id.startsWith("plan-cn-3b"),
+const threeBedroomPlans = FLOOR_PLAN_CATALOG_DATA.filter((plan) =>
+  plan.meta.id.startsWith("floor-plan-cn-3b"),
 );
 ```
 

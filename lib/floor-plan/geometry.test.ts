@@ -13,7 +13,7 @@ import {
 } from "./geometry";
 import { VALID_STANDARD_FLOOR_PLAN } from "./fixtures/valid-standard-plan";
 import { STUDIO_STANDARD_FLOOR_PLAN, THREE_BED_STANDARD_FLOOR_PLAN } from "./fixtures/standard-plans";
-import { PLAN_CN_STUDIO_01 } from "./fixtures/china-representative-plans";
+import { PLAN_CN_STUDIO_01 } from "./catalog-data";
 
 describe("FloorPlan geometry calculations", () => {
   it("computes accurate plan bounds including walls and furniture", () => {

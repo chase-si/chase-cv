@@ -4,7 +4,7 @@ export const VALID_STANDARD_FLOOR_PLAN: StandardFloorPlan = {
   version: 1,
   unit: "mm",
   meta: {
-    id: "plan-std-2br-01",
+    id: "floor-plan-std-2b1l-01",
     name: "2BR-Nordic-Standard",
     source: "template",
     isStandard: true,

@@ -28,7 +28,11 @@ import {
   CardScrollArea,
   CardTitle,
 } from "@/components/ui/card";
-import { getStandardPlans, type StandardPlanSummary } from "@/lib/floor-plan/catalog";
+import {
+  getStandardPlans,
+  resolvePlanCategory,
+  type StandardPlanSummary,
+} from "@/lib/floor-plan/catalog";
 import { createDraftStorage, type FloorPlanDraftStorage } from "@/lib/floor-plan/draft-storage";
 import {
   canRedo,
@@ -144,6 +148,9 @@ export function FloorPlanShell({
         locale === "zh"
           ? `${initialActivePlan.rooms.length} 间功能区`
           : `${initialActivePlan.rooms.length} rooms`,
+      categoryKey: resolvePlanCategory(
+        initialActivePlan as StandardPlanSummary["plan"],
+      ),
       tags: [
         initialActivePlan.meta.source,
         initialActivePlan.meta.unscaled
@@ -170,7 +177,7 @@ export function FloorPlanShell({
   }, [basePlans, recognizedSummary]);
 
   const [activePlanId, setActivePlanId] = React.useState<string>(
-    initialActivePlan?.meta.id ?? plans[0]?.id ?? "plan-std-2br-01",
+    initialActivePlan?.meta.id ?? plans[0]?.id ?? "floor-plan-std-2b1l-01",
   );
   const [selectedEntity, setSelectedEntity] = React.useState<SelectedEntity | null>(null);
 
