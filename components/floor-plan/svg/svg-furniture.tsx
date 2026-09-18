@@ -9,6 +9,7 @@ interface SvgFurnitureProps {
   isDraftMode?: boolean;
   onRotate?: (id: string, stepDeg?: number) => void;
   onDragStart?: (e: React.PointerEvent, furniture: FurnitureInstance) => void;
+  hasViolation?: boolean;
 }
 
 export function SvgFurniture({
@@ -18,6 +19,7 @@ export function SvgFurniture({
   isDraftMode = false,
   onRotate,
   onDragStart,
+  hasViolation = false,
 }: SvgFurnitureProps) {
   const isSelected =
     selectedEntity?.type === "furniture" && selectedEntity?.id === furniture.id;
@@ -40,6 +42,7 @@ export function SvgFurniture({
       data-entity-type="furniture"
       data-entity-id={furniture.id}
       data-selected={isSelected ? "true" : "false"}
+      data-has-violation={hasViolation ? "true" : "false"}
       transform={`translate(${x}, ${y}) rotate(${rotation})`}
       className={isDraftMode ? "cursor-move" : "cursor-pointer"}
       onPointerDown={(e) => {
@@ -61,9 +64,22 @@ export function SvgFurniture({
         width={width}
         height={depth}
         rx={Math.min(60, width / 10)}
-        fill={isSelected ? "rgba(59, 130, 246, 0.15)" : "#f8fafc"}
-        stroke={isSelected ? "#2563eb" : "#64748b"}
-        strokeWidth={isSelected ? 32 : 16}
+        fill={
+          isSelected
+            ? "rgba(59, 130, 246, 0.15)"
+            : hasViolation
+              ? "rgba(239, 68, 68, 0.1)"
+              : "#f8fafc"
+        }
+        stroke={
+          isSelected
+            ? "#2563eb"
+            : hasViolation
+              ? "#ef4444"
+              : "#64748b"
+        }
+        strokeWidth={isSelected ? 32 : hasViolation ? 28 : 16}
+        strokeDasharray={hasViolation && !isSelected ? "40 20" : undefined}
         className="transition-colors duration-150"
       />
 
@@ -286,6 +302,28 @@ export function SvgFurniture({
       >
         {definitionId}
       </text>
+
+      {/* Violation Alert Badge on canvas (AC-12) */}
+      {hasViolation && (
+        <g
+          data-testid={`furniture-violation-badge-${furniture.id}`}
+          transform={`translate(${halfW - 25}, ${-halfD + 25})`}
+          className="pointer-events-none"
+        >
+          <circle
+            r="45"
+            fill="#ef4444"
+            stroke="#ffffff"
+            strokeWidth="8"
+          />
+          <path
+            d="M 0 -18 L 0 6 M 0 16 L 0 22"
+            stroke="#ffffff"
+            strokeWidth="10"
+            strokeLinecap="round"
+          />
+        </g>
+      )}
 
       {/* 90° Rotation handle on canvas when selected in draft mode (AC-11) */}
       {isSelected && isDraftMode && onRotate && (

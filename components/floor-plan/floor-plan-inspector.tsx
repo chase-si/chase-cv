@@ -35,6 +35,8 @@ import { RoomSpanEditor } from "./room-span-editor";
 import { OpeningEditor } from "./opening-editor";
 import { FurnitureEditor } from "./furniture-editor";
 import { FurnitureCatalogPalette } from "./furniture-catalog-palette";
+import { RuleFeedbackPanel } from "./rule-feedback-panel";
+import type { RuleResult } from "@/lib/floor-plan/rules";
 import type { EntitySelectHandler, SelectedEntity } from "./types";
 
 interface FloorPlanInspectorProps {
@@ -43,6 +45,7 @@ interface FloorPlanInspectorProps {
   onUpdatePlan?: (updated: FloorPlan) => void;
   selectedEntity: SelectedEntity | null;
   onSelect: EntitySelectHandler;
+  violations?: RuleResult[];
   className?: string;
 }
 
@@ -52,6 +55,7 @@ export function FloorPlanInspector({
   onUpdatePlan,
   selectedEntity,
   onSelect,
+  violations,
   className = "",
 }: FloorPlanInspectorProps) {
   const vertexMap = React.useMemo(() => getVertexMap(plan), [plan]);
@@ -123,6 +127,13 @@ export function FloorPlanInspector({
       data-testid="floor-plan-inspector"
       className={`flex flex-col gap-3 p-1 ${className}`}
     >
+      {/* Spatial Rule Feedback Panel (US-12, US-14, AC-12, AC-14) */}
+      <RuleFeedbackPanel
+        plan={plan}
+        ruleResults={violations}
+        selectedEntity={selectedEntity}
+        onSelect={onSelect}
+      />
       {selectedEntity && (
         <div className="flex items-center justify-between pb-2 border-b border-border">
           <div className="flex items-center gap-1.5">

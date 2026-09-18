@@ -41,6 +41,7 @@ import {
   downloadFloorPlanJson,
 } from "@/lib/floor-plan/user-plan";
 import { cn } from "@/lib/utils";
+import { evaluatePlanRules } from "@/lib/floor-plan/rules";
 import type { SelectedEntity } from "./types";
 import { FloorPlanCatalog } from "./floor-plan-catalog";
 import { FloorPlanInspector } from "./floor-plan-inspector";
@@ -80,6 +81,9 @@ export function FloorPlanShell({ initialPlans, storage: customStorage }: FloorPl
   const [saveStatus, setSaveStatus] = React.useState<"idle" | "saving" | "saved" | "failed">("idle");
   const [storedDraft, setStoredDraft] = React.useState<FloorPlan | null>(null);
   const [promptRestore, setPromptRestore] = React.useState<boolean>(false);
+
+  // Evaluate spatial rules deterministically (US-12, US-14, AC-12, AC-14)
+  const violations = React.useMemo(() => evaluatePlanRules(currentPlan), [currentPlan]);
 
   // Check storage whenever active plan template changes
   React.useEffect(() => {
@@ -361,6 +365,20 @@ export function FloorPlanShell({ initialPlans, storage: customStorage }: FloorPl
         </Badge>
       )}
 
+      {/* Spatial Violations Badge (AC-12, AC-14) */}
+      {violations.length > 0 && (
+        <Badge
+          data-testid="shell-violations-badge"
+          variant="destructive"
+          className="inline-flex items-center gap-1 text-xs font-mono px-2 py-0.5 cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={() => setMobileTab("inspector")}
+          title="View spatial rule violations in inspector"
+        >
+          <AlertCircle className="h-3 w-3" />
+          <span>{violations.length} {violations.length === 1 ? "Error" : "Errors"}</span>
+        </Badge>
+      )}
+
       {/* Action Buttons */}
       {!isDraftMode ? (
         <Button
@@ -554,6 +572,7 @@ export function FloorPlanShell({ initialPlans, storage: customStorage }: FloorPl
               onSelect={handleSelectEntity}
               isDraftMode={isDraftMode}
               onUpdatePlan={handleUpdatePlan}
+              violations={violations}
               className="flex-1"
             />
           </Card>
@@ -579,6 +598,7 @@ export function FloorPlanShell({ initialPlans, storage: customStorage }: FloorPl
                 onUpdatePlan={handleUpdatePlan}
                 selectedEntity={selectedEntity}
                 onSelect={handleSelectEntity}
+                violations={violations}
               />
             </CardScrollArea>
           </Card>

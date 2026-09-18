@@ -125,4 +125,34 @@ describe("FloorPlanSvgViewer (AC-3 & AC-4)", () => {
     fireEvent.click(furniture);
     expect(onSelect).toHaveBeenCalledWith({ type: "furniture", id: "f1" });
   });
+
+  it("renders visual violation indicator badge and styling when violations exist (AC-12)", () => {
+    const onSelect = vi.fn();
+    const violationPlan = {
+      ...VALID_STANDARD_FLOOR_PLAN,
+      furniture: [
+        {
+          id: "f_violating",
+          definitionId: "desk",
+          x: 9000,
+          y: 9000,
+          width: 800,
+          depth: 600,
+          rotation: 0,
+        },
+      ],
+    };
+
+    render(
+      <FloorPlanSvgViewer
+        plan={violationPlan}
+        selectedEntity={null}
+        onSelect={onSelect}
+      />,
+    );
+
+    const fEl = screen.getByTestId("floor-plan-furniture-f_violating");
+    expect(fEl).toHaveAttribute("data-has-violation", "true");
+    expect(screen.getByTestId("furniture-violation-badge-f_violating")).toBeInTheDocument();
+  });
 });

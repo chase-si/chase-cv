@@ -8,3 +8,4 @@ export * from "./opening-editor";
 export * from "./furniture-editor";
 export * from "./furniture-catalog-palette";
 export * from "./floor-plan-shell";
+export * from "./rule-feedback-panel";
