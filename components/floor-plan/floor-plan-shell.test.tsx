@@ -337,5 +337,105 @@ describe("FloorPlanShell Integration", () => {
       });
     });
   });
+
+  describe("AC-10: Browse configured furniture categories and add an item with default dimensions", () => {
+    it("opens furniture catalog palette, filters by category, and adds furniture instance", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // 1. Enter draft mode
+      fireEvent.click(screen.getByTestId("customize-plan-btn"));
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+
+      // 2. Click "Add Furniture" button in inspector
+      fireEvent.click(screen.getByTestId("add-furniture-btn"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("furniture-catalog-palette")).toBeInTheDocument();
+      });
+
+      // 3. Filter by category "table"
+      fireEvent.click(screen.getByTestId("category-filter-table"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("furniture-catalog-card-dining-table-4")).toBeInTheDocument();
+      });
+
+      // 4. Click Add
+      fireEvent.click(screen.getByTestId("add-furniture-item-dining-table-4"));
+
+      // 5. Verify furniture item added with default dimensions (1400 x 800) and autosaved
+      await waitFor(async () => {
+        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        expect(savedDraft).not.toBeNull();
+        const added = savedDraft?.furniture.find((f) => f.definitionId === "dining-table-4");
+        expect(added).toBeDefined();
+        expect(added?.width).toBe(1400);
+        expect(added?.depth).toBe(800);
+        expect(added?.rotation).toBe(0);
+      });
+    });
+  });
+
+  describe("AC-11: Manipulate furniture: rotate 90°, resize with limits/preview, and delete", () => {
+    it("rotates, resizes with immediate preview, and deletes furniture", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // 1. Enter draft mode
+      fireEvent.click(screen.getByTestId("customize-plan-btn"));
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+
+      // 2. Select existing sofa f1
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f1"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("furniture-editor")).toBeInTheDocument();
+      });
+
+      // 3. Rotate 90°
+      fireEvent.click(screen.getByTestId("rotate-furniture-btn"));
+
+      await waitFor(async () => {
+        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        const sofa = savedDraft?.furniture.find((f) => f.id === "f1");
+        expect(sofa?.rotation).toBe(90);
+      });
+
+      // 4. Resize width from 2100 to 2200 and depth to 950
+      const widthInput = screen.getByTestId("furniture-width-input");
+      fireEvent.change(widthInput, { target: { value: "2200" } });
+
+      const depthInput = screen.getByTestId("furniture-depth-input");
+      fireEvent.change(depthInput, { target: { value: "950" } });
+
+      // Immediate preview
+      fireEvent.click(screen.getByTestId("preview-furniture-btn"));
+      expect(screen.getByTestId("furniture-preview-details")).toBeInTheDocument();
+      expect(screen.getByTestId("preview-furniture-dimensions")).toHaveTextContent("2200 × 950 mm");
+
+      // Apply resize
+      fireEvent.click(screen.getByTestId("apply-furniture-btn"));
+
+      await waitFor(async () => {
+        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        const sofa = savedDraft?.furniture.find((f) => f.id === "f1");
+        expect(sofa?.width).toBe(2200);
+        expect(sofa?.depth).toBe(950);
+      });
+
+      // 5. Delete furniture
+      fireEvent.click(screen.getByTestId("delete-furniture-btn"));
+
+      await waitFor(async () => {
+        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        expect(savedDraft?.furniture.some((f) => f.id === "f1")).toBe(false);
+      });
+    });
+  });
 });
 

@@ -397,6 +397,8 @@ export function FloorPlanShell({ initialPlans, storage: customStorage }: FloorPl
               plan={currentPlan}
               selectedEntity={selectedEntity}
               onSelect={handleSelectEntity}
+              isDraftMode={isDraftMode}
+              onUpdatePlan={handleUpdatePlan}
               className="flex-1"
             />
           </Card>

@@ -5,4 +5,6 @@ export * from "./floor-plan-svg-viewer";
 export * from "./floor-plan-inspector";
 export * from "./room-span-editor";
 export * from "./opening-editor";
+export * from "./furniture-editor";
+export * from "./furniture-catalog-palette";
 export * from "./floor-plan-shell";
