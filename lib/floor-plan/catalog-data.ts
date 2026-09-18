@@ -7,12 +7,22 @@
  */
 
 import type { StandardFloorPlan } from "@/lib/floor-plan/types";
+import { VALID_STANDARD_FLOOR_PLAN } from "./fixtures/valid-standard-plan";
+import {
+  STUDIO_STANDARD_FLOOR_PLAN,
+  THREE_BED_STANDARD_FLOOR_PLAN,
+} from "./fixtures/standard-plans";
 
+/**
+ * The single source of truth for floor plans available in the UI catalogue.
+ *
+ * Each entry uses `floor-plan-cn-{layout}-{sequence}` as a stable ID.
+ */
 export const PLAN_CN_STUDIO_01: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-studio-01",
+    "id": "floor-plan-cn-studio-01",
     "name": "紧凑开间 27m²",
     "source": "template",
     "isStandard": true,
@@ -238,7 +248,7 @@ export const PLAN_CN_STUDIO_02: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-studio-02",
+    "id": "floor-plan-cn-studio-02",
     "name": "长租公寓开间 30m²",
     "source": "template",
     "isStandard": true,
@@ -464,7 +474,7 @@ export const PLAN_CN_STUDIO_03: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-studio-03",
+    "id": "floor-plan-cn-studio-03",
     "name": "带独立厨房开间 34m²",
     "source": "template",
     "isStandard": true,
@@ -690,7 +700,7 @@ export const PLAN_CN_1B1L_01: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-1b1l-01",
+    "id": "floor-plan-cn-1b1l-01",
     "name": "紧凑一室一厅 38m²",
     "source": "template",
     "isStandard": true,
@@ -1021,7 +1031,7 @@ export const PLAN_CN_1B1L_02: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-1b1l-02",
+    "id": "floor-plan-cn-1b1l-02",
     "name": "南向一室一厅 42m²",
     "source": "template",
     "isStandard": true,
@@ -1352,7 +1362,7 @@ export const PLAN_CN_1B1L_03: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-1b1l-03",
+    "id": "floor-plan-cn-1b1l-03",
     "name": "通廊一室一厅 46m²",
     "source": "template",
     "isStandard": true,
@@ -1683,7 +1693,7 @@ export const PLAN_CN_1B1L_04: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-1b1l-04",
+    "id": "floor-plan-cn-1b1l-04",
     "name": "方正一室一厅 48m²",
     "source": "template",
     "isStandard": true,
@@ -2014,7 +2024,7 @@ export const PLAN_CN_1B1L_05: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-1b1l-05",
+    "id": "floor-plan-cn-1b1l-05",
     "name": "带家政区一室一厅 51m²",
     "source": "template",
     "isStandard": true,
@@ -2354,7 +2364,7 @@ export const PLAN_CN_1B1L_06: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-1b1l-06",
+    "id": "floor-plan-cn-1b1l-06",
     "name": "舒适一室一厅 54m²",
     "source": "template",
     "isStandard": true,
@@ -2694,7 +2704,7 @@ export const PLAN_CN_2B1L_01: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-2b1l-01",
+    "id": "floor-plan-cn-2b1l-01",
     "name": "经济型两室一厅 55m²",
     "source": "template",
     "isStandard": true,
@@ -3153,7 +3163,7 @@ export const PLAN_CN_2B1L_02: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-2b1l-02",
+    "id": "floor-plan-cn-2b1l-02",
     "name": "老城更新两室一厅 59m²",
     "source": "template",
     "isStandard": true,
@@ -3612,7 +3622,7 @@ export const PLAN_CN_2B1L_03: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-2b1l-03",
+    "id": "floor-plan-cn-2b1l-03",
     "name": "紧凑两室一厅 62m²",
     "source": "template",
     "isStandard": true,
@@ -4080,7 +4090,7 @@ export const PLAN_CN_2B1L_04: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-2b1l-04",
+    "id": "floor-plan-cn-2b1l-04",
     "name": "南北两室一厅 66m²",
     "source": "template",
     "isStandard": true,
@@ -4548,7 +4558,7 @@ export const PLAN_CN_2B1L_05: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-2b1l-05",
+    "id": "floor-plan-cn-2b1l-05",
     "name": "双卧分离两室一厅 69m²",
     "source": "template",
     "isStandard": true,
@@ -5016,7 +5026,7 @@ export const PLAN_CN_2B1L_06: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-2b1l-06",
+    "id": "floor-plan-cn-2b1l-06",
     "name": "舒适两室一厅 73m²",
     "source": "template",
     "isStandard": true,
@@ -5484,7 +5494,7 @@ export const PLAN_CN_2B2L_01: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-2b2l-01",
+    "id": "floor-plan-cn-2b2l-01",
     "name": "紧凑两室两厅 69m²",
     "source": "template",
     "isStandard": true,
@@ -5939,7 +5949,7 @@ export const PLAN_CN_2B2L_02: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-2b2l-02",
+    "id": "floor-plan-cn-2b2l-02",
     "name": "横厅两室两厅 74m²",
     "source": "template",
     "isStandard": true,
@@ -6394,7 +6404,7 @@ export const PLAN_CN_2B2L_03: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-2b2l-03",
+    "id": "floor-plan-cn-2b2l-03",
     "name": "南北通透两室两厅 78m²",
     "source": "template",
     "isStandard": true,
@@ -6849,7 +6859,7 @@ export const PLAN_CN_2B2L_04: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-2b2l-04",
+    "id": "floor-plan-cn-2b2l-04",
     "name": "边户两室两厅 82m²",
     "source": "template",
     "isStandard": true,
@@ -7304,7 +7314,7 @@ export const PLAN_CN_2B2L_05: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-2b2l-05",
+    "id": "floor-plan-cn-2b2l-05",
     "name": "双卫两室两厅 86m²",
     "source": "template",
     "isStandard": true,
@@ -7810,7 +7820,7 @@ export const PLAN_CN_2B2L_06: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-2b2l-06",
+    "id": "floor-plan-cn-2b2l-06",
     "name": "改善型两室两厅 91m²",
     "source": "template",
     "isStandard": true,
@@ -8265,7 +8275,7 @@ export const PLAN_CN_3B1L_01: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-3b1l-01",
+    "id": "floor-plan-cn-3b1l-01",
     "name": "紧凑三室一厅 82m²",
     "source": "template",
     "isStandard": true,
@@ -8759,7 +8769,7 @@ export const PLAN_CN_3B1L_02: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-3b1l-02",
+    "id": "floor-plan-cn-3b1l-02",
     "name": "经济三室一厅 86m²",
     "source": "template",
     "isStandard": true,
@@ -9253,7 +9263,7 @@ export const PLAN_CN_3B1L_03: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-3b1l-03",
+    "id": "floor-plan-cn-3b1l-03",
     "name": "刚需三室一厅 91m²",
     "source": "template",
     "isStandard": true,
@@ -9747,7 +9757,7 @@ export const PLAN_CN_3B1L_04: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-3b1l-04",
+    "id": "floor-plan-cn-3b1l-04",
     "name": "双面采光三室一厅 96m²",
     "source": "template",
     "isStandard": true,
@@ -10241,7 +10251,7 @@ export const PLAN_CN_3B1L_05: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-3b1l-05",
+    "id": "floor-plan-cn-3b1l-05",
     "name": "三代同堂三室一厅 101m²",
     "source": "template",
     "isStandard": true,
@@ -10735,7 +10745,7 @@ export const PLAN_CN_3B1L_06: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-3b1l-06",
+    "id": "floor-plan-cn-3b1l-06",
     "name": "舒适三室一厅 106m²",
     "source": "template",
     "isStandard": true,
@@ -11229,7 +11239,7 @@ export const PLAN_CN_3B2L_01: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-3b2l-01",
+    "id": "floor-plan-cn-3b2l-01",
     "name": "紧凑三室两厅双卫 102m²",
     "source": "template",
     "isStandard": true,
@@ -11835,7 +11845,7 @@ export const PLAN_CN_3B2L_02: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-3b2l-02",
+    "id": "floor-plan-cn-3b2l-02",
     "name": "南北通透三室两厅 110m²",
     "source": "template",
     "isStandard": true,
@@ -12441,7 +12451,7 @@ export const PLAN_CN_3B2L_03: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-3b2l-03",
+    "id": "floor-plan-cn-3b2l-03",
     "name": "横厅三室两厅 118m²",
     "source": "template",
     "isStandard": true,
@@ -13047,7 +13057,7 @@ export const PLAN_CN_3B2L_04: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-3b2l-04",
+    "id": "floor-plan-cn-3b2l-04",
     "name": "景观阳台三室两厅 127m²",
     "source": "template",
     "isStandard": true,
@@ -13653,7 +13663,7 @@ export const PLAN_CN_3B2L_05: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-3b2l-05",
+    "id": "floor-plan-cn-3b2l-05",
     "name": "边户三室两厅 136m²",
     "source": "template",
     "isStandard": true,
@@ -14259,7 +14269,7 @@ export const PLAN_CN_3B2L_06: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-3b2l-06",
+    "id": "floor-plan-cn-3b2l-06",
     "name": "改善三室两厅 146m²",
     "source": "template",
     "isStandard": true,
@@ -14865,7 +14875,7 @@ export const PLAN_CN_4B2L_01: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-4b2l-01",
+    "id": "floor-plan-cn-4b2l-01",
     "name": "紧凑四室两厅双卫 130m²",
     "source": "template",
     "isStandard": true,
@@ -15497,7 +15507,7 @@ export const PLAN_CN_4B2L_02: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-4b2l-02",
+    "id": "floor-plan-cn-4b2l-02",
     "name": "三代同堂四室两厅 139m²",
     "source": "template",
     "isStandard": true,
@@ -16129,7 +16139,7 @@ export const PLAN_CN_4B2L_03: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-4b2l-03",
+    "id": "floor-plan-cn-4b2l-03",
     "name": "横厅四室两厅 148m²",
     "source": "template",
     "isStandard": true,
@@ -16761,7 +16771,7 @@ export const PLAN_CN_4B2L_04: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-4b2l-04",
+    "id": "floor-plan-cn-4b2l-04",
     "name": "双卫四室两厅 158m²",
     "source": "template",
     "isStandard": true,
@@ -17393,7 +17403,7 @@ export const PLAN_CN_4B2L_05: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-4b2l-05",
+    "id": "floor-plan-cn-4b2l-05",
     "name": "大面宽四室两厅 169m²",
     "source": "template",
     "isStandard": true,
@@ -18025,7 +18035,7 @@ export const PLAN_CN_4B2L_06: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-4b2l-06",
+    "id": "floor-plan-cn-4b2l-06",
     "name": "改善四室两厅 179m²",
     "source": "template",
     "isStandard": true,
@@ -18657,7 +18667,7 @@ export const PLAN_CN_5B2L_01: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-5b2l-01",
+    "id": "floor-plan-cn-5b2l-01",
     "name": "三代同堂五室两厅 173m²",
     "source": "template",
     "isStandard": true,
@@ -19359,7 +19369,7 @@ export const PLAN_CN_5B2L_02: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-5b2l-02",
+    "id": "floor-plan-cn-5b2l-02",
     "name": "大平层五室两厅 208m²",
     "source": "template",
     "isStandard": true,
@@ -20061,7 +20071,7 @@ export const PLAN_CN_5B2L_03: StandardFloorPlan = {
   "version": 1,
   "unit": "mm",
   "meta": {
-    "id": "plan-cn-5b2l-03",
+    "id": "floor-plan-cn-5b2l-03",
     "name": "改善五室两厅 246m²",
     "source": "template",
     "isStandard": true,
@@ -20759,7 +20769,10 @@ export const PLAN_CN_5B2L_03: StandardFloorPlan = {
   ]
 };
 
-export const CHINA_REPRESENTATIVE_FLOOR_PLANS: StandardFloorPlan[] = [
+export const FLOOR_PLAN_CATALOG_DATA: readonly StandardFloorPlan[] = [
+  VALID_STANDARD_FLOOR_PLAN,
+  STUDIO_STANDARD_FLOOR_PLAN,
+  THREE_BED_STANDARD_FLOOR_PLAN,
   PLAN_CN_STUDIO_01,
   PLAN_CN_STUDIO_02,
   PLAN_CN_STUDIO_03,

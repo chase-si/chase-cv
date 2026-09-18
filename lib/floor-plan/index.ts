@@ -5,6 +5,7 @@ export * from "./repository";
 export * from "./fixtures";
 export * from "./geometry";
 export * from "./view-transform";
+export * from "./catalog-data";
 export * from "./catalog";
 export * from "./user-plan";
 export * from "./draft-storage";
@@ -17,4 +18,3 @@ export * from "./rules";
 export * from "./internal-boundary";
 export * from "./recognition";
 export * from "./i18n";
-

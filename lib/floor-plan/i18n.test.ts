@@ -38,7 +38,7 @@ describe("Floor Plan i18n module", () => {
     expect(zh.getFurnitureName("custom-item", "Custom Item")).toBe("Custom Item");
 
     // Plan tags & names
-    expect(zh.getPlanName("plan-std-studio-01", "Fallback")).toBe("现代简约单身开间 (24m²)");
+    expect(zh.getPlanName("floor-plan-std-studio-01", "Fallback")).toBe("现代简约单身开间 (24m²)");
     expect(zh.getPlanTag("Standard")).toBe("标准户型");
     expect(zh.getPlanTag("CustomTag")).toBe("CustomTag");
 
