@@ -297,5 +297,45 @@ describe("FloorPlanShell Integration", () => {
       expect(v2?.x).toBe(3000); // Original intact
     });
   });
+
+  describe("AC-9: Move and resize wall-bound openings in draft mode", () => {
+    it("edits opening width and position, autosaving the updated User plan", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // 1. Enter draft mode
+      fireEvent.click(screen.getByTestId("customize-plan-btn"));
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+
+      // 2. Select opening door1
+      fireEvent.click(screen.getByTestId("floor-plan-opening-door1"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("opening-editor")).toBeInTheDocument();
+      });
+
+      // 3. Edit width to 1100 mm and position to 0.4
+      const widthInput = screen.getByTestId("opening-width-input");
+      fireEvent.change(widthInput, { target: { value: "1100" } });
+
+      const positionSlider = screen.getByTestId("opening-position-slider");
+      fireEvent.change(positionSlider, { target: { value: "0.4" } });
+
+      // 4. Apply changes
+      fireEvent.click(screen.getByTestId("apply-opening-btn"));
+
+      // 5. Verify autosaved in storage
+      await waitFor(async () => {
+        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        expect(savedDraft).not.toBeNull();
+        const door = savedDraft?.openings.find((o) => o.id === "door1");
+        expect(door?.width).toBe(1100);
+        expect(door?.position).toBeCloseTo(0.4, 2);
+        expect(door?.wallId).toBe("w6");
+      });
+    });
+  });
 });
 

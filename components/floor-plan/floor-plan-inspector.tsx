@@ -32,6 +32,7 @@ import {
 } from "@/lib/floor-plan/geometry";
 import { getRoomSpans } from "@/lib/floor-plan/room-adjustment";
 import { RoomSpanEditor } from "./room-span-editor";
+import { OpeningEditor } from "./opening-editor";
 import type { EntitySelectHandler, SelectedEntity } from "./types";
 
 interface FloorPlanInspectorProps {
@@ -288,32 +289,42 @@ export function FloorPlanInspector({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
-              <span className="text-[10px] text-muted-foreground block">Width</span>
-              <span className="font-mono font-semibold text-foreground">
-                {selectedOpening.opening.width} mm
-              </span>
+          {isDraftMode ? (
+            <div className="pt-1">
+              <OpeningEditor
+                plan={plan}
+                openingId={selectedOpening.opening.id}
+                onUpdatePlan={onUpdatePlan}
+              />
             </div>
-            <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
-              <span className="text-[10px] text-muted-foreground block">Position</span>
-              <span className="font-mono font-semibold text-foreground">
-                {(selectedOpening.opening.position * 100).toFixed(0)}%
-              </span>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
+                <span className="text-[10px] text-muted-foreground block">Width</span>
+                <span className="font-mono font-semibold text-foreground">
+                  {selectedOpening.opening.width} mm
+                </span>
+              </div>
+              <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
+                <span className="text-[10px] text-muted-foreground block">Position</span>
+                <span className="font-mono font-semibold text-foreground">
+                  {(selectedOpening.opening.position * 100).toFixed(0)}%
+                </span>
+              </div>
+              <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
+                <span className="text-[10px] text-muted-foreground block">Attached Wall</span>
+                <span className="font-mono font-semibold text-foreground">
+                  {selectedOpening.opening.wallId}
+                </span>
+              </div>
+              <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
+                <span className="text-[10px] text-muted-foreground block">Height</span>
+                <span className="font-mono font-semibold text-foreground">
+                  {selectedOpening.opening.height ? `${selectedOpening.opening.height} mm` : "—"}
+                </span>
+              </div>
             </div>
-            <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
-              <span className="text-[10px] text-muted-foreground block">Attached Wall</span>
-              <span className="font-mono font-semibold text-foreground">
-                {selectedOpening.opening.wallId}
-              </span>
-            </div>
-            <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
-              <span className="text-[10px] text-muted-foreground block">Height</span>
-              <span className="font-mono font-semibold text-foreground">
-                {selectedOpening.opening.height ? `${selectedOpening.opening.height} mm` : "—"}
-              </span>
-            </div>
-          </div>
+          )}
         </div>
       )}
 
