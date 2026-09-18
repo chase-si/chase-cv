@@ -13,3 +13,4 @@ export * from "./opening-adjustment";
 export * from "./furniture-catalog";
 export * from "./furniture-operations";
 export * from "./history";
+export * from "./rules";
