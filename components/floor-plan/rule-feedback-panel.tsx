@@ -146,7 +146,18 @@ export function RuleFeedbackPanel({
         </div>
       </div>
 
-      {/* Expanded Content */}
+      {/* Uncalibrated Scale Advisory Notice (AC-21) */}
+      {plan.meta?.unscaled && (
+        <div
+          data-testid="unscaled-rule-notice"
+          className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1.5"
+        >
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+          <span>Uncalibrated scale: Dimension-dependent clearance rules are suppressed.</span>
+        </div>
+      )}
+
+      {/* Violations List or Empty State */}
       {isExpanded && (
         <div className="space-y-2 pt-1 animate-in fade-in-50">
           {violations.length === 0 ? (

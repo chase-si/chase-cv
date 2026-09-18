@@ -211,8 +211,16 @@ export function evaluateFurnitureOverlapRules(
 }
 
 /**
- * Deterministic Spatial Rule Evaluator (AC-12, AC-14).
- * Pure function evaluating all spatial constraints on a floor plan.
+ * Check if a plan is uncalibrated/unscaled (AC-21).
+ */
+export function isPlanUnscaled(plan: FloorPlan): boolean {
+  return plan.meta?.unscaled === true || (plan.meta as { scaled?: boolean })?.scaled === false;
+}
+
+/**
+ * Deterministic Spatial Rule Evaluator (AC-12, AC-14, AC-21).
+ * Pure function evaluating spatial constraints on a floor plan.
+ * Suppresses dimension-dependent clearance conclusions for unscaled plans.
  */
 export function evaluatePlanRules(
   plan: FloorPlan,
@@ -221,9 +229,12 @@ export function evaluatePlanRules(
   const boundaryViolations = evaluateFurnitureBoundaryRules(plan, config);
   const wallViolations = evaluateFurnitureWallCollisionRules(plan, config);
   const overlapViolations = evaluateFurnitureOverlapRules(plan, config);
-  const openingViolations = evaluateOpeningClearanceRules(plan, config);
-  const furnitureClearanceViolations = evaluateFurnitureClearanceRules(plan, config);
-  const passageViolations = evaluateLocalPassageRules(plan, config);
+
+  // For unscaled plans, suppress dimension-dependent clearance conclusions (AC-21)
+  const unscaled = isPlanUnscaled(plan);
+  const openingViolations = unscaled ? [] : evaluateOpeningClearanceRules(plan, config);
+  const furnitureClearanceViolations = unscaled ? [] : evaluateFurnitureClearanceRules(plan, config);
+  const passageViolations = unscaled ? [] : evaluateLocalPassageRules(plan, config);
 
   const all = [
     ...boundaryViolations,
