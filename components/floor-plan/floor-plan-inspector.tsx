@@ -3,6 +3,7 @@
 import * as React from "react";
 import {
   Armchair,
+  ArrowRight,
   Box,
   DoorOpen,
   Info,
@@ -23,11 +24,14 @@ import {
   computeOpeningGeometry,
   computePlanTotalArea,
   computePolygonArea,
+  computePrincipalDimensions,
   computeRoomPolygon,
   computeWallGeometry,
   getVertexMap,
   getWallMap,
 } from "@/lib/floor-plan/geometry";
+import { getRoomSpans } from "@/lib/floor-plan/room-adjustment";
+import { RoomSpanEditor } from "./room-span-editor";
 import type { EntitySelectHandler, SelectedEntity } from "./types";
 
 interface FloorPlanInspectorProps {
@@ -85,6 +89,25 @@ export function FloorPlanInspector({
     if (selectedEntity?.type !== "furniture") return null;
     return plan.furniture.find((f) => f.id === selectedEntity.id) ?? null;
   }, [selectedEntity, plan.furniture]);
+
+  // Selected Dimension details
+  const selectedDimension = React.useMemo(() => {
+    if (selectedEntity?.type !== "dimension") return null;
+    const dims = computePrincipalDimensions(plan);
+    return dims.find((d) => d.id === selectedEntity.id) ?? null;
+  }, [selectedEntity, plan]);
+
+  // Room Spans for selected room
+  const roomSpans = React.useMemo(() => {
+    if (!selectedRoom) return null;
+    return getRoomSpans(plan, selectedRoom.room.id);
+  }, [selectedRoom, plan]);
+
+  // Rooms bounded by selected wall
+  const boundedRooms = React.useMemo(() => {
+    if (!selectedWall) return [];
+    return plan.rooms.filter((r) => r.boundaryWallIds.includes(selectedWall.wall.id));
+  }, [selectedWall, plan.rooms]);
 
   return (
     <div
@@ -158,6 +181,29 @@ export function FloorPlanInspector({
               {selectedWall.wall.from} → {selectedWall.wall.to}
             </p>
           </div>
+
+          {boundedRooms.length > 0 && (
+            <div className="space-y-1.5 text-xs pt-1 border-t border-border/60">
+              <span className="text-[10px] text-muted-foreground block">
+                Boundary of Room{boundedRooms.length > 1 ? "s" : ""}
+              </span>
+              <div className="flex flex-wrap gap-1">
+                {boundedRooms.map((r) => (
+                  <Button
+                    key={r.id}
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onSelect({ type: "room", id: r.id })}
+                    className="h-6 px-2 text-[11px] font-medium flex items-center gap-1"
+                  >
+                    <span>{r.name ?? r.type}</span>
+                    <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -185,6 +231,39 @@ export function FloorPlanInspector({
               </span>
             </div>
           </div>
+
+          {/* Room Spans Overview (Read-Only) or Interactive Room Span Editor (Draft Mode) */}
+          {isDraftMode ? (
+            <div className="pt-1">
+              <RoomSpanEditor
+                plan={plan}
+                roomId={selectedRoom.room.id}
+                onUpdatePlan={onUpdatePlan}
+              />
+            </div>
+          ) : (
+            roomSpans && (
+              <div className="rounded-lg border border-border/80 bg-muted/20 p-2.5 space-y-1.5 text-xs">
+                <span className="text-[11px] font-medium text-foreground block">
+                  Room Spans
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded border border-border/60 bg-background p-1.5">
+                    <span className="text-[10px] text-muted-foreground block">Width (X)</span>
+                    <span className="font-mono font-semibold text-foreground">
+                      {roomSpans.horizontal ? `${roomSpans.horizontal.spanMm} mm` : "—"}
+                    </span>
+                  </div>
+                  <div className="rounded border border-border/60 bg-background p-1.5">
+                    <span className="text-[10px] text-muted-foreground block">Depth (Y)</span>
+                    <span className="font-mono font-semibold text-foreground">
+                      {roomSpans.vertical ? `${roomSpans.vertical.spanMm} mm` : "—"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )
+          )}
 
           <div className="space-y-1 text-xs">
             <span className="text-[10px] text-muted-foreground">Boundary Walls ({selectedRoom.room.boundaryWallIds.length})</span>
@@ -318,7 +397,41 @@ export function FloorPlanInspector({
         </div>
       )}
 
-      {/* 5. Default Plan Summary when no entity is selected */}
+      {/* 5. Dimension Inspection */}
+      {selectedDimension && (
+        <div data-testid="inspector-dimension-details" className="space-y-3">
+          <div className="space-y-1">
+            <span className="text-[11px] text-muted-foreground">Principal Dimension</span>
+            <p className="font-semibold text-sm text-foreground">
+              {selectedDimension.orientation === "horizontal" ? "Total Plan Width" : "Total Plan Height"}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
+              <span className="text-[10px] text-muted-foreground block">Length</span>
+              <span className="font-mono font-semibold text-foreground">
+                {selectedDimension.valueMm} mm
+              </span>
+            </div>
+            <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
+              <span className="text-[10px] text-muted-foreground block">Orientation</span>
+              <span className="font-mono font-semibold text-foreground capitalize">
+                {selectedDimension.orientation}
+              </span>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border/70 bg-muted/20 p-2.5 text-xs text-muted-foreground space-y-1">
+            <span className="font-medium text-foreground block">Spatial Adjustment Tip</span>
+            <p className="leading-relaxed">
+              To adjust this dimension, select any room on the plan to adjust its boundary span using numeric wall translation.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 6. Default Plan Summary when no entity is selected */}
       {!selectedEntity && (
         <div data-testid="inspector-plan-summary" className="space-y-3 text-xs">
           <div className="flex items-center gap-1.5 text-muted-foreground pb-1">
