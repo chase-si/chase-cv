@@ -66,7 +66,7 @@ describe("FloorPlanCatalog (AC-1)", () => {
     expect(onSelectPlan).toHaveBeenCalledWith(targetPlan.id);
   });
 
-  it("filters standard plans by search query", () => {
+  it("filters standard plans by room category filter tags", () => {
     const onSelectPlan = vi.fn();
     render(
       <FloorPlanCatalog
@@ -76,10 +76,20 @@ describe("FloorPlanCatalog (AC-1)", () => {
       />,
     );
 
-    const searchInput = screen.getByTestId("catalog-search-input");
-    fireEvent.change(searchInput, { target: { value: "Studio" } });
+    // Filter by studio
+    const studioFilterBtn = screen.getByTestId("catalog-filter-studio");
+    expect(studioFilterBtn).toHaveTextContent("Studio (4)");
+    fireEvent.click(studioFilterBtn);
 
     expect(screen.getByText("Modern Compact Studio")).toBeInTheDocument();
     expect(screen.queryByText("3BR Family Residence")).not.toBeInTheDocument();
+
+    // Toggle off or click All to restore
+    const allFilterBtn = screen.getByTestId("catalog-filter-all");
+    expect(allFilterBtn).toHaveTextContent(`All (${plans.length})`);
+    fireEvent.click(allFilterBtn);
+
+    expect(screen.getByText("Modern Compact Studio")).toBeInTheDocument();
+    expect(screen.getByText("3BR Family Residence")).toBeInTheDocument();
   });
 });

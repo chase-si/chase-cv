@@ -1,12 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { Check, Compass, Layers, Search, Sparkles } from "lucide-react";
+import { Check, Layers } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import type { StandardPlanSummary } from "@/lib/floor-plan/catalog";
+import {
+  FLOOR_PLAN_CATEGORIES,
+  type FloorPlanCategoryKey,
+  type StandardPlanSummary,
+} from "@/lib/floor-plan/catalog";
+import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { FloorPlanThumbnail } from "./floor-plan-thumbnail";
 
 interface FloorPlanCatalogProps {
@@ -14,6 +18,7 @@ interface FloorPlanCatalogProps {
   activePlanId: string;
   onSelectPlan: (planId: string) => void;
   className?: string;
+  locale?: string;
 }
 
 export function FloorPlanCatalog({
@@ -21,79 +26,76 @@ export function FloorPlanCatalog({
   activePlanId,
   onSelectPlan,
   className = "",
+  locale,
 }: FloorPlanCatalogProps) {
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
+  const i18n = useFloorPlanI18n(locale);
+  const t = i18n.t;
+  const [selectedCategory, setSelectedCategory] =
+    React.useState<FloorPlanCategoryKey>("all");
 
-  // Collect all unique tags
-  const allTags = React.useMemo(() => {
-    const set = new Set<string>();
+  // Calculate counts per category
+  const categoryCounts = React.useMemo(() => {
+    const counts: Record<FloorPlanCategoryKey, number> = {
+      all: plans.length,
+      studio: 0,
+      "1b1l": 0,
+      "2b1l": 0,
+      "2b2l": 0,
+      "3b1l": 0,
+      "3b2l": 0,
+      "4b_plus": 0,
+    };
     for (const p of plans) {
-      for (const t of p.tags) {
-        set.add(t);
+      if (p.categoryKey && counts[p.categoryKey] !== undefined) {
+        counts[p.categoryKey]++;
       }
     }
-    return Array.from(set);
+    return counts;
   }, [plans]);
 
-  // Filter plans by query and tag
+  // Filter plans by selected category
   const filteredPlans = React.useMemo(() => {
-    return plans.filter((p) => {
-      const matchesQuery =
-        searchQuery.trim() === "" ||
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
-
-      const matchesTag = !selectedTag || p.tags.includes(selectedTag);
-
-      return matchesQuery && matchesTag;
-    });
-  }, [plans, searchQuery, selectedTag]);
+    if (selectedCategory === "all") {
+      return plans;
+    }
+    return plans.filter((p) => p.categoryKey === selectedCategory);
+  }, [plans, selectedCategory]);
 
   return (
     <div
       data-testid="floor-plan-catalog"
       className={`flex flex-col gap-3 p-1 ${className}`}
     >
-      {/* Search & Tag Filter Bar */}
-      <div className="flex flex-col gap-2">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search standard plans..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 text-xs"
-            data-testid="catalog-search-input"
-          />
-        </div>
+      {/* Category Filter Pills */}
+      <div
+        data-testid="catalog-category-filters"
+        className="flex flex-wrap gap-1"
+      >
+        {FLOOR_PLAN_CATEGORIES.map((cat) => {
+          const isSelected = selectedCategory === cat.key;
+          const label = i18n.locale === "zh" ? cat.labelZh : cat.labelEn;
+          const count = categoryCounts[cat.key] ?? 0;
 
-        {/* Tag pills */}
-        <div className="flex flex-wrap gap-1">
-          <Button
-            type="button"
-            size="sm"
-            variant={selectedTag === null ? "default" : "outline"}
-            onClick={() => setSelectedTag(null)}
-            className="h-6 px-2 text-[11px] rounded-md"
-          >
-            All ({plans.length})
-          </Button>
-          {allTags.map((tag) => (
+          return (
             <Button
-              key={tag}
+              key={cat.key}
               type="button"
               size="sm"
-              variant={selectedTag === tag ? "default" : "outline"}
-              onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-              className="h-6 px-2 text-[11px] rounded-md"
+              variant={isSelected ? "default" : "outline"}
+              onClick={() => {
+                if (isSelected && cat.key !== "all") {
+                  setSelectedCategory("all");
+                } else {
+                  setSelectedCategory(cat.key);
+                }
+              }}
+              className="h-6 px-2 text-[11px] rounded-md font-medium"
+              data-testid={`catalog-filter-${cat.key}`}
             >
-              {tag}
+              {label} ({count})
             </Button>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
       {/* Plans List */}
@@ -103,7 +105,7 @@ export function FloorPlanCatalog({
       >
         {filteredPlans.length === 0 ? (
           <div className="py-8 text-center text-xs text-muted-foreground">
-            No standard plans matching your filter.
+            {t.catalog.noResults}
           </div>
         ) : (
           filteredPlans.map((item) => {
@@ -126,7 +128,7 @@ export function FloorPlanCatalog({
                   {isActive ? (
                     <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground shadow-xs">
                       <Check className="h-3 w-3" />
-                      <span>Viewing</span>
+                      <span>{t.catalog.currentPlanBadge}</span>
                     </div>
                   ) : null}
                 </div>
@@ -191,7 +193,7 @@ export function FloorPlanCatalog({
                     }}
                     data-testid={`open-plan-btn-${item.id}`}
                   >
-                    {isActive ? "Active" : "Open Plan"}
+                    {isActive ? t.catalog.currentPlanBadge : t.catalog.openPlan}
                   </Button>
                 </div>
               </Card>
