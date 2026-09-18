@@ -40,12 +40,6 @@ export function SvgOpening({
   ];
   const maskPointsStr = maskPoints.map((p) => `${p.x},${p.y}`).join(" ");
 
-  // Door leaf tip (swings 90 deg along normal)
-  const leafTip = {
-    x: start.x + normal.x * width,
-    y: start.y + normal.y * width,
-  };
-
   return (
     <g
       data-testid={`floor-plan-opening-${opening.id}`}
@@ -94,32 +88,44 @@ export function SvgOpening({
           />
         </g>
       ) : opening.type === "door" ? (
-        // Door rendering with leaf and swing arc
+        // Door rendering as clean wall-bound opening without door leaf or swing arc (AC-9)
         <g>
-          {/* Swing arc */}
-          <path
-            d={`M ${end.x} ${end.y} A ${width} ${width} 0 0 1 ${leafTip.x} ${leafTip.y}`}
-            fill="none"
-            stroke={isSelected ? "#2563eb" : "rgba(100, 116, 139, 0.5)"}
-            strokeWidth={isSelected ? 20 : 12}
-            strokeDasharray="30 20"
+          {/* Clean opening frame / threshold background */}
+          <polygon
+            points={maskPointsStr}
+            fill={isSelected ? "rgba(37, 99, 235, 0.08)" : "rgba(248, 250, 252, 0.95)"}
+            stroke={isSelected ? "#2563eb" : "#64748b"}
+            strokeWidth={isSelected ? 26 : 14}
           />
-          {/* Door leaf */}
+          {/* Start jamb line across wall thickness */}
+          <line
+            x1={start.x + normal.x * (wallThickness / 2)}
+            y1={start.y + normal.y * (wallThickness / 2)}
+            x2={start.x - normal.x * (wallThickness / 2)}
+            y2={start.y - normal.y * (wallThickness / 2)}
+            stroke={isSelected ? "#2563eb" : "#334155"}
+            strokeWidth={isSelected ? 24 : 16}
+            strokeLinecap="square"
+          />
+          {/* End jamb line across wall thickness */}
+          <line
+            x1={end.x + normal.x * (wallThickness / 2)}
+            y1={end.y + normal.y * (wallThickness / 2)}
+            x2={end.x - normal.x * (wallThickness / 2)}
+            y2={end.y - normal.y * (wallThickness / 2)}
+            stroke={isSelected ? "#2563eb" : "#334155"}
+            strokeWidth={isSelected ? 24 : 16}
+            strokeLinecap="square"
+          />
+          {/* Clear opening threshold line */}
           <line
             x1={start.x}
             y1={start.y}
-            x2={leafTip.x}
-            y2={leafTip.y}
-            stroke={isSelected ? "#2563eb" : "#475569"}
-            strokeWidth={isSelected ? 36 : 24}
-            strokeLinecap="round"
-          />
-          {/* Hinge point */}
-          <circle
-            cx={start.x}
-            cy={start.y}
-            r={isSelected ? 30 : 20}
-            fill={isSelected ? "#2563eb" : "#1e293b"}
+            x2={end.x}
+            y2={end.y}
+            stroke={isSelected ? "#2563eb" : "#94a3b8"}
+            strokeWidth={isSelected ? 16 : 10}
+            strokeDasharray="24 16"
           />
         </g>
       ) : opening.type === "sliding_door" ? (

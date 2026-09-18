@@ -108,4 +108,49 @@ describe("FloorPlanInspector Component (AC-6, AC-7)", () => {
     fireEvent.click(deselectBtn);
     expect(handleSelect).toHaveBeenCalledWith(null);
   });
+
+  it("renders opening details in read-only mode when opening is selected (AC-9)", () => {
+    const handleSelect = vi.fn();
+    render(
+      <FloorPlanInspector
+        plan={VALID_STANDARD_FLOOR_PLAN}
+        isDraftMode={false}
+        selectedEntity={{ type: "opening", id: "door1" }}
+        onSelect={handleSelect}
+      />,
+    );
+
+    expect(screen.getByTestId("inspector-opening-details")).toBeInTheDocument();
+    expect(screen.getByText("900 mm")).toBeInTheDocument();
+    expect(screen.queryByTestId("opening-editor")).not.toBeInTheDocument();
+  });
+
+  it("renders interactive OpeningEditor in draft mode and updates plan (AC-9)", () => {
+    const handleSelect = vi.fn();
+    const handleUpdatePlan = vi.fn();
+    render(
+      <FloorPlanInspector
+        plan={VALID_STANDARD_FLOOR_PLAN}
+        isDraftMode={true}
+        onUpdatePlan={handleUpdatePlan}
+        selectedEntity={{ type: "opening", id: "door1" }}
+        onSelect={handleSelect}
+      />,
+    );
+
+    expect(screen.getByTestId("inspector-opening-details")).toBeInTheDocument();
+    expect(screen.getByTestId("opening-editor")).toBeInTheDocument();
+    expect(screen.getByTestId("opening-width-input")).toHaveValue(900);
+
+    // Change width to 1000 mm and apply
+    fireEvent.change(screen.getByTestId("opening-width-input"), {
+      target: { value: "1000" },
+    });
+    fireEvent.click(screen.getByTestId("apply-opening-btn"));
+
+    expect(handleUpdatePlan).toHaveBeenCalledTimes(1);
+    const updatedPlan = handleUpdatePlan.mock.calls[0][0];
+    const updatedDoor = updatedPlan.openings.find((o: any) => o.id === "door1");
+    expect(updatedDoor.width).toBe(1000);
+  });
 });
