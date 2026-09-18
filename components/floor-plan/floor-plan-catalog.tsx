@@ -135,12 +135,20 @@ export function FloorPlanCatalog({
 
                 {/* Plan Header: Name & Area */}
                 <div className="flex items-start justify-between gap-2 mb-1">
-                  <h3
-                    data-testid={`plan-name-${item.id}`}
-                    className="font-semibold text-sm tracking-tight text-foreground truncate group-hover:text-primary transition-colors"
-                  >
-                    {item.name}
-                  </h3>
+                  <div className="min-w-0">
+                    <h3
+                      data-testid={`plan-name-${item.id}`}
+                      className="font-semibold text-sm tracking-tight text-foreground truncate group-hover:text-primary transition-colors"
+                    >
+                      {item.name}
+                    </h3>
+                    <p
+                      data-testid={`plan-id-${item.id}`}
+                      className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground"
+                    >
+                      {item.id}
+                    </p>
+                  </div>
                   <Badge
                     data-testid={`plan-area-${item.id}`}
                     variant="secondary"

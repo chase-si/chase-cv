@@ -16,28 +16,29 @@ test.describe("Floor Plan SVG Viewer & Catalog (Issue #175)", () => {
     await expect(catalog).toBeVisible();
 
     // Approved plans in catalog
-    const plan2BrCard = page.getByTestId("catalog-plan-card-plan-std-2br-01");
+    const plan2BrCard = page.getByTestId("catalog-plan-card-floor-plan-std-2b1l-01");
     await expect(plan2BrCard).toBeVisible();
-    await expect(page.getByTestId("plan-name-plan-std-2br-01")).toContainText(
+    await expect(page.getByTestId("plan-name-floor-plan-std-2b1l-01")).toContainText(
       "2BR-Nordic-Standard",
     );
-    await expect(page.getByTestId("plan-area-plan-std-2br-01")).toContainText("30.0 m²");
-    await expect(page.getByTestId("plan-rooms-plan-std-2br-01")).toBeVisible();
-    await expect(page.getByTestId("plan-tags-plan-std-2br-01")).toContainText("2B1L");
+    await expect(page.getByTestId("plan-id-floor-plan-std-2b1l-01")).toContainText("floor-plan-std-2b1l-01");
+    await expect(page.getByTestId("plan-area-floor-plan-std-2b1l-01")).toContainText("30.0 m²");
+    await expect(page.getByTestId("plan-rooms-floor-plan-std-2b1l-01")).toBeVisible();
+    await expect(page.getByTestId("plan-tags-floor-plan-std-2b1l-01")).toContainText("2B1L");
     await expect(
-      page.getByTestId("floor-plan-thumbnail-plan-std-2br-01"),
+      page.getByTestId("floor-plan-thumbnail-floor-plan-std-2b1l-01"),
     ).toBeVisible();
 
-    // Open another standard plan: Modern Compact Studio
-    const studioOpenBtn = page.getByTestId("open-plan-btn-plan-std-studio-01");
+    // Open another standardized studio plan.
+    const studioOpenBtn = page.getByTestId("open-plan-btn-floor-plan-std-studio-01");
     await studioOpenBtn.click();
 
     // Active plan card changes
     await expect(
-      page.getByTestId("catalog-plan-card-plan-std-studio-01"),
+      page.getByTestId("catalog-plan-card-floor-plan-std-studio-01"),
     ).toHaveAttribute("data-active-plan", "true");
 
-    // Canvas renders Studio rooms
+    // Canvas renders studio rooms.
     await expect(page.getByTestId("floor-plan-room-sr1")).toBeVisible();
   });
 

@@ -742,15 +742,15 @@ export const FURNITURE_NAMES_ZH: Record<string, string> = {
 };
 
 export const PLAN_NAMES_ZH: Record<string, { name: string; description: string }> = {
-  "plan-std-studio-01": {
+  "floor-plan-std-studio-01": {
     name: "现代简约单身开间 (24m²)",
     description: "高效集约的单身开间公寓，起居睡眠一体化设计并配备独立干湿分离卫浴。",
   },
-  "plan-std-2br-01": {
+  "floor-plan-std-2b1l-01": {
     name: "北欧风舒适两室一厅 (65m²)",
     description: "功能均衡的两居室标准户型，动静分区明确，客厅与主卧采光充足。",
   },
-  "plan-std-3br-01": {
+  "floor-plan-std-3b1l-01": {
     name: "家庭型宽敞三室两厅 (110m²)",
     description: "南北通透的三居室家庭标准户型，包含独立主卧套房、多功能客餐厅与观景阳台。",
   },

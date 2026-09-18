@@ -6,9 +6,9 @@ describe("Standard Floor Plan Catalog (AC-25)", () => {
   it("contains 20–50 approved, scaled Standard plans covering common layouts", () => {
     const plans = getStandardPlans();
 
-    // AC-25: Catalog contains 20–50 approved, scaled Standard plans
-    expect(plans.length).toBeGreaterThanOrEqual(20);
-    expect(plans.length).toBeLessThanOrEqual(50);
+    // The one catalogue source contains 42 representative plans and three
+    // retained editor templates.
+    expect(plans).toHaveLength(45);
 
     const ids = new Set<string>();
     const coveredCategories = new Set<string>();
@@ -16,6 +16,7 @@ describe("Standard Floor Plan Catalog (AC-25)", () => {
     for (const item of plans) {
       // 1. Unique ID
       expect(item.id).toBeTruthy();
+      expect(item.id).toMatch(/^floor-plan-(cn|std)-(studio|[1-5]b[12]l)-\d{2}$/);
       expect(ids.has(item.id)).toBe(false);
       ids.add(item.id);
 
@@ -62,12 +63,12 @@ describe("Standard Floor Plan Catalog (AC-25)", () => {
   });
 
   it("retrieves standard plan by ID", () => {
-    const plan = getStandardPlanById("plan-std-2br-01");
+    const plan = getStandardPlanById("floor-plan-cn-2b1l-01");
     expect(plan).toBeDefined();
-    expect(plan!.name).toBe("2BR-Nordic-Standard");
-    expect(plan!.areaM2).toBeCloseTo(30.0, 1);
+    expect(plan!.name).toBe("经济型两室一厅 55m²");
+    expect(plan!.areaM2).toBeCloseTo(54.75, 2);
 
-    const cnPlan = getStandardPlanById("plan-cn-3b2l-01");
+    const cnPlan = getStandardPlanById("floor-plan-cn-3b2l-01");
     expect(cnPlan).toBeDefined();
     expect(cnPlan!.name).toBe("紧凑三室两厅双卫 102m²");
     expect(cnPlan!.tags).toContain("3B2L");

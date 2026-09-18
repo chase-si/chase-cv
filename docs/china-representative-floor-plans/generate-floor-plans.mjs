@@ -109,7 +109,7 @@ const addSeries = (prefix, count, names, widths, heights, layout, notes) => {
 };
 
 addSeries(
-  "plan-cn-studio",
+  "floor-plan-cn-studio",
   3,
   ["紧凑开间 26m²", "长租公寓开间 30m²", "带独立厨房开间 34m²"],
   [[2700, 2100], [2800, 2200], [3000, 2400]],
@@ -119,7 +119,7 @@ addSeries(
 );
 
 addSeries(
-  "plan-cn-1b1l",
+  "floor-plan-cn-1b1l",
   6,
   ["紧凑一室一厅 38m²", "南向一室一厅 42m²", "通廊一室一厅 46m²", "方正一室一厅 49m²", "带家政区一室一厅 53m²", "舒适一室一厅 57m²"],
   [[3600, 2400], [3800, 2500], [4000, 2600], [4200, 2600], [4300, 2800], [4500, 2800]],
@@ -129,7 +129,7 @@ addSeries(
 );
 
 addSeries(
-  "plan-cn-2b1l",
+  "floor-plan-cn-2b1l",
   6,
   ["经济型两室一厅 58m²", "老城更新两室一厅 63m²", "紧凑两室一厅 67m²", "南北两室一厅 72m²", "双卧分离两室一厅 76m²", "舒适两室一厅 81m²"],
   [[2600, 2600, 2300], [2700, 2800, 2400], [2800, 2900, 2400], [2900, 3000, 2500], [3000, 3100, 2500], [3100, 3200, 2600]],
@@ -139,7 +139,7 @@ addSeries(
 );
 
 addSeries(
-  "plan-cn-2b2l",
+  "floor-plan-cn-2b2l",
   6,
   ["紧凑两室两厅 76m²", "横厅两室两厅 82m²", "南北通透两室两厅 87m²", "边户两室两厅 92m²", "双卫两室两厅 97m²", "改善型两室两厅 103m²"],
   [[2800, 3000, 2400], [2900, 3200, 2500], [3000, 3300, 2600], [3100, 3400, 2600], [3200, 3500, 2700], [3300, 3600, 2800]],
@@ -149,7 +149,7 @@ addSeries(
 );
 
 addSeries(
-  "plan-cn-3b1l",
+  "floor-plan-cn-3b1l",
   6,
   ["紧凑三室一厅 82m²", "经济三室一厅 88m²", "刚需三室一厅 94m²", "双面采光三室一厅 99m²", "三代同堂三室一厅 105m²", "舒适三室一厅 111m²"],
   [[2800, 3100, 2700], [2900, 3200, 2800], [3000, 3300, 2900], [3100, 3400, 3000], [3200, 3500, 3100], [3300, 3600, 3200]],
@@ -159,7 +159,7 @@ addSeries(
 );
 
 addSeries(
-  "plan-cn-3b2l",
+  "floor-plan-cn-3b2l",
   6,
   ["紧凑三室两厅双卫 98m²", "南北通透三室两厅 106m²", "横厅三室两厅 114m²", "景观阳台三室两厅 121m²", "边户三室两厅 128m²", "改善三室两厅 136m²"],
   [[2700, 2800, 2800, 2500], [2800, 2900, 2900, 2600], [2900, 3000, 3000, 2700], [3000, 3100, 3100, 2800], [3100, 3200, 3200, 2900], [3200, 3300, 3300, 3000]],
@@ -169,7 +169,7 @@ addSeries(
 );
 
 addSeries(
-  "plan-cn-4b2l",
+  "floor-plan-cn-4b2l",
   6,
   ["紧凑四室两厅双卫 126m²", "三代同堂四室两厅 136m²", "横厅四室两厅 146m²", "双卫四室两厅 156m²", "大面宽四室两厅 168m²", "改善四室两厅 180m²"],
   [[3000, 3100, 3100, 2800], [3100, 3200, 3200, 2900], [3200, 3300, 3300, 3000], [3300, 3400, 3400, 3100], [3400, 3500, 3500, 3200], [3500, 3600, 3600, 3300]],
@@ -179,7 +179,7 @@ addSeries(
 );
 
 addSeries(
-  "plan-cn-5b2l",
+  "floor-plan-cn-5b2l",
   3,
   ["三代同堂五室两厅 166m²", "大平层五室两厅 190m²", "改善五室两厅 218m²"],
   [[3000, 3200, 3200, 3000, 2800], [3300, 3500, 3500, 3200, 3000], [3600, 3800, 3800, 3400, 3200]],
@@ -364,11 +364,8 @@ for (const { plan } of plans) {
   if (errors.length) throw new Error(`${plan.meta.id}: ${errors.join(", ")}`);
 }
 
-const header = `/**\n * 中国城市住宅代表性标准户型（标准化重绘）\n+ * 生成日期：2026-09-18\n+ *\n+ * 注意：这些是根据公开规范和常见商品住宅/保障房空间组织归纳的“原型”，\n+ * 不是施工图，也不对应某一个具体楼盘。实际项目须由有资质的建筑专业人员复核。\n+ * StandardFloorPlan 类型应由使用方项目提供。\n+ */\n\n`;
-const blocks = plans.map(({ spec, plan }) => `export const ${spec.constName}: StandardFloorPlan = ${JSON.stringify(plan, null, 2)};`).join("\n\n");
-const index = `\n\nexport const CHINA_REPRESENTATIVE_FLOOR_PLANS: StandardFloorPlan[] = [\n${plans.map(({ spec }) => `  ${spec.constName},`).join("\n")}\n];\n`;
-fs.writeFileSync("china-representative-floor-plans.ts", header + blocks + index);
-
-const summary = plans.map(({ plan }) => ({ id: plan.meta.id, name: plan.meta.name, rooms: plan.rooms.length, walls: plan.walls.length, openings: plan.openings.length, furniture: plan.furniture.length }));
-fs.writeFileSync("floor-plan-summary.json", JSON.stringify(summary, null, 2) + "\n");
+const header = `import type { StandardFloorPlan } from "@/lib/floor-plan/types";\n\n/**\n * 中国城市住宅代表性标准户型（标准化重绘）\n+ * 生成日期：2026-09-18\n+ *\n+ * 注意：这些是根据公开规范和常见商品住宅/保障房空间组织归纳的“原型”，\n+ * 不是施工图，也不对应某一个具体楼盘。实际项目须由有资质的建筑专业人员复核。\n+ */\n\n`;
+const blocks = `import { VALID_STANDARD_FLOOR_PLAN } from "./fixtures/valid-standard-plan";\nimport { STUDIO_STANDARD_FLOOR_PLAN, THREE_BED_STANDARD_FLOOR_PLAN } from "./fixtures/standard-plans";\n\n${plans.map(({ spec, plan }) => `export const ${spec.constName}: StandardFloorPlan = ${JSON.stringify(plan, null, 2)};`).join("\n\n")}`;
+const index = `\n\nexport const FLOOR_PLAN_CATALOG_DATA: readonly StandardFloorPlan[] = [\n  VALID_STANDARD_FLOOR_PLAN,\n  STUDIO_STANDARD_FLOOR_PLAN,\n  THREE_BED_STANDARD_FLOOR_PLAN,\n${plans.map(({ spec }) => `  ${spec.constName},`).join("\n")}\n];\n`;
+fs.writeFileSync(new URL("../../lib/floor-plan/catalog-data.ts", import.meta.url), header + blocks + index);
 console.log(`Generated ${plans.length} plans`);

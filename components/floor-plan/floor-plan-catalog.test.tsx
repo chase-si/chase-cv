@@ -30,6 +30,7 @@ describe("FloorPlanCatalog (AC-1)", () => {
       expect(screen.getByTestId(`plan-name-${plan.id}`)).toHaveTextContent(
         plan.name,
       );
+      expect(screen.getByTestId(`plan-id-${plan.id}`)).toHaveTextContent(plan.id);
 
       // 3. Area
       expect(screen.getByTestId(`plan-area-${plan.id}`)).toHaveTextContent(
@@ -81,15 +82,15 @@ describe("FloorPlanCatalog (AC-1)", () => {
     expect(studioFilterBtn).toHaveTextContent("Studio (4)");
     fireEvent.click(studioFilterBtn);
 
-    expect(screen.getByText("Modern Compact Studio")).toBeInTheDocument();
-    expect(screen.queryByText("3BR Family Residence")).not.toBeInTheDocument();
+    expect(screen.getByTestId("plan-name-floor-plan-cn-studio-01")).toBeInTheDocument();
+    expect(screen.queryByTestId("plan-name-floor-plan-cn-3b1l-01")).not.toBeInTheDocument();
 
     // Toggle off or click All to restore
     const allFilterBtn = screen.getByTestId("catalog-filter-all");
     expect(allFilterBtn).toHaveTextContent(`All (${plans.length})`);
     fireEvent.click(allFilterBtn);
 
-    expect(screen.getByText("Modern Compact Studio")).toBeInTheDocument();
-    expect(screen.getByText("3BR Family Residence")).toBeInTheDocument();
+    expect(screen.getByTestId("plan-name-floor-plan-cn-studio-01")).toBeInTheDocument();
+    expect(screen.getByTestId("plan-name-floor-plan-cn-3b1l-01")).toBeInTheDocument();
   });
 });
