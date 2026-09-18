@@ -19,6 +19,7 @@ import {
 } from "@/lib/floor-plan/view-transform";
 import type { EntitySelectHandler, SelectedEntity } from "./types";
 import { moveFurnitureInstance, rotateFurnitureInstance } from "@/lib/floor-plan/furniture-operations";
+import { evaluatePlanRules, type RuleResult } from "@/lib/floor-plan/rules";
 import { SvgDimension } from "./svg/svg-dimension";
 import { SvgFurniture } from "./svg/svg-furniture";
 import { SvgOpening } from "./svg/svg-opening";
@@ -31,6 +32,7 @@ interface FloorPlanSvgViewerProps {
   onSelect: EntitySelectHandler;
   isDraftMode?: boolean;
   onUpdatePlan?: (updated: FloorPlan) => void;
+  violations?: RuleResult[];
   className?: string;
 }
 
@@ -40,6 +42,7 @@ export function FloorPlanSvgViewer({
   onSelect,
   isDraftMode = false,
   onUpdatePlan,
+  violations: propViolations,
   className = "",
 }: FloorPlanSvgViewerProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -64,6 +67,23 @@ export function FloorPlanSvgViewer({
   const wallMap = React.useMemo(() => getWallMap(plan), [plan]);
   const bounds = React.useMemo(() => computeFloorPlanBounds(plan), [plan]);
   const dimensions = React.useMemo(() => computePrincipalDimensions(plan), [plan]);
+
+  const evaluatedViolations = React.useMemo(
+    () => propViolations ?? evaluatePlanRules(plan),
+    [propViolations, plan],
+  );
+
+  const violationFurnitureIds = React.useMemo(() => {
+    const set = new Set<string>();
+    for (const v of evaluatedViolations) {
+      for (const entityId of v.relatedEntityIds) {
+        if (plan.furniture.some((f) => f.id === entityId)) {
+          set.add(entityId);
+        }
+      }
+    }
+    return set;
+  }, [evaluatedViolations, plan.furniture]);
 
   // Fit to view helper
   const fitToView = React.useCallback(
@@ -361,6 +381,7 @@ export function FloorPlanSvgViewer({
                   isDraftMode={isDraftMode}
                   onRotate={handleRotateFurniture}
                   onDragStart={handleFurnitureDragStart}
+                  hasViolation={violationFurnitureIds.has(f.id)}
                 />
               );
             })}

@@ -767,5 +767,44 @@ describe("FloorPlanShell Integration", () => {
       });
     });
   });
+
+  describe("AC-12 & AC-14: Report furniture boundary and overlap violations in FloorPlanShell", () => {
+    it("reports violations via header badge, inspector panel, and canvas indicators", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // Switch to studio plan (which has 0 violations initially)
+      fireEvent.click(screen.getByTestId("catalog-plan-card-plan-std-studio-01"));
+
+      // Customize plan into editable draft
+      fireEvent.click(screen.getByTestId("customize-plan-btn"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+
+      // Studio plan initially clean
+      expect(screen.queryByTestId("shell-violations-badge")).not.toBeInTheDocument();
+      expect(screen.getByTestId("rule-clean-state")).toBeInTheDocument();
+
+      // Add furniture item from catalog that overlaps existing furniture
+      fireEvent.click(screen.getByTestId("add-furniture-btn"));
+      const addTableBtn = screen.getByTestId("add-furniture-item-dining-table-4");
+      fireEvent.click(addTableBtn);
+
+      // Violations should now be detected deterministically
+      await waitFor(() => {
+        expect(screen.getByTestId("shell-violations-badge")).toBeInTheDocument();
+        expect(screen.getByTestId("rule-violations-count-badge")).toBeInTheDocument();
+      });
+
+      // Clicking affected entity button in rule panel selects that entity
+      const affectedBtn = screen.getAllByTestId(/^rule-entity-btn-/)[0];
+      expect(affectedBtn).toBeDefined();
+      fireEvent.click(affectedBtn);
+
+      expect(screen.getByTestId("inspector-deselect-btn")).toBeInTheDocument();
+    });
+  });
 });
 
