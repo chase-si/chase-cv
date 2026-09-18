@@ -12,3 +12,4 @@ export * from "./room-adjustment";
 export * from "./opening-adjustment";
 export * from "./furniture-catalog";
 export * from "./furniture-operations";
+export * from "./history";

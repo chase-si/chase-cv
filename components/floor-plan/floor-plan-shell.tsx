@@ -9,9 +9,11 @@ import {
   Home,
   Loader2,
   PenTool,
+  Redo2,
   RotateCcw,
   SlidersHorizontal,
   Sparkles,
+  Undo2,
 } from "lucide-react";
 import { ToolPageChrome } from "@/components/tool-page-chrome";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +26,15 @@ import {
 } from "@/components/ui/card";
 import { getStandardPlans, type StandardPlanSummary } from "@/lib/floor-plan/catalog";
 import { createDraftStorage, type FloorPlanDraftStorage } from "@/lib/floor-plan/draft-storage";
+import {
+  canRedo,
+  canUndo,
+  commitPlanChange,
+  createPlanHistory,
+  redo,
+  undo,
+  type PlanHistory,
+} from "@/lib/floor-plan/history";
 import type { FloorPlan } from "@/lib/floor-plan/types";
 import {
   createOrResumeUserPlan,
@@ -61,6 +72,9 @@ export function FloorPlanShell({ initialPlans, storage: customStorage }: FloorPl
   // Active FloorPlan being viewed or edited
   const [currentPlan, setCurrentPlan] = React.useState<FloorPlan>(
     activePlanSummary ? activePlanSummary.plan : ({} as FloorPlan),
+  );
+  const [history, setHistory] = React.useState<PlanHistory>(() =>
+    createPlanHistory(activePlanSummary ? activePlanSummary.plan : ({} as FloorPlan)),
   );
   const [isDraftMode, setIsDraftMode] = React.useState<boolean>(false);
   const [saveStatus, setSaveStatus] = React.useState<"idle" | "saving" | "saved" | "failed">("idle");
@@ -107,6 +121,7 @@ export function FloorPlanShell({ initialPlans, storage: customStorage }: FloorPl
       const targetSummary = plans.find((p) => p.id === planId) ?? plans[0];
       if (targetSummary) {
         setCurrentPlan(targetSummary.plan);
+        setHistory(createPlanHistory(targetSummary.plan));
       }
       setMobileTab("canvas");
     },
@@ -126,6 +141,7 @@ export function FloorPlanShell({ initialPlans, storage: customStorage }: FloorPl
 
     const userPlan = createOrResumeUserPlan(activePlanSummary.plan, storedDraft);
     setCurrentPlan(userPlan);
+    setHistory(createPlanHistory(userPlan, { description: "Initial custom draft" }));
     setIsDraftMode(true);
     setPromptRestore(false);
     setSaveStatus("saving");
@@ -141,8 +157,9 @@ export function FloorPlanShell({ initialPlans, storage: customStorage }: FloorPl
 
   // Update plan in draft mode with autosave
   const handleUpdatePlan = React.useCallback(
-    async (updatedPlan: FloorPlan) => {
+    async (updatedPlan: FloorPlan, description?: string) => {
       setCurrentPlan(updatedPlan);
+      setHistory((prev) => commitPlanChange(prev, updatedPlan, description));
       setSaveStatus("saving");
 
       try {
@@ -156,11 +173,116 @@ export function FloorPlanShell({ initialPlans, storage: customStorage }: FloorPl
     [activePlanId, storage],
   );
 
+  // Undo committed operation (AC-8)
+  const handleUndo = React.useCallback(async () => {
+    if (!isDraftMode || !canUndo(history)) return;
+
+    const nextHistory = undo(history);
+    setHistory(nextHistory);
+    const restoredPlan = nextHistory.present.plan;
+    setCurrentPlan(restoredPlan);
+
+    // If selected entity no longer exists in restored plan, deselect
+    setSelectedEntity((prev) => {
+      if (!prev) return null;
+      const exists =
+        prev.type === "wall"
+          ? restoredPlan.walls.some((w) => w.id === prev.id)
+          : prev.type === "room"
+            ? restoredPlan.rooms.some((r) => r.id === prev.id)
+            : prev.type === "opening"
+              ? restoredPlan.openings.some((o) => o.id === prev.id)
+              : prev.type === "furniture"
+                ? restoredPlan.furniture.some((f) => f.id === prev.id)
+                : true;
+      return exists ? prev : null;
+    });
+
+    setSaveStatus("saving");
+    try {
+      await storage.saveDraft(activePlanId, restoredPlan);
+      setStoredDraft(restoredPlan);
+      setSaveStatus("saved");
+    } catch {
+      setSaveStatus("failed");
+    }
+  }, [isDraftMode, history, activePlanId, storage]);
+
+  // Redo undone operation (AC-8)
+  const handleRedo = React.useCallback(async () => {
+    if (!isDraftMode || !canRedo(history)) return;
+
+    const nextHistory = redo(history);
+    setHistory(nextHistory);
+    const restoredPlan = nextHistory.present.plan;
+    setCurrentPlan(restoredPlan);
+
+    setSelectedEntity((prev) => {
+      if (!prev) return null;
+      const exists =
+        prev.type === "wall"
+          ? restoredPlan.walls.some((w) => w.id === prev.id)
+          : prev.type === "room"
+            ? restoredPlan.rooms.some((r) => r.id === prev.id)
+            : prev.type === "opening"
+              ? restoredPlan.openings.some((o) => o.id === prev.id)
+              : prev.type === "furniture"
+                ? restoredPlan.furniture.some((f) => f.id === prev.id)
+                : true;
+      return exists ? prev : null;
+    });
+
+    setSaveStatus("saving");
+    try {
+      await storage.saveDraft(activePlanId, restoredPlan);
+      setStoredDraft(restoredPlan);
+      setSaveStatus("saved");
+    } catch {
+      setSaveStatus("failed");
+    }
+  }, [isDraftMode, history, activePlanId, storage]);
+
+  // Global keyboard shortcuts for Undo (Cmd+Z / Ctrl+Z) and Redo (Cmd+Shift+Z / Ctrl+Shift+Z / Ctrl+Y)
+  React.useEffect(() => {
+    if (!isDraftMode) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      if (
+        activeEl &&
+        (activeEl.tagName === "INPUT" ||
+          activeEl.tagName === "TEXTAREA" ||
+          (activeEl as HTMLElement).isContentEditable)
+      ) {
+        return;
+      }
+
+      const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+      if (!isCmdOrCtrl) return;
+
+      if (e.key === "z" || e.key === "Z") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+      } else if (e.key === "y" || e.key === "Y") {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isDraftMode, handleUndo, handleRedo]);
+
   // Continue draft from restoration banner
   const handleContinueDraft = React.useCallback(() => {
     if (!storedDraft) return;
 
     setCurrentPlan(storedDraft);
+    setHistory(createPlanHistory(storedDraft, { description: "Restored draft" }));
     setIsDraftMode(true);
     setPromptRestore(false);
     setSaveStatus("saved");
@@ -179,6 +301,7 @@ export function FloorPlanShell({ initialPlans, storage: customStorage }: FloorPl
     setStoredDraft(null);
     setPromptRestore(false);
     setCurrentPlan(activePlanSummary.plan);
+    setHistory(createPlanHistory(activePlanSummary.plan));
     setIsDraftMode(false);
     setSaveStatus("idle");
     setSelectedEntity(null);
@@ -253,6 +376,38 @@ export function FloorPlanShell({ initialPlans, storage: customStorage }: FloorPl
         </Button>
       ) : (
         <div className="flex items-center gap-1.5">
+          {/* Undo Button (AC-8) */}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            data-testid="undo-btn"
+            onClick={handleUndo}
+            disabled={!canUndo(history)}
+            className="h-7 px-2 text-xs flex items-center gap-1"
+            title="Undo (Ctrl+Z / ⌘Z)"
+            aria-label="Undo"
+          >
+            <Undo2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Undo</span>
+          </Button>
+
+          {/* Redo Button (AC-8) */}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            data-testid="redo-btn"
+            onClick={handleRedo}
+            disabled={!canRedo(history)}
+            className="h-7 px-2 text-xs flex items-center gap-1"
+            title="Redo (Ctrl+Shift+Z / ⌘⇧Z / Ctrl+Y)"
+            aria-label="Redo"
+          >
+            <Redo2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Redo</span>
+          </Button>
+
           <Button
             type="button"
             size="sm"
