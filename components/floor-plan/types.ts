@@ -1,4 +1,4 @@
-export type FloorPlanEntityType = "wall" | "room" | "opening" | "furniture";
+export type FloorPlanEntityType = "wall" | "room" | "opening" | "furniture" | "dimension";
 
 export interface SelectedEntity {
   type: FloorPlanEntityType;
