@@ -52,6 +52,7 @@ import { FloorPlanInspector } from "./floor-plan-inspector";
 import { FloorPlanSvgViewer } from "./floor-plan-svg-viewer";
 import { MobileBottomSheet } from "./mobile-bottom-sheet";
 import { FurnitureCatalogPalette } from "./furniture-catalog-palette";
+import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { RuleFeedbackPanel } from "./rule-feedback-panel";
 
 export interface FloorPlanShellProps {
@@ -60,6 +61,7 @@ export interface FloorPlanShellProps {
   onPlanChange?: (plan: FloorPlan) => void;
   storage?: FloorPlanDraftStorage;
   isMobile?: boolean;
+  locale?: string;
 }
 
 export function useIsMobile(propIsMobile?: boolean): boolean {
@@ -109,27 +111,57 @@ export function FloorPlanShell({
   onPlanChange,
   storage: customStorage,
   isMobile: propIsMobile,
+  locale,
 }: FloorPlanShellProps) {
   const isMobile = useIsMobile(propIsMobile);
   const defaultStorage = React.useMemo(() => createDraftStorage(), []);
   const storage = customStorage ?? defaultStorage;
+  const i18n = useFloorPlanI18n(locale);
+  const t = i18n.t;
 
   const recognizedSummary = React.useMemo<StandardPlanSummary | null>(() => {
     if (!initialActivePlan) return null;
     return {
       id: initialActivePlan.meta.id ?? "plan-custom-recognized",
       name: initialActivePlan.meta.name,
-      description: initialActivePlan.meta.unscaled ? "CubiCasa Uncalibrated Plan" : "CubiCasa Calibrated Plan",
+      description: initialActivePlan.meta.unscaled
+        ? locale === "zh"
+          ? "CubiCasa 未标定相对几何"
+          : "CubiCasa Uncalibrated Plan"
+        : locale === "zh"
+          ? "CubiCasa 已标定标准方案"
+          : "CubiCasa Calibrated Plan",
       areaM2: 0,
-      formattedArea: initialActivePlan.meta.unscaled ? "Uncalibrated" : "Calibrated",
+      formattedArea: initialActivePlan.meta.unscaled
+        ? locale === "zh"
+          ? "未标定真实尺寸"
+          : "Uncalibrated"
+        : locale === "zh"
+          ? "已标定"
+          : "Calibrated",
       roomCount: initialActivePlan.rooms.length,
-      roomBreakdown: `${initialActivePlan.rooms.length} rooms`,
-      tags: [initialActivePlan.meta.source, initialActivePlan.meta.unscaled ? "Unscaled" : "Calibrated"],
+      roomBreakdown:
+        locale === "zh"
+          ? `${initialActivePlan.rooms.length} 间功能区`
+          : `${initialActivePlan.rooms.length} rooms`,
+      tags: [
+        initialActivePlan.meta.source,
+        initialActivePlan.meta.unscaled
+          ? locale === "zh"
+            ? "未标定"
+            : "Unscaled"
+          : locale === "zh"
+            ? "已标定"
+            : "Calibrated",
+      ],
       plan: initialActivePlan as unknown as StandardPlanSummary["plan"],
     };
-  }, [initialActivePlan]);
+  }, [initialActivePlan, locale]);
 
-  const basePlans = React.useMemo(() => initialPlans ?? getStandardPlans(), [initialPlans]);
+  const basePlans = React.useMemo(
+    () => initialPlans ?? getStandardPlans(locale),
+    [initialPlans, locale],
+  );
   const plans = React.useMemo(() => {
     if (recognizedSummary) {
       return [recognizedSummary, ...basePlans.filter((p) => p.id !== recognizedSummary.id)];
@@ -425,7 +457,7 @@ export function FloorPlanShell({
         >
           <PenTool className="h-3.5 w-3.5" />
           <span className="truncate max-w-[140px]">{currentPlan.meta.name}</span>
-          <span className="text-muted-foreground text-[10px]">(User Draft)</span>
+          <span className="text-muted-foreground text-[10px]">{t.badges.userDraft}</span>
         </Badge>
       ) : (
         <Badge
@@ -455,7 +487,13 @@ export function FloorPlanShell({
           {saveStatus === "saved" && <Check className="h-3 w-3 text-emerald-500" />}
           {saveStatus === "failed" && <AlertCircle className="h-3 w-3 text-destructive" />}
           <span className="capitalize">
-            {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved" : saveStatus === "failed" ? "Save failed" : "Draft"}
+            {saveStatus === "saving"
+              ? t.badges.saving
+              : saveStatus === "saved"
+                ? t.badges.saved
+                : saveStatus === "failed"
+                  ? t.badges.saveFailed
+                  : t.badges.draft}
           </span>
         </Badge>
       )}
@@ -475,7 +513,7 @@ export function FloorPlanShell({
             setSelectedEntity(null);
             setMobileSheetType("rules");
           }}
-          title="View spatial rule guidance"
+          title={t.actions.rules}
         >
           {violations.some((v) => v.severity === "error") ? (
             <AlertCircle className="h-3 w-3" />
@@ -486,11 +524,11 @@ export function FloorPlanShell({
             {violations.length}{" "}
             {violations.length === 1
               ? violations[0].severity === "error"
-                ? "Error"
-                : "Warning"
+                ? t.badges.issue
+                : t.badges.warning
               : violations.some((v) => v.severity === "error")
-                ? "Issues"
-                : "Warnings"}
+                ? t.badges.issues
+                : t.badges.warnings}
           </span>
         </Badge>
       )}
@@ -501,10 +539,10 @@ export function FloorPlanShell({
           data-testid="shell-unscaled-badge"
           variant="outline"
           className="inline-flex items-center gap-1.5 text-xs font-mono px-2 py-0.5 border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10"
-          title="Uncalibrated geometry: Dimension-dependent clearance rules are suppressed"
+          title={t.badges.unscaledAdvisory}
         >
           <AlertTriangle className="h-3 w-3 text-amber-500" />
-          <span>Uncalibrated (Clearances Suppressed)</span>
+          <span>{t.badges.uncalibrated}</span>
         </Badge>
       )}
 
@@ -517,10 +555,10 @@ export function FloorPlanShell({
           data-testid="mode-toggle-pan"
           onClick={() => setCanvasMode("pan")}
           className="h-11 min-h-[44px] min-w-[44px] px-3 sm:h-7 sm:min-h-0 sm:min-w-0 sm:px-2.5 gap-1.5 text-xs touch-manipulation font-medium"
-          title="Pan Canvas Mode (pure pan, prevent accidental edits)"
+          title={t.canvasModes.panTooltip}
         >
           <Hand className="h-4 w-4" />
-          <span>Pan</span>
+          <span>{t.canvasModes.pan}</span>
         </Button>
         <Button
           type="button"
@@ -529,10 +567,10 @@ export function FloorPlanShell({
           data-testid="mode-toggle-edit"
           onClick={() => setCanvasMode("edit")}
           className="h-11 min-h-[44px] min-w-[44px] px-3 sm:h-7 sm:min-h-0 sm:min-w-0 sm:px-2.5 gap-1.5 text-xs touch-manipulation font-medium"
-          title="Edit Mode (select & edit entities)"
+          title={t.canvasModes.editTooltip}
         >
           <MousePointer2 className="h-4 w-4" />
-          <span>Edit</span>
+          <span>{t.canvasModes.edit}</span>
         </Button>
       </div>
 
@@ -548,7 +586,7 @@ export function FloorPlanShell({
             className="h-11 min-h-[44px] min-w-[44px] sm:h-7 sm:min-h-0 sm:min-w-0 px-3 sm:px-2.5 text-xs flex items-center gap-1.5 touch-manipulation"
           >
             <SlidersHorizontal className="h-3.5 w-3.5" />
-            <span>Customize Plan</span>
+            <span>{t.actions.customizePlan}</span>
           </Button>
 
           <Button
@@ -561,10 +599,10 @@ export function FloorPlanShell({
               setMobileSheetType("catalog");
             }}
             className="h-11 min-h-[44px] min-w-[44px] px-2.5 text-xs flex items-center gap-1.5 touch-manipulation lg:hidden"
-            title="Browse standard plans"
+            title={t.actions.plans}
           >
             <Compass className="h-3.5 w-3.5 text-primary" />
-            <span className="hidden sm:inline">Plans</span>
+            <span className="hidden sm:inline">{t.actions.plans}</span>
           </Button>
 
           <Button
@@ -577,10 +615,10 @@ export function FloorPlanShell({
               setMobileSheetType("rules");
             }}
             className="h-11 min-h-[44px] min-w-[44px] px-2.5 text-xs flex items-center gap-1.5 touch-manipulation lg:hidden"
-            title="View spatial rule guidance"
+            title={t.actions.rules}
           >
             <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-            <span className="hidden sm:inline">Rules</span>
+            <span className="hidden sm:inline">{t.actions.rules}</span>
           </Button>
         </div>
       ) : (
@@ -595,10 +633,10 @@ export function FloorPlanShell({
             disabled={!canUndo(history)}
             className="h-11 min-h-[44px] min-w-[44px] sm:h-7 sm:min-h-0 sm:min-w-0 px-2.5 text-xs flex items-center gap-1 touch-manipulation"
             title="Undo (Ctrl+Z / ⌘Z)"
-            aria-label="Undo"
+            aria-label={t.actions.undo}
           >
             <Undo2 className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">Undo</span>
+            <span className="hidden md:inline">{t.actions.undo}</span>
           </Button>
 
           {/* Redo Button (AC-8) */}
@@ -611,10 +649,10 @@ export function FloorPlanShell({
             disabled={!canRedo(history)}
             className="h-11 min-h-[44px] min-w-[44px] sm:h-7 sm:min-h-0 sm:min-w-0 px-2.5 text-xs flex items-center gap-1 touch-manipulation"
             title="Redo (Ctrl+Shift+Z / ⌘⇧Z / Ctrl+Y)"
-            aria-label="Redo"
+            aria-label={t.actions.redo}
           >
             <Redo2 className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">Redo</span>
+            <span className="hidden md:inline">{t.actions.redo}</span>
           </Button>
 
           {/* Mobile Add Furniture Button (AC-5) */}
@@ -628,10 +666,10 @@ export function FloorPlanShell({
               setMobileSheetType("furniture-palette");
             }}
             className="h-11 min-h-[44px] min-w-[44px] px-2.5 text-xs flex items-center gap-1.5 touch-manipulation lg:hidden"
-            title="Add Furniture"
+            title={t.actions.addFurniture}
           >
             <Armchair className="h-3.5 w-3.5 text-primary" />
-            <span>+ Furniture</span>
+            <span>{t.actions.addFurniture}</span>
           </Button>
 
           {/* Mobile Rules Button (AC-5) */}
@@ -645,7 +683,7 @@ export function FloorPlanShell({
               setMobileSheetType("rules");
             }}
             className="h-11 min-h-[44px] min-w-[44px] px-2.5 text-xs flex items-center gap-1.5 touch-manipulation lg:hidden"
-            title="View spatial rule feedback"
+            title={t.actions.rules}
           >
             {violations.some((v) => v.severity === "error") ? (
               <AlertCircle className="h-3.5 w-3.5 text-destructive" />
@@ -654,7 +692,7 @@ export function FloorPlanShell({
             ) : (
               <Check className="h-3.5 w-3.5 text-emerald-500" />
             )}
-            <span className="hidden sm:inline">Rules</span>
+            <span className="hidden sm:inline">{t.actions.rules}</span>
             {violations.length > 0 && (
               <Badge variant="secondary" className="px-1.5 py-0 text-[10px] font-mono">
                 {violations.length}
@@ -673,10 +711,10 @@ export function FloorPlanShell({
               setMobileSheetType("catalog");
             }}
             className="h-11 min-h-[44px] min-w-[44px] px-2.5 text-xs flex items-center gap-1.5 touch-manipulation lg:hidden"
-            title="Browse standard plans"
+            title={t.actions.plans}
           >
             <Compass className="h-3.5 w-3.5 text-primary" />
-            <span className="hidden sm:inline">Plans</span>
+            <span className="hidden sm:inline">{t.actions.plans}</span>
           </Button>
 
           {/* Export JSON Button (AC-16) */}
@@ -689,7 +727,7 @@ export function FloorPlanShell({
             className="h-11 min-h-[44px] min-w-[44px] sm:h-7 sm:min-h-0 sm:min-w-0 px-2.5 text-xs flex items-center gap-1.5 touch-manipulation"
           >
             <Download className="h-3.5 w-3.5 text-primary" />
-            <span className="hidden sm:inline">Export JSON</span>
+            <span className="hidden sm:inline">{t.actions.exportJson}</span>
           </Button>
 
           <Button
@@ -699,10 +737,10 @@ export function FloorPlanShell({
             data-testid="restart-template-btn"
             onClick={handleRestartFromTemplate}
             className="h-11 min-h-[44px] min-w-[44px] sm:h-7 sm:min-h-0 sm:min-w-0 px-2 text-xs flex items-center gap-1 text-muted-foreground hover:text-foreground touch-manipulation"
-            title="Restart from template"
+            title={t.actions.restartTitle}
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">Restart</span>
+            <span className="hidden md:inline">{t.actions.restart}</span>
           </Button>
         </div>
       )}
@@ -715,24 +753,24 @@ export function FloorPlanShell({
     if (selectedEntity) {
       switch (selectedEntity.type) {
         case "room":
-          return "Room Properties";
+          return t.mobileSheet.roomProperties;
         case "wall":
-          return "Wall Properties";
+          return t.mobileSheet.wallProperties;
         case "opening":
-          return "Opening Properties";
+          return t.mobileSheet.openingProperties;
         case "furniture":
-          return "Furniture Properties";
+          return t.mobileSheet.furnitureProperties;
         case "dimension":
-          return "Dimension Properties";
+          return t.mobileSheet.dimensionProperties;
         default:
-          return "Entity Properties";
+          return t.mobileSheet.entityProperties;
       }
     }
-    if (mobileSheetType === "furniture-palette") return "Furniture Catalog";
-    if (mobileSheetType === "rules") return "Spatial Rule Feedback";
-    if (mobileSheetType === "catalog") return "Standard Plans";
-    return "Details";
-  }, [selectedEntity, mobileSheetType]);
+    if (mobileSheetType === "furniture-palette") return t.mobileSheet.furnitureCatalog;
+    if (mobileSheetType === "rules") return t.mobileSheet.spatialRules;
+    if (mobileSheetType === "catalog") return t.mobileSheet.standardPlans;
+    return t.mobileSheet.details;
+  }, [selectedEntity, mobileSheetType, t]);
 
   const mobileSheetBadge = React.useMemo(() => {
     if (selectedEntity) {
@@ -753,12 +791,12 @@ export function FloorPlanShell({
               : "border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10",
           )}
         >
-          {violations.length} {violations.length === 1 ? "issue" : "issues"}
+          {violations.length} {violations.length === 1 ? t.badges.issue : t.badges.issues}
         </Badge>
       );
     }
     return null;
-  }, [selectedEntity, mobileSheetType, violations]);
+  }, [selectedEntity, mobileSheetType, violations, t]);
 
   const mobileSheetBody = React.useMemo(() => {
     if (selectedEntity) {
@@ -770,6 +808,7 @@ export function FloorPlanShell({
           selectedEntity={selectedEntity}
           onSelect={handleSelectEntity}
           violations={violations}
+          locale={locale}
         />
       );
     }
@@ -782,6 +821,7 @@ export function FloorPlanShell({
             handleSelectEntity(entity);
           }}
           onClose={() => setMobileSheetType(null)}
+          locale={locale}
         />
       );
     }
@@ -794,6 +834,7 @@ export function FloorPlanShell({
           onSelect={(entity) => {
             handleSelectEntity(entity);
           }}
+          locale={locale}
         />
       );
     }
@@ -806,6 +847,7 @@ export function FloorPlanShell({
             handleSelectPlan(id);
             setMobileSheetType(null);
           }}
+          locale={locale}
         />
       );
     }
@@ -821,12 +863,13 @@ export function FloorPlanShell({
     plans,
     activePlanId,
     handleSelectPlan,
+    locale,
   ]);
 
   return (
     <ToolPageChrome
-      title="Floor Plan Space Validator"
-      description="Browse standard plans in responsive SVG viewer, verify room boundaries, openings, and furniture dimensions."
+      title={t.pageTitle}
+      description={t.pageDescription}
       actions={headerActions}
     >
       {/* 3-Pane Desktop Layout, Responsive Mobile Layout with Primary Canvas */}
@@ -838,10 +881,10 @@ export function FloorPlanShell({
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Compass className="h-4 w-4 text-primary" />
-                  <span>Standard Plans</span>
+                  <span>{t.catalog.title}</span>
                 </CardTitle>
                 <Badge variant="outline" className="text-[10px] font-mono">
-                  {plans.length} approved
+                  {plans.length} {t.catalog.approvedBadge}
                 </Badge>
               </div>
             </CardHeader>
@@ -850,6 +893,7 @@ export function FloorPlanShell({
                 plans={plans}
                 activePlanId={activePlanId}
                 onSelectPlan={handleSelectPlan}
+                locale={locale}
               />
             </CardScrollArea>
           </Card>
@@ -867,8 +911,8 @@ export function FloorPlanShell({
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary shrink-0" />
                   <span>
-                    A saved draft was found for this plan (
-                    <strong className="font-semibold">{storedDraft.meta.name}</strong>).
+                    {t.draftBanner.foundDraft} (
+                    <strong className="font-semibold">{storedDraft.meta.name}</strong>)。
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -880,7 +924,7 @@ export function FloorPlanShell({
                     onClick={handleContinueDraft}
                     className="h-11 min-h-[44px] min-w-[44px] sm:h-7 sm:min-h-0 sm:min-w-0 px-2.5 text-xs touch-manipulation"
                   >
-                    Continue draft
+                    {t.draftBanner.continueDraft}
                   </Button>
                   <Button
                     type="button"
@@ -890,7 +934,7 @@ export function FloorPlanShell({
                     onClick={handleRestartFromTemplate}
                     className="h-11 min-h-[44px] min-w-[44px] sm:h-7 sm:min-h-0 sm:min-w-0 px-2.5 text-xs text-muted-foreground hover:text-destructive touch-manipulation"
                   >
-                    Restart from template
+                    {t.draftBanner.restartTemplate}
                   </Button>
                 </div>
               </div>
@@ -904,6 +948,7 @@ export function FloorPlanShell({
               onUpdatePlan={handleUpdatePlan}
               violations={violations}
               canvasMode={canvasMode}
+              locale={locale}
               className="flex-1"
             />
           </Card>
@@ -916,7 +961,7 @@ export function FloorPlanShell({
               <CardHeader className="shrink-0 pb-3">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <SlidersHorizontal className="h-4 w-4 text-primary" />
-                  <span>Spatial Inspector</span>
+                  <span>{t.inspector.title}</span>
                 </CardTitle>
               </CardHeader>
               <CardScrollArea className="min-h-0 flex-1 px-4 pb-4">
@@ -927,6 +972,7 @@ export function FloorPlanShell({
                   selectedEntity={selectedEntity}
                   onSelect={handleSelectEntity}
                   violations={violations}
+                  locale={locale}
                 />
               </CardScrollArea>
             </Card>

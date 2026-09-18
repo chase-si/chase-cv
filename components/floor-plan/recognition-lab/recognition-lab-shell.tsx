@@ -63,16 +63,24 @@ import { downloadFloorPlanJson } from "@/lib/floor-plan/user-plan";
 import { cn } from "@/lib/utils";
 
 interface RecognitionLabShellProps {
+  locale?: string;
   initialSampleId?: string;
   adapterType?: "mock" | "http";
   endpoint?: string;
 }
 
 export function RecognitionLabShell({
+  locale,
   initialSampleId = "sample-1br",
   adapterType = "mock",
   endpoint,
 }: RecognitionLabShellProps) {
+  const isZh = locale
+    ? locale.toLowerCase().startsWith("zh")
+    : typeof window !== "undefined" && window.location.pathname.startsWith("/en")
+      ? false
+      : true;
+
   // Adapter
   const adapter = React.useMemo(
     () => createCubiCasaAdapter({ type: adapterType, endpoint }),
@@ -324,15 +332,17 @@ export function RecognitionLabShell({
               data-testid="return-to-lab-button"
             >
               <ArrowRight className="h-3.5 w-3.5 rotate-180" />
-              <span>返回识图实验室</span>
+              <span>{isZh ? "返回识图实验室" : "Return to Recognition Lab"}</span>
             </Button>
             <Badge variant="secondary" className="font-mono text-xs">
               <Clock className="mr-1 h-3 w-3 text-primary animate-pulse" />
-              校正耗时: {formatSeconds(correctionElapsedSeconds)}
+              {isZh ? "校正耗时: " : "Correction Time: "}{formatSeconds(correctionElapsedSeconds)}
             </Badge>
             {evaluationRecord && (
               <Badge variant="outline" className="text-xs font-mono">
-                修正统计: 墙体 {evaluationRecord.wallFixCount} / 门窗 {evaluationRecord.openingFixCount} / 房间 {evaluationRecord.roomFixCount}
+                {isZh
+                  ? `修正统计: 墙体 ${evaluationRecord.wallFixCount} / 门窗 ${evaluationRecord.openingFixCount} / 房间 ${evaluationRecord.roomFixCount}`
+                  : `Fixes: Walls ${evaluationRecord.wallFixCount} / Openings ${evaluationRecord.openingFixCount} / Rooms ${evaluationRecord.roomFixCount}`}
               </Badge>
             )}
           </div>
@@ -346,7 +356,7 @@ export function RecognitionLabShell({
               data-testid="approve-plan-button"
             >
               <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
-              批准户型 (Approve)
+              {isZh ? "批准户型 (Approve)" : "Approve Plan"}
             </Button>
             <Button
               variant="outline"
@@ -356,7 +366,7 @@ export function RecognitionLabShell({
               data-testid="export-eval-from-editor-button"
             >
               <Download className="mr-1 h-3.5 w-3.5" />
-              导出评估 JSON
+              {isZh ? "导出评估 JSON" : "Export Evaluation JSON"}
             </Button>
           </div>
         </div>
@@ -365,6 +375,7 @@ export function RecognitionLabShell({
         <FloorPlanShell
           initialActivePlan={currentPlan}
           onPlanChange={handlePlanChangeInEditor}
+          locale={isZh ? "zh" : "en"}
         />
       </div>
     );
@@ -373,14 +384,18 @@ export function RecognitionLabShell({
   // Lab View Render
   return (
     <ToolPageChrome
-      title="CubiCasa 识图实验室"
-      description="本地 CubiCasa 户型图片识别 · 两点标定 · 拓扑规整 · 人工校正与生产效率评估 (US-20..22)"
+      title={isZh ? "CubiCasa 识图实验室" : "CubiCasa Recognition Lab"}
+      description={
+        isZh
+          ? "本地 CubiCasa 户型图片识别 · 两点标定 · 拓扑规整 · 人工校正与生产效率评估 (US-20..22)"
+          : "Local CubiCasa floor plan recognition · Two-point calibration · Topology normalization · Evaluation benchmark (US-20..22)"
+      }
       actions={
         <div className="flex items-center gap-2">
-          <Link href="/floor-plan">
+          <Link href={isZh ? "/zh/floor-plan" : "/floor-plan"}>
             <Button variant="outline" size="sm" className="text-xs">
               <Home className="mr-1 h-3.5 w-3.5" />
-              标准户型编辑器
+              {isZh ? "标准户型编辑器" : "Standard Plan Editor"}
             </Button>
           </Link>
           <Button
@@ -392,7 +407,7 @@ export function RecognitionLabShell({
             data-testid="export-floorplan-json-button"
           >
             <Download className="mr-1 h-3.5 w-3.5" />
-            导出 FloorPlan JSON
+            {isZh ? "导出 FloorPlan JSON" : "Export FloorPlan JSON"}
           </Button>
           <Button
             variant="outline"
@@ -403,7 +418,7 @@ export function RecognitionLabShell({
             data-testid="export-eval-json-button"
           >
             <FileText className="mr-1 h-3.5 w-3.5" />
-            导出评估记录 JSON
+            {isZh ? "导出评估记录 JSON" : "Export Evaluation JSON"}
           </Button>
         </div>
       }
@@ -416,14 +431,16 @@ export function RecognitionLabShell({
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
                   <ImageIcon className="h-4 w-4 text-primary" />
-                  <span>样本输入与尺度标定</span>
+                  <span>{isZh ? "样本输入与尺度标定" : "Input Sample & Calibration"}</span>
                 </CardTitle>
                 <Badge variant="outline" className="text-[10px] font-mono">
                   AC-20, AC-21
                 </Badge>
               </div>
               <CardDescription className="text-xs">
-                选择代表性户型样本或上传 JPG/PNG 进行两点已知长度标定
+                {isZh
+                  ? "选择代表性户型样本或上传 JPG/PNG 进行两点已知长度标定"
+                  : "Select representative sample or upload JPG/PNG for scale calibration"}
               </CardDescription>
             </CardHeader>
 
@@ -431,7 +448,7 @@ export function RecognitionLabShell({
               {/* Representative Samples */}
               <div className="space-y-2">
                 <label className="text-xs font-medium text-foreground block">
-                  代表性验证样本 (Validation Batch)
+                  {isZh ? "代表性验证样本 (Validation Batch)" : "Representative Validation Samples"}
                 </label>
                 <div className="grid grid-cols-1 gap-1.5">
                   {CUBICASA_REPRESENTATIVE_SAMPLES.map((sample) => {
@@ -471,15 +488,15 @@ export function RecognitionLabShell({
               {/* Upload Own Image */}
               <div className="space-y-2">
                 <label className="text-xs font-medium text-foreground block">
-                  或者上传自定义户型图片
+                  {isZh ? "或者上传自定义户型图片" : "Or Upload Custom Floor Plan Image"}
                 </label>
                 <label className="flex flex-col items-center justify-center p-3 border border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
                   <UploadCloud className="h-5 w-5 text-muted-foreground mb-1" />
                   <span className="text-xs font-medium text-foreground">
-                    {uploadedFile ? uploadedFile.name : "点击选择 PNG / JPG 图像"}
+                    {uploadedFile ? uploadedFile.name : (isZh ? "点击选择 PNG / JPG 图像" : "Click to select PNG / JPG image")}
                   </span>
                   <span className="text-[10px] text-muted-foreground mt-0.5">
-                    支持带尺寸线、彩色或黑白户型图
+                    {isZh ? "支持带尺寸线、彩色或黑白户型图" : "Supports dimension lines, color or black & white"}
                   </span>
                   <input
                     type="file"
@@ -496,7 +513,7 @@ export function RecognitionLabShell({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                     <Ruler className="h-3.5 w-3.5 text-primary" />
-                    <span>两点已知长度标定 (AC-21)</span>
+                    <span>{isZh ? "两点已知长度标定 (AC-21)" : "Two-Point Scale Calibration (AC-21)"}</span>
                   </div>
                   <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground cursor-pointer">
                     <input
@@ -506,7 +523,7 @@ export function RecognitionLabShell({
                       data-testid="skip-calibration-toggle"
                       className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5"
                     />
-                    <span>跳过标定 (未标定模式)</span>
+                    <span>{isZh ? "跳过标定 (未标定模式)" : "Skip Calibration (Unscaled Mode)"}</span>
                   </label>
                 </div>
 
@@ -515,7 +532,7 @@ export function RecognitionLabShell({
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <span className="text-[10px] text-muted-foreground block mb-1">
-                          点 1 (x, y) px
+                          {isZh ? "点 1 (x, y) px" : "Point 1 (x, y) px"}
                         </span>
                         <div className="flex gap-1">
                           <Input
@@ -540,7 +557,7 @@ export function RecognitionLabShell({
                       </div>
                       <div>
                         <span className="text-[10px] text-muted-foreground block mb-1">
-                          点 2 (x, y) px
+                          {isZh ? "点 2 (x, y) px" : "Point 2 (x, y) px"}
                         </span>
                         <div className="flex gap-1">
                           <Input
@@ -567,7 +584,7 @@ export function RecognitionLabShell({
 
                     <div>
                       <span className="text-[10px] text-muted-foreground block mb-1">
-                        已知实际长度 (mm)
+                        {isZh ? "已知实际长度 (mm)" : "Known Length (mm)"}
                       </span>
                       <Input
                         type="number"
@@ -575,7 +592,7 @@ export function RecognitionLabShell({
                         onChange={(e) => setKnownLengthMm(Number(e.target.value))}
                         className="h-7 text-xs font-mono"
                         data-testid="calibration-real-length-input"
-                        placeholder="例如 7000"
+                        placeholder={isZh ? "例如 7000" : "e.g. 7000"}
                       />
                     </div>
 
@@ -584,7 +601,7 @@ export function RecognitionLabShell({
                         data-testid="calibration-status-badge"
                         className="flex items-center justify-between rounded bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 text-xs text-emerald-700 dark:text-emerald-400 font-mono"
                       >
-                        <span>标定比例:</span>
+                        <span>{isZh ? "标定比例:" : "Scale:"}</span>
                         <span className="font-semibold">
                           {calibrationResult.mmPerPixel.toFixed(2)} mm/px
                         </span>
@@ -596,7 +613,9 @@ export function RecognitionLabShell({
                     data-testid="unscaled-mode-notice"
                     className="rounded bg-amber-500/10 border border-amber-500/20 p-2 text-xs text-amber-700 dark:text-amber-400"
                   >
-                    未标定模式：保留相对像素几何，在编辑器中将严格抑制开门、家具间距及通道净距结论。
+                    {isZh
+                      ? "未标定模式：保留相对像素几何，在编辑器中将严格抑制开门、家具间距及通道净距结论。"
+                      : "Unscaled mode: Preserves relative pixel geometry. Clearance and passage rules are suppressed."}
                   </div>
                 )}
               </div>
@@ -611,12 +630,12 @@ export function RecognitionLabShell({
                 {isInferring ? (
                   <>
                     <Sparkles className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                    <span>正在执行 CubiCasa 推理与规整...</span>
+                    <span>{isZh ? "正在执行 CubiCasa 推理与规整..." : "Running CubiCasa inference & normalization..."}</span>
                   </>
                 ) : (
                   <>
                     <Play className="mr-1.5 h-3.5 w-3.5" />
-                    <span>执行 CubiCasa 识别与规整</span>
+                    <span>{isZh ? "执行 CubiCasa 识别与规整" : "Run CubiCasa Recognition"}</span>
                   </>
                 )}
               </Button>
@@ -628,7 +647,7 @@ export function RecognitionLabShell({
                 >
                   <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-medium block">识别遇到问题</span>
+                    <span className="font-medium block">{isZh ? "识别遇到问题" : "Inference Error"}</span>
                     <span>{inferenceError}</span>
                   </div>
                 </div>
@@ -644,7 +663,7 @@ export function RecognitionLabShell({
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
                   <Layers className="h-4 w-4 text-primary" />
-                  <span>图像与原始语义分割叠加 (AC-20)</span>
+                  <span>{isZh ? "图像与原始语义分割叠加 (AC-20)" : "Image & Semantic Segmentation Overlay (AC-20)"}</span>
                 </CardTitle>
                 {rawSemanticOutput && (
                   <Badge variant="secondary" className="text-[10px] font-mono">
@@ -653,7 +672,9 @@ export function RecognitionLabShell({
                 )}
               </div>
               <CardDescription className="text-xs">
-                显示原图轮廓、语义分割 mask 候选墙体、门窗与房间区域
+                {isZh
+                  ? "显示原图轮廓、语义分割 mask 候选墙体、门窗与房间区域"
+                  : "Shows source outlines, semantic mask candidate walls, openings, and rooms"}
               </CardDescription>
             </CardHeader>
 
@@ -755,7 +776,7 @@ export function RecognitionLabShell({
                         textAnchor="middle"
                         className="text-xs fill-muted-foreground font-mono"
                       >
-                        点击“执行 CubiCasa 识别”以渲染语义叠加
+                        {isZh ? "点击“执行 CubiCasa 识别”以渲染语义叠加" : "Click \"Run CubiCasa Recognition\" to render semantic overlay"}
                       </text>
                     </g>
                   )}
@@ -795,7 +816,7 @@ export function RecognitionLabShell({
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
                   <FileCheck className="h-4 w-4 text-primary" />
-                  <span>生产评估基准 (AC-23)</span>
+                  <span>{isZh ? "生产评估基准 (AC-23)" : "Production Evaluation Benchmark (AC-23)"}</span>
                 </CardTitle>
                 <Badge
                   variant={currentPlan ? "default" : "outline"}
@@ -805,7 +826,9 @@ export function RecognitionLabShell({
                 </Badge>
               </div>
               <CardDescription className="text-xs">
-                规整结果自动通过 FloorPlan 校验器，并记录生产基准指标
+                {isZh
+                  ? "规整结果自动通过 FloorPlan 校验器，并记录生产基准指标"
+                  : "Normalized plan passes FloorPlan validation and logs benchmark metrics"}
               </CardDescription>
             </CardHeader>
 
@@ -815,19 +838,19 @@ export function RecognitionLabShell({
                   {/* Status & Plan Info */}
                   <div className="space-y-1.5 rounded-lg border border-border bg-card p-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">模型引擎:</span>
+                      <span className="text-muted-foreground">{isZh ? "模型引擎:" : "Engine:"}</span>
                       <span className="font-mono font-medium">{evaluationRecord.engine}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">模型版本:</span>
+                      <span className="text-muted-foreground">{isZh ? "模型版本:" : "Model Version:"}</span>
                       <span className="font-mono font-medium">{evaluationRecord.modelVersion}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">推理耗时:</span>
+                      <span className="text-muted-foreground">{isZh ? "推理耗时:" : "Inference Time:"}</span>
                       <span className="font-mono font-medium">{evaluationRecord.inferenceMs} ms</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">尺度状态:</span>
+                      <span className="text-muted-foreground">{isZh ? "尺度状态:" : "Scale Status:"}</span>
                       <Badge
                         variant="outline"
                         className={cn(
@@ -837,7 +860,7 @@ export function RecognitionLabShell({
                             : "text-amber-600 dark:text-amber-400 border-amber-500/30",
                         )}
                       >
-                        {evaluationRecord.scaled ? "已标定 (mm)" : "未标定 (Unscaled)"}
+                        {evaluationRecord.scaled ? (isZh ? "已标定 (mm)" : "Calibrated (mm)") : (isZh ? "未标定 (Unscaled)" : "Unscaled")}
                       </Badge>
                     </div>
                   </div>
@@ -845,23 +868,23 @@ export function RecognitionLabShell({
                   {/* Correction Fix Counts */}
                   <div className="space-y-1.5 rounded-lg border border-border bg-card p-2.5">
                     <span className="font-medium text-foreground block">
-                      人工修正统计 (Fix Counts)
+                      {isZh ? "人工修正统计 (Fix Counts)" : "Manual Correction Fixes"}
                     </span>
                     <div className="grid grid-cols-3 gap-1.5 text-center">
                       <div className="rounded bg-muted/40 p-1.5">
-                        <span className="text-[10px] text-muted-foreground block">墙体修改</span>
+                        <span className="text-[10px] text-muted-foreground block">{isZh ? "墙体修改" : "Walls"}</span>
                         <span className="text-sm font-semibold font-mono" data-testid="fix-count-walls">
                           {evaluationRecord.wallFixCount}
                         </span>
                       </div>
                       <div className="rounded bg-muted/40 p-1.5">
-                        <span className="text-[10px] text-muted-foreground block">门窗微调</span>
+                        <span className="text-[10px] text-muted-foreground block">{isZh ? "门窗微调" : "Openings"}</span>
                         <span className="text-sm font-semibold font-mono" data-testid="fix-count-openings">
                           {evaluationRecord.openingFixCount}
                         </span>
                       </div>
                       <div className="rounded bg-muted/40 p-1.5">
-                        <span className="text-[10px] text-muted-foreground block">房间修正</span>
+                        <span className="text-[10px] text-muted-foreground block">{isZh ? "房间修正" : "Rooms"}</span>
                         <span className="text-sm font-semibold font-mono" data-testid="fix-count-rooms">
                           {evaluationRecord.roomFixCount}
                         </span>
@@ -872,14 +895,14 @@ export function RecognitionLabShell({
                   {/* Manual Correction Time & Status */}
                   <div className="space-y-2 rounded-lg border border-border bg-card p-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">校正耗时:</span>
+                      <span className="text-muted-foreground">{isZh ? "校正耗时:" : "Correction Time:"}</span>
                       <span className="font-mono font-semibold" data-testid="manual-correction-time">
                         {formatSeconds(correctionElapsedSeconds)}
                       </span>
                     </div>
 
                     <div className="space-y-1">
-                      <span className="text-muted-foreground block text-[11px]">审批状态:</span>
+                      <span className="text-muted-foreground block text-[11px]">{isZh ? "审批状态:" : "Approval Status:"}</span>
                       <div className="flex gap-1">
                         {(["draft", "approved", "rejected"] as ApprovalStatus[]).map((st) => (
                           <button
@@ -894,7 +917,7 @@ export function RecognitionLabShell({
                                 : "border-border hover:bg-muted/40 text-muted-foreground",
                             )}
                           >
-                            {st}
+                            {isZh ? (st === "draft" ? "草稿" : st === "approved" ? "已批准" : "已驳回") : st}
                           </button>
                         ))}
                       </div>
@@ -908,14 +931,16 @@ export function RecognitionLabShell({
                     data-testid="open-correction-editor-button"
                   >
                     <Edit3 className="mr-1.5 h-3.5 w-3.5" />
-                    <span>在校正编辑器中打开 (AC-22)</span>
+                    <span>{isZh ? "在校正编辑器中打开 (AC-22)" : "Open in Correction Editor (AC-22)"}</span>
                   </Button>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center text-center p-6 text-muted-foreground space-y-2">
                   <Sparkles className="h-6 w-6 text-muted-foreground/40" />
                   <p className="text-xs">
-                    运行识别后，此面板将生成标准 FloorPlan 拓扑，并记录生产效率评估指标。
+                    {isZh
+                      ? "运行识别后，此面板将生成标准 FloorPlan 拓扑，并记录生产效率评估指标。"
+                      : "Run recognition to generate standard FloorPlan topology and production metrics."}
                   </p>
                 </div>
               )}

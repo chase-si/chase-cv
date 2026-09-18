@@ -15,10 +15,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { FloorPlan, SpaceRuleConfig } from "@/lib/floor-plan/types";
 import { evaluatePlanRules, type RuleResult } from "@/lib/floor-plan/rules";
+import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { cn } from "@/lib/utils";
 import type { EntitySelectHandler, SelectedEntity } from "./types";
 
 export interface RuleFeedbackPanelProps {
+  locale?: string;
   plan: FloorPlan;
   ruleResults?: RuleResult[];
   config?: SpaceRuleConfig;
@@ -29,6 +31,7 @@ export interface RuleFeedbackPanelProps {
 }
 
 export function RuleFeedbackPanel({
+  locale,
   plan,
   ruleResults,
   config,
@@ -37,6 +40,10 @@ export function RuleFeedbackPanel({
   className = "",
   defaultExpanded = true,
 }: RuleFeedbackPanelProps) {
+  const i18n = useFloorPlanI18n(locale);
+  const t = i18n.t.rules;
+  const b = i18n.t.badges;
+
   const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
 
   const violations = React.useMemo(
@@ -79,13 +86,20 @@ export function RuleFeedbackPanel({
 
   const getEntityLabel = React.useCallback(
     (entityId: string) => {
+      if (i18n.locale === "zh") {
+        if (plan.furniture.some((f) => f.id === entityId)) return "家具";
+        if (plan.walls.some((w) => w.id === entityId)) return "墙体";
+        if (plan.rooms.some((r) => r.id === entityId)) return "房间";
+        if (plan.openings.some((o) => o.id === entityId)) return "门窗";
+        return "构件";
+      }
       if (plan.furniture.some((f) => f.id === entityId)) return "Furniture";
       if (plan.walls.some((w) => w.id === entityId)) return "Wall";
       if (plan.rooms.some((r) => r.id === entityId)) return "Room";
       if (plan.openings.some((o) => o.id === entityId)) return "Opening";
       return "Entity";
     },
-    [plan],
+    [plan, i18n.locale],
   );
 
   return (
@@ -103,7 +117,7 @@ export function RuleFeedbackPanel({
           ) : (
             <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
           )}
-          <span className="font-semibold text-xs text-foreground">Spatial Rules</span>
+          <span className="font-semibold text-xs text-foreground">{t.title}</span>
         </div>
 
         <div className="flex items-center gap-1.5">
@@ -112,7 +126,7 @@ export function RuleFeedbackPanel({
               variant="outline"
               className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/5 px-2 py-0.5"
             >
-              0 Issues
+              {i18n.locale === "zh" ? "0 处问题" : "0 Issues"}
             </Badge>
           ) : errorCount > 0 ? (
             <Badge
@@ -120,7 +134,9 @@ export function RuleFeedbackPanel({
               variant="outline"
               className="text-[10px] font-mono px-2 py-0.5 border-destructive/40 text-destructive bg-destructive/10"
             >
-              {violations.length} {violations.length === 1 ? "Issue" : "Issues"}
+              {i18n.locale === "zh"
+                ? `${violations.length} ${b.issues}`
+                : `${violations.length} ${violations.length === 1 ? "Issue" : "Issues"}`}
             </Badge>
           ) : (
             <Badge
@@ -128,7 +144,9 @@ export function RuleFeedbackPanel({
               variant="outline"
               className="text-[10px] font-mono border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5"
             >
-              {violations.length} {violations.length === 1 ? "Warning" : "Warnings"}
+              {i18n.locale === "zh"
+                ? `${violations.length} ${b.warnings}`
+                : `${violations.length} ${violations.length === 1 ? "Warning" : "Warnings"}`}
             </Badge>
           )}
 
@@ -153,7 +171,7 @@ export function RuleFeedbackPanel({
           className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1.5"
         >
           <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-          <span>Uncalibrated scale: Dimension-dependent clearance rules are suppressed.</span>
+          <span>{t.unscaledNotice}</span>
         </div>
       )}
 
@@ -167,7 +185,7 @@ export function RuleFeedbackPanel({
             >
               <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
               <span className="leading-snug">
-                All room boundaries, clearances, passages, and spatial rules passed.
+                {t.allPassed}
               </span>
             </div>
           ) : (
@@ -202,7 +220,7 @@ export function RuleFeedbackPanel({
                         {isError && <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />}
                         {isWarning && <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />}
                         {!isError && !isWarning && <Info className="h-3.5 w-3.5 text-primary shrink-0" />}
-                        <span>{v.title}</span>
+                        <span>{i18n.getRuleTitle(v.ruleId, v.title)}</span>
                       </div>
                       <Badge
                         variant="outline"
@@ -212,13 +230,13 @@ export function RuleFeedbackPanel({
                           isWarning && "border-amber-500/40 text-amber-600 dark:text-amber-400",
                         )}
                       >
-                        {v.severity}
+                        {i18n.locale === "zh" ? (isError ? "严重问题" : isWarning ? "设计提醒" : "提示") : v.severity}
                       </Badge>
                     </div>
 
                     {/* Explanatory Message */}
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      {v.message}
+                      {i18n.getRuleMessage(v)}
                     </p>
 
                     {/* Measured & Recommended Values (AC-14) */}
@@ -229,7 +247,7 @@ export function RuleFeedbackPanel({
                             data-testid={`measured-val-${v.ruleId}`}
                             className="rounded border border-border/60 bg-background/80 p-1"
                           >
-                            <span className="text-muted-foreground block">Measured:</span>
+                            <span className="text-muted-foreground block">{t.measured}</span>
                             <span className="font-mono font-semibold text-foreground">
                               {formattedMeasured}
                             </span>
@@ -240,7 +258,7 @@ export function RuleFeedbackPanel({
                             data-testid={`recommended-val-${v.ruleId}`}
                             className="rounded border border-border/60 bg-background/80 p-1"
                           >
-                            <span className="text-muted-foreground block">Recommended:</span>
+                            <span className="text-muted-foreground block">{t.recommended}</span>
                             <span className="font-mono font-semibold text-foreground">
                               {v.recommendedValue}
                             </span>
@@ -252,7 +270,7 @@ export function RuleFeedbackPanel({
                     {/* Affected Entities Jump Buttons */}
                     {v.relatedEntityIds.length > 0 && (
                       <div className="flex items-center gap-1 flex-wrap pt-1 border-t border-border/50">
-                        <span className="text-[10px] text-muted-foreground">Affected:</span>
+                        <span className="text-[10px] text-muted-foreground">{t.affected}</span>
                         {v.relatedEntityIds.map((entityId) => {
                           const isSelected = selectedEntity?.id === entityId;
                           const label = getEntityLabel(entityId);
@@ -269,7 +287,7 @@ export function RuleFeedbackPanel({
                                 "h-5 px-1.5 text-[10px] font-mono",
                                 isSelected && "bg-primary text-primary-foreground",
                               )}
-                              title={`Inspect ${label} ${entityId}`}
+                              title={i18n.locale === "zh" ? `查看${label} ${entityId}` : `Inspect ${label} ${entityId}`}
                             >
                               <span>{label} {entityId}</span>
                             </Button>

@@ -50,7 +50,7 @@ describe("Standard Floor Plan Catalog (AC-25)", () => {
       // 7. Canonical FloorPlan v1 contract validation
       const validation = validateFloorPlan(item.plan);
       expect(validation.ok).toBe(true);
-      expect(validation.errors).toBeUndefined();
+      expect((validation as any).errors).toBeUndefined();
     }
 
     // AC-25: Covers common 1/2/3-bedroom (and studio/4br/5br) layouts
@@ -70,7 +70,8 @@ describe("Standard Floor Plan Catalog (AC-25)", () => {
     const cnPlan = getStandardPlanById("plan-cn-3b2l-01");
     expect(cnPlan).toBeDefined();
     expect(cnPlan!.name).toBe("紧凑三室两厅双卫 102m²");
-    expect(cnPlan!.tags).toContain("3-Bedroom");
+    expect(cnPlan!.tags).toContain("3B2L");
+    expect(cnPlan!.categoryKey).toBe("3b2l");
   });
 
   it("returns undefined for unknown plan ID", () => {

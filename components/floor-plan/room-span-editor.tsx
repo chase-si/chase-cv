@@ -13,12 +13,14 @@ import {
   type RoomSpanAdjustmentResult,
 } from "@/lib/floor-plan/room-adjustment";
 import { cn } from "@/lib/utils";
+import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 
 interface RoomSpanEditorProps {
   plan: FloorPlan;
   roomId: string;
   onUpdatePlan?: (updatedPlan: FloorPlan) => void;
   className?: string;
+  locale?: string;
 }
 
 export function RoomSpanEditor({
@@ -26,7 +28,10 @@ export function RoomSpanEditor({
   roomId,
   onUpdatePlan,
   className = "",
+  locale,
 }: RoomSpanEditorProps) {
+  const i18n = useFloorPlanI18n(locale);
+  const t = i18n.t;
   const spans = React.useMemo(() => getRoomSpans(plan, roomId), [plan, roomId]);
 
   // Active axis to edit: "horizontal" (Width) or "vertical" (Depth)
@@ -60,7 +65,7 @@ export function RoomSpanEditor({
   if (!spans) {
     return (
       <div className="rounded-lg border border-border/70 p-3 text-xs text-muted-foreground">
-        Room boundaries cannot be automatically resolved for span editing.
+        {t.roomSpanEditor.cannotResolve}
       </div>
     );
   }
@@ -120,7 +125,7 @@ export function RoomSpanEditor({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
-          <span className="font-semibold text-foreground">Room Span Adjustment</span>
+          <span className="font-semibold text-foreground">{t.roomSpanEditor.title}</span>
         </div>
         <Badge variant="outline" className="font-mono text-[10px]">
           mm
@@ -144,7 +149,7 @@ export function RoomSpanEditor({
               : "text-muted-foreground hover:text-foreground",
           )}
         >
-          <span className="text-[10px] uppercase tracking-wider opacity-80">Width (X)</span>
+          <span className="text-[10px] uppercase tracking-wider opacity-80">{t.roomSpanEditor.widthAxis}</span>
           <span data-testid="room-span-summary-width" className="font-mono text-xs">
             {spans.horizontal ? `${spans.horizontal.spanMm} mm` : "N/A"}
           </span>
@@ -165,7 +170,7 @@ export function RoomSpanEditor({
               : "text-muted-foreground hover:text-foreground",
           )}
         >
-          <span className="text-[10px] uppercase tracking-wider opacity-80">Depth (Y)</span>
+          <span className="text-[10px] uppercase tracking-wider opacity-80">{t.roomSpanEditor.depthAxis}</span>
           <span data-testid="room-span-summary-depth" className="font-mono text-xs">
             {spans.vertical ? `${spans.vertical.spanMm} mm` : "N/A"}
           </span>
@@ -174,7 +179,7 @@ export function RoomSpanEditor({
 
       {/* Boundary Edge Selector */}
       <div className="space-y-1">
-        <label className="text-[11px] text-muted-foreground">Moving Boundary</label>
+        <label className="text-[11px] text-muted-foreground">{t.roomSpanEditor.boundarySide}</label>
         <div className="grid grid-cols-2 gap-1.5">
           {activeAxis === "horizontal" ? (
             <>
@@ -189,7 +194,7 @@ export function RoomSpanEditor({
                     : "border-border bg-card text-muted-foreground hover:text-foreground",
                 )}
               >
-                Right Wall
+                {locale === "zh" ? "右侧边界墙" : "Right Wall"}
               </button>
               <button
                 type="button"
@@ -202,7 +207,7 @@ export function RoomSpanEditor({
                     : "border-border bg-card text-muted-foreground hover:text-foreground",
                 )}
               >
-                Left Wall
+                {locale === "zh" ? "左侧边界墙" : "Left Wall"}
               </button>
             </>
           ) : (
@@ -218,7 +223,7 @@ export function RoomSpanEditor({
                     : "border-border bg-card text-muted-foreground hover:text-foreground",
                 )}
               >
-                Bottom Wall
+                {locale === "zh" ? "下侧边界墙" : "Bottom Wall"}
               </button>
               <button
                 type="button"
@@ -231,7 +236,7 @@ export function RoomSpanEditor({
                     : "border-border bg-card text-muted-foreground hover:text-foreground",
                 )}
               >
-                Top Wall
+                {locale === "zh" ? "上侧边界墙" : "Top Wall"}
               </button>
             </>
           )}
@@ -240,7 +245,7 @@ export function RoomSpanEditor({
 
       {/* Target Span Numeric Input */}
       <div className="space-y-1">
-        <label className="text-[11px] text-muted-foreground">Target Span</label>
+        <label className="text-[11px] text-muted-foreground">{t.roomSpanEditor.targetSpan}</label>
         <div className="relative flex items-center">
           <Input
             data-testid="target-span-input"
@@ -251,7 +256,7 @@ export function RoomSpanEditor({
               setPreviewResult(null);
               setErrorMessage(null);
             }}
-            placeholder="Dimension in mm"
+            placeholder={locale === "zh" ? "输入毫米数值" : "Dimension in mm"}
             className="h-8 pr-10 font-mono text-xs bg-background"
           />
           <span className="absolute right-3 font-mono text-[11px] text-muted-foreground pointer-events-none">
@@ -280,19 +285,19 @@ export function RoomSpanEditor({
           className="space-y-1.5 rounded-lg border border-primary/20 bg-primary/5 p-2.5 text-xs animate-in fade-in-50"
         >
           <div className="flex items-center justify-between">
-            <span className="font-medium text-foreground">Preview Dimension:</span>
+            <span className="font-medium text-foreground">{locale === "zh" ? "微调预览尺寸：" : "Preview Dimension:"}</span>
             <span data-testid="preview-new-span" className="font-mono font-semibold text-primary">
               {previewResult.newSpanMm} mm
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Adjustment Delta:</span>
+            <span className="text-muted-foreground">{locale === "zh" ? "调整尺寸差值：" : "Adjustment Delta:"}</span>
             <span data-testid="preview-delta" className="font-mono text-foreground">
               {previewResult.deltaMm > 0 ? `+${previewResult.deltaMm}` : previewResult.deltaMm} mm
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">New Room Area:</span>
+            <span className="text-muted-foreground">{locale === "zh" ? "调整后建筑面积：" : "New Room Area:"}</span>
             <span data-testid="preview-new-area" className="font-mono font-semibold text-foreground">
               {(previewResult.newAreaMm2 / 1_000_000).toFixed(1)} m²
             </span>
@@ -311,7 +316,7 @@ export function RoomSpanEditor({
           className="h-8 flex-1 text-xs flex items-center justify-center gap-1"
         >
           <Eye className="h-3.5 w-3.5 text-primary" />
-          <span>Preview</span>
+          <span>{t.roomSpanEditor.preview}</span>
         </Button>
 
         <Button
@@ -323,7 +328,7 @@ export function RoomSpanEditor({
           className="h-8 flex-1 text-xs flex items-center justify-center gap-1"
         >
           <Check className="h-3.5 w-3.5" />
-          <span>Apply</span>
+          <span>{t.roomSpanEditor.apply}</span>
         </Button>
 
         <Button
@@ -333,7 +338,7 @@ export function RoomSpanEditor({
           data-testid="cancel-span-btn"
           onClick={handleCancel}
           className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
-          title="Cancel changes"
+          title={t.roomSpanEditor.cancel}
         >
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>

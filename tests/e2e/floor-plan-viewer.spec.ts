@@ -23,7 +23,7 @@ test.describe("Floor Plan SVG Viewer & Catalog (Issue #175)", () => {
     );
     await expect(page.getByTestId("plan-area-plan-std-2br-01")).toContainText("30.0 m²");
     await expect(page.getByTestId("plan-rooms-plan-std-2br-01")).toBeVisible();
-    await expect(page.getByTestId("plan-tags-plan-std-2br-01")).toContainText("Nordic");
+    await expect(page.getByTestId("plan-tags-plan-std-2br-01")).toContainText("2B1L");
     await expect(
       page.getByTestId("floor-plan-thumbnail-plan-std-2br-01"),
     ).toBeVisible();
@@ -165,13 +165,18 @@ test.describe("Floor Plan SVG Viewer & Catalog (Issue #175)", () => {
     // Save mobile screenshot for visual review
     await page.screenshot({ path: "test-results/floor-plan-mobile.png" });
 
-    // Switch to catalog tab on mobile
-    await page.getByRole("button", { name: "Catalog" }).click();
-    await expect(page.getByTestId("floor-plan-catalog")).toBeVisible();
+    // Open catalog in bottom sheet on mobile
+    await page.getByTestId("mobile-catalog-btn").click();
+    const mobileCatalog = page.getByTestId("mobile-bottom-sheet").getByTestId("floor-plan-catalog");
+    await expect(mobileCatalog).toBeVisible();
 
-    // Switch to details tab on mobile
-    await page.getByRole("button", { name: "Details" }).click();
-    await expect(page.getByTestId("floor-plan-inspector")).toBeVisible();
+    // Close catalog bottom sheet
+    await page.getByTestId("mobile-bottom-sheet-close").click();
+
+    // Select entity to open details inspector in bottom sheet on mobile
+    await page.getByTestId("floor-plan-room-r1").click();
+    const mobileInspector = page.getByTestId("mobile-bottom-sheet").getByTestId("floor-plan-inspector");
+    await expect(mobileInspector).toBeVisible();
   });
 
   test("internal route contract: robots meta has noindex, nofollow", async ({

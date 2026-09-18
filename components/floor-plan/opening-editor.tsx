@@ -24,12 +24,14 @@ import {
   type UpdateOpeningResult,
 } from "@/lib/floor-plan/opening-adjustment";
 import { cn } from "@/lib/utils";
+import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 
 interface OpeningEditorProps {
   plan: FloorPlan;
   openingId: string;
   onUpdatePlan?: (updatedPlan: FloorPlan) => void;
   className?: string;
+  locale?: string;
 }
 
 export function OpeningEditor({
@@ -37,7 +39,10 @@ export function OpeningEditor({
   openingId,
   onUpdatePlan,
   className = "",
+  locale,
 }: OpeningEditorProps) {
+  const i18n = useFloorPlanI18n(locale);
+  const t = i18n.t;
   const [endMarginInput, setEndMarginInput] = React.useState<string>(
     String(DEFAULT_OPENING_END_MARGIN_MM),
   );
@@ -75,7 +80,7 @@ export function OpeningEditor({
   if (!details) {
     return (
       <div className="rounded-lg border border-border/70 p-3 text-xs text-muted-foreground">
-        Opening metadata cannot be found or attached wall is invalid.
+        {t.openingEditor.cannotResolve}
       </div>
     );
   }
@@ -142,20 +147,24 @@ export function OpeningEditor({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <DoorOpen className="h-3.5 w-3.5 text-primary" />
-          <span className="font-semibold text-foreground">Opening Adjustment</span>
+          <span className="font-semibold text-foreground">{t.openingEditor.title}</span>
         </div>
         <Badge
           data-testid="opening-type-badge"
           variant="outline"
           className="font-mono text-[10px] capitalize"
         >
-          {details.opening.type.replace("_", " ")}
+          {details.opening.type === "door"
+            ? t.inspector.door
+            : details.opening.type === "window"
+              ? t.inspector.window
+              : details.opening.type.replace("_", " ")}
         </Badge>
       </div>
 
       {/* Wall attachment badge */}
       <div className="flex items-center justify-between rounded-lg border border-border/70 bg-background/80 px-2.5 py-1.5">
-        <span className="text-[11px] text-muted-foreground">Attached Wall</span>
+        <span className="text-[11px] text-muted-foreground">{locale === "zh" ? "附着墙体" : "Attached Wall"}</span>
         <span className="font-mono font-medium text-foreground">
           {details.wall.id} ({Math.round(details.wallLengthMm)} mm)
         </span>
@@ -164,9 +173,9 @@ export function OpeningEditor({
       {/* Width Input with Quick Buttons */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="text-[11px] text-muted-foreground">Opening Width</label>
+          <label className="text-[11px] text-muted-foreground">{t.openingEditor.width}</label>
           <span className="font-mono text-[10px] text-muted-foreground">
-            Max: {Math.round(details.maxAllowedWidthMm)} mm
+            {locale === "zh" ? `最大上限: ${Math.round(details.maxAllowedWidthMm)} mm` : `Max: ${Math.round(details.maxAllowedWidthMm)} mm`}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -192,7 +201,7 @@ export function OpeningEditor({
                 setPreviewResult(null);
                 setErrorMessage(null);
               }}
-              placeholder="Width in mm"
+              placeholder={locale === "zh" ? "输入毫米宽度" : "Width in mm"}
               className="h-8 pr-10 font-mono text-xs bg-background"
             />
             <span className="absolute right-3 top-2 font-mono text-[11px] text-muted-foreground pointer-events-none">
@@ -217,7 +226,7 @@ export function OpeningEditor({
       {/* Position Ratio Slider & Distance */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="text-[11px] text-muted-foreground">Position Along Wall</label>
+          <label className="text-[11px] text-muted-foreground">{t.openingEditor.position}</label>
           <div className="flex items-center gap-1 font-mono text-[11px] text-foreground font-medium">
             <span>{(positionRatio * 100).toFixed(1)}%</span>
             <span className="text-muted-foreground">
@@ -242,17 +251,17 @@ export function OpeningEditor({
         />
 
         <div className="flex justify-between text-[10px] font-mono text-muted-foreground px-0.5">
-          <span>Start ({(details.minPositionRatio * 100).toFixed(0)}%)</span>
-          <span>Center (50%)</span>
-          <span>End ({(details.maxPositionRatio * 100).toFixed(0)}%)</span>
+          <span>{locale === "zh" ? "起点" : "Start"} ({(details.minPositionRatio * 100).toFixed(0)}%)</span>
+          <span>{locale === "zh" ? "居中" : "Center"} (50%)</span>
+          <span>{locale === "zh" ? "终点" : "End"} ({(details.maxPositionRatio * 100).toFixed(0)}%)</span>
         </div>
       </div>
 
       {/* End Margin Setting */}
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <label className="text-[11px] text-muted-foreground">End Margin</label>
-          <span className="font-mono text-[10px] text-muted-foreground">Configurable</span>
+          <label className="text-[11px] text-muted-foreground">{t.openingEditor.endMargin}</label>
+          <span className="font-mono text-[10px] text-muted-foreground">{locale === "zh" ? "可调避让" : "Configurable"}</span>
         </div>
         <div className="relative flex items-center">
           <Input
@@ -264,7 +273,7 @@ export function OpeningEditor({
               setPreviewResult(null);
               setErrorMessage(null);
             }}
-            placeholder="Margin in mm"
+            placeholder={locale === "zh" ? "输入避让间距 (mm)" : "Margin in mm"}
             className="h-8 pr-10 font-mono text-xs bg-background"
           />
           <span className="absolute right-3 font-mono text-[11px] text-muted-foreground pointer-events-none">
@@ -293,7 +302,7 @@ export function OpeningEditor({
           className="space-y-1.5 rounded-lg border border-primary/20 bg-primary/5 p-2.5 text-xs animate-in fade-in-50"
         >
           <div className="flex items-center justify-between">
-            <span className="font-medium text-foreground">Preview Width:</span>
+            <span className="font-medium text-foreground">{locale === "zh" ? "预览调整净宽：" : "Preview Width:"}</span>
             <span
               data-testid="preview-opening-width"
               className="font-mono font-semibold text-primary"
@@ -302,7 +311,7 @@ export function OpeningEditor({
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Preview Position:</span>
+            <span className="text-muted-foreground">{locale === "zh" ? "预览调整相对位置：" : "Preview Position:"}</span>
             <span
               data-testid="preview-opening-position"
               className="font-mono text-foreground font-semibold"
@@ -325,7 +334,7 @@ export function OpeningEditor({
           className="h-8 flex-1 text-xs flex items-center justify-center gap-1"
         >
           <Eye className="h-3.5 w-3.5 text-primary" />
-          <span>Preview</span>
+          <span>{t.openingEditor.preview}</span>
         </Button>
 
         <Button
@@ -337,7 +346,7 @@ export function OpeningEditor({
           className="h-8 flex-1 text-xs flex items-center justify-center gap-1"
         >
           <Check className="h-3.5 w-3.5" />
-          <span>Apply</span>
+          <span>{t.openingEditor.apply}</span>
         </Button>
 
         <Button
@@ -347,7 +356,7 @@ export function OpeningEditor({
           data-testid="cancel-opening-btn"
           onClick={handleCancel}
           className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
-          title="Cancel changes"
+          title={t.openingEditor.cancel}
         >
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>

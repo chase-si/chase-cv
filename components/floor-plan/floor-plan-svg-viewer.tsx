@@ -30,8 +30,10 @@ import { SvgFurniture } from "./svg/svg-furniture";
 import { SvgOpening } from "./svg/svg-opening";
 import { SvgRoom } from "./svg/svg-room";
 import { SvgWall } from "./svg/svg-wall";
+import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 
 interface FloorPlanSvgViewerProps {
+  locale?: string;
   plan: FloorPlan;
   selectedEntity: SelectedEntity | null;
   onSelect: EntitySelectHandler;
@@ -43,6 +45,7 @@ interface FloorPlanSvgViewerProps {
 }
 
 export function FloorPlanSvgViewer({
+  locale,
   plan,
   selectedEntity,
   onSelect,
@@ -52,6 +55,9 @@ export function FloorPlanSvgViewer({
   canvasMode = "edit",
   className = "",
 }: FloorPlanSvgViewerProps) {
+  const i18n = useFloorPlanI18n(locale);
+  const t = i18n.t.svgViewer;
+
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [viewportSize, setViewportSize] = React.useState({ width: 800, height: 600 });
   const [transform, setTransform] = React.useState<ViewTransform>(DEFAULT_VIEW_TRANSFORM);
@@ -561,8 +567,8 @@ export function FloorPlanSvgViewer({
           type="button"
           size="sm"
           variant="outline"
-          aria-label="Zoom in"
-          title="Zoom in"
+          aria-label={t.zoomIn}
+          title={t.zoomIn}
           onClick={handleZoomIn}
           className="h-11 w-11 min-h-[44px] min-w-[44px] lg:h-8 lg:w-8 lg:min-h-0 lg:min-w-0 p-0 touch-manipulation"
         >
@@ -580,8 +586,8 @@ export function FloorPlanSvgViewer({
           type="button"
           size="sm"
           variant="outline"
-          aria-label="Zoom out"
-          title="Zoom out"
+          aria-label={t.zoomOut}
+          title={t.zoomOut}
           onClick={handleZoomOut}
           className="h-11 w-11 min-h-[44px] min-w-[44px] lg:h-8 lg:w-8 lg:min-h-0 lg:min-w-0 p-0 touch-manipulation"
         >
@@ -594,21 +600,21 @@ export function FloorPlanSvgViewer({
           type="button"
           size="sm"
           variant="outline"
-          aria-label="Fit to view"
-          title="Fit plan to view"
+          aria-label={t.fitView}
+          title={t.fitView}
           onClick={() => fitToView(viewportSize.width, viewportSize.height)}
           className="h-11 min-h-[44px] lg:h-8 lg:min-h-0 px-3 text-xs font-medium gap-1 touch-manipulation"
         >
           <Maximize2 className="h-3.5 w-3.5" />
-          <span>Fit</span>
+          <span>{i18n.locale === "zh" ? "适屏" : "Fit"}</span>
         </Button>
 
         <Button
           type="button"
           size="sm"
           variant="ghost"
-          aria-label="Reset zoom"
-          title="Reset"
+          aria-label={t.reset}
+          title={t.reset}
           onClick={handleResetZoom}
           className="h-11 w-11 min-h-[44px] min-w-[44px] lg:h-8 lg:w-8 lg:min-h-0 lg:min-w-0 p-0 text-muted-foreground touch-manipulation"
         >
@@ -618,9 +624,13 @@ export function FloorPlanSvgViewer({
 
       {/* Instructions / Status hint */}
       <div className="absolute top-3 left-3 z-10 hidden sm:flex items-center gap-2 rounded-lg bg-card/85 px-2.5 py-1 text-xs text-muted-foreground border border-border/70 backdrop-blur-xs pointer-events-none">
-        <span className="font-medium text-foreground">{plan.meta.name}</span>
+        <span className="font-medium text-foreground">{i18n.getPlanName(plan.meta.id || plan.meta.templateId || "", plan.meta.name)}</span>
         <span>•</span>
-        <span>Drag to pan, scroll to zoom, click entities to inspect</span>
+        <span>
+          {i18n.locale === "zh"
+            ? "拖拽平移画布，滚轮缩放，点击构件查看参数"
+            : "Drag to pan, scroll to zoom, click entities to inspect"}
+        </span>
       </div>
     </div>
   );

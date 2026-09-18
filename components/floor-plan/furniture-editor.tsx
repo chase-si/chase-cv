@@ -26,11 +26,13 @@ import {
   resizeFurnitureInstance,
   rotateFurnitureInstance,
 } from "@/lib/floor-plan/furniture-operations";
+import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import type { FloorPlan, FurnitureCatalog } from "@/lib/floor-plan/types";
 import { cn } from "@/lib/utils";
 import type { SelectedEntity } from "./types";
 
 interface FurnitureEditorProps {
+  locale?: string;
   plan: FloorPlan;
   catalog?: FurnitureCatalog;
   furnitureId: string;
@@ -40,6 +42,7 @@ interface FurnitureEditorProps {
 }
 
 export function FurnitureEditor({
+  locale,
   plan,
   catalog: propCatalog,
   furnitureId,
@@ -47,6 +50,9 @@ export function FurnitureEditor({
   onSelect,
   className = "",
 }: FurnitureEditorProps) {
+  const i18n = useFloorPlanI18n(locale);
+  const t = i18n.t.furnitureEditor;
+
   const catalog = React.useMemo(
     () => propCatalog ?? getDefaultFurnitureCatalog(),
     [propCatalog],
@@ -99,7 +105,7 @@ export function FurnitureEditor({
   if (!instance) {
     return (
       <div className="rounded-lg border border-border/70 p-3 text-xs text-muted-foreground">
-        Furniture item was not found in the plan.
+        {t.notFound}
       </div>
     );
   }
@@ -130,7 +136,7 @@ export function FurnitureEditor({
     const posY = Number(yInput);
 
     if (!Number.isFinite(posX) || !Number.isFinite(posY)) {
-      setErrorMessage("Position X and Y coordinates must be valid numbers.");
+      setErrorMessage(t.invalidCoordinates);
       return;
     }
 
@@ -217,7 +223,7 @@ export function FurnitureEditor({
       <div className="flex items-start justify-between gap-2 border-b border-border/60 pb-2.5">
         <div className="space-y-0.5 min-w-0">
           <p className="font-semibold text-sm text-foreground truncate">
-            {definition?.name ?? instance.definitionId}
+            {definition ? i18n.getFurnitureName(instance.definitionId, definition.name) : instance.definitionId}
           </p>
           <span
             data-testid="furniture-instance-id"
@@ -231,7 +237,7 @@ export function FurnitureEditor({
           variant="secondary"
           className="font-mono text-[10px] uppercase shrink-0"
         >
-          {definition?.category ?? "furniture"}
+          {definition ? i18n.getFurnitureCategoryLabel(definition.category) : "furniture"}
         </Badge>
       </div>
 
@@ -239,7 +245,7 @@ export function FurnitureEditor({
       <div className="space-y-1.5">
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <Move className="h-3 w-3" />
-          <span>Coordinates (Plan Space)</span>
+          <span>{t.coordinates}</span>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="relative flex items-center">
@@ -284,10 +290,10 @@ export function FurnitureEditor({
       {/* 3. Width Controls (min/max/step) */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-[11px]">
-          <span className="text-muted-foreground">Width</span>
+          <span className="text-muted-foreground">{t.width}</span>
           {widthRange && (
             <span className="font-mono text-[10px] text-muted-foreground">
-              {widthRange.min}–{widthRange.max} mm (step {widthRange.step ?? 50}mm)
+              {widthRange.min}–{widthRange.max} mm ({t.stepUnit} {widthRange.step ?? 50}mm)
             </span>
           )}
         </div>
@@ -299,7 +305,7 @@ export function FurnitureEditor({
             data-testid="furniture-width-dec-btn"
             onClick={() => handleStepDimension("width", -(widthRange?.step ?? 100))}
             className="h-8 w-8 p-0 shrink-0"
-            title="Decrease width"
+            title={t.decWidth}
           >
             <Minus className="h-3.5 w-3.5" />
           </Button>
@@ -328,7 +334,7 @@ export function FurnitureEditor({
             data-testid="furniture-width-inc-btn"
             onClick={() => handleStepDimension("width", widthRange?.step ?? 100)}
             className="h-8 w-8 p-0 shrink-0"
-            title="Increase width"
+            title={t.incWidth}
           >
             <Plus className="h-3.5 w-3.5" />
           </Button>
@@ -338,10 +344,10 @@ export function FurnitureEditor({
       {/* 4. Depth Controls (min/max/step) */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-[11px]">
-          <span className="text-muted-foreground">Depth</span>
+          <span className="text-muted-foreground">{t.depth}</span>
           {depthRange && (
             <span className="font-mono text-[10px] text-muted-foreground">
-              {depthRange.min}–{depthRange.max} mm (step {depthRange.step ?? 50}mm)
+              {depthRange.min}–{depthRange.max} mm ({t.stepUnit} {depthRange.step ?? 50}mm)
             </span>
           )}
         </div>
@@ -353,7 +359,7 @@ export function FurnitureEditor({
             data-testid="furniture-depth-dec-btn"
             onClick={() => handleStepDimension("depth", -(depthRange?.step ?? 50))}
             className="h-8 w-8 p-0 shrink-0"
-            title="Decrease depth"
+            title={t.decDepth}
           >
             <Minus className="h-3.5 w-3.5" />
           </Button>
@@ -382,7 +388,7 @@ export function FurnitureEditor({
             data-testid="furniture-depth-inc-btn"
             onClick={() => handleStepDimension("depth", depthRange?.step ?? 50)}
             className="h-8 w-8 p-0 shrink-0"
-            title="Increase depth"
+            title={t.incDepth}
           >
             <Plus className="h-3.5 w-3.5" />
           </Button>
@@ -409,7 +415,7 @@ export function FurnitureEditor({
           className="space-y-1.5 rounded-lg border border-primary/20 bg-primary/5 p-2.5 text-xs animate-in fade-in-50"
         >
           <div className="flex items-center justify-between">
-            <span className="font-medium text-foreground">Preview Size:</span>
+            <span className="font-medium text-foreground">{t.previewSize}</span>
             <span
               data-testid="preview-furniture-dimensions"
               className="font-mono font-semibold text-primary"
@@ -418,7 +424,7 @@ export function FurnitureEditor({
             </span>
           </div>
           <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-            <span>Rotation:</span>
+            <span>{t.rotation}</span>
             <span className="font-mono text-foreground">{instance.rotation}°</span>
           </div>
         </div>
@@ -435,7 +441,7 @@ export function FurnitureEditor({
           className="h-8 flex-1 text-xs flex items-center justify-center gap-1"
         >
           <Eye className="h-3.5 w-3.5 text-primary" />
-          <span>Preview</span>
+          <span>{t.preview}</span>
         </Button>
 
         <Button
@@ -447,7 +453,7 @@ export function FurnitureEditor({
           className="h-8 flex-1 text-xs flex items-center justify-center gap-1"
         >
           <Check className="h-3.5 w-3.5" />
-          <span>Apply</span>
+          <span>{t.apply}</span>
         </Button>
 
         <Button
@@ -457,7 +463,7 @@ export function FurnitureEditor({
           data-testid="cancel-furniture-btn"
           onClick={handleCancel}
           className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
-          title="Reset values"
+          title={t.reset}
         >
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
@@ -474,7 +480,7 @@ export function FurnitureEditor({
           className="flex-1 h-8 text-xs flex items-center justify-center gap-1.5"
         >
           <RotateCw className="h-3.5 w-3.5 text-primary" />
-          <span>Rotate 90° ({instance.rotation}°)</span>
+          <span>{t.rotate90} ({instance.rotation}°)</span>
         </Button>
 
         <Button
@@ -484,10 +490,10 @@ export function FurnitureEditor({
           data-testid="delete-furniture-btn"
           onClick={handleDelete}
           className="h-8 px-3 text-xs flex items-center justify-center gap-1"
-          title="Delete furniture item"
+          title={t.deleteTitle}
         >
           <Trash2 className="h-3.5 w-3.5" />
-          <span>Delete</span>
+          <span>{t.delete}</span>
         </Button>
       </div>
     </div>

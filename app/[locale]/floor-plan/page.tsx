@@ -36,6 +36,6 @@ export default async function FloorPlanPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <FloorPlanShell />;
+  return <FloorPlanShell locale={locale} />;
 }
 
