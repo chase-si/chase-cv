@@ -437,5 +437,335 @@ describe("FloorPlanShell Integration", () => {
       });
     });
   });
+
+  describe("AC-8: Undo and Redo all committed plan edits in FloorPlanShell", () => {
+    it("renders undo and redo buttons with disabled states initially, enabling undo upon mutation", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // Enter draft mode
+      fireEvent.click(screen.getByTestId("customize-plan-btn"));
+      await waitFor(() => {
+        expect(screen.getByTestId("undo-btn")).toBeInTheDocument();
+        expect(screen.getByTestId("redo-btn")).toBeInTheDocument();
+      });
+
+      // Initially both undo and redo are disabled
+      expect(screen.getByTestId("undo-btn")).toBeDisabled();
+      expect(screen.getByTestId("redo-btn")).toBeDisabled();
+
+      // Perform a mutation (edit plan name)
+      const nameInput = screen.getByTestId("edit-plan-name-input");
+      fireEvent.change(nameInput, { target: { value: "New Custom Suite" } });
+
+      // Undo should become enabled, redo remains disabled
+      await waitFor(() => {
+        expect(screen.getByTestId("undo-btn")).not.toBeDisabled();
+        expect(screen.getByTestId("redo-btn")).toBeDisabled();
+      });
+
+      // Click Undo
+      fireEvent.click(screen.getByTestId("undo-btn"));
+
+      // Plan reverted, undo becomes disabled, redo becomes enabled
+      await waitFor(() => {
+        expect(screen.getByTestId("undo-btn")).toBeDisabled();
+        expect(screen.getByTestId("redo-btn")).not.toBeDisabled();
+      });
+
+      // Click Redo
+      fireEvent.click(screen.getByTestId("redo-btn"));
+
+      // Plan restored, undo becomes enabled, redo becomes disabled
+      await waitFor(() => {
+        expect(screen.getByTestId("undo-btn")).not.toBeDisabled();
+        expect(screen.getByTestId("redo-btn")).toBeDisabled();
+      });
+    });
+
+    it("undoes and redoes room span adjustments and keeps storage persistence in sync", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // Enter draft mode
+      fireEvent.click(screen.getByTestId("customize-plan-btn"));
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+
+      // Select Living Room (r1)
+      fireEvent.click(screen.getByTestId("floor-plan-room-r1"));
+      await waitFor(() => {
+        expect(screen.getByTestId("room-span-editor")).toBeInTheDocument();
+      });
+
+      // Adjust span to 3600 mm and apply
+      const input = screen.getByTestId("target-span-input");
+      fireEvent.change(input, { target: { value: "3600" } });
+      fireEvent.click(screen.getByTestId("apply-span-btn"));
+
+      await waitFor(async () => {
+        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        expect(savedDraft?.vertices.find((v) => v.id === "v2")?.x).toBe(3600);
+      });
+
+      // Click Undo
+      fireEvent.click(screen.getByTestId("undo-btn"));
+
+      // Vertex x should be reverted to 3000 in storage and room display
+      await waitFor(async () => {
+        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        expect(savedDraft?.vertices.find((v) => v.id === "v2")?.x).toBe(3000);
+        expect(screen.getByTestId("floor-plan-room-r1")).toHaveTextContent("15.0 m²");
+      });
+
+      // Click Redo
+      fireEvent.click(screen.getByTestId("redo-btn"));
+
+      // Vertex x should be restored to 3600
+      await waitFor(async () => {
+        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        expect(savedDraft?.vertices.find((v) => v.id === "v2")?.x).toBe(3600);
+        expect(screen.getByTestId("floor-plan-room-r1")).toHaveTextContent("18.0 m²");
+      });
+    });
+
+    it("undoes and redoes opening move and resize operations", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // Enter draft mode
+      fireEvent.click(screen.getByTestId("customize-plan-btn"));
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+
+      // Select opening door1
+      fireEvent.click(screen.getByTestId("floor-plan-opening-door1"));
+      await waitFor(() => {
+        expect(screen.getByTestId("opening-editor")).toBeInTheDocument();
+      });
+
+      // Change width to 1100 and apply
+      const widthInput = screen.getByTestId("opening-width-input");
+      fireEvent.change(widthInput, { target: { value: "1100" } });
+      fireEvent.click(screen.getByTestId("apply-opening-btn"));
+
+      await waitFor(async () => {
+        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        expect(savedDraft?.openings.find((o) => o.id === "door1")?.width).toBe(1100);
+      });
+
+      // Undo
+      fireEvent.click(screen.getByTestId("undo-btn"));
+
+      await waitFor(async () => {
+        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        expect(savedDraft?.openings.find((o) => o.id === "door1")?.width).toBe(900);
+      });
+
+      // Redo
+      fireEvent.click(screen.getByTestId("redo-btn"));
+
+      await waitFor(async () => {
+        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        expect(savedDraft?.openings.find((o) => o.id === "door1")?.width).toBe(1100);
+      });
+    });
+
+    it("undoes and redoes furniture manipulation operations (rotate, delete)", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // Enter draft mode
+      fireEvent.click(screen.getByTestId("customize-plan-btn"));
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+
+      // Select sofa f1
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f1"));
+      await waitFor(() => {
+        expect(screen.getByTestId("furniture-editor")).toBeInTheDocument();
+      });
+
+      // Rotate 90
+      fireEvent.click(screen.getByTestId("rotate-furniture-btn"));
+
+      await waitFor(async () => {
+        const saved = await storage.getDraft("plan-std-2br-01");
+        expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(90);
+      });
+
+      // Delete sofa f1
+      fireEvent.click(screen.getByTestId("delete-furniture-btn"));
+
+      await waitFor(async () => {
+        const saved = await storage.getDraft("plan-std-2br-01");
+        expect(saved?.furniture.some((f) => f.id === "f1")).toBe(false);
+      });
+
+      // Undo 1: Un-delete sofa f1
+      fireEvent.click(screen.getByTestId("undo-btn"));
+
+      await waitFor(async () => {
+        const saved = await storage.getDraft("plan-std-2br-01");
+        const sofa = saved?.furniture.find((f) => f.id === "f1");
+        expect(sofa).toBeDefined();
+        expect(sofa?.rotation).toBe(90);
+      });
+
+      // Undo 2: Un-rotate sofa f1 back to 0
+      fireEvent.click(screen.getByTestId("undo-btn"));
+
+      await waitFor(async () => {
+        const saved = await storage.getDraft("plan-std-2br-01");
+        const sofa = saved?.furniture.find((f) => f.id === "f1");
+        expect(sofa?.rotation).toBe(0);
+      });
+
+      // Redo 1: Re-rotate sofa f1 to 90
+      fireEvent.click(screen.getByTestId("redo-btn"));
+
+      await waitFor(async () => {
+        const saved = await storage.getDraft("plan-std-2br-01");
+        expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(90);
+      });
+
+      // Redo 2: Re-delete sofa f1
+      fireEvent.click(screen.getByTestId("redo-btn"));
+
+      await waitFor(async () => {
+        const saved = await storage.getDraft("plan-std-2br-01");
+        expect(saved?.furniture.some((f) => f.id === "f1")).toBe(false);
+      });
+    });
+
+    it("triggers undo and redo via keyboard shortcuts (Cmd+Z / Ctrl+Z and Cmd+Shift+Z / Ctrl+Shift+Z / Ctrl+Y)", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // Enter draft mode
+      fireEvent.click(screen.getByTestId("customize-plan-btn"));
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+
+      // Select sofa f1 and rotate
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f1"));
+      await waitFor(() => {
+        expect(screen.getByTestId("furniture-editor")).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByTestId("rotate-furniture-btn"));
+
+      await waitFor(async () => {
+        const saved = await storage.getDraft("plan-std-2br-01");
+        expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(90);
+      });
+
+      // Press Cmd+Z to undo
+      fireEvent.keyDown(window, { key: "z", metaKey: true });
+
+      await waitFor(async () => {
+        const saved = await storage.getDraft("plan-std-2br-01");
+        expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(0);
+      });
+
+      // Press Cmd+Shift+Z to redo
+      fireEvent.keyDown(window, { key: "z", metaKey: true, shiftKey: true });
+
+      await waitFor(async () => {
+        const saved = await storage.getDraft("plan-std-2br-01");
+        expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(90);
+      });
+
+      // Press Ctrl+Z to undo
+      fireEvent.keyDown(window, { key: "z", ctrlKey: true });
+
+      await waitFor(async () => {
+        const saved = await storage.getDraft("plan-std-2br-01");
+        expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(0);
+      });
+
+      // Press Ctrl+Y to redo
+      fireEvent.keyDown(window, { key: "y", ctrlKey: true });
+
+      await waitFor(async () => {
+        const saved = await storage.getDraft("plan-std-2br-01");
+        expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(90);
+      });
+    });
+
+    it("does not trigger plan undo via shortcut when focused inside an input element", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // Enter draft mode
+      fireEvent.click(screen.getByTestId("customize-plan-btn"));
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+
+      // Select sofa f1 and rotate
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f1"));
+      await waitFor(() => {
+        expect(screen.getByTestId("furniture-editor")).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByTestId("rotate-furniture-btn"));
+
+      await waitFor(async () => {
+        const saved = await storage.getDraft("plan-std-2br-01");
+        expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(90);
+      });
+
+      // Focus an input element (e.g. width input)
+      const input = screen.getByTestId("furniture-width-input");
+      input.focus();
+
+      // Trigger Cmd+Z while input is active element
+      fireEvent.keyDown(input, { key: "z", metaKey: true });
+
+      // Plan should NOT have undone
+      const saved = await storage.getDraft("plan-std-2br-01");
+      expect(saved?.furniture.find((f) => f.id === "f1")?.rotation).toBe(90);
+    });
+
+    it("creates exactly one history entry for a continuous pointer drag gesture", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // Enter draft mode
+      fireEvent.click(screen.getByTestId("customize-plan-btn"));
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+
+      const sofaEl = screen.getByTestId("floor-plan-furniture-f1");
+      const svgSurface = screen.getByTestId("floor-plan-svg-canvas");
+
+      // Pointer down on sofa
+      fireEvent.pointerDown(sofaEl, { clientX: 100, clientY: 100 });
+
+      // Multiple continuous pointermove events during drag
+      for (let i = 1; i <= 10; i++) {
+        fireEvent.pointerMove(svgSurface, { clientX: 100 + i * 10, clientY: 100 + i * 5 });
+      }
+
+      // Pointer up completes gesture
+      fireEvent.pointerUp(svgSurface, { clientX: 200, clientY: 150 });
+
+      // Exactly ONE undo operation is needed to revert the move
+      await waitFor(() => {
+        expect(screen.getByTestId("undo-btn")).not.toBeDisabled();
+      });
+
+      fireEvent.click(screen.getByTestId("undo-btn"));
+
+      // Undo button should now be disabled (only 1 entry was created)
+      await waitFor(() => {
+        expect(screen.getByTestId("undo-btn")).toBeDisabled();
+      });
+    });
+  });
 });
 
