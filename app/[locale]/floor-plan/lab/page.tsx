@@ -36,5 +36,5 @@ export default async function FloorPlanLabPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <RecognitionLabShell />;
+  return <RecognitionLabShell locale={locale} />;
 }

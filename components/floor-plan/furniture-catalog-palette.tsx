@@ -22,6 +22,7 @@ import {
   getDefaultFurnitureCatalog,
 } from "@/lib/floor-plan/furniture-catalog";
 import { addFurnitureInstance } from "@/lib/floor-plan/furniture-operations";
+import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import type {
   FloorPlan,
   FurnitureCatalog,
@@ -32,6 +33,7 @@ import { cn } from "@/lib/utils";
 import type { SelectedEntity } from "./types";
 
 interface FurnitureCatalogPaletteProps {
+  locale?: string;
   plan: FloorPlan;
   catalog?: FurnitureCatalog;
   onUpdatePlan?: (updatedPlan: FloorPlan) => void;
@@ -50,18 +52,8 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   tv_stand: <Monitor className="h-3.5 w-3.5" />,
 };
 
-const CATEGORY_LABELS: Record<string, string> = {
-  all: "All",
-  bed: "Beds",
-  sofa: "Sofas",
-  table: "Tables",
-  chair: "Chairs",
-  storage: "Storage",
-  desk: "Desks",
-  tv_stand: "TV Stands",
-};
-
 export function FurnitureCatalogPalette({
+  locale,
   plan,
   catalog: propCatalog,
   onUpdatePlan,
@@ -69,6 +61,9 @@ export function FurnitureCatalogPalette({
   onClose,
   className = "",
 }: FurnitureCatalogPaletteProps) {
+  const i18n = useFloorPlanI18n(locale);
+  const t = i18n.t.furniturePalette;
+
   const catalog = React.useMemo(
     () => propCatalog ?? getDefaultFurnitureCatalog(),
     [propCatalog],
@@ -88,15 +83,19 @@ export function FurnitureCatalogPalette({
       }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
+        const localizedName = i18n.getFurnitureName(def.id, def.name).toLowerCase();
+        const categoryLabel = i18n.getFurnitureCategoryLabel(def.category).toLowerCase();
         return (
           def.name.toLowerCase().includes(q) ||
+          localizedName.includes(q) ||
           def.id.toLowerCase().includes(q) ||
-          def.category.toLowerCase().includes(q)
+          def.category.toLowerCase().includes(q) ||
+          categoryLabel.includes(q)
         );
       }
       return true;
     });
-  }, [catalog.definitions, selectedCategory, searchQuery]);
+  }, [catalog.definitions, selectedCategory, searchQuery, i18n]);
 
   // Add furniture item using default dimensions (AC-10)
   const handleAddFurniture = (def: FurnitureDefinition) => {
@@ -126,7 +125,7 @@ export function FurnitureCatalogPalette({
           data-testid="furniture-search-input"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search furniture..."
+          placeholder={t.searchPlaceholder}
           className="h-8 pl-8 text-xs bg-background"
         />
       </div>
@@ -147,7 +146,7 @@ export function FurnitureCatalogPalette({
               : "bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted",
           )}
         >
-          <span>All</span>
+          <span>{t.allCategory}</span>
           <span className="opacity-70 text-[10px]">({catalog.definitions.length})</span>
         </button>
 
@@ -167,7 +166,7 @@ export function FurnitureCatalogPalette({
               )}
             >
               {CATEGORY_ICONS[cat]}
-              <span>{CATEGORY_LABELS[cat] ?? cat}</span>
+              <span>{i18n.getFurnitureCategoryLabel(cat)}</span>
               <span className="opacity-70 text-[10px]">({count})</span>
             </button>
           );
@@ -181,7 +180,7 @@ export function FurnitureCatalogPalette({
       >
         {filteredDefinitions.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground">
-            No furniture definitions match your selection.
+            {t.noResults}
           </div>
         ) : (
           filteredDefinitions.map((def) => {
@@ -200,28 +199,30 @@ export function FurnitureCatalogPalette({
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="font-semibold text-foreground text-xs truncate">
-                        {def.name}
+                        {i18n.getFurnitureName(def.id, def.name)}
                       </span>
                       <Badge
                         variant="secondary"
                         className="font-mono text-[9px] uppercase px-1.5 py-0"
                       >
-                        {def.category}
+                        {i18n.getFurnitureCategoryLabel(def.category)}
                       </Badge>
                     </div>
 
                     <div className="flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
                       <span>
-                        Default: <strong className="text-foreground">{width} × {depth} mm</strong>
+                        {i18n.locale === "zh" ? "默认：" : "Default: "}<strong className="text-foreground">{width} × {depth} mm</strong>
                       </span>
                       {def.defaultSize.height && (
-                        <span>(H: {def.defaultSize.height} mm)</span>
+                        <span>({i18n.locale === "zh" ? `高：${def.defaultSize.height} mm` : `H: ${def.defaultSize.height} mm`})</span>
                       )}
                     </div>
 
                     {(widthRange || depthRange) && (
                       <p className="text-[10px] text-muted-foreground/80 leading-tight">
-                        Range: W {widthRange?.min}–{widthRange?.max}mm, D {depthRange?.min}–{depthRange?.max}mm
+                        {i18n.locale === "zh"
+                          ? `可调范围：宽 ${widthRange?.min}–${widthRange?.max}mm，深 ${depthRange?.min}–${depthRange?.max}mm`
+                          : `Range: W ${widthRange?.min}–${widthRange?.max}mm, D ${depthRange?.min}–${depthRange?.max}mm`}
                       </p>
                     )}
                   </div>
@@ -235,7 +236,7 @@ export function FurnitureCatalogPalette({
                     className="h-7 px-2 text-xs shrink-0 flex items-center gap-1 hover:bg-primary hover:text-primary-foreground transition-colors"
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    <span>Add</span>
+                    <span>{i18n.locale === "zh" ? "添加" : "Add"}</span>
                   </Button>
                 </div>
               </Card>
