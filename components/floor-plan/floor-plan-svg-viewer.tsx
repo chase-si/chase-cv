@@ -289,7 +289,12 @@ export function FloorPlanSvgViewer({
           {/* 5. Principal Dimensions Layer */}
           <g data-testid="floor-plan-dimensions-layer">
             {dimensions.map((dim) => (
-              <SvgDimension key={dim.id} dimension={dim} />
+              <SvgDimension
+                key={dim.id}
+                dimension={dim}
+                selectedEntity={selectedEntity}
+                onSelect={onSelect}
+              />
             ))}
           </g>
         </g>

@@ -220,4 +220,82 @@ describe("FloorPlanShell Integration", () => {
       expect(createObjectURLSpy).toHaveBeenCalled();
     });
   });
+
+  describe("AC-6 & AC-7: Room Span Editing in FloorPlanShell", () => {
+    it("adjusts room span in draft mode, updates canvas room area and dimensions, and autosaves to storage", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // 1. Enter draft mode
+      const customizeBtn = screen.getByTestId("customize-plan-btn");
+      fireEvent.click(customizeBtn);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+
+      // 2. Select Living Room (r1) on the canvas
+      const roomEl = screen.getByTestId("floor-plan-room-r1");
+      fireEvent.click(roomEl);
+
+      // 3. Verify RoomSpanEditor is rendered with current width (3000 mm)
+      await waitFor(() => {
+        expect(screen.getByTestId("room-span-editor")).toBeInTheDocument();
+      });
+      const input = screen.getByTestId("target-span-input");
+      expect(input).toHaveValue(3000);
+
+      // 4. Change width from 3000 to 3600 mm and apply
+      fireEvent.change(input, { target: { value: "3600" } });
+      const applyBtn = screen.getByTestId("apply-span-btn");
+      fireEvent.click(applyBtn);
+
+      // 5. Verify plan updated and autosaved to storage
+      await waitFor(async () => {
+        const savedDraft = await storage.getDraft("plan-std-2br-01");
+        expect(savedDraft).not.toBeNull();
+        const v2 = savedDraft?.vertices.find((v) => v.id === "v2");
+        expect(v2?.x).toBe(3600);
+      });
+
+      // 6. Verify room area badge on canvas updated (3600 * 5000 = 18.0 m²)
+      await waitFor(() => {
+        expect(screen.getByTestId("floor-plan-room-r1")).toHaveTextContent("18.0 m²");
+      });
+    });
+
+    it("prevents committing invalid dimension and shows error message without mutating plan in storage", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // Enter draft mode
+      fireEvent.click(screen.getByTestId("customize-plan-btn"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+
+      // Select room r1
+      fireEvent.click(screen.getByTestId("floor-plan-room-r1"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("room-span-editor")).toBeInTheDocument();
+      });
+
+      // Enter invalid dimension below minimum (400 mm)
+      const input = screen.getByTestId("target-span-input");
+      fireEvent.change(input, { target: { value: "400" } });
+      fireEvent.click(screen.getByTestId("apply-span-btn"));
+
+      // Error message is shown
+      expect(screen.getByTestId("span-error-alert")).toBeInTheDocument();
+      expect(screen.getByTestId("span-error-message")).toHaveTextContent(/at least 600 mm/i);
+
+      // Storage has not been mutated to invalid state
+      const savedDraft = await storage.getDraft("plan-std-2br-01");
+      const v2 = savedDraft?.vertices.find((v) => v.id === "v2");
+      expect(v2?.x).toBe(3000); // Original intact
+    });
+  });
 });
+

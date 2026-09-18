@@ -1,12 +1,23 @@
 import * as React from "react";
 import type { DimensionAnnotation } from "@/lib/floor-plan/geometry";
 
+import type { EntitySelectHandler, SelectedEntity } from "../types";
+
 interface SvgDimensionProps {
   dimension: DimensionAnnotation;
+  selectedEntity?: SelectedEntity | null;
+  onSelect?: EntitySelectHandler;
 }
 
-export function SvgDimension({ dimension }: SvgDimensionProps) {
+export function SvgDimension({
+  dimension,
+  selectedEntity,
+  onSelect,
+}: SvgDimensionProps) {
   const { label, start, end, offset, textPoint, orientation } = dimension;
+
+  const isSelected =
+    selectedEntity?.type === "dimension" && selectedEntity?.id === dimension.id;
 
   // Offset points where the dimension line runs
   const dimStart = {
@@ -24,7 +35,16 @@ export function SvgDimension({ dimension }: SvgDimensionProps) {
   return (
     <g
       data-testid={`floor-plan-dimension-${dimension.id}`}
-      className="pointer-events-none select-none"
+      data-entity-type="dimension"
+      data-entity-id={dimension.id}
+      data-selected={isSelected ? "true" : "false"}
+      className={onSelect ? "cursor-pointer select-none" : "pointer-events-none select-none"}
+      onClick={(e) => {
+        if (onSelect) {
+          e.stopPropagation();
+          onSelect({ type: "dimension", id: dimension.id });
+        }
+      }}
     >
       {/* Extension / Witness line from start */}
       <line
@@ -88,8 +108,10 @@ export function SvgDimension({ dimension }: SvgDimensionProps) {
           width="440"
           height="160"
           rx="30"
-          fill="var(--background, #ffffff)"
-          fillOpacity="0.9"
+          fill={isSelected ? "rgba(59, 130, 246, 0.15)" : "var(--background, #ffffff)"}
+          stroke={isSelected ? "#2563eb" : "#cbd5e1"}
+          strokeWidth={isSelected ? 16 : 4}
+          fillOpacity="0.95"
         />
         <text
           x="0"
@@ -97,7 +119,7 @@ export function SvgDimension({ dimension }: SvgDimensionProps) {
           textAnchor="middle"
           fontSize="110"
           fontWeight="600"
-          fill="#475569"
+          fill={isSelected ? "#1d4ed8" : "#475569"}
           className="font-mono"
         >
           {label}
