@@ -33,6 +33,8 @@ import {
 import { getRoomSpans } from "@/lib/floor-plan/room-adjustment";
 import { RoomSpanEditor } from "./room-span-editor";
 import { OpeningEditor } from "./opening-editor";
+import { FurnitureEditor } from "./furniture-editor";
+import { FurnitureCatalogPalette } from "./furniture-catalog-palette";
 import type { EntitySelectHandler, SelectedEntity } from "./types";
 
 interface FloorPlanInspectorProps {
@@ -55,6 +57,12 @@ export function FloorPlanInspector({
   const vertexMap = React.useMemo(() => getVertexMap(plan), [plan]);
   const wallMap = React.useMemo(() => getWallMap(plan), [plan]);
   const totalArea = React.useMemo(() => computePlanTotalArea(plan), [plan]);
+
+  const [showFurniturePalette, setShowFurniturePalette] = React.useState(false);
+
+  React.useEffect(() => {
+    setShowFurniturePalette(false);
+  }, [selectedEntity]);
 
   // Selected Wall details
   const selectedWall = React.useMemo(() => {
@@ -331,79 +339,43 @@ export function FloorPlanInspector({
       {/* 4. Furniture Inspection */}
       {selectedFurniture && (
         <div data-testid="inspector-furniture-details" className="space-y-3">
-          <div className="space-y-1">
-            <span className="text-[11px] text-muted-foreground">Furniture Item</span>
-            <p className="font-semibold text-sm text-foreground">
-              {selectedFurniture.definitionId}
-            </p>
-          </div>
+          {isDraftMode ? (
+            <FurnitureEditor
+              plan={plan}
+              furnitureId={selectedFurniture.id}
+              onUpdatePlan={onUpdatePlan}
+              onSelect={onSelect}
+            />
+          ) : (
+            <>
+              <div className="space-y-1">
+                <span className="text-[11px] text-muted-foreground">Furniture Item</span>
+                <p className="font-semibold text-sm text-foreground">
+                  {selectedFurniture.definitionId}
+                </p>
+              </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
-              <span className="text-[10px] text-muted-foreground block">Size (W × D)</span>
-              <span className="font-mono font-semibold text-foreground">
-                {selectedFurniture.width} × {selectedFurniture.depth} mm
-              </span>
-            </div>
-            <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
-              <span className="text-[10px] text-muted-foreground block">Rotation</span>
-              <span className="font-mono font-semibold text-foreground">
-                {selectedFurniture.rotation}°
-              </span>
-            </div>
-            <div className="rounded-lg border border-border/80 bg-muted/30 p-2 col-span-2">
-              <span className="text-[10px] text-muted-foreground block">Coordinates</span>
-              <span className="font-mono font-semibold text-foreground">
-                X: {selectedFurniture.x} mm, Y: {selectedFurniture.y} mm
-              </span>
-            </div>
-          </div>
-
-          {isDraftMode && (
-            <div className="flex items-center gap-2 pt-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                data-testid="rotate-furniture-btn"
-                onClick={() => {
-                  const nextRot = ((selectedFurniture.rotation || 0) + 90) % 360;
-                  const updatedFurniture = plan.furniture.map((f) =>
-                    f.id === selectedFurniture.id ? { ...f, rotation: nextRot } : f,
-                  );
-                  onUpdatePlan?.({
-                    ...plan,
-                    furniture: updatedFurniture,
-                  });
-                }}
-                className="flex-1 h-8 text-xs flex items-center justify-center gap-1.5"
-              >
-                <RotateCw className="h-3.5 w-3.5 text-primary" />
-                <span>Rotate 90°</span>
-              </Button>
-
-              <Button
-                type="button"
-                size="sm"
-                variant="destructive"
-                data-testid="delete-furniture-btn"
-                onClick={() => {
-                  const updatedFurniture = plan.furniture.filter(
-                    (f) => f.id !== selectedFurniture.id,
-                  );
-                  onSelect(null);
-                  onUpdatePlan?.({
-                    ...plan,
-                    furniture: updatedFurniture,
-                  });
-                }}
-                className="h-8 px-2.5 text-xs flex items-center justify-center gap-1"
-                title="Delete furniture item"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                <span>Delete</span>
-              </Button>
-            </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
+                  <span className="text-[10px] text-muted-foreground block">Size (W × D)</span>
+                  <span className="font-mono font-semibold text-foreground">
+                    {selectedFurniture.width} × {selectedFurniture.depth} mm
+                  </span>
+                </div>
+                <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
+                  <span className="text-[10px] text-muted-foreground block">Rotation</span>
+                  <span className="font-mono font-semibold text-foreground">
+                    {selectedFurniture.rotation}°
+                  </span>
+                </div>
+                <div className="rounded-lg border border-border/80 bg-muted/30 p-2 col-span-2">
+                  <span className="text-[10px] text-muted-foreground block">Coordinates</span>
+                  <span className="font-mono font-semibold text-foreground">
+                    X: {selectedFurniture.x} mm, Y: {selectedFurniture.y} mm
+                  </span>
+                </div>
+              </div>
+            </>
           )}
         </div>
       )}
@@ -493,34 +465,49 @@ export function FloorPlanInspector({
           </div>
 
           {isDraftMode && (
-            <div className="pt-1">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                data-testid="add-furniture-btn"
-                onClick={() => {
-                  const newId = `f-custom-${Date.now()}`;
-                  const newFurniture = {
-                    id: newId,
-                    definitionId: "chair-arm",
-                    x: 2000,
-                    y: 2000,
-                    width: 800,
-                    depth: 800,
-                    rotation: 0,
-                  };
-                  onUpdatePlan?.({
-                    ...plan,
-                    furniture: [...plan.furniture, newFurniture],
-                  });
-                  onSelect({ type: "furniture", id: newId });
-                }}
-                className="w-full h-8 text-xs flex items-center justify-center gap-1.5"
-              >
-                <Plus className="h-3.5 w-3.5 text-primary" />
-                <span>Add Furniture</span>
-              </Button>
+            <div className="pt-1 space-y-2">
+              {showFurniturePalette ? (
+                <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-3 animate-in fade-in-50">
+                  <div className="flex items-center justify-between pb-1 border-b border-border/60">
+                    <div className="flex items-center gap-1.5 font-semibold text-foreground text-xs">
+                      <Armchair className="h-3.5 w-3.5 text-primary" />
+                      <span>Furniture Catalog</span>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      data-testid="close-furniture-palette-btn"
+                      onClick={() => setShowFurniturePalette(false)}
+                      className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                      title="Close catalog"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  <FurnitureCatalogPalette
+                    plan={plan}
+                    onUpdatePlan={onUpdatePlan}
+                    onSelect={(entity) => {
+                      onSelect(entity);
+                      setShowFurniturePalette(false);
+                    }}
+                    onClose={() => setShowFurniturePalette(false)}
+                  />
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  data-testid="add-furniture-btn"
+                  onClick={() => setShowFurniturePalette(true)}
+                  className="w-full h-8 text-xs flex items-center justify-center gap-1.5"
+                >
+                  <Plus className="h-3.5 w-3.5 text-primary" />
+                  <span>Add Furniture</span>
+                </Button>
+              )}
             </div>
           )}
 

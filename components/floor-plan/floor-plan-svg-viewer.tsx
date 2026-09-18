@@ -18,6 +18,7 @@ import {
   zoomByFactor,
 } from "@/lib/floor-plan/view-transform";
 import type { EntitySelectHandler, SelectedEntity } from "./types";
+import { moveFurnitureInstance, rotateFurnitureInstance } from "@/lib/floor-plan/furniture-operations";
 import { SvgDimension } from "./svg/svg-dimension";
 import { SvgFurniture } from "./svg/svg-furniture";
 import { SvgOpening } from "./svg/svg-opening";
@@ -28,6 +29,8 @@ interface FloorPlanSvgViewerProps {
   plan: FloorPlan;
   selectedEntity: SelectedEntity | null;
   onSelect: EntitySelectHandler;
+  isDraftMode?: boolean;
+  onUpdatePlan?: (updated: FloorPlan) => void;
   className?: string;
 }
 
@@ -35,6 +38,8 @@ export function FloorPlanSvgViewer({
   plan,
   selectedEntity,
   onSelect,
+  isDraftMode = false,
+  onUpdatePlan,
   className = "",
 }: FloorPlanSvgViewerProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -44,6 +49,16 @@ export function FloorPlanSvgViewer({
   const dragStartRef = React.useRef({ x: 0, y: 0 });
   const initialPanRef = React.useRef({ panX: 0, panY: 0 });
   const isPointerDownRef = React.useRef(false);
+
+  const [draggingFurniture, setDraggingFurniture] = React.useState<{
+    id: string;
+    startX: number;
+    startY: number;
+    initialX: number;
+    initialY: number;
+    currentX: number;
+    currentY: number;
+  } | null>(null);
 
   const vertexMap = React.useMemo(() => getVertexMap(plan), [plan]);
   const wallMap = React.useMemo(() => getWallMap(plan), [plan]);
@@ -98,6 +113,30 @@ export function FloorPlanSvgViewer({
     return () => container.removeEventListener("wheel", onWheel);
   }, []);
 
+  const handleFurnitureDragStart = (
+    e: React.PointerEvent,
+    furniture: FloorPlan["furniture"][number],
+  ) => {
+    if (!isDraftMode) return;
+    setDraggingFurniture({
+      id: furniture.id,
+      startX: e.clientX,
+      startY: e.clientY,
+      initialX: furniture.x,
+      initialY: furniture.y,
+      currentX: furniture.x,
+      currentY: furniture.y,
+    });
+  };
+
+  const handleRotateFurniture = (furnitureId: string, stepDeg: number = 90) => {
+    if (!isDraftMode || !onUpdatePlan) return;
+    const res = rotateFurnitureInstance(plan, furnitureId, stepDeg);
+    if (res.success) {
+      onUpdatePlan(res.plan);
+    }
+  };
+
   const hasMovedRef = React.useRef(false);
 
   // Pan interaction handlers
@@ -110,6 +149,15 @@ export function FloorPlanSvgViewer({
   };
 
   const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (draggingFurniture) {
+      const deltaX = (e.clientX - draggingFurniture.startX) / transform.scale;
+      const deltaY = (e.clientY - draggingFurniture.startY) / transform.scale;
+      const nextX = Math.round(draggingFurniture.initialX + deltaX);
+      const nextY = Math.round(draggingFurniture.initialY + deltaY);
+      setDraggingFurniture((prev) => (prev ? { ...prev, currentX: nextX, currentY: nextY } : null));
+      return;
+    }
+
     if (!isPointerDownRef.current) return;
     const deltaX = e.clientX - dragStartRef.current.x;
     const deltaY = e.clientY - dragStartRef.current.y;
@@ -134,6 +182,25 @@ export function FloorPlanSvgViewer({
   };
 
   const handlePointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (draggingFurniture) {
+      const moved = Math.hypot(
+        draggingFurniture.currentX - draggingFurniture.initialX,
+        draggingFurniture.currentY - draggingFurniture.initialY,
+      ) > 5;
+      if (moved && onUpdatePlan) {
+        const res = moveFurnitureInstance(
+          plan,
+          draggingFurniture.id,
+          draggingFurniture.currentX,
+          draggingFurniture.currentY,
+        );
+        if (res.success) {
+          onUpdatePlan(res.plan);
+        }
+      }
+      setDraggingFurniture(null);
+    }
+
     isPointerDownRef.current = false;
     if (hasMovedRef.current) {
       setIsDragging(false);
@@ -276,14 +343,27 @@ export function FloorPlanSvgViewer({
 
           {/* 4. Furniture Layer */}
           <g data-testid="floor-plan-furniture-layer">
-            {plan.furniture.map((f) => (
-              <SvgFurniture
-                key={f.id}
-                furniture={f}
-                selectedEntity={selectedEntity}
-                onSelect={onSelect}
-              />
-            ))}
+            {plan.furniture.map((f) => {
+              const renderedFurniture =
+                draggingFurniture?.id === f.id
+                  ? {
+                      ...f,
+                      x: draggingFurniture.currentX,
+                      y: draggingFurniture.currentY,
+                    }
+                  : f;
+              return (
+                <SvgFurniture
+                  key={f.id}
+                  furniture={renderedFurniture}
+                  selectedEntity={selectedEntity}
+                  onSelect={onSelect}
+                  isDraftMode={isDraftMode}
+                  onRotate={handleRotateFurniture}
+                  onDragStart={handleFurnitureDragStart}
+                />
+              );
+            })}
           </g>
 
           {/* 5. Principal Dimensions Layer */}

@@ -6,12 +6,18 @@ interface SvgFurnitureProps {
   furniture: FurnitureInstance;
   selectedEntity: SelectedEntity | null;
   onSelect: EntitySelectHandler;
+  isDraftMode?: boolean;
+  onRotate?: (id: string, stepDeg?: number) => void;
+  onDragStart?: (e: React.PointerEvent, furniture: FurnitureInstance) => void;
 }
 
 export function SvgFurniture({
   furniture,
   selectedEntity,
   onSelect,
+  isDraftMode = false,
+  onRotate,
+  onDragStart,
 }: SvgFurnitureProps) {
   const isSelected =
     selectedEntity?.type === "furniture" && selectedEntity?.id === furniture.id;
@@ -25,6 +31,8 @@ export function SvgFurniture({
   const isTable = definitionId.includes("table");
   const isDesk = definitionId.includes("desk");
   const isWardrobe = definitionId.includes("wardrobe") || definitionId.includes("storage");
+  const isChair = definitionId.includes("chair") || definitionId.includes("armchair");
+  const isTvStand = definitionId.includes("tv-stand") || definitionId.includes("tv_stand");
 
   return (
     <g
@@ -33,7 +41,14 @@ export function SvgFurniture({
       data-entity-id={furniture.id}
       data-selected={isSelected ? "true" : "false"}
       transform={`translate(${x}, ${y}) rotate(${rotation})`}
-      className="cursor-pointer"
+      className={isDraftMode ? "cursor-move" : "cursor-pointer"}
+      onPointerDown={(e) => {
+        if (e.button !== 0) return;
+        onSelect({ type: "furniture", id: furniture.id });
+        if (isDraftMode && onDragStart) {
+          onDragStart(e, furniture);
+        }
+      }}
       onClick={(e) => {
         e.stopPropagation();
         onSelect({ type: "furniture", id: furniture.id });
@@ -215,6 +230,48 @@ export function SvgFurniture({
             strokeDasharray="20 20"
           />
         </g>
+      ) : isChair ? (
+        <g>
+          {/* Chair seat and curved back */}
+          <rect
+            x={-halfW * 0.75}
+            y={-halfD * 0.75}
+            width={width * 0.75}
+            height={depth * 0.75}
+            rx="15"
+            fill="#e2e8f0"
+            stroke="#94a3b8"
+            strokeWidth="8"
+          />
+          <path
+            d={`M ${-halfW * 0.8} ${-halfD * 0.4} C ${-halfW * 0.8} ${-halfD * 0.9}, ${halfW * 0.8} ${-halfD * 0.9}, ${halfW * 0.8} ${-halfD * 0.4}`}
+            fill="none"
+            stroke="#64748b"
+            strokeWidth="12"
+          />
+        </g>
+      ) : isTvStand ? (
+        <g>
+          {/* Stand top and screen bar */}
+          <rect
+            x={-halfW + 40}
+            y={-halfD + 40}
+            width={width - 80}
+            height={depth - 80}
+            rx="10"
+            fill="#e2e8f0"
+            stroke="#94a3b8"
+            strokeWidth="8"
+          />
+          <rect
+            x={-halfW * 0.6}
+            y={-15}
+            width={width * 0.6}
+            height={30}
+            rx="5"
+            fill="#334155"
+          />
+        </g>
       ) : null}
 
       {/* Furniture Name Label */}
@@ -229,6 +286,36 @@ export function SvgFurniture({
       >
         {definitionId}
       </text>
+
+      {/* 90° Rotation handle on canvas when selected in draft mode (AC-11) */}
+      {isSelected && isDraftMode && onRotate && (
+        <g
+          data-testid={`canvas-rotate-furniture-${furniture.id}`}
+          className="cursor-pointer"
+          transform={`translate(0, ${-halfD - 80})`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRotate(furniture.id, 90);
+          }}
+        >
+          <circle
+            r="45"
+            fill="#2563eb"
+            stroke="#ffffff"
+            strokeWidth="6"
+            className="hover:scale-110 transition-transform"
+          />
+          {/* Circular arrow icon */}
+          <path
+            d="M -15 -5 A 20 20 0 1 1 0 22 L 0 10 M 0 22 L -12 22"
+            fill="none"
+            stroke="#ffffff"
+            strokeWidth="7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+      )}
     </g>
   );
 }
