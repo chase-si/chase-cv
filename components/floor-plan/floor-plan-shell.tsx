@@ -3,6 +3,7 @@
 import * as React from "react";
 import {
   AlertCircle,
+  AlertTriangle,
   Check,
   Compass,
   Download,
@@ -365,17 +366,35 @@ export function FloorPlanShell({ initialPlans, storage: customStorage }: FloorPl
         </Badge>
       )}
 
-      {/* Spatial Violations Badge (AC-12, AC-14) */}
+      {/* Spatial Violations Badge (AC-12, AC-13, AC-14) */}
       {violations.length > 0 && (
         <Badge
           data-testid="shell-violations-badge"
-          variant="destructive"
-          className="inline-flex items-center gap-1 text-xs font-mono px-2 py-0.5 cursor-pointer hover:opacity-90 transition-opacity"
+          variant="outline"
+          className={cn(
+            "inline-flex items-center gap-1 text-xs font-mono px-2 py-0.5 cursor-pointer hover:opacity-90 transition-opacity",
+            violations.some((v) => v.severity === "error")
+              ? "border-destructive/40 text-destructive bg-destructive/10"
+              : "border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10",
+          )}
           onClick={() => setMobileTab("inspector")}
-          title="View spatial rule violations in inspector"
+          title="View spatial rule guidance in inspector"
         >
-          <AlertCircle className="h-3 w-3" />
-          <span>{violations.length} {violations.length === 1 ? "Error" : "Errors"}</span>
+          {violations.some((v) => v.severity === "error") ? (
+            <AlertCircle className="h-3 w-3" />
+          ) : (
+            <AlertTriangle className="h-3 w-3 text-amber-500" />
+          )}
+          <span>
+            {violations.length}{" "}
+            {violations.length === 1
+              ? violations[0].severity === "error"
+                ? "Error"
+                : "Warning"
+              : violations.some((v) => v.severity === "error")
+                ? "Issues"
+                : "Warnings"}
+          </span>
         </Badge>
       )}
 
