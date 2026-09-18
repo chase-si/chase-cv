@@ -38,6 +38,7 @@ interface FloorPlanSvgViewerProps {
   isDraftMode?: boolean;
   onUpdatePlan?: (updated: FloorPlan) => void;
   violations?: RuleResult[];
+  canvasMode?: "pan" | "edit";
   className?: string;
 }
 
@@ -48,6 +49,7 @@ export function FloorPlanSvgViewer({
   isDraftMode = false,
   onUpdatePlan,
   violations: propViolations,
+  canvasMode = "edit",
   className = "",
 }: FloorPlanSvgViewerProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -170,7 +172,7 @@ export function FloorPlanSvgViewer({
     e: React.PointerEvent,
     furniture: FloorPlan["furniture"][number],
   ) => {
-    if (!isDraftMode) return;
+    if (!isDraftMode || canvasMode === "pan") return;
     setDraggingFurniture({
       id: furniture.id,
       startX: e.clientX,
@@ -284,6 +286,14 @@ export function FloorPlanSvgViewer({
 
   const displayZoomPercentage = Math.round(transform.scale * 1000);
 
+  const handleSelect = React.useCallback<EntitySelectHandler>(
+    (entity) => {
+      if (canvasMode === "pan") return;
+      onSelect(entity);
+    },
+    [canvasMode, onSelect],
+  );
+
   return (
     <div
       ref={containerRef}
@@ -294,7 +304,7 @@ export function FloorPlanSvgViewer({
       <svg
         data-testid="floor-plan-svg-canvas"
         className={`w-full h-full block touch-none ${
-          isDragging ? "cursor-grabbing" : "cursor-grab"
+          isDragging ? "cursor-grabbing" : canvasMode === "pan" ? "cursor-grab" : "cursor-default"
         }`}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -303,7 +313,7 @@ export function FloorPlanSvgViewer({
         onClick={(e) => {
           // Deselect when clicking canvas background
           if (e.target === e.currentTarget) {
-            onSelect(null);
+            handleSelect(null);
           }
         }}
       >
@@ -331,7 +341,7 @@ export function FloorPlanSvgViewer({
           width="100%"
           height="100%"
           fill="transparent"
-          onClick={() => onSelect(null)}
+          onClick={() => handleSelect(null)}
         />
 
         {/* World transform container */}
@@ -350,7 +360,10 @@ export function FloorPlanSvgViewer({
           />
 
           {/* 1. Ordered Room Boundaries Layer */}
-          <g data-testid="floor-plan-rooms-layer">
+          <g
+            data-testid="floor-plan-rooms-layer"
+            className={canvasMode === "pan" ? "pointer-events-none" : undefined}
+          >
             {plan.rooms.map((room) => (
               <SvgRoom
                 key={room.id}
@@ -358,20 +371,23 @@ export function FloorPlanSvgViewer({
                 wallMap={wallMap}
                 vertexMap={vertexMap}
                 selectedEntity={selectedEntity}
-                onSelect={onSelect}
+                onSelect={handleSelect}
               />
             ))}
           </g>
 
           {/* 2. Walls Layer */}
-          <g data-testid="floor-plan-walls-layer">
+          <g
+            data-testid="floor-plan-walls-layer"
+            className={canvasMode === "pan" ? "pointer-events-none" : undefined}
+          >
             {plan.walls.map((wall) => (
               <SvgWall
                 key={wall.id}
                 wall={wall}
                 vertexMap={vertexMap}
                 selectedEntity={selectedEntity}
-                onSelect={onSelect}
+                onSelect={handleSelect}
               />
             ))}
           </g>
@@ -470,7 +486,10 @@ export function FloorPlanSvgViewer({
           </g>
 
           {/* 3. Openings Layer */}
-          <g data-testid="floor-plan-openings-layer">
+          <g
+            data-testid="floor-plan-openings-layer"
+            className={canvasMode === "pan" ? "pointer-events-none" : undefined}
+          >
             {plan.openings.map((op) => {
               const wall = wallMap.get(op.wallId);
               if (!wall) return null;
@@ -481,14 +500,17 @@ export function FloorPlanSvgViewer({
                   wall={wall}
                   vertexMap={vertexMap}
                   selectedEntity={selectedEntity}
-                  onSelect={onSelect}
+                  onSelect={handleSelect}
                 />
               );
             })}
           </g>
 
           {/* 4. Furniture Layer */}
-          <g data-testid="floor-plan-furniture-layer">
+          <g
+            data-testid="floor-plan-furniture-layer"
+            className={canvasMode === "pan" ? "pointer-events-none" : undefined}
+          >
             {plan.furniture.map((f) => {
               const renderedFurniture =
                 draggingFurniture?.id === f.id
@@ -503,7 +525,7 @@ export function FloorPlanSvgViewer({
                   key={f.id}
                   furniture={renderedFurniture}
                   selectedEntity={selectedEntity}
-                  onSelect={onSelect}
+                  onSelect={handleSelect}
                   isDraftMode={isDraftMode}
                   onRotate={handleRotateFurniture}
                   onDragStart={handleFurnitureDragStart}
@@ -514,13 +536,16 @@ export function FloorPlanSvgViewer({
           </g>
 
           {/* 5. Principal Dimensions Layer */}
-          <g data-testid="floor-plan-dimensions-layer">
+          <g
+            data-testid="floor-plan-dimensions-layer"
+            className={canvasMode === "pan" ? "pointer-events-none" : undefined}
+          >
             {dimensions.map((dim) => (
               <SvgDimension
                 key={dim.id}
                 dimension={dim}
                 selectedEntity={selectedEntity}
-                onSelect={onSelect}
+                onSelect={handleSelect}
               />
             ))}
           </g>
@@ -539,14 +564,14 @@ export function FloorPlanSvgViewer({
           aria-label="Zoom in"
           title="Zoom in"
           onClick={handleZoomIn}
-          className="h-8 w-8 p-0"
+          className="h-11 w-11 min-h-[44px] min-w-[44px] lg:h-8 lg:w-8 lg:min-h-0 lg:min-w-0 p-0 touch-manipulation"
         >
           <Plus className="h-4 w-4" />
         </Button>
 
         <span
           data-testid="zoom-level-badge"
-          className="min-w-14 text-center font-mono text-xs font-medium text-muted-foreground"
+          className="min-w-14 text-center font-mono text-xs font-medium text-muted-foreground select-none"
         >
           {displayZoomPercentage}%
         </span>
@@ -558,7 +583,7 @@ export function FloorPlanSvgViewer({
           aria-label="Zoom out"
           title="Zoom out"
           onClick={handleZoomOut}
-          className="h-8 w-8 p-0"
+          className="h-11 w-11 min-h-[44px] min-w-[44px] lg:h-8 lg:w-8 lg:min-h-0 lg:min-w-0 p-0 touch-manipulation"
         >
           <Minus className="h-4 w-4" />
         </Button>
@@ -572,7 +597,7 @@ export function FloorPlanSvgViewer({
           aria-label="Fit to view"
           title="Fit plan to view"
           onClick={() => fitToView(viewportSize.width, viewportSize.height)}
-          className="h-8 px-2.5 text-xs font-medium gap-1"
+          className="h-11 min-h-[44px] lg:h-8 lg:min-h-0 px-3 text-xs font-medium gap-1 touch-manipulation"
         >
           <Maximize2 className="h-3.5 w-3.5" />
           <span>Fit</span>
@@ -585,7 +610,7 @@ export function FloorPlanSvgViewer({
           aria-label="Reset zoom"
           title="Reset"
           onClick={handleResetZoom}
-          className="h-8 w-8 p-0 text-muted-foreground"
+          className="h-11 w-11 min-h-[44px] min-w-[44px] lg:h-8 lg:w-8 lg:min-h-0 lg:min-w-0 p-0 text-muted-foreground touch-manipulation"
         >
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
