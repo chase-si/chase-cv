@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FloorPlanShell } from "./floor-plan-shell";
 
@@ -109,5 +109,50 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
     expect(screen.getByTestId("apply-furniture-btn")).toHaveTextContent("确认应用");
     expect(screen.getByTestId("rotate-furniture-btn")).toHaveTextContent("顺时针旋转 90°");
     expect(screen.getByTestId("delete-furniture-btn")).toHaveTextContent("删除");
+  });
+
+  it("AC-25: executes complete 4-stage decision flow with complete Chinese copy and no fallback leaks", async () => {
+    render(<FloorPlanShell locale="zh" isMobile={false} />);
+
+    // Stage 1: Plan
+    expect(screen.getByTestId("stage-step-plan")).toHaveTextContent("户型");
+    expect(screen.getByTestId("skip-calibration-btn")).toHaveTextContent("跳过校准，进入房间选择");
+    fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+
+    // Stage 2: Room
+    expect(screen.getByTestId("stage-step-room")).toHaveTextContent("房间");
+    expect(screen.getByText("选择目标房间")).toBeInTheDocument();
+    const roomBtn = screen.getByTestId("room-item-r1");
+    fireEvent.click(roomBtn);
+    expect(screen.getByTestId("next-to-furniture-btn")).toHaveTextContent("进入家具阶段");
+    fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+
+    // Stage 3: Furniture
+    expect(screen.getByTestId("stage-step-furniture")).toHaveTextContent("家具");
+    expect(screen.getByText("添加与配置家具")).toBeInTheDocument();
+    expect(screen.getByTestId("context-furniture-panel")).toBeInTheDocument();
+    const addBtns = screen.getAllByTestId(/^add-context-furniture-/);
+    fireEvent.click(addBtns[0]);
+
+    // Adding furniture transitions to Decision stage (or sets target furniture)
+    await waitFor(() => {
+      expect(screen.getByTestId("stage-step-decision")).toHaveAttribute("aria-current", "step");
+    });
+    expect(screen.getByTestId("decision-target-furniture")).toBeInTheDocument();
+    expect(screen.getByText("主结论检测目标")).toBeInTheDocument();
+    expect(screen.getByText("唯一目标")).toBeInTheDocument();
+
+    // Stage 4: Decision
+    expect(screen.getByTestId("stage-step-decision")).toHaveTextContent("结论");
+    expect(screen.getByTestId("furniture-decision-panel")).toBeInTheDocument();
+    expect(screen.getByText("目标家具决策结论")).toBeInTheDocument();
+    expect(screen.getByTestId("decision-status-badge")).toBeInTheDocument();
+    expect(screen.getByTestId("decision-disclaimer")).toHaveTextContent(
+      "本结论基于当前空间规则计算，不构成施工、结构安全保证或绝对使用承诺。",
+    );
+
+    // Verify position nudge controls in Chinese
+    fireEvent.click(screen.getByTestId("tune-target-furniture-btn"));
+    expect(screen.getByTestId("nudge-furniture-left")).toHaveAttribute("aria-label", expect.stringMatching(/向左/));
   });
 });

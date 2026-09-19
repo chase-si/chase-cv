@@ -77,6 +77,8 @@ export function FurnitureDecisionPanel({
         return (
           <Badge
             data-testid="decision-status-badge"
+            role="status"
+            aria-label={decision.statusLabel}
             variant="outline"
             className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 gap-1 px-2 py-0.5 text-xs font-semibold"
           >
@@ -88,6 +90,8 @@ export function FurnitureDecisionPanel({
         return (
           <Badge
             data-testid="decision-status-badge"
+            role="status"
+            aria-label={decision.statusLabel}
             variant="outline"
             className="border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10 gap-1 px-2 py-0.5 text-xs font-semibold"
           >
@@ -99,6 +103,8 @@ export function FurnitureDecisionPanel({
         return (
           <Badge
             data-testid="decision-status-badge"
+            role="status"
+            aria-label={decision.statusLabel}
             variant="outline"
             className="border-destructive/40 text-destructive bg-destructive/10 gap-1 px-2 py-0.5 text-xs font-semibold"
           >
@@ -111,6 +117,8 @@ export function FurnitureDecisionPanel({
         return (
           <Badge
             data-testid="decision-status-badge"
+            role="status"
+            aria-label={decision.statusLabel}
             variant="outline"
             className="border-muted-foreground/40 text-muted-foreground bg-muted/20 gap-1 px-2 py-0.5 text-xs font-semibold"
           >
@@ -298,9 +306,11 @@ export function FurnitureDecisionPanel({
                             size="sm"
                             variant={isSelected ? "default" : "outline"}
                             data-testid={`decision-entity-btn-${entityId}`}
+                            aria-pressed={isSelected}
+                            aria-label={isZh ? `定位并微调 ${label} ${entityId}` : `Focus & Adjust ${label} ${entityId}`}
                             onClick={() => handleEntityClick(entityId)}
                             className={cn(
-                              "h-5 px-1.5 text-[10px] font-mono",
+                              "h-11 min-h-[44px] sm:h-5 sm:min-h-0 px-2 text-[10px] font-mono touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
                               isSelected && "bg-primary text-primary-foreground",
                             )}
                             title={isZh ? `定位并微调 ${label} ${entityId}` : `Focus & Adjust ${label} ${entityId}`}

@@ -266,4 +266,75 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
     const exportBtn = screen.getByTestId("export-json-btn");
     expect(exportBtn.className).toMatch(/min-h-\[44px\]|h-11/);
   });
+
+  describe("Mobile Workflow Decision Flow & Touch Ergonomics (AC-23)", () => {
+    it("keeps canvas as primary surface and completes 4-stage workflow in mobile bottom panel", () => {
+      render(<FloorPlanShell isMobile={true} />);
+
+      // 1. Canvas is primary surface
+      expect(screen.getByTestId("floor-plan-viewer-surface")).toBeInTheDocument();
+      expect(screen.getByTestId("floor-plan-svg-canvas")).toBeInTheDocument();
+
+      // 2. Active workflow step is presented in mobile bottom panel
+      const mobilePanel = screen.getByTestId("mobile-step-panel");
+      expect(mobilePanel).toBeInTheDocument();
+
+      // Stage 1: Plan stage is active
+      expect(within(mobilePanel).getByTestId("stage-plan-panel")).toBeInTheDocument();
+      const skipBtn = within(mobilePanel).getByTestId("skip-calibration-btn");
+      expect(skipBtn.className).toMatch(/min-h-\[44px\]|h-11/);
+      fireEvent.click(skipBtn);
+
+      // Stage 2: Room stage
+      expect(within(mobilePanel).getByTestId("stage-room-panel")).toBeInTheDocument();
+      const roomItem = within(mobilePanel).getByTestId("room-item-r1");
+      expect(roomItem.className).toMatch(/min-h-\[44px\]/);
+      fireEvent.click(roomItem);
+      const nextToFurnitureBtn = within(mobilePanel).getByTestId("next-to-furniture-btn");
+      expect(nextToFurnitureBtn.className).toMatch(/min-h-\[44px\]|h-11/);
+      fireEvent.click(nextToFurnitureBtn);
+
+      // Stage 3: Furniture stage
+      expect(within(mobilePanel).getByTestId("stage-furniture-panel")).toBeInTheDocument();
+      const contextPanel = within(mobilePanel).getByTestId("context-furniture-panel");
+      expect(contextPanel).toBeInTheDocument();
+      // Verify touch target on context furniture add buttons
+      const addContextBtns = within(contextPanel).getAllByTestId(/^add-context-furniture-/);
+      expect(addContextBtns.length).toBeGreaterThan(0);
+      expect(addContextBtns[0].className).toMatch(/min-h-\[44px\]|h-11/);
+      fireEvent.click(addContextBtns[0]);
+
+      const nextToDecisionBtn = within(mobilePanel).getByTestId("next-to-decision-btn");
+      expect(nextToDecisionBtn.className).toMatch(/min-h-\[44px\]|h-11/);
+      fireEvent.click(nextToDecisionBtn);
+
+      // Stage 4: Decision stage
+      expect(within(mobilePanel).getByTestId("stage-decision-panel")).toBeInTheDocument();
+      expect(within(mobilePanel).getByTestId("furniture-decision-panel")).toBeInTheDocument();
+      expect(within(mobilePanel).getByTestId("decision-status-badge")).toBeInTheDocument();
+    });
+
+    it("ensures critical touch targets on mobile are at least 44x44 CSS pixels", () => {
+      render(<FloorPlanShell isMobile={true} />);
+
+      // Stepper buttons
+      const stepPlan = screen.getByTestId("stage-step-plan");
+      expect(stepPlan.className).toMatch(/min-h-\[44px\]|h-11/);
+
+      // Room item buttons
+      const mobilePanel = screen.getByTestId("mobile-step-panel");
+      const roomItems = within(mobilePanel).getAllByTestId(/^room-item-/);
+      expect(roomItems[0].className).toMatch(/min-h-\[44px\]/);
+
+      // Workflow actions
+      const openPlanBtn = within(mobilePanel).getByTestId("open-plan-selector-btn");
+      expect(openPlanBtn.className).toMatch(/min-h-\[44px\]|h-11/);
+
+      const startCalibrateBtn = within(mobilePanel).getByTestId("start-calibration-btn");
+      expect(startCalibrateBtn.className).toMatch(/min-h-\[44px\]|h-11/);
+
+      const skipCalibrateBtn = within(mobilePanel).getByTestId("skip-calibration-btn");
+      expect(skipCalibrateBtn.className).toMatch(/min-h-\[44px\]|h-11/);
+    });
+  });
 });
