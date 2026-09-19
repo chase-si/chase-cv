@@ -871,4 +871,152 @@ describe("FloorPlanShell Integration", () => {
       expect(screen.getByTestId("inspector-deselect-btn")).toBeInTheDocument();
     });
   });
+
+  describe("AC-8: Target Room Selection Synchronized Between Canvas and Room List", () => {
+    it("sets the same target room from canvas click or room list item, synchronously reflecting highlight, name, area, and main spans", async () => {
+      render(<FloorPlanShell />);
+
+      // Room list is rendered
+      expect(screen.getByTestId("room-list")).toBeInTheDocument();
+      expect(screen.getByTestId("room-item-r1")).toBeInTheDocument();
+      expect(screen.getByTestId("room-item-r2")).toBeInTheDocument();
+
+      // 1. Click room-item-r2 in room list (Master Bedroom)
+      fireEvent.click(screen.getByTestId("room-item-r2"));
+
+      // Canvas room r2 is highlighted
+      const canvasRoom2 = screen.getByTestId("floor-plan-room-r2");
+      expect(canvasRoom2).toHaveAttribute("data-selected", "true");
+
+      // Room item r2 is marked selected
+      expect(screen.getByTestId("room-item-r2")).toHaveAttribute("data-selected", "true");
+
+      // Target room details in panel synchronously reflect Master Bedroom
+      expect(screen.getByTestId("target-room-name")).toHaveTextContent("Master Bedroom");
+      expect(screen.getByTestId("target-room-area")).toHaveTextContent("15.0 m²");
+      expect(screen.getByTestId("target-room-spans")).toBeInTheDocument();
+      expect(screen.getByTestId("target-room-spans")).toHaveTextContent("3000");
+      expect(screen.getByTestId("target-room-spans")).toHaveTextContent("5000");
+
+      // 2. Click canvas room r1 (Living Room)
+      const canvasRoom1 = screen.getByTestId("floor-plan-room-r1");
+      fireEvent.click(canvasRoom1);
+
+      // Canvas room r1 is now highlighted, r2 is not
+      expect(canvasRoom1).toHaveAttribute("data-selected", "true");
+      expect(canvasRoom2).toHaveAttribute("data-selected", "false");
+
+      // Room list item r1 is selected, r2 is not
+      expect(screen.getByTestId("room-item-r1")).toHaveAttribute("data-selected", "true");
+      expect(screen.getByTestId("room-item-r2")).toHaveAttribute("data-selected", "false");
+
+      // Target room details now reflect Living Room
+      expect(screen.getByTestId("target-room-name")).toHaveTextContent("Living Room");
+      expect(screen.getByTestId("target-room-area")).toHaveTextContent("15.0 m²");
+      expect(screen.getByTestId("target-room-spans")).toHaveTextContent("3000");
+      expect(screen.getByTestId("target-room-spans")).toHaveTextContent("5000");
+    });
+  });
+
+  describe("AC-5: Room Span Modification in Plan Stage", () => {
+    it("allows viewing and modifying width/depth in plan stage, synchronously updating dimensions, area, canvas, and draft in storage", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // In plan stage
+      expect(screen.getByTestId("stage-step-plan")).toHaveAttribute("aria-current", "step");
+
+      // Select Living Room (r1) via room list
+      fireEvent.click(screen.getByTestId("room-item-r1"));
+
+      // Shows target room info and RoomSpanEditor
+      expect(screen.getByTestId("target-room-name")).toHaveTextContent("Living Room");
+      expect(screen.getByTestId("target-room-area")).toHaveTextContent("15.0 m²");
+      expect(screen.getByTestId("room-span-editor")).toBeInTheDocument();
+
+      const input = screen.getByTestId("target-span-input");
+      expect(input).toHaveValue(3000);
+
+      // Change width to 3600 mm and apply
+      fireEvent.change(input, { target: { value: "3600" } });
+      fireEvent.click(screen.getByTestId("apply-span-btn"));
+
+      // Plan, area, canvas, and draft update synchronously
+      await waitFor(async () => {
+        expect(screen.getByTestId("target-room-area")).toHaveTextContent("18.0 m²");
+        expect(screen.getByTestId("floor-plan-room-r1")).toHaveTextContent("18.0 m²");
+        const draft = await storage.getDraft("floor-plan-std-2b1l-01");
+        expect(draft?.meta.source).toBe("user");
+        expect(draft?.vertices.find((v) => v.id === "v2")?.x).toBe(3600);
+      });
+    });
+  });
+
+  describe("AC-6: Invalid Room Span Adjustments Rejected", () => {
+    it("displays readable error reason and does not modify canvas, history, or saved draft", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // Select room r1
+      fireEvent.click(screen.getByTestId("room-item-r1"));
+
+      const input = screen.getByTestId("target-span-input");
+      // Enter invalid span < 600 mm
+      fireEvent.change(input, { target: { value: "400" } });
+      fireEvent.click(screen.getByTestId("apply-span-btn"));
+
+      // Error message is displayed
+      expect(screen.getByTestId("span-error-alert")).toBeInTheDocument();
+      expect(screen.getByTestId("span-error-message")).toHaveTextContent(/at least 600 mm/i);
+
+      // Canvas room remains at 15.0 m²
+      expect(screen.getByTestId("floor-plan-room-r1")).toHaveTextContent("15.0 m²");
+
+      // Storage has not been corrupted or saved with invalid coordinates
+      expect(await storage.hasDraft("floor-plan-std-2b1l-01")).toBe(false);
+      const draft = await storage.getDraft("floor-plan-std-2b1l-01");
+      expect(draft).toBeNull();
+
+      // Undo button is not rendered or disabled (no history committed)
+      const undoBtn = screen.queryByTestId("undo-btn");
+      if (undoBtn) {
+        expect(undoBtn).toBeDisabled();
+      }
+    });
+  });
+
+  describe("AC-9: Switching Target Room Clears Previous Target Furniture and Returns to Furniture Stage", () => {
+    it("clears old target furniture and transitions back to furniture stage when user switches target room", async () => {
+      render(<FloorPlanShell />);
+
+      // Select room r1 (Living Room)
+      fireEvent.click(screen.getByTestId("room-item-r1"));
+
+      // Skip calibration or proceed to room stage
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      expect(screen.getByTestId("stage-step-room")).toHaveAttribute("aria-current", "step");
+
+      // In room stage, proceed to furniture stage
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+      expect(screen.getByTestId("stage-step-furniture")).toHaveAttribute("aria-current", "step");
+
+      // Select sofa f1 in room r1 as target furniture
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f1"));
+
+      // Proceed to decision stage
+      fireEvent.click(screen.getByTestId("next-to-decision-btn"));
+      expect(screen.getByTestId("stage-step-decision")).toHaveAttribute("aria-current", "step");
+
+      // Now switch target room to r2 (Master Bedroom) by clicking canvas room r2
+      fireEvent.click(screen.getByTestId("floor-plan-room-r2"));
+
+      // AC-9: Flow returns to furniture selection stage for the new room
+      expect(screen.getByTestId("stage-step-furniture")).toHaveAttribute("aria-current", "step");
+      expect(screen.getByTestId("stage-furniture-panel")).toBeInTheDocument();
+
+      // Target room is now r2
+      expect(screen.getByTestId("room-item-r2")).toHaveAttribute("data-selected", "true");
+      expect(screen.getByTestId("floor-plan-room-r2")).toHaveAttribute("data-selected", "true");
+    });
+  });
 });

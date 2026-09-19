@@ -44,6 +44,7 @@ import type { EntitySelectHandler, SelectedEntity } from "./types";
 interface FloorPlanInspectorProps {
   plan: FloorPlan;
   isDraftMode?: boolean;
+  allowSpanEdit?: boolean;
   onUpdatePlan?: (updated: FloorPlan) => void;
   selectedEntity: SelectedEntity | null;
   onSelect: EntitySelectHandler;
@@ -57,6 +58,7 @@ interface FloorPlanInspectorProps {
 export function FloorPlanInspector({
   plan,
   isDraftMode = false,
+  allowSpanEdit = false,
   onUpdatePlan,
   selectedEntity,
   onSelect,
@@ -243,7 +245,7 @@ export function FloorPlanInspector({
         <div data-testid="inspector-room-details" className="space-y-3">
           <div className="space-y-1">
             <span className="text-[11px] text-muted-foreground">{t.inspector.roomName}</span>
-            <p className="font-semibold text-sm text-foreground">
+            <p data-testid="target-room-name" className="font-semibold text-sm text-foreground">
               {selectedRoom.room.name ?? (locale === "zh" ? i18n.getRoomTypeLabel(selectedRoom.room.type) : selectedRoom.room.type)}
             </p>
           </div>
@@ -251,7 +253,7 @@ export function FloorPlanInspector({
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
               <span className="text-[10px] text-muted-foreground block">{t.inspector.calculatedArea}</span>
-              <span className="font-mono font-semibold text-foreground">
+              <span data-testid="target-room-area" className="font-mono font-semibold text-foreground">
                 {selectedRoom.area.formattedAreaM2}
               </span>
             </div>
@@ -263,19 +265,35 @@ export function FloorPlanInspector({
             </div>
           </div>
 
-          {/* Room Spans Overview (Read-Only) or Interactive Room Span Editor (Draft Mode) */}
-          {isDraftMode ? (
-            <div className="pt-1">
+          {/* Room Spans Overview (Read-Only) or Interactive Room Span Editor (Draft Mode or allowSpanEdit) */}
+          {isDraftMode || allowSpanEdit ? (
+            <div data-testid="target-room-spans" className="space-y-1.5">
+              <span className="text-[11px] font-medium text-foreground block">
+                {locale === "zh" ? "房间开间进深跨度" : "Room Spans"}
+              </span>
               <RoomSpanEditor
                 plan={plan}
                 roomId={selectedRoom.room.id}
                 onUpdatePlan={onUpdatePlan}
                 locale={locale}
               />
+              {!isDraftMode && onStartCalibration && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  data-testid="start-calibration-btn"
+                  onClick={onStartCalibration}
+                  className="w-full text-xs font-medium mt-1 gap-1.5"
+                >
+                  <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
+                  <span>{t.workflow?.actions?.calibrateDimensions ?? t.inspector.adjustSpans}</span>
+                </Button>
+              )}
             </div>
           ) : (
             roomSpans && (
-              <div className="rounded-lg border border-border/80 bg-muted/20 p-2.5 space-y-1.5 text-xs">
+              <div data-testid="target-room-spans" className="rounded-lg border border-border/80 bg-muted/20 p-2.5 space-y-1.5 text-xs">
                 <span className="text-[11px] font-medium text-foreground block">
                   {locale === "zh" ? "房间开间进深跨度" : "Room Spans"}
                 </span>

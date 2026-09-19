@@ -36,6 +36,7 @@ interface FloorPlanSvgViewerProps {
   locale?: string;
   plan: FloorPlan;
   selectedEntity: SelectedEntity | null;
+  targetRoomId?: string | null;
   onSelect: EntitySelectHandler;
   isDraftMode?: boolean;
   onUpdatePlan?: (updated: FloorPlan) => void;
@@ -48,6 +49,7 @@ export function FloorPlanSvgViewer({
   locale,
   plan,
   selectedEntity,
+  targetRoomId,
   onSelect,
   isDraftMode = false,
   onUpdatePlan,
@@ -377,6 +379,7 @@ export function FloorPlanSvgViewer({
                 wallMap={wallMap}
                 vertexMap={vertexMap}
                 selectedEntity={selectedEntity}
+                targetRoomId={targetRoomId}
                 onSelect={handleSelect}
               />
             ))}
