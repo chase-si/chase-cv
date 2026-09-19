@@ -1,4 +1,10 @@
-import { computeFloorPlanBounds } from "./geometry";
+import {
+  computeFloorPlanBounds,
+  computePolygonCentroid,
+  computeRoomPolygon,
+  getVertexMap,
+  getWallMap,
+} from "./geometry";
 import type {
   DimensionRange,
   FloorPlan,
@@ -14,6 +20,7 @@ export interface PlacementOptions {
   y?: number;
   rotation?: number;
   id?: string;
+  roomId?: string;
 }
 
 export interface ResizeOptions {
@@ -84,7 +91,72 @@ export interface FurnitureInstanceDetails {
 
 
 /**
- * Adds an item using its default dimensions from definition (US-10, AC-10).
+ * Computes deterministic initial drop position in selected room (AC-13).
+ * Uses room polygon centroid or boundary wall midpoint without optimal layout search.
+ */
+export function computeRoomInitialDropPosition(
+  plan: FloorPlan,
+  roomId: string,
+): { x: number; y: number } | null {
+  const room = plan.rooms.find((r) => r.id === roomId);
+  if (!room) return null;
+
+  const vertexMap = getVertexMap(plan);
+  const wallMap = getWallMap(plan);
+  const poly = computeRoomPolygon(room, wallMap, vertexMap);
+
+  if (poly.length >= 3) {
+    const centroid = computePolygonCentroid(poly);
+    if (Number.isFinite(centroid.x) && Number.isFinite(centroid.y)) {
+      return {
+        x: Math.round(centroid.x),
+        y: Math.round(centroid.y),
+      };
+    }
+  }
+
+  // Fallback to bounding box of boundary walls
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  for (const wid of room.boundaryWallIds) {
+    const w = wallMap.get(wid);
+    if (!w) continue;
+    const fromV = vertexMap.get(w.from);
+    const toV = vertexMap.get(w.to);
+    if (fromV) {
+      minX = Math.min(minX, fromV.x);
+      maxX = Math.max(maxX, fromV.x);
+      minY = Math.min(minY, fromV.y);
+      maxY = Math.max(maxY, fromV.y);
+    }
+    if (toV) {
+      minX = Math.min(minX, toV.x);
+      maxX = Math.max(maxX, toV.x);
+      minY = Math.min(minY, toV.y);
+      maxY = Math.max(maxY, toV.y);
+    }
+  }
+
+  if (
+    Number.isFinite(minX) &&
+    Number.isFinite(maxX) &&
+    Number.isFinite(minY) &&
+    Number.isFinite(maxY)
+  ) {
+    return {
+      x: Math.round((minX + maxX) / 2),
+      y: Math.round((minY + maxY) / 2),
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Adds an item using its default dimensions from definition (US-10, AC-10, AC-13).
  * Guarantees FurnitureDefinition remains immutable.
  */
 export function addFurnitureInstance(
@@ -103,6 +175,14 @@ export function addFurnitureInstance(
 
   let posX = placement?.x;
   let posY = placement?.y;
+
+  if ((posX === undefined || posY === undefined) && placement?.roomId) {
+    const roomDrop = computeRoomInitialDropPosition(plan, placement.roomId);
+    if (roomDrop) {
+      if (posX === undefined) posX = roomDrop.x;
+      if (posY === undefined) posY = roomDrop.y;
+    }
+  }
 
   if (posX === undefined || posY === undefined) {
     const bounds = computeFloorPlanBounds(plan);
