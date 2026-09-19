@@ -54,7 +54,11 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
     expect(screen.getByText("套内总面积")).toBeInTheDocument();
     expect(screen.getByText("功能分区数")).toBeInTheDocument();
     expect(screen.getByText("家具配置数")).toBeInTheDocument();
+
+    // AC-26: Spatial rules are shelved into Advanced Tools
+    fireEvent.click(screen.getByTestId("open-advanced-tools-btn"));
     expect(screen.getByText("空间规范审查")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("advanced-tools-close-btn"));
   });
 
   it("displays Chinese labels when inspecting room entity", () => {
@@ -78,8 +82,11 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
     const customizeBtn = screen.getByTestId("customize-plan-btn");
     fireEvent.click(customizeBtn);
 
-    // Draft mode actions
+    // Draft mode actions: accessible via Advanced Tools (AC-26)
+    fireEvent.click(screen.getByTestId("advanced-tools-btn"));
+    fireEvent.click(screen.getByTestId("advanced-tab-manage"));
     expect(screen.getByTestId("export-json-btn")).toHaveTextContent("导出 JSON");
+    fireEvent.click(screen.getByTestId("advanced-tools-close-btn"));
 
     // 1. Select a room and verify RoomSpanEditor in Chinese
     const room = screen.getByTestId("floor-plan-room-r1");

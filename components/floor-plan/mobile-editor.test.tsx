@@ -257,6 +257,12 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
       expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
     });
 
+    // Open Advanced Tools dialog (AC-26)
+    const advancedBtn = screen.getByTestId("advanced-tools-btn");
+    expect(advancedBtn.className).toMatch(/min-h-\[44px\]|h-11/);
+    fireEvent.click(advancedBtn);
+    fireEvent.click(screen.getByTestId("advanced-tab-manage"));
+
     const exportBtn = screen.getByTestId("export-json-btn");
     expect(exportBtn.className).toMatch(/min-h-\[44px\]|h-11/);
   });
