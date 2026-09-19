@@ -357,7 +357,7 @@ export function FloorPlanInspector({
             </p>
           </div>
 
-          {isDraftMode ? (
+          {isDraftMode || allowSpanEdit ? (
             <div className="pt-1">
               <OpeningEditor
                 plan={plan}
@@ -400,7 +400,7 @@ export function FloorPlanInspector({
       {/* 4. Furniture Inspection */}
       {selectedFurniture && (
         <div data-testid="inspector-furniture-details" className="space-y-3">
-          {isDraftMode ? (
+          {isDraftMode || allowSpanEdit ? (
             <FurnitureEditor
               plan={plan}
               furnitureId={selectedFurniture.id}
