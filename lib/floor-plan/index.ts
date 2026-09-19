@@ -17,4 +17,5 @@ export * from "./history";
 export * from "./rules";
 export * from "./internal-boundary";
 export * from "./recognition";
+export * from "./furniture-decision";
 export * from "./i18n";
