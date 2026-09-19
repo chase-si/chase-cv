@@ -142,6 +142,11 @@ export interface FloorPlanDictionary {
     delete: string;
     deleteTitle: string;
     tuneDimensions: string;
+    nudgeTitle: string;
+    nudgeUp: string;
+    nudgeDown: string;
+    nudgeLeft: string;
+    nudgeRight: string;
   };
   furniturePalette: {
     title: string;
@@ -196,6 +201,8 @@ export interface FloorPlanDictionary {
     spatialRules: string;
     standardPlans: string;
     details: string;
+    decision: string;
+    stepPanel: string;
   };
   lab: {
     title: string;
@@ -235,6 +242,8 @@ export interface FloorPlanDictionary {
     serviceUnavailable: string;
   };
   workflow: {
+    stepperAriaLabel: string;
+    roomListAriaLabel: string;
     steps: {
       plan: string;
       room: string;
@@ -260,6 +269,14 @@ export interface FloorPlanDictionary {
       backToFurniture: string;
       restartPlan: string;
     };
+    targetFurniture: {
+      currentLabel: string;
+      activeBadge: string;
+      soleTarget: string;
+      mainDecisionTarget: string;
+      heading: string;
+      switchPrompt: string;
+    };
     planStage: {
       title: string;
       description: string;
@@ -273,6 +290,10 @@ export interface FloorPlanDictionary {
       description: string;
       placeholder: string;
       stepTag: string;
+      roomsInPlan: string;
+      selectPrompt: string;
+      selectedTargetRoom: string;
+      targetBadge: string;
     };
     furnitureStage: {
       title: string;
@@ -285,6 +306,13 @@ export interface FloorPlanDictionary {
       description: string;
       placeholder: string;
       stepTag: string;
+      verdictTitle: string;
+      targetSubject: string;
+      adjustEntity: string;
+      closeAdjustment: string;
+      switchRoom: string;
+      switchPrompt: string;
+      cleanNotice: string;
     };
   };
   advancedTools: {
@@ -457,6 +485,11 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
     delete: "删除",
     deleteTitle: "删除此家具",
     tuneDimensions: "微调尺寸",
+    nudgeTitle: "位置微调",
+    nudgeUp: "向上移动",
+    nudgeDown: "向下移动",
+    nudgeLeft: "向左移动",
+    nudgeRight: "向右移动",
   },
   furniturePalette: {
     title: "家具构件库",
@@ -511,6 +544,8 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
     spatialRules: "空间规范反馈",
     standardPlans: "标准户型库",
     details: "详细信息",
+    decision: "目标家具决策",
+    stepPanel: "当前流程步骤",
   },
   lab: {
     title: "CubiCasa 识图实验室",
@@ -550,6 +585,8 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
     serviceUnavailable: "CubiCasa recognition service is currently unavailable",
   },
   workflow: {
+    stepperAriaLabel: "户型与家具决策流程",
+    roomListAriaLabel: "户型房间选择列表",
     steps: {
       plan: "户型",
       room: "房间",
@@ -575,6 +612,14 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
       backToFurniture: "返回家具阶段",
       restartPlan: "重新载入标准模板",
     },
+    targetFurniture: {
+      currentLabel: "当前检测目标家具",
+      activeBadge: "检测目标",
+      soleTarget: "唯一目标",
+      mainDecisionTarget: "主结论检测目标",
+      heading: "当前目标房间",
+      switchPrompt: "在画布或列表中点击其他房间即可更换检测空间：",
+    },
     planStage: {
       title: "户型确认与校准",
       description: "确认标准户型；如尺寸与实际住宅不同可微调房间开间，若模板已足够准确可直接跳过。",
@@ -588,6 +633,10 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
       description: "在画布或列表中选择本次需要进行家具尺寸检测的房间。",
       placeholder: "请在画布中点击需要检测的房间，以确定空间范围与建议规则。",
       stepTag: "步骤 2/4",
+      roomsInPlan: "户型房间列表（选择目标房间核对与校准尺寸）",
+      selectPrompt: "可选房间列表",
+      selectedTargetRoom: "已选目标房间",
+      targetBadge: "目标",
     },
     furnitureStage: {
       title: "添加与配置家具",
@@ -598,8 +647,15 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
     decisionStage: {
       title: "空间尺寸决策",
       description: "查看当前家具在目标房间中的通过情况与尺寸建议。",
-      placeholder: "微调家具尺寸、位置或旋转，查看实时空间规则复判。",
+      placeholder: "在此查看最终空间适配结论，并可直接调整家具或房间参数以实时复判。",
       stepTag: "步骤 4/4",
+      verdictTitle: "目标家具决策结论",
+      targetSubject: "检测对象",
+      adjustEntity: "构件参数微调",
+      closeAdjustment: "收起调整",
+      switchRoom: "切换检测房间",
+      switchPrompt: "更换房间后旧目标家具不再驱动当前结论，流程回到该房间家具选择：",
+      cleanNotice: "当前目标家具在所选房间中未发现空间规则冲突。",
     },
   },
   advancedTools: {
@@ -772,6 +828,11 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
     delete: "Delete",
     deleteTitle: "Delete furniture item",
     tuneDimensions: "Tune Dimensions",
+    nudgeTitle: "Nudge Position",
+    nudgeUp: "Nudge Up",
+    nudgeDown: "Nudge Down",
+    nudgeLeft: "Nudge Left",
+    nudgeRight: "Nudge Right",
   },
   furniturePalette: {
     title: "Furniture Catalog",
@@ -826,6 +887,8 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
     spatialRules: "Spatial Rule Feedback",
     standardPlans: "Standard Plans",
     details: "Details",
+    decision: "Furniture Decision",
+    stepPanel: "Current Step",
   },
   lab: {
     title: "CubiCasa Recognition Lab",
@@ -865,6 +928,8 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
     serviceUnavailable: "CubiCasa recognition service is currently unavailable",
   },
   workflow: {
+    stepperAriaLabel: "Floor plan and furniture decision workflow",
+    roomListAriaLabel: "Floor plan room selection list",
     steps: {
       plan: "Plan",
       room: "Room",
@@ -890,6 +955,14 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
       backToFurniture: "Back to Furniture",
       restartPlan: "Restart from Standard Template",
     },
+    targetFurniture: {
+      currentLabel: "Current Target Furniture",
+      activeBadge: "Active Target",
+      soleTarget: "Sole Target",
+      mainDecisionTarget: "Main Decision Target",
+      heading: "Target Room",
+      switchPrompt: "Click another room on canvas or list to switch:",
+    },
     planStage: {
       title: "Plan Selection & Calibration",
       description: "Select a standard floor plan; optionally fine-tune room spans, or skip if the template is accurate.",
@@ -903,6 +976,10 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
       description: "Choose the target room on canvas or from list for furniture fit testing.",
       placeholder: "Click a room on the canvas to set the evaluation space.",
       stepTag: "Step 2/4",
+      roomsInPlan: "Rooms in Floor Plan (Select to Calibrate)",
+      selectPrompt: "Select Room from List",
+      selectedTargetRoom: "Selected Target Room",
+      targetBadge: "Target",
     },
     furnitureStage: {
       title: "Add & Configure Furniture",
@@ -913,8 +990,15 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
     decisionStage: {
       title: "Space & Fit Decision",
       description: "Review fit verdict and clearance suggestions for the target furniture.",
-      placeholder: "Fine-tune furniture dimensions, position, or rotation to re-evaluate fit in real time.",
+      placeholder: "Review spatial decision verdict and fine-tune furniture or room parameters to re-evaluate in real time.",
       stepTag: "Step 4/4",
+      verdictTitle: "Furniture Decision Verdict",
+      targetSubject: "Target Subject",
+      adjustEntity: "Adjust Entity Parameters",
+      closeAdjustment: "Close",
+      switchRoom: "Switch Room",
+      switchPrompt: "Switching room detaches previous target furniture and returns to furniture selection:",
+      cleanNotice: "No spatial rule conflicts detected for target furniture in selected room.",
     },
   },
   advancedTools: {
