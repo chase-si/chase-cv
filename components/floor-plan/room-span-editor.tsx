@@ -18,7 +18,7 @@ import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 interface RoomSpanEditorProps {
   plan: FloorPlan;
   roomId: string;
-  onUpdatePlan?: (updatedPlan: FloorPlan) => void;
+  onUpdatePlan?: (updatedPlan: FloorPlan, description?: string) => void;
   className?: string;
   locale?: string;
 }
@@ -102,7 +102,7 @@ export function RoomSpanEditor({
     if (result.success) {
       setPreviewResult(null);
       setErrorMessage(null);
-      onUpdatePlan?.(result.plan);
+      onUpdatePlan?.(result.plan, "Adjust room span");
     } else {
       setPreviewResult(null);
       setErrorMessage(result.error);
