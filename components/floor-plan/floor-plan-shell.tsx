@@ -54,6 +54,13 @@ import { MobileBottomSheet } from "./mobile-bottom-sheet";
 import { FurnitureCatalogPalette } from "./furniture-catalog-palette";
 import { FloorPlanWorkflowStepper, type WorkflowStage } from "./floor-plan-workflow-stepper";
 import { FloorPlanSelectorDialog } from "./floor-plan-selector-dialog";
+import { FurnitureCatalogDialog } from "./furniture-catalog-dialog";
+import { ContextFurniturePanel } from "./context-furniture-panel";
+import {
+  addFurnitureInstance,
+  computeRoomInitialDropPosition,
+} from "@/lib/floor-plan/furniture-operations";
+import { getDefaultFurnitureCatalog } from "@/lib/floor-plan/furniture-catalog";
 import { RoomList } from "./room-list";
 import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { RuleFeedbackPanel } from "./rule-feedback-panel";
@@ -192,6 +199,9 @@ export function FloorPlanShell({
   // On-demand plan selector dialog open state (AC-2)
   const [isPlanSelectorOpen, setIsPlanSelectorOpen] = React.useState<boolean>(false);
 
+  // On-demand furniture catalog dialog open state (AC-12)
+  const [isFurnitureCatalogOpen, setIsFurnitureCatalogOpen] = React.useState<boolean>(false);
+
   // Mobile canvas mode: "pan" (pure pan, prevent accidental edits) vs "edit" (select & edit entities)
   const [canvasMode, setCanvasMode] = React.useState<"pan" | "edit">("edit");
 
@@ -248,6 +258,11 @@ export function FloorPlanShell({
     };
   }, [targetRoom, currentPlan, locale, i18n]);
 
+  const targetFurniture = React.useMemo(() => {
+    if (!targetFurnitureId) return null;
+    return currentPlan.furniture.find((f) => f.id === targetFurnitureId) ?? null;
+  }, [currentPlan.furniture, targetFurnitureId]);
+
   // Check storage whenever active plan template changes
   React.useEffect(() => {
     let isCancelled = false;
@@ -281,6 +296,8 @@ export function FloorPlanShell({
 
   const handleSelectPlan = React.useCallback(
     (planId: string) => {
+      const hadSelectionOrDownstream =
+        targetRoomId !== null || targetFurnitureId !== null || currentStage !== "plan";
       setActivePlanId(planId);
       setSelectedEntity(null);
       setTargetRoomId(null);
@@ -288,15 +305,21 @@ export function FloorPlanShell({
       setMobileSheetType(null);
       setIsDraftMode(false);
       setSaveStatus("idle");
-      setCurrentStage("plan");
-      setCompletedStages([]);
+      // AC-22: Changing floor plan clears old room and target furniture selection and returns to room stage
+      if (hadSelectionOrDownstream) {
+        setCurrentStage("room");
+        setCompletedStages(["plan"]);
+      } else {
+        setCurrentStage("plan");
+        setCompletedStages([]);
+      }
       const targetSummary = plans.find((p) => p.id === planId) ?? plans[0];
       if (targetSummary) {
         setCurrentPlan(targetSummary.plan);
         setHistory(createPlanHistory(targetSummary.plan));
       }
     },
-    [plans],
+    [plans, targetRoomId, targetFurnitureId, currentStage],
   );
 
   const handleSelectTargetRoom = React.useCallback(
@@ -388,13 +411,6 @@ export function FloorPlanShell({
     setSelectedEntity(null);
   }, []);
 
-  // Add furniture directly (AC-3): ensures user plan automatically
-  const handleOpenAddFurniture = React.useCallback(async () => {
-    await ensureUserPlan();
-    setSelectedEntity(null);
-    setMobileSheetType("furniture-palette");
-  }, [ensureUserPlan]);
-
   // Update plan in draft mode with autosave (AC-3: auto convert standard plan if needed)
   const handleUpdatePlan = React.useCallback(
     async (updatedPlan: FloorPlan, description?: string) => {
@@ -436,6 +452,50 @@ export function FloorPlanShell({
     },
     [isDraftMode, currentPlan, activePlanSummary, storedDraft, activePlanId, storage, onPlanChange],
   );
+
+  // Add furniture to target room and establish as active target (AC-10, AC-11, AC-12, AC-13, AC-22)
+  const handleAddContextFurniture = React.useCallback(
+    async (definitionId: string) => {
+      const userPlan = await ensureUserPlan();
+      const catalog = getDefaultFurnitureCatalog();
+      const effectiveRoomId = targetRoomId ?? userPlan.rooms[0]?.id ?? null;
+      const dropPos = effectiveRoomId
+        ? computeRoomInitialDropPosition(userPlan, effectiveRoomId)
+        : null;
+
+      const res = addFurnitureInstance(
+        userPlan,
+        catalog,
+        definitionId,
+        dropPos ? { x: dropPos.x, y: dropPos.y } : undefined,
+      );
+
+      if (res.success) {
+        if (!targetRoomId && effectiveRoomId) {
+          setTargetRoomId(effectiveRoomId);
+        }
+        await handleUpdatePlan(res.plan, "Add target furniture");
+        setTargetFurnitureId(res.instance.id);
+        setSelectedEntity({ type: "furniture", id: res.instance.id });
+        setCompletedStages((prev) => Array.from(new Set([...prev, "furniture"])));
+        setCurrentStage("decision");
+        setIsFurnitureCatalogOpen(false);
+        setMobileSheetType(null);
+      }
+    },
+    [ensureUserPlan, targetRoomId, handleUpdatePlan],
+  );
+
+  // Add furniture directly (AC-3, AC-12): ensures user plan and opens catalog
+  const handleOpenAddFurniture = React.useCallback(async () => {
+    await ensureUserPlan();
+    setSelectedEntity(null);
+    if (isMobile) {
+      setMobileSheetType("furniture-palette");
+    } else {
+      setIsFurnitureCatalogOpen(true);
+    }
+  }, [ensureUserPlan, isMobile]);
 
   // Undo committed operation (AC-8)
   const handleUndo = React.useCallback(async () => {
@@ -659,6 +719,7 @@ export function FloorPlanShell({
           onSelect={(entity) => {
             handleSelectEntity(entity);
           }}
+          onSelectDefinition={handleAddContextFurniture}
           onClose={() => setMobileSheetType(null)}
           locale={locale}
         />
@@ -1005,6 +1066,53 @@ export function FloorPlanShell({
 
                     {currentStage === "furniture" && (
                       <div data-testid="stage-furniture-panel" className="space-y-4 text-xs">
+                        {/* 1. Context Furniture Recommendations (AC-10, AC-11, AC-12) */}
+                        <ContextFurniturePanel
+                          plan={currentPlan}
+                          targetRoomId={targetRoomId}
+                          onAddFurniture={handleAddContextFurniture}
+                          onOpenFullCatalog={() => {
+                            if (isMobile) {
+                              setMobileSheetType("furniture-palette");
+                            } else {
+                              setIsFurnitureCatalogOpen(true);
+                            }
+                          }}
+                          locale={locale}
+                        />
+
+                        {/* Current Target Furniture Summary (AC-13, AC-22) */}
+                        {targetFurniture && (
+                          <div
+                            data-testid="target-furniture-summary"
+                            className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-2 text-xs"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] text-muted-foreground">
+                                {locale === "zh" ? "当前检测目标家具" : "Current Target Furniture"}
+                              </span>
+                              <Badge variant="default" className="text-[10px]">
+                                {locale === "zh" ? "检测目标" : "Active Target"}
+                              </Badge>
+                            </div>
+                            <div className="flex items-baseline justify-between">
+                              <span
+                                data-testid="target-furniture-name"
+                                className="text-sm font-semibold text-foreground"
+                              >
+                                {i18n.getFurnitureName(targetFurniture.definitionId, targetFurniture.definitionId)}
+                              </span>
+                              <span
+                                data-testid="target-furniture-dimensions"
+                                className="font-mono font-medium text-foreground"
+                              >
+                                {targetFurniture.width} × {targetFurniture.depth} mm
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Furniture Inspector when an item is selected */}
                         {selectedEntity?.type === "furniture" && (
                           <FloorPlanInspector
                             plan={currentPlan}
@@ -1018,6 +1126,7 @@ export function FloorPlanShell({
                             onEnsureUserPlan={ensureUserPlan}
                           />
                         )}
+
                         <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
                           <span className="font-semibold text-foreground text-xs block">
                             {t.workflow.furnitureStage.title}
@@ -1038,7 +1147,7 @@ export function FloorPlanShell({
                           </Button>
                         </div>
 
-                        {/* Room context & switcher (AC-9) */}
+                        {/* Room context & switcher (AC-9, AC-22) */}
                         <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="font-semibold text-foreground text-xs">
@@ -1104,7 +1213,38 @@ export function FloorPlanShell({
                           </p>
                         </div>
 
-                        {/* Room switcher in decision stage (AC-9) */}
+                        {/* Target Furniture Solely Driving Decision (AC-22) */}
+                        {targetFurniture && (
+                          <div
+                            data-testid="decision-target-furniture"
+                            className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-2 text-xs"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] text-muted-foreground">
+                                {locale === "zh" ? "主结论检测目标" : "Main Decision Target"}
+                              </span>
+                              <Badge variant="default" className="text-[10px]">
+                                {locale === "zh" ? "唯一目标" : "Sole Target"}
+                              </Badge>
+                            </div>
+                            <div className="flex items-baseline justify-between">
+                              <span
+                                data-testid="decision-target-furniture-name"
+                                className="text-sm font-semibold text-foreground"
+                              >
+                                {i18n.getFurnitureName(targetFurniture.definitionId, targetFurniture.definitionId)}
+                              </span>
+                              <span
+                                data-testid="decision-target-furniture-dimensions"
+                                className="font-mono font-medium text-foreground"
+                              >
+                                {targetFurniture.width} × {targetFurniture.depth} mm
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Room switcher in decision stage (AC-9, AC-22) */}
                         <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="font-semibold text-foreground text-xs">
@@ -1156,6 +1296,16 @@ export function FloorPlanShell({
         plans={plans}
         activePlanId={activePlanId}
         onSelectPlan={handleSelectPlan}
+        locale={locale}
+        t={t}
+      />
+
+      {/* On-Demand Full Furniture Catalog Dialog (AC-12) */}
+      <FurnitureCatalogDialog
+        open={isFurnitureCatalogOpen}
+        onOpenChange={setIsFurnitureCatalogOpen}
+        plan={currentPlan}
+        onSelectDefinition={handleAddContextFurniture}
         locale={locale}
         t={t}
       />
