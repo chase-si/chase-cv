@@ -50,16 +50,23 @@ describe("Floor Plan i18n module", () => {
     expect(zh.getRuleTitle("furniture-clearance", "Clearance")).toBe("家具使用净距不足");
     expect(zh.getRuleTitle("passage-clearance", "Passage")).toBe("通道通行净宽不足");
 
-    // Room breakdown formatting
-    const breakdown = zh.formatRoomBreakdown(STUDIO_STANDARD_FLOOR_PLAN);
-    expect(breakdown).toContain("间功能区");
-    expect(breakdown).toContain("客厅");
+    // Workflow stages translation
+    expect(zh.t.workflow.steps.plan).toBe("户型");
+    expect(zh.t.workflow.steps.room).toBe("房间");
+    expect(zh.t.workflow.steps.furniture).toBe("家具");
+    expect(zh.t.workflow.steps.decision).toBe("结论");
+    expect(zh.t.workflow.actions.skipCalibration).toContain("跳过校准");
   });
 
   it("provides English translations and fallback behavior", () => {
     const en = getFloorPlanI18n("en");
     expect(en.locale).toBe("en");
     expect(en.t.pageTitle).toBe("Floor Plan Space Validator");
+    expect(en.t.workflow.steps.plan).toBe("Plan");
+    expect(en.t.workflow.steps.room).toBe("Room");
+    expect(en.t.workflow.steps.furniture).toBe("Furniture");
+    expect(en.t.workflow.steps.decision).toBe("Decision");
+    expect(en.t.workflow.actions.skipCalibration).toContain("Skip calibration");
     expect(en.getRoomTypeLabel("living_room")).toBe("Living Room");
     expect(en.getFurnitureCategoryLabel("bed")).toBe("Beds");
     expect(en.getFurnitureName("bed-double", "Double Bed")).toBe("Double Bed");

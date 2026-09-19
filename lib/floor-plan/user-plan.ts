@@ -20,7 +20,7 @@ export function isUserPlan(plan: FloorPlan): boolean {
  * The original standard plan remains byte-for-byte unchanged.
  */
 export function createOrResumeUserPlan(
-  standardPlan: StandardFloorPlan,
+  standardPlan: StandardFloorPlan | FloorPlan,
   existingDraft?: FloorPlan | null,
 ): FloorPlan {
   if (existingDraft) {
