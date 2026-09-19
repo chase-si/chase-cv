@@ -12,6 +12,7 @@ interface SvgRoomProps {
   wallMap: Map<string, Wall>;
   vertexMap: Map<string, Vertex>;
   selectedEntity: SelectedEntity | null;
+  targetRoomId?: string | null;
   onSelect: EntitySelectHandler;
 }
 
@@ -92,6 +93,7 @@ export function SvgRoom({
   wallMap,
   vertexMap,
   selectedEntity,
+  targetRoomId,
   onSelect,
 }: SvgRoomProps) {
   const points = React.useMemo(
@@ -109,8 +111,10 @@ export function SvgRoom({
     [points],
   );
 
+  const isTargetRoom = targetRoomId === room.id;
   const isSelected =
-    selectedEntity?.type === "room" && selectedEntity?.id === room.id;
+    (selectedEntity?.type === "room" && selectedEntity?.id === room.id) ||
+    isTargetRoom;
 
   if (points.length < 3) return null;
 
@@ -124,6 +128,7 @@ export function SvgRoom({
       data-entity-type="room"
       data-entity-id={room.id}
       data-selected={isSelected ? "true" : "false"}
+      data-target-room={isTargetRoom ? "true" : "false"}
       className="cursor-pointer transition-colors duration-150"
       onClick={(e) => {
         e.stopPropagation();

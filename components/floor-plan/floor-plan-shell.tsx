@@ -38,6 +38,13 @@ import {
   downloadFloorPlanJson,
 } from "@/lib/floor-plan/user-plan";
 import { evaluatePlanRules } from "@/lib/floor-plan/rules";
+import {
+  computePolygonArea,
+  computeRoomPolygon,
+  getVertexMap,
+  getWallMap,
+} from "@/lib/floor-plan/geometry";
+import { getRoomSpans } from "@/lib/floor-plan/room-adjustment";
 import type { SelectedEntity } from "./types";
 import { FloorPlanCatalog } from "./floor-plan-catalog";
 import { FloorPlanInspector } from "./floor-plan-inspector";
@@ -47,6 +54,7 @@ import { MobileBottomSheet } from "./mobile-bottom-sheet";
 import { FurnitureCatalogPalette } from "./furniture-catalog-palette";
 import { FloorPlanWorkflowStepper, type WorkflowStage } from "./floor-plan-workflow-stepper";
 import { FloorPlanSelectorDialog } from "./floor-plan-selector-dialog";
+import { RoomList } from "./room-list";
 import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { RuleFeedbackPanel } from "./rule-feedback-panel";
 import { cn } from "@/lib/utils";
@@ -177,6 +185,10 @@ export function FloorPlanShell({
   const [currentStage, setCurrentStage] = React.useState<WorkflowStage>("plan");
   const [completedStages, setCompletedStages] = React.useState<WorkflowStage[]>([]);
 
+  // Target room & target furniture state (AC-8, AC-9)
+  const [targetRoomId, setTargetRoomId] = React.useState<string | null>(null);
+  const [targetFurnitureId, setTargetFurnitureId] = React.useState<string | null>(null);
+
   // On-demand plan selector dialog open state (AC-2)
   const [isPlanSelectorOpen, setIsPlanSelectorOpen] = React.useState<boolean>(false);
 
@@ -209,6 +221,32 @@ export function FloorPlanShell({
 
   // Evaluate spatial rules deterministically (US-12, US-14, AC-12, AC-14)
   const violations = React.useMemo(() => evaluatePlanRules(currentPlan), [currentPlan]);
+
+  const targetRoom = React.useMemo(() => {
+    if (!targetRoomId) return null;
+    return currentPlan.rooms.find((r) => r.id === targetRoomId) ?? null;
+  }, [currentPlan.rooms, targetRoomId]);
+
+  const targetRoomDetails = React.useMemo(() => {
+    if (!targetRoom) return null;
+    const vertexMap = getVertexMap(currentPlan);
+    const wallMap = getWallMap(currentPlan);
+    const points = computeRoomPolygon(targetRoom, wallMap, vertexMap);
+    const area = computePolygonArea(points);
+    const spans = getRoomSpans(currentPlan, targetRoom.id);
+    const displayName =
+      targetRoom.name ??
+      (locale === "zh"
+        ? i18n.getRoomTypeLabel(targetRoom.type)
+        : targetRoom.type.replace("_", " "));
+
+    return {
+      room: targetRoom,
+      displayName,
+      area,
+      spans,
+    };
+  }, [targetRoom, currentPlan, locale, i18n]);
 
   // Check storage whenever active plan template changes
   React.useEffect(() => {
@@ -245,6 +283,8 @@ export function FloorPlanShell({
     (planId: string) => {
       setActivePlanId(planId);
       setSelectedEntity(null);
+      setTargetRoomId(null);
+      setTargetFurnitureId(null);
       setMobileSheetType(null);
       setIsDraftMode(false);
       setSaveStatus("idle");
@@ -259,14 +299,42 @@ export function FloorPlanShell({
     [plans],
   );
 
-  const handleSelectEntity = React.useCallback((entity: SelectedEntity | null) => {
-    setSelectedEntity(entity);
-    if (entity) {
-      setMobileSheetType("entity");
-    } else {
-      setMobileSheetType((prev) => (prev === "entity" ? null : prev));
-    }
-  }, []);
+  const handleSelectTargetRoom = React.useCallback(
+    (roomId: string) => {
+      const isDifferentRoom = targetRoomId !== null && targetRoomId !== roomId;
+      setTargetRoomId(roomId);
+      setSelectedEntity({ type: "room", id: roomId });
+
+      if (isDifferentRoom) {
+        // AC-9: When user switches target room, old target furniture no longer drives current decision
+        setTargetFurnitureId(null);
+        // Flow returns to that room's furniture selection state
+        if (currentStage === "decision") {
+          setCurrentStage("furniture");
+        }
+      }
+    },
+    [targetRoomId, currentStage],
+  );
+
+  const handleSelectEntity = React.useCallback(
+    (entity: SelectedEntity | null) => {
+      if (entity?.type === "room") {
+        handleSelectTargetRoom(entity.id);
+      } else {
+        setSelectedEntity(entity);
+        if (entity?.type === "furniture") {
+          setTargetFurnitureId(entity.id);
+        }
+      }
+      if (entity) {
+        setMobileSheetType("entity");
+      } else {
+        setMobileSheetType((prev) => (prev === "entity" ? null : prev));
+      }
+    },
+    [handleSelectTargetRoom],
+  );
 
   const handleCloseMobileSheet = React.useCallback(() => {
     setSelectedEntity(null);
@@ -501,6 +569,8 @@ export function FloorPlanShell({
     setIsDraftMode(false);
     setSaveStatus("idle");
     setSelectedEntity(null);
+    setTargetRoomId(null);
+    setTargetFurnitureId(null);
     setCurrentStage("plan");
     setCompletedStages([]);
   }, [activePlanId, activePlanSummary, storage]);
@@ -714,6 +784,7 @@ export function FloorPlanShell({
             <FloorPlanSvgViewer
               plan={currentPlan}
               selectedEntity={selectedEntity}
+              targetRoomId={targetRoomId}
               onSelect={handleSelectEntity}
               isDraftMode={isDraftMode}
               onUpdatePlan={handleUpdatePlan}
@@ -745,7 +816,7 @@ export function FloorPlanShell({
                 </div>
               </CardHeader>
               <CardScrollArea className="min-h-0 flex-1 px-4 pb-4">
-                {selectedEntity ? (
+                {selectedEntity && (selectedEntity.type === "wall" || selectedEntity.type === "opening") ? (
                   <FloorPlanInspector
                     plan={currentPlan}
                     isDraftMode={isDraftMode}
@@ -764,6 +835,7 @@ export function FloorPlanShell({
                         <FloorPlanInspector
                           plan={currentPlan}
                           isDraftMode={isDraftMode}
+                          allowSpanEdit={true}
                           onUpdatePlan={handleUpdatePlan}
                           selectedEntity={selectedEntity}
                           onSelect={handleSelectEntity}
@@ -772,6 +844,21 @@ export function FloorPlanShell({
                           onStartCalibration={handleStartCalibration}
                           onEnsureUserPlan={ensureUserPlan}
                         />
+
+                        {/* Room List for Preparation and Calibration (AC-5, AC-8) */}
+                        <div className="space-y-1.5 pt-2 border-t border-border/60">
+                          <span className="text-[11px] font-medium text-foreground block">
+                            {locale === "zh"
+                              ? "户型房间列表（选择目标房间核对与校准尺寸）"
+                              : "Rooms in Floor Plan (Select to Calibrate)"}
+                          </span>
+                          <RoomList
+                            plan={currentPlan}
+                            targetRoomId={targetRoomId}
+                            onSelectRoom={handleSelectTargetRoom}
+                            locale={locale}
+                          />
+                        </div>
 
                         {/* Stage 1 Workflow Actions (AC-2, AC-3, AC-7) */}
                         <div className="space-y-2 pt-2 border-t border-border/60">
@@ -827,6 +914,64 @@ export function FloorPlanShell({
                             {t.workflow.roomStage.placeholder}
                           </p>
                         </div>
+
+                        {/* Room List (AC-8) */}
+                        <div className="space-y-1.5">
+                          <span className="text-[11px] font-medium text-foreground block">
+                            {locale === "zh" ? "可选房间列表" : "Select Room from List"}
+                          </span>
+                          <RoomList
+                            plan={currentPlan}
+                            targetRoomId={targetRoomId}
+                            onSelectRoom={handleSelectTargetRoom}
+                            locale={locale}
+                          />
+                        </div>
+
+                        {/* Target Room Details (AC-8) */}
+                        {targetRoomDetails && (
+                          <div
+                            data-testid="target-room-details"
+                            className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-2 text-xs"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] text-muted-foreground">
+                                {locale === "zh" ? "已选目标房间" : "Selected Target Room"}
+                              </span>
+                              <Badge variant="default" className="text-[10px]">
+                                {locale === "zh" ? "目标" : "Target"}
+                              </Badge>
+                            </div>
+                            <div className="flex items-baseline justify-between">
+                              <span
+                                data-testid="target-room-name"
+                                className="text-sm font-semibold text-foreground"
+                              >
+                                {targetRoomDetails.displayName}
+                              </span>
+                              <span
+                                data-testid="target-room-area"
+                                className="font-mono font-medium text-foreground"
+                              >
+                                {targetRoomDetails.area.formattedAreaM2}
+                              </span>
+                            </div>
+                            {targetRoomDetails.spans && (
+                              <div
+                                data-testid="target-room-spans"
+                                className="flex items-center gap-3 pt-1 text-[11px] font-mono text-muted-foreground border-t border-primary/20"
+                              >
+                                <span>
+                                  {t.roomSpanEditor.widthAxis}: {targetRoomDetails.spans.horizontal?.spanMm ?? "—"} mm
+                                </span>
+                                <span>
+                                  {t.roomSpanEditor.depthAxis}: {targetRoomDetails.spans.vertical?.spanMm ?? "—"} mm
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         <div className="flex gap-2">
                           <Button
                             type="button"
@@ -844,6 +989,9 @@ export function FloorPlanShell({
                             size="sm"
                             data-testid="next-to-furniture-btn"
                             onClick={() => {
+                              if (!targetRoomId && currentPlan.rooms.length > 0) {
+                                handleSelectTargetRoom(currentPlan.rooms[0].id);
+                              }
                               setCompletedStages((prev) => Array.from(new Set([...prev, "room"])));
                               setCurrentStage("furniture");
                             }}
@@ -857,6 +1005,19 @@ export function FloorPlanShell({
 
                     {currentStage === "furniture" && (
                       <div data-testid="stage-furniture-panel" className="space-y-4 text-xs">
+                        {selectedEntity?.type === "furniture" && (
+                          <FloorPlanInspector
+                            plan={currentPlan}
+                            isDraftMode={isDraftMode}
+                            onUpdatePlan={handleUpdatePlan}
+                            selectedEntity={selectedEntity}
+                            onSelect={handleSelectEntity}
+                            violations={violations}
+                            locale={locale}
+                            onStartCalibration={handleStartCalibration}
+                            onEnsureUserPlan={ensureUserPlan}
+                          />
+                        )}
                         <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
                           <span className="font-semibold text-foreground text-xs block">
                             {t.workflow.furnitureStage.title}
@@ -876,6 +1037,32 @@ export function FloorPlanShell({
                             <span>{t.actions.addFurniture}</span>
                           </Button>
                         </div>
+
+                        {/* Room context & switcher (AC-9) */}
+                        <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-foreground text-xs">
+                              {locale === "zh" ? "当前目标房间" : "Target Room"}
+                            </span>
+                            {targetRoomDetails && (
+                              <Badge variant="secondary" className="text-[10px]">
+                                {targetRoomDetails.displayName} · {targetRoomDetails.area.formattedAreaM2}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            {locale === "zh"
+                              ? "在画布或列表中点击其他房间即可更换检测空间："
+                              : "Click another room on canvas or list to switch:"}
+                          </p>
+                          <RoomList
+                            plan={currentPlan}
+                            targetRoomId={targetRoomId}
+                            onSelectRoom={handleSelectTargetRoom}
+                            locale={locale}
+                          />
+                        </div>
+
                         <div className="flex gap-2">
                           <Button
                             type="button"
@@ -916,6 +1103,32 @@ export function FloorPlanShell({
                             {t.workflow.decisionStage.placeholder}
                           </p>
                         </div>
+
+                        {/* Room switcher in decision stage (AC-9) */}
+                        <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-foreground text-xs">
+                              {locale === "zh" ? "切换检测房间" : "Switch Room"}
+                            </span>
+                            {targetRoomDetails && (
+                              <Badge variant="secondary" className="text-[10px]">
+                                {targetRoomDetails.displayName}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            {locale === "zh"
+                              ? "更换房间后旧目标家具不再驱动当前结论，流程回到该房间家具选择："
+                              : "Switching room detaches previous target furniture and returns to furniture selection:"}
+                          </p>
+                          <RoomList
+                            plan={currentPlan}
+                            targetRoomId={targetRoomId}
+                            onSelectRoom={handleSelectTargetRoom}
+                            locale={locale}
+                          />
+                        </div>
+
                         <Button
                           type="button"
                           variant="outline"
