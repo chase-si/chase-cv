@@ -2,22 +2,9 @@
 
 import * as React from "react";
 import {
-  AlertCircle,
-  AlertTriangle,
-  Armchair,
-  Check,
   Compass,
-  Download,
-  Hand,
-  Home,
-  Loader2,
-  MousePointer2,
-  PenTool,
-  Redo2,
-  RotateCcw,
   SlidersHorizontal,
   Sparkles,
-  Undo2,
 } from "lucide-react";
 import { ToolPageChrome } from "@/components/tool-page-chrome";
 import { Badge } from "@/components/ui/badge";
@@ -48,16 +35,17 @@ import {
   createOrResumeUserPlan,
   downloadFloorPlanJson,
 } from "@/lib/floor-plan/user-plan";
-import { cn } from "@/lib/utils";
 import { evaluatePlanRules } from "@/lib/floor-plan/rules";
 import type { SelectedEntity } from "./types";
 import { FloorPlanCatalog } from "./floor-plan-catalog";
 import { FloorPlanInspector } from "./floor-plan-inspector";
 import { FloorPlanSvgViewer } from "./floor-plan-svg-viewer";
+import { FloorPlanToolbar } from "./floor-plan-toolbar";
 import { MobileBottomSheet } from "./mobile-bottom-sheet";
 import { FurnitureCatalogPalette } from "./furniture-catalog-palette";
 import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { RuleFeedbackPanel } from "./rule-feedback-panel";
+import { cn } from "@/lib/utils";
 
 export interface FloorPlanShellProps {
   initialPlans?: StandardPlanSummary[];
@@ -454,306 +442,6 @@ export function FloorPlanShell({
     return null;
   }
 
-  const headerActions = (
-    <div className="flex items-center gap-2">
-      {/* Plan Identification Badge */}
-      {isDraftMode ? (
-        <Badge
-          variant="outline"
-          className="hidden sm:inline-flex items-center gap-1.5 font-mono text-xs px-2.5 py-1 border-primary/40 bg-primary/5 text-primary"
-        >
-          <PenTool className="h-3.5 w-3.5" />
-          <span className="truncate max-w-[140px]">{currentPlan.meta.name}</span>
-          <span className="text-muted-foreground text-[10px]">{t.badges.userDraft}</span>
-        </Badge>
-      ) : (
-        <Badge
-          variant="secondary"
-          className="hidden sm:inline-flex items-center gap-1.5 font-mono text-xs px-2.5 py-1"
-        >
-          <Home className="h-3.5 w-3.5 text-primary" />
-          <span>{activePlanSummary.name}</span>
-          <span className="text-muted-foreground">({activePlanSummary.formattedArea})</span>
-        </Badge>
-      )}
-
-      {/* Save Status Badge */}
-      {isDraftMode && (
-        <Badge
-          data-testid="save-status-badge"
-          variant="outline"
-          className={cn(
-            "inline-flex items-center gap-1.5 text-xs font-mono px-2 py-0.5 transition-colors",
-            saveStatus === "saved" &&
-              "text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/5",
-            saveStatus === "saving" && "text-primary border-primary/30 bg-primary/5",
-            saveStatus === "failed" && "text-destructive border-destructive/30 bg-destructive/5",
-          )}
-        >
-          {saveStatus === "saving" && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
-          {saveStatus === "saved" && <Check className="h-3 w-3 text-emerald-500" />}
-          {saveStatus === "failed" && <AlertCircle className="h-3 w-3 text-destructive" />}
-          <span className="capitalize">
-            {saveStatus === "saving"
-              ? t.badges.saving
-              : saveStatus === "saved"
-                ? t.badges.saved
-                : saveStatus === "failed"
-                  ? t.badges.saveFailed
-                  : t.badges.draft}
-          </span>
-        </Badge>
-      )}
-
-      {/* Spatial Violations Badge (AC-12, AC-13, AC-14) */}
-      {violations.length > 0 && (
-        <Badge
-          data-testid="shell-violations-badge"
-          variant="outline"
-          className={cn(
-            "inline-flex items-center gap-1 text-xs font-mono px-2 py-0.5 cursor-pointer hover:opacity-90 transition-opacity",
-            violations.some((v) => v.severity === "error")
-              ? "border-destructive/40 text-destructive bg-destructive/10"
-              : "border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10",
-          )}
-          onClick={() => {
-            setSelectedEntity(null);
-            setMobileSheetType("rules");
-          }}
-          title={t.actions.rules}
-        >
-          {violations.some((v) => v.severity === "error") ? (
-            <AlertCircle className="h-3 w-3" />
-          ) : (
-            <AlertTriangle className="h-3 w-3 text-amber-500" />
-          )}
-          <span>
-            {violations.length}{" "}
-            {violations.length === 1
-              ? violations[0].severity === "error"
-                ? t.badges.issue
-                : t.badges.warning
-              : violations.some((v) => v.severity === "error")
-                ? t.badges.issues
-                : t.badges.warnings}
-          </span>
-        </Badge>
-      )}
-
-      {/* Uncalibrated Scale Advisory Badge (AC-21) */}
-      {currentPlan.meta?.unscaled && (
-        <Badge
-          data-testid="shell-unscaled-badge"
-          variant="outline"
-          className="inline-flex items-center gap-1.5 text-xs font-mono px-2 py-0.5 border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10"
-          title={t.badges.unscaledAdvisory}
-        >
-          <AlertTriangle className="h-3 w-3 text-amber-500" />
-          <span>{t.badges.uncalibrated}</span>
-        </Badge>
-      )}
-
-      {/* Mode Toggle: Pan Mode vs Edit Mode (AC-5) */}
-      <div className="flex items-center rounded-xl border border-border bg-card p-0.5 shadow-xs touch-manipulation">
-        <Button
-          type="button"
-          size="sm"
-          variant={canvasMode === "pan" ? "default" : "ghost"}
-          data-testid="mode-toggle-pan"
-          onClick={() => setCanvasMode("pan")}
-          className="h-11 min-h-[44px] min-w-[44px] px-3 sm:h-7 sm:min-h-0 sm:min-w-0 sm:px-2.5 gap-1.5 text-xs touch-manipulation font-medium"
-          title={t.canvasModes.panTooltip}
-        >
-          <Hand className="h-4 w-4" />
-          <span>{t.canvasModes.pan}</span>
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={canvasMode === "edit" ? "default" : "ghost"}
-          data-testid="mode-toggle-edit"
-          onClick={() => setCanvasMode("edit")}
-          className="h-11 min-h-[44px] min-w-[44px] px-3 sm:h-7 sm:min-h-0 sm:min-w-0 sm:px-2.5 gap-1.5 text-xs touch-manipulation font-medium"
-          title={t.canvasModes.editTooltip}
-        >
-          <MousePointer2 className="h-4 w-4" />
-          <span>{t.canvasModes.edit}</span>
-        </Button>
-      </div>
-
-      {/* Action Buttons */}
-      {!isDraftMode ? (
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <Button
-            type="button"
-            size="sm"
-            variant="default"
-            data-testid="customize-plan-btn"
-            onClick={handleCustomizePlan}
-            className="h-11 min-h-[44px] min-w-[44px] sm:h-7 sm:min-h-0 sm:min-w-0 px-3 sm:px-2.5 text-xs flex items-center gap-1.5 touch-manipulation"
-          >
-            <SlidersHorizontal className="h-3.5 w-3.5" />
-            <span>{t.actions.customizePlan}</span>
-          </Button>
-
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            data-testid="mobile-catalog-btn"
-            onClick={() => {
-              setSelectedEntity(null);
-              setMobileSheetType("catalog");
-            }}
-            className="h-11 min-h-[44px] min-w-[44px] px-2.5 text-xs flex items-center gap-1.5 touch-manipulation lg:hidden"
-            title={t.actions.plans}
-          >
-            <Compass className="h-3.5 w-3.5 text-primary" />
-            <span className="hidden sm:inline">{t.actions.plans}</span>
-          </Button>
-
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            data-testid="mobile-rules-btn"
-            onClick={() => {
-              setSelectedEntity(null);
-              setMobileSheetType("rules");
-            }}
-            className="h-11 min-h-[44px] min-w-[44px] px-2.5 text-xs flex items-center gap-1.5 touch-manipulation lg:hidden"
-            title={t.actions.rules}
-          >
-            <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-            <span className="hidden sm:inline">{t.actions.rules}</span>
-          </Button>
-        </div>
-      ) : (
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {/* Undo Button (AC-8) */}
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            data-testid="undo-btn"
-            onClick={handleUndo}
-            disabled={!canUndo(history)}
-            className="h-11 min-h-[44px] min-w-[44px] sm:h-7 sm:min-h-0 sm:min-w-0 px-2.5 text-xs flex items-center gap-1 touch-manipulation"
-            title="Undo (Ctrl+Z / ⌘Z)"
-            aria-label={t.actions.undo}
-          >
-            <Undo2 className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">{t.actions.undo}</span>
-          </Button>
-
-          {/* Redo Button (AC-8) */}
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            data-testid="redo-btn"
-            onClick={handleRedo}
-            disabled={!canRedo(history)}
-            className="h-11 min-h-[44px] min-w-[44px] sm:h-7 sm:min-h-0 sm:min-w-0 px-2.5 text-xs flex items-center gap-1 touch-manipulation"
-            title="Redo (Ctrl+Shift+Z / ⌘⇧Z / Ctrl+Y)"
-            aria-label={t.actions.redo}
-          >
-            <Redo2 className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">{t.actions.redo}</span>
-          </Button>
-
-          {/* Mobile Add Furniture Button (AC-5) */}
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            data-testid="mobile-add-furniture-btn"
-            onClick={() => {
-              setSelectedEntity(null);
-              setMobileSheetType("furniture-palette");
-            }}
-            className="h-11 min-h-[44px] min-w-[44px] px-2.5 text-xs flex items-center gap-1.5 touch-manipulation lg:hidden"
-            title={t.actions.addFurniture}
-          >
-            <Armchair className="h-3.5 w-3.5 text-primary" />
-            <span>{t.actions.addFurniture}</span>
-          </Button>
-
-          {/* Mobile Rules Button (AC-5) */}
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            data-testid="mobile-rules-btn"
-            onClick={() => {
-              setSelectedEntity(null);
-              setMobileSheetType("rules");
-            }}
-            className="h-11 min-h-[44px] min-w-[44px] px-2.5 text-xs flex items-center gap-1.5 touch-manipulation lg:hidden"
-            title={t.actions.rules}
-          >
-            {violations.some((v) => v.severity === "error") ? (
-              <AlertCircle className="h-3.5 w-3.5 text-destructive" />
-            ) : violations.length > 0 ? (
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-            ) : (
-              <Check className="h-3.5 w-3.5 text-emerald-500" />
-            )}
-            <span className="hidden sm:inline">{t.actions.rules}</span>
-            {violations.length > 0 && (
-              <Badge variant="secondary" className="px-1.5 py-0 text-[10px] font-mono">
-                {violations.length}
-              </Badge>
-            )}
-          </Button>
-
-          {/* Mobile Plans Catalog Button */}
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            data-testid="mobile-catalog-btn"
-            onClick={() => {
-              setSelectedEntity(null);
-              setMobileSheetType("catalog");
-            }}
-            className="h-11 min-h-[44px] min-w-[44px] px-2.5 text-xs flex items-center gap-1.5 touch-manipulation lg:hidden"
-            title={t.actions.plans}
-          >
-            <Compass className="h-3.5 w-3.5 text-primary" />
-            <span className="hidden sm:inline">{t.actions.plans}</span>
-          </Button>
-
-          {/* Export JSON Button (AC-16) */}
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            data-testid="export-json-btn"
-            onClick={handleExportJson}
-            className="h-11 min-h-[44px] min-w-[44px] sm:h-7 sm:min-h-0 sm:min-w-0 px-2.5 text-xs flex items-center gap-1.5 touch-manipulation"
-          >
-            <Download className="h-3.5 w-3.5 text-primary" />
-            <span className="hidden sm:inline">{t.actions.exportJson}</span>
-          </Button>
-
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            data-testid="restart-template-btn"
-            onClick={handleRestartFromTemplate}
-            className="h-11 min-h-[44px] min-w-[44px] sm:h-7 sm:min-h-0 sm:min-w-0 px-2 text-xs flex items-center gap-1 text-muted-foreground hover:text-foreground touch-manipulation"
-            title={t.actions.restartTitle}
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">{t.actions.restart}</span>
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-
   const isMobileSheetOpen = isMobile && (selectedEntity !== null || mobileSheetType !== null);
 
   const mobileSheetTitle = React.useMemo(() => {
@@ -877,8 +565,26 @@ export function FloorPlanShell({
     <ToolPageChrome
       title={t.pageTitle}
       description={t.pageDescription}
-      actions={headerActions}
     >
+      <FloorPlanToolbar
+        isDraftMode={isDraftMode}
+        currentPlan={currentPlan}
+        activePlanSummary={activePlanSummary}
+        saveStatus={saveStatus}
+        violations={violations}
+        canvasMode={canvasMode}
+        history={history}
+        t={t}
+        onCustomizePlan={handleCustomizePlan}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        onExportJson={handleExportJson}
+        onRestartFromTemplate={handleRestartFromTemplate}
+        onCanvasModeChange={setCanvasMode}
+        onOpenMobileSheet={setMobileSheetType}
+        onClearSelection={() => setSelectedEntity(null)}
+      />
+
       {/* 3-Pane Desktop Layout, Responsive Mobile Layout with Primary Canvas */}
       <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[19rem_minmax(0,1fr)_18rem] lg:items-stretch">
         {/* Left Pane: Standard Plans Catalog */}
