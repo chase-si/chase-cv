@@ -1019,4 +1019,197 @@ describe("FloorPlanShell Integration", () => {
       expect(screen.getByTestId("floor-plan-room-r2")).toHaveAttribute("data-selected", "true");
     });
   });
+
+  describe("Issue #201: Add Room Context Furniture & Establish Target (AC-10, AC-11, AC-12, AC-13, AC-22)", () => {
+    it("AC-10: displays bed options and default dimensions when target room is master_bedroom or bedroom", async () => {
+      render(<FloorPlanShell />);
+
+      // Select Master Bedroom (r2)
+      fireEvent.click(screen.getByTestId("room-item-r2"));
+
+      // Skip calibration to room stage
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+
+      // Next to furniture stage
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+      expect(screen.getByTestId("stage-step-furniture")).toHaveAttribute("aria-current", "step");
+
+      // Context furniture panel displays recommended bed options
+      expect(screen.getByTestId("context-furniture-panel")).toBeInTheDocument();
+      expect(screen.getByTestId("recommended-furniture-bed-double")).toBeInTheDocument();
+      expect(screen.getByTestId("recommended-furniture-bed-single")).toBeInTheDocument();
+
+      // Displays default dimensions
+      expect(screen.getByTestId("furniture-default-size-bed-double")).toHaveTextContent("1800 × 2000 mm");
+      expect(screen.getByTestId("furniture-default-size-bed-single")).toHaveTextContent("1200 × 2000 mm");
+    });
+
+    it("AC-11: displays sofa options and default dimensions when target room is living_room", async () => {
+      render(<FloorPlanShell />);
+
+      // Select Living Room (r1)
+      fireEvent.click(screen.getByTestId("room-item-r1"));
+
+      // Skip calibration to room stage
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+
+      // Next to furniture stage
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+      expect(screen.getByTestId("stage-step-furniture")).toHaveAttribute("aria-current", "step");
+
+      // Context furniture panel displays recommended sofa options
+      expect(screen.getByTestId("context-furniture-panel")).toBeInTheDocument();
+      expect(screen.getByTestId("recommended-furniture-sofa-3seat")).toBeInTheDocument();
+      expect(screen.getByTestId("recommended-furniture-sofa-2seat")).toBeInTheDocument();
+
+      // Displays default dimensions
+      expect(screen.getByTestId("furniture-default-size-sofa-3seat")).toHaveTextContent("2100 × 900 mm");
+      expect(screen.getByTestId("furniture-default-size-sofa-2seat")).toHaveTextContent("1500 × 850 mm");
+    });
+
+    it("AC-12: enters full furniture catalog from context recommendation and adds any definition", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // Select Living Room (r1)
+      fireEvent.click(screen.getByTestId("room-item-r1"));
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+
+      // Click "Browse Full Catalog" button in ContextFurniturePanel
+      const browseCatalogBtn = screen.getByTestId("browse-full-catalog-btn");
+      expect(browseCatalogBtn).toBeInTheDocument();
+      fireEvent.click(browseCatalogBtn);
+
+      // Furniture catalog dialog opens
+      await waitFor(() => {
+        expect(screen.getByTestId("furniture-catalog-dialog")).toBeInTheDocument();
+      });
+
+      // Filter by category "table"
+      fireEvent.click(screen.getByTestId("category-filter-table"));
+      expect(screen.getByTestId("furniture-catalog-card-dining-table-4")).toBeInTheDocument();
+
+      // Add dining table (4-seat) from catalog
+      fireEvent.click(screen.getByTestId("add-furniture-item-dining-table-4"));
+
+      // Dialog closes and transitions to decision stage
+      await waitFor(() => {
+        expect(screen.queryByTestId("furniture-catalog-dialog")).not.toBeInTheDocument();
+        expect(screen.getByTestId("stage-step-decision")).toHaveAttribute("aria-current", "step");
+        expect(screen.getByTestId("decision-target-furniture")).toBeInTheDocument();
+        expect(screen.getByTestId("decision-target-furniture-dimensions")).toHaveTextContent("1400 × 800 mm");
+      });
+
+      // Persisted to storage as User plan
+      const draft = await storage.getDraft("floor-plan-std-2b1l-01");
+      expect(draft?.meta.source).toBe("user");
+      const addedTable = draft?.furniture.find((f) => f.definitionId === "dining-table-4");
+      expect(addedTable).toBeDefined();
+    });
+
+    it("AC-13: adds furniture with deterministic initial drop position, creates valid instance, saves to User plan, and sets as active target", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} />);
+
+      // Select Master Bedroom (r2)
+      fireEvent.click(screen.getByTestId("room-item-r2"));
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+
+      // Add double bed from context recommendations
+      const addBedBtn = screen.getByTestId("add-context-furniture-bed-double");
+      fireEvent.click(addBedBtn);
+
+      // Automatically transitions to decision stage (AC-13)
+      await waitFor(() => {
+        expect(screen.getByTestId("stage-step-decision")).toHaveAttribute("aria-current", "step");
+      });
+
+      // Validates User plan in storage
+      const draft = await storage.getDraft("floor-plan-std-2b1l-01");
+      expect(draft).not.toBeNull();
+      expect(draft?.meta.source).toBe("user");
+
+      const validation = validateFloorPlan(draft);
+      expect(validation.ok).toBe(true);
+
+      // Deterministic initial placement: room r2 centroid is (4500, 2500)
+      const addedBed = draft?.furniture.find((f) => f.id !== "f2" && f.definitionId === "bed-double");
+      expect(addedBed).toBeDefined();
+      expect(addedBed?.x).toBe(4500);
+      expect(addedBed?.y).toBe(2500);
+      expect(addedBed?.width).toBe(1800);
+      expect(addedBed?.depth).toBe(2000);
+      expect(addedBed?.rotation).toBe(0);
+
+      // Decision panel displays the new bed as sole target
+      expect(screen.getByTestId("decision-target-furniture")).toBeInTheDocument();
+      expect(screen.getByTestId("decision-target-furniture-dimensions")).toHaveTextContent("1800 × 2000 mm");
+    });
+
+    it("AC-22: changing floor plan clears old room and target furniture and returns to room selection stage", async () => {
+      render(<FloorPlanShell />);
+
+      // 1. Select room r1 (Living Room)
+      fireEvent.click(screen.getByTestId("room-item-r1"));
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+
+      // 2. Select sofa f1 as target furniture and advance to decision
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f1"));
+      fireEvent.click(screen.getByTestId("next-to-decision-btn"));
+      expect(screen.getByTestId("stage-step-decision")).toHaveAttribute("aria-current", "step");
+      expect(screen.getByTestId("decision-target-furniture")).toBeInTheDocument();
+
+      // 3. Switch floor plan to Studio via toolbar
+      fireEvent.click(screen.getByTestId("toolbar-select-plan-btn"));
+      fireEvent.click(screen.getByTestId("open-plan-btn-floor-plan-std-studio-01"));
+
+      // AC-22: Switching floor plan clears old room & target furniture and returns to room stage
+      expect(screen.getByTestId("stage-step-room")).toHaveAttribute("aria-current", "step");
+      expect(screen.getByTestId("stage-room-panel")).toBeInTheDocument();
+
+      // No target room or furniture is selected for the new plan yet
+      expect(screen.queryByTestId("target-room-details")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("decision-target-furniture")).not.toBeInTheDocument();
+    });
+
+    it("AC-22: changing target furniture makes new furniture the sole target driving main decision", async () => {
+      render(<FloorPlanShell />);
+
+      // Select Living Room (r1)
+      fireEvent.click(screen.getByTestId("room-item-r1"));
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+
+      // Select sofa f1 as initial target furniture
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f1"));
+      fireEvent.click(screen.getByTestId("next-to-decision-btn"));
+
+      expect(screen.getByTestId("decision-target-furniture")).toBeInTheDocument();
+      expect(screen.getByTestId("decision-target-furniture-dimensions")).toHaveTextContent("2100 × 900 mm");
+
+      // Now click double bed f2 on canvas to change target furniture
+      const bedF2 = screen.getByTestId("floor-plan-furniture-f2");
+      fireEvent.click(bedF2);
+
+      // New furniture becomes the sole target driving main decision
+      await waitFor(() => {
+        expect(screen.getByTestId("decision-target-furniture-dimensions")).toHaveTextContent("1800 × 2000 mm");
+      });
+    });
+
+    it("renders context furniture in Chinese (zh) without dictionary missing keys", async () => {
+      render(<FloorPlanShell locale="zh" />);
+
+      fireEvent.click(screen.getByTestId("room-item-r2"));
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+
+      expect(screen.getByTestId("context-furniture-panel")).toBeInTheDocument();
+      expect(screen.getByText("推荐床类选项")).toBeInTheDocument();
+      expect(screen.getByTestId("browse-full-catalog-btn")).toHaveTextContent("浏览完整家具目录");
+    });
+  });
 });
