@@ -37,13 +37,19 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
     expect(screen.getByTestId("mode-toggle-pan")).toHaveTextContent("平移");
     expect(screen.getByTestId("mode-toggle-edit")).toHaveTextContent("编辑");
 
-    // Catalog panel
+    // Four-stage stepper
+    expect(screen.getByTestId("floor-plan-stage-stepper")).toBeInTheDocument();
+    expect(screen.getByText("户型")).toBeInTheDocument();
+
+    // Catalog dialog (opened on demand via selector button)
+    fireEvent.click(screen.getByTestId("open-plan-selector-btn"));
     expect(screen.getByText("标准户型库")).toBeInTheDocument();
     expect(screen.getByTestId("catalog-category-filters")).toBeInTheDocument();
     expect(screen.getByText(/全部/)).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("plan-selector-close-btn"));
 
-    // Inspector pane
-    expect(screen.getByText("空间属性检查器")).toBeInTheDocument();
+    // Context task panel / Inspector overview
+    expect(screen.getByTestId("desktop-context-pane")).toBeInTheDocument();
     expect(screen.getByText("户型全局概览")).toBeInTheDocument();
     expect(screen.getByText("套内总面积")).toBeInTheDocument();
     expect(screen.getByText("功能分区数")).toBeInTheDocument();
@@ -58,7 +64,8 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
     const room = screen.getByTestId("floor-plan-room-r1");
     fireEvent.click(room);
 
-    // Inspector should display Chinese room parameters
+    // Inspector should display Chinese room parameters and title
+    expect(screen.getByText("空间属性检查器")).toBeInTheDocument();
     expect(screen.getByText("空间名称")).toBeInTheDocument();
     expect(screen.getByText("实测建筑面积")).toBeInTheDocument();
     expect(screen.getByText("房间开间进深跨度")).toBeInTheDocument();

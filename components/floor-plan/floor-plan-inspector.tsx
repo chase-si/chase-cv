@@ -12,6 +12,7 @@ import {
   Minimize2,
   Plus,
   RotateCw,
+  SlidersHorizontal,
   Square,
   Trash2,
   X,
@@ -49,6 +50,8 @@ interface FloorPlanInspectorProps {
   violations?: RuleResult[];
   className?: string;
   locale?: string;
+  onStartCalibration?: () => void;
+  onEnsureUserPlan?: () => void;
 }
 
 export function FloorPlanInspector({
@@ -60,6 +63,8 @@ export function FloorPlanInspector({
   violations,
   className = "",
   locale,
+  onStartCalibration,
+  onEnsureUserPlan,
 }: FloorPlanInspectorProps) {
   const i18n = useFloorPlanI18n(locale);
   const t = i18n.t;
@@ -288,6 +293,19 @@ export function FloorPlanInspector({
                     </span>
                   </div>
                 </div>
+                {onStartCalibration && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    data-testid="start-calibration-btn"
+                    onClick={onStartCalibration}
+                    className="w-full text-xs font-medium mt-1 gap-1.5"
+                  >
+                    <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
+                    <span>{t.workflow?.actions?.calibrateDimensions ?? t.inspector.adjustSpans}</span>
+                  </Button>
+                )}
               </div>
             )
           )}
@@ -498,53 +516,54 @@ export function FloorPlanInspector({
             </div>
           </div>
 
-          {isDraftMode && (
-            <div className="pt-1 space-y-2">
-              {showFurniturePalette ? (
-                <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-3 animate-in fade-in-50">
-                  <div className="flex items-center justify-between pb-1 border-b border-border/60">
-                    <div className="flex items-center gap-1.5 font-semibold text-foreground text-xs">
-                      <Armchair className="h-3.5 w-3.5 text-primary" />
-                      <span>{t.furniturePalette.title}</span>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      data-testid="close-furniture-palette-btn"
-                      onClick={() => setShowFurniturePalette(false)}
-                      className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-                      title={t.actions.close}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
+          <div className="pt-1 space-y-2">
+            {showFurniturePalette ? (
+              <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-3 animate-in fade-in-50">
+                <div className="flex items-center justify-between pb-1 border-b border-border/60">
+                  <div className="flex items-center gap-1.5 font-semibold text-foreground text-xs">
+                    <Armchair className="h-3.5 w-3.5 text-primary" />
+                    <span>{t.furniturePalette.title}</span>
                   </div>
-                  <FurnitureCatalogPalette
-                    plan={plan}
-                    onUpdatePlan={onUpdatePlan}
-                    onSelect={(entity) => {
-                      onSelect(entity);
-                      setShowFurniturePalette(false);
-                    }}
-                    onClose={() => setShowFurniturePalette(false)}
-                    locale={locale}
-                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    data-testid="close-furniture-palette-btn"
+                    onClick={() => setShowFurniturePalette(false)}
+                    className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                    title={t.actions.close}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
-              ) : (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  data-testid="add-furniture-btn"
-                  onClick={() => setShowFurniturePalette(true)}
-                  className="w-full h-8 text-xs flex items-center justify-center gap-1.5"
-                >
-                  <Plus className="h-3.5 w-3.5 text-primary" />
-                  <span>{t.actions.addFurniture}</span>
-                </Button>
-              )}
-            </div>
-          )}
+                <FurnitureCatalogPalette
+                  plan={plan}
+                  onUpdatePlan={onUpdatePlan}
+                  onSelect={(entity) => {
+                    onSelect(entity);
+                    setShowFurniturePalette(false);
+                  }}
+                  onClose={() => setShowFurniturePalette(false)}
+                  locale={locale}
+                />
+              </div>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                data-testid="add-furniture-btn"
+                onClick={() => {
+                  (onEnsureUserPlan ?? onStartCalibration)?.();
+                  setShowFurniturePalette(true);
+                }}
+                className="w-full h-8 text-xs flex items-center justify-center gap-1.5"
+              >
+                <Plus className="h-3.5 w-3.5 text-primary" />
+                <span>{t.actions.addFurniture}</span>
+              </Button>
+            )}
+          </div>
 
           <div className="space-y-1.5 pt-1">
             <span className="text-[11px] text-muted-foreground block">{locale === "zh" ? "拓扑要素统计" : "Topology Elements"}</span>
