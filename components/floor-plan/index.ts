@@ -14,3 +14,4 @@ export * from "./mobile-bottom-sheet";
 export * from "./floor-plan-workflow-stepper";
 export * from "./floor-plan-selector-dialog";
 export * from "./furniture-decision-panel";
+export * from "./advanced-tools-dialog";

@@ -73,7 +73,7 @@ describe("FloorPlanShell Integration", () => {
     expect(screen.getByTestId("floor-plan-room-sr1")).toBeInTheDocument();
   });
 
-  it("updates inspector panel when selecting an entity in the canvas", () => {
+  it("AC-26: selects wall on canvas without expanding details in main workflow, and opens details in Advanced Tools", () => {
     render(<FloorPlanShell />);
 
     // Initially shows plan summary
@@ -83,14 +83,26 @@ describe("FloorPlanShell Integration", () => {
     const wall1 = screen.getByTestId("floor-plan-wall-w1");
     fireEvent.click(wall1);
 
-    // Inspector shows wall details
+    // Default main context panel does NOT expand wall details (AC-26)
+    expect(screen.queryByTestId("inspector-wall-details")).not.toBeInTheDocument();
+    expect(screen.getByTestId("selected-structure-banner")).toBeInTheDocument();
+
+    // Opens Advanced Tools via shortcut button
+    const openStructureBtn = screen.getByTestId("open-structure-tools-btn");
+    fireEvent.click(openStructureBtn);
+
+    // Inspector shows wall details inside Advanced Tools dialog
+    expect(screen.getByTestId("advanced-tools-dialog")).toBeInTheDocument();
     expect(screen.getByTestId("inspector-wall-details")).toBeInTheDocument();
     expect(screen.getByText("3000 mm")).toBeInTheDocument();
 
-    // Deselect entity
+    // Deselect entity closes details inside advanced tools
     const deselectBtn = screen.getByTestId("inspector-deselect-btn");
     fireEvent.click(deselectBtn);
 
+    // Close Advanced Tools
+    fireEvent.click(screen.getByTestId("advanced-tools-close-btn"));
+    expect(screen.queryByTestId("advanced-tools-dialog")).not.toBeInTheDocument();
     expect(screen.getByTestId("inspector-plan-summary")).toBeInTheDocument();
   });
 
@@ -268,8 +280,13 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
 
       await waitFor(() => {
-        expect(screen.getByTestId("export-json-btn")).toBeInTheDocument();
+        expect(screen.getByTestId("advanced-tools-btn")).toBeInTheDocument();
       });
+
+      // Open Advanced Tools
+      fireEvent.click(screen.getByTestId("advanced-tools-btn"));
+      fireEvent.click(screen.getByTestId("advanced-tab-manage"));
+      expect(screen.getByTestId("export-json-btn")).toBeInTheDocument();
 
       // Mock URL.createObjectURL and document.createElement
       const createObjectURLSpy = vi.fn().mockReturnValue("blob:mock-url");
@@ -375,8 +392,9 @@ describe("FloorPlanShell Integration", () => {
         expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
       });
 
-      // 2. Select opening door1
+      // 2. Select opening door1 and open structure editor in Advanced Tools (AC-26)
       fireEvent.click(screen.getByTestId("floor-plan-opening-door1"));
+      fireEvent.click(screen.getByTestId("open-structure-tools-btn"));
 
       await waitFor(() => {
         expect(screen.getByTestId("opening-editor")).toBeInTheDocument();
@@ -606,8 +624,9 @@ describe("FloorPlanShell Integration", () => {
         expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
       });
 
-      // Select opening door1
+      // Select opening door1 and open structure editor in Advanced Tools (AC-26)
       fireEvent.click(screen.getByTestId("floor-plan-opening-door1"));
+      fireEvent.click(screen.getByTestId("open-structure-tools-btn"));
       await waitFor(() => {
         expect(screen.getByTestId("opening-editor")).toBeInTheDocument();
       });
@@ -850,9 +869,11 @@ describe("FloorPlanShell Integration", () => {
         expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
       });
 
-      // Studio plan initially clean
+      // Studio plan initially clean: inspect rules in Advanced Tools (AC-26)
       expect(screen.queryByTestId("shell-violations-badge")).not.toBeInTheDocument();
+      fireEvent.click(screen.getByTestId("advanced-tools-btn"));
       expect(screen.getByTestId("rule-clean-state")).toBeInTheDocument();
+      fireEvent.click(screen.getByTestId("advanced-tools-close-btn"));
 
       // Add furniture item from catalog that overlaps existing furniture
       fireEvent.click(screen.getByTestId("add-furniture-btn"));
@@ -862,8 +883,11 @@ describe("FloorPlanShell Integration", () => {
       // Violations should now be detected deterministically
       await waitFor(() => {
         expect(screen.getByTestId("shell-violations-badge")).toBeInTheDocument();
-        expect(screen.getByTestId("rule-violations-count-badge")).toBeInTheDocument();
       });
+
+      // Clicking toolbar violations badge opens Advanced Tools on rules tab (AC-26)
+      fireEvent.click(screen.getByTestId("shell-violations-badge"));
+      expect(screen.getByTestId("rule-violations-count-badge")).toBeInTheDocument();
 
       // Clicking affected entity button in rule panel selects that entity
       const affectedBtn = screen.getAllByTestId(/^rule-entity-btn-/)[0];
@@ -1597,6 +1621,86 @@ describe("FloorPlanShell Integration", () => {
         const bed = draft?.furniture.find((f) => f.id === "f2");
         expect(bed?.rotation).toBe(90);
       });
+    });
+  });
+
+  describe("Issue #204: Shelve Expert Editing Tools into Advanced Menu (AC-26)", () => {
+    it("default main workflow panel does not expand rules, wall/opening properties, full furniture catalog, export, or reset", () => {
+      render(<FloorPlanShell isMobile={false} />);
+
+      // 1. Rules panel is not expanded in the main context panel
+      expect(screen.queryByTestId("rule-feedback-panel")).not.toBeInTheDocument();
+
+      // 2. Neither export nor reset buttons are rendered in toolbar/context pane by default
+      expect(screen.queryByTestId("export-json-btn")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("restart-template-btn")).not.toBeInTheDocument();
+
+      // 3. Wall/opening selection in canvas does not expand full inspector into context pane
+      const wall = screen.getByTestId("floor-plan-wall-w1");
+      fireEvent.click(wall);
+
+      // Context pane displays compact selected-structure-banner rather than full inspector-wall-details
+      expect(screen.getByTestId("selected-structure-banner")).toBeInTheDocument();
+      expect(screen.queryByTestId("inspector-wall-details")).not.toBeInTheDocument();
+
+      // 4. Full furniture catalog is not rendered by default
+      expect(screen.queryByTestId("furniture-catalog-palette")).not.toBeInTheDocument();
+    });
+
+    it("accesses and operates all 5 capabilities through Advanced Tools dialog", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} isMobile={false} />);
+
+      // Open Advanced Tools via the context pane button
+      fireEvent.click(screen.getByTestId("open-advanced-tools-btn"));
+      expect(screen.getByTestId("advanced-tools-dialog")).toBeInTheDocument();
+
+      // 1. Rules Tab: renders RuleFeedbackPanel
+      expect(screen.getByTestId("advanced-tab-rules")).toBeInTheDocument();
+      expect(screen.getByTestId("advanced-rules-panel")).toBeInTheDocument();
+      expect(screen.getByTestId("rule-feedback-panel")).toBeInTheDocument();
+
+      // 2. Structure Tab: wall & opening inspector
+      fireEvent.click(screen.getByTestId("advanced-tab-structure"));
+      expect(screen.getByTestId("advanced-structure-panel")).toBeInTheDocument();
+      expect(screen.getByTestId("filter-walls-btn")).toBeInTheDocument();
+      expect(screen.getByTestId("filter-openings-btn")).toBeInTheDocument();
+
+      // Select opening via filter
+      fireEvent.click(screen.getByTestId("filter-openings-btn"));
+      fireEvent.click(screen.getByTestId("select-structure-opening-door1"));
+      expect(screen.getByTestId("opening-editor")).toBeInTheDocument();
+
+      // 3. Furniture Tab: full furniture catalog
+      fireEvent.click(screen.getByTestId("advanced-tab-furniture"));
+      expect(screen.getByTestId("advanced-furniture-panel")).toBeInTheDocument();
+      expect(screen.getByTestId("furniture-catalog-palette")).toBeInTheDocument();
+
+      // 4. Manage Tab: Export JSON & Reset Plan
+      fireEvent.click(screen.getByTestId("advanced-tab-manage"));
+      expect(screen.getByTestId("advanced-manage-panel")).toBeInTheDocument();
+      expect(screen.getByTestId("export-json-btn")).toBeInTheDocument();
+      expect(screen.getByTestId("restart-template-btn")).toBeInTheDocument();
+
+      // Close dialog via close button
+      fireEvent.click(screen.getByTestId("advanced-tools-close-btn"));
+      expect(screen.queryByTestId("advanced-tools-dialog")).not.toBeInTheDocument();
+    });
+
+    it("opens structure tools directly when clicking open-structure-tools-btn from structure banner", () => {
+      render(<FloorPlanShell isMobile={false} />);
+
+      // Click wall on canvas
+      const wall = screen.getByTestId("floor-plan-wall-w1");
+      fireEvent.click(wall);
+
+      // Click "Open Tools" in banner
+      fireEvent.click(screen.getByTestId("open-structure-tools-btn"));
+
+      // Advanced tools opens directly to structure tab with wall details
+      expect(screen.getByTestId("advanced-tools-dialog")).toBeInTheDocument();
+      expect(screen.getByTestId("advanced-structure-panel")).toBeInTheDocument();
+      expect(screen.getByTestId("inspector-wall-details")).toBeInTheDocument();
     });
   });
 });
