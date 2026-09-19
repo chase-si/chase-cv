@@ -53,6 +53,7 @@ interface FloorPlanInspectorProps {
   locale?: string;
   onStartCalibration?: () => void;
   onEnsureUserPlan?: () => void;
+  showRules?: boolean;
 }
 
 export function FloorPlanInspector({
@@ -67,6 +68,7 @@ export function FloorPlanInspector({
   locale,
   onStartCalibration,
   onEnsureUserPlan,
+  showRules = false,
 }: FloorPlanInspectorProps) {
   const i18n = useFloorPlanI18n(locale);
   const t = i18n.t;
@@ -140,13 +142,15 @@ export function FloorPlanInspector({
       className={`flex flex-col gap-3 p-1 ${className}`}
     >
       {/* Spatial Rule Feedback Panel (US-12, US-14, AC-12, AC-14) */}
-      <RuleFeedbackPanel
-        plan={plan}
-        ruleResults={violations}
-        selectedEntity={selectedEntity}
-        onSelect={onSelect}
-        locale={locale}
-      />
+      {showRules && (
+        <RuleFeedbackPanel
+          plan={plan}
+          ruleResults={violations}
+          selectedEntity={selectedEntity}
+          onSelect={onSelect}
+          locale={locale}
+        />
+      )}
       {selectedEntity && (
         <div className="flex items-center justify-between pb-2 border-b border-border">
           <div className="flex items-center gap-1.5">

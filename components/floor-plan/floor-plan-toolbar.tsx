@@ -6,16 +6,15 @@ import {
   Armchair,
   Check,
   Compass,
-  Download,
   Hand,
   Home,
   Loader2,
   MousePointer2,
   PenTool,
   Redo2,
-  RotateCcw,
   SlidersHorizontal,
   Undo2,
+  Wrench,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -39,12 +38,11 @@ export type FloorPlanToolbarProps = {
   onCustomizePlan: () => void;
   onUndo: () => void;
   onRedo: () => void;
-  onExportJson: () => void;
-  onRestartFromTemplate: () => void;
   onCanvasModeChange: (mode: "pan" | "edit") => void;
   onOpenMobileSheet: (type: "entity" | "furniture-palette" | "rules" | "catalog") => void;
   onOpenPlanSelector?: () => void;
   onClearSelection: () => void;
+  onOpenAdvancedTools?: (tab?: "rules" | "structure" | "furniture" | "manage") => void;
 };
 
 const touchBtn =
@@ -67,12 +65,11 @@ export function FloorPlanToolbar(props: FloorPlanToolbarProps) {
     onCustomizePlan,
     onUndo,
     onRedo,
-    onExportJson,
-    onRestartFromTemplate,
     onCanvasModeChange,
     onOpenMobileSheet,
     onOpenPlanSelector,
     onClearSelection,
+    onOpenAdvancedTools,
   } = props;
 
   const openRules = () => {
@@ -144,7 +141,14 @@ export function FloorPlanToolbar(props: FloorPlanToolbarProps) {
                 ? "border-destructive/40 bg-destructive/10 text-destructive"
                 : "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400",
             )}
-            onClick={openRules}
+            onClick={() => {
+              onClearSelection();
+              if (onOpenAdvancedTools) {
+                onOpenAdvancedTools("rules");
+              } else {
+                openRules();
+              }
+            }}
             title={t.actions.rules}
           >
             {violations.some((v) => v.severity === "error") ? (
@@ -241,6 +245,18 @@ export function FloorPlanToolbar(props: FloorPlanToolbarProps) {
               type="button"
               size="sm"
               variant="outline"
+              data-testid="advanced-tools-btn"
+              onClick={() => onOpenAdvancedTools?.()}
+              className={cn(touchBtn, "px-3 sm:px-2.5")}
+              title={t.advancedTools.title}
+            >
+              <Wrench className="h-3.5 w-3.5 text-primary" />
+              <span>{t.advancedTools.trigger}</span>
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
               data-testid="mobile-catalog-btn"
               onClick={() => {
                 if (onOpenPlanSelector) {
@@ -303,6 +319,18 @@ export function FloorPlanToolbar(props: FloorPlanToolbarProps) {
               type="button"
               size="sm"
               variant="outline"
+              data-testid="advanced-tools-btn"
+              onClick={() => onOpenAdvancedTools?.()}
+              className={cn(touchBtn, "px-3 sm:px-2.5")}
+              title={t.advancedTools.title}
+            >
+              <Wrench className="h-3.5 w-3.5 text-primary" />
+              <span>{t.advancedTools.trigger}</span>
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
               data-testid="mobile-add-furniture-btn"
               onClick={() => {
                 onClearSelection();
@@ -343,40 +371,18 @@ export function FloorPlanToolbar(props: FloorPlanToolbarProps) {
               variant="outline"
               data-testid="mobile-catalog-btn"
               onClick={() => {
-                onClearSelection();
-                onOpenMobileSheet("catalog");
+                if (onOpenPlanSelector) {
+                  onOpenPlanSelector();
+                } else {
+                  onClearSelection();
+                  onOpenMobileSheet("catalog");
+                }
               }}
               className={cn(touchBtn, "px-2.5 lg:hidden")}
               title={t.actions.plans}
             >
               <Compass className="h-3.5 w-3.5 text-primary" />
               <span className="hidden sm:inline">{t.actions.plans}</span>
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              data-testid="export-json-btn"
-              onClick={onExportJson}
-              className={cn(touchBtn, "px-2.5")}
-            >
-              <Download className="h-3.5 w-3.5 text-primary" />
-              <span className="hidden sm:inline">{t.actions.exportJson}</span>
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              data-testid="restart-template-btn"
-              onClick={onRestartFromTemplate}
-              className={cn(
-                touchBtn,
-                "gap-1 px-2 text-muted-foreground hover:text-foreground",
-              )}
-              title={t.actions.restartTitle}
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span className="hidden md:inline">{t.actions.restart}</span>
             </Button>
           </>
         )}
