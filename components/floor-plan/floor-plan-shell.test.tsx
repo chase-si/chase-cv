@@ -4,6 +4,8 @@ import { MemoryDraftStorage } from "@/lib/floor-plan/draft-storage";
 import { getStandardPlans } from "@/lib/floor-plan/catalog";
 import { createOrResumeUserPlan } from "@/lib/floor-plan/user-plan";
 import { validateFloorPlan } from "@/lib/floor-plan/validators";
+import { VALID_STANDARD_FLOOR_PLAN } from "@/lib/floor-plan/fixtures/valid-standard-plan";
+import type { FloorPlan } from "@/lib/floor-plan/types";
 import { FloorPlanShell } from "./floor-plan-shell";
 
 // Mock ResizeObserver for jsdom
@@ -1210,6 +1212,187 @@ describe("FloorPlanShell Integration", () => {
       expect(screen.getByTestId("context-furniture-panel")).toBeInTheDocument();
       expect(screen.getByText("推荐床类选项")).toBeInTheDocument();
       expect(screen.getByTestId("browse-full-catalog-btn")).toHaveTextContent("浏览完整家具目录");
+    });
+  });
+
+  describe("Issue #202: Transform Spatial Rules into Furniture Decision (AC-14, AC-15, AC-16, AC-17)", () => {
+    it("AC-14 & AC-15: displays 'suitable' decision with room name, furniture name, dimensions, and qualified copy", async () => {
+      const cleanPlan: FloorPlan = {
+        version: 1,
+        unit: "mm",
+        meta: {
+          id: "clean-suitable-plan",
+          name: "Clean Bedroom Plan",
+          source: "template",
+          isStandard: true,
+          createdAt: "2026-09-18T00:00:00.000Z",
+          updatedAt: "2026-09-18T00:00:00.000Z",
+        },
+        vertices: [
+          { id: "v1", x: 0, y: 0 },
+          { id: "v2", x: 5000, y: 0 },
+          { id: "v3", x: 5000, y: 5000 },
+          { id: "v4", x: 0, y: 5000 },
+        ],
+        walls: [
+          { id: "w1", from: "v1", to: "v2", thickness: 200, lockAxis: "horizontal" },
+          { id: "w2", from: "v2", to: "v3", thickness: 200, lockAxis: "vertical" },
+          { id: "w3", from: "v3", to: "v4", thickness: 200, lockAxis: "horizontal" },
+          { id: "w4", from: "v4", to: "v1", thickness: 200, lockAxis: "vertical" },
+        ],
+        openings: [
+          {
+            id: "win1",
+            type: "window",
+            wallId: "w1",
+            position: 0.5,
+            width: 1500,
+            height: 1400,
+          },
+          {
+            id: "door1",
+            type: "door",
+            wallId: "w4",
+            position: 0.2,
+            width: 900,
+            height: 2100,
+          },
+        ],
+        rooms: [
+          {
+            id: "r1",
+            type: "bedroom",
+            name: "Master Bedroom",
+            boundaryWallIds: ["w1", "w2", "w3", "w4"],
+          },
+        ],
+        furniture: [
+          {
+            id: "f1",
+            definitionId: "bed-double",
+            x: 3000,
+            y: 3000,
+            width: 1800,
+            depth: 2000,
+            rotation: 0,
+          },
+        ],
+      };
+
+      render(<FloorPlanShell initialActivePlan={cleanPlan} locale="zh" />);
+
+      // Select Master Bedroom (r1)
+      fireEvent.click(screen.getByTestId("room-item-r1"));
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+
+      // Select double bed f1 and advance to decision stage
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f1"));
+      fireEvent.click(screen.getByTestId("next-to-decision-btn"));
+
+      expect(screen.getByTestId("furniture-decision-panel")).toBeInTheDocument();
+
+      // AC-14: Four mutually exclusive states (suitable in clean state)
+      expect(screen.getByTestId("decision-status-badge")).toHaveTextContent("适合");
+      expect(screen.getByTestId("decision-status-suitable")).toBeInTheDocument();
+
+      // AC-15: Room name, furniture name, width & depth mm
+      const title = screen.getByTestId("decision-title");
+      expect(title).toHaveTextContent("1800 × 2000 mm");
+
+      const summary = screen.getByTestId("decision-summary");
+      expect(summary).toHaveTextContent("当前规则未发现问题");
+      expect(summary).toHaveTextContent("1800 × 2000 mm");
+
+      // AC-15: Disclaimer prevents construction / safety guarantee misinterpretation
+      const disclaimer = screen.getByTestId("decision-disclaimer");
+      expect(disclaimer).toHaveTextContent("不构成施工");
+      expect(disclaimer).toHaveTextContent("安全保证");
+    });
+
+    it("AC-14: uncalibrated floor plan displays 'unavailable' without implying clearance passes", async () => {
+      const uncalibratedPlan: FloorPlan = {
+        ...VALID_STANDARD_FLOOR_PLAN,
+        meta: {
+          ...VALID_STANDARD_FLOOR_PLAN.meta,
+          id: "uncalibrated-plan-test",
+          unscaled: true,
+        },
+      };
+
+      render(<FloorPlanShell initialActivePlan={uncalibratedPlan} locale="zh" />);
+
+      // Advance to decision stage with bed f2
+      fireEvent.click(screen.getByTestId("room-item-r2"));
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f2"));
+      fireEvent.click(screen.getByTestId("next-to-decision-btn"));
+
+      expect(screen.getByTestId("furniture-decision-panel")).toBeInTheDocument();
+      expect(screen.getByTestId("decision-status-badge")).toHaveTextContent("暂无法判断");
+      expect(screen.getByTestId("decision-status-unavailable")).toBeInTheDocument();
+
+      const summary = screen.getByTestId("decision-summary");
+      expect(summary).toHaveTextContent("尚未标定");
+      expect(summary).not.toHaveTextContent("净距已通过");
+    });
+
+    it("AC-16 & AC-17: displays prioritized relevant issues with measured/recommended values and allows clicking affected entity to open adjustment interface", async () => {
+      render(<FloorPlanShell initialActivePlan={VALID_STANDARD_FLOOR_PLAN} locale="zh" />);
+
+      // Navigate to furniture stage with Master Bedroom (r2)
+      fireEvent.click(screen.getByTestId("room-item-r2"));
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+
+      // Select double bed f2 and advance to decision
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f2"));
+      fireEvent.click(screen.getByTestId("next-to-decision-btn"));
+
+      expect(screen.getByTestId("furniture-decision-panel")).toBeInTheDocument();
+
+      // In decision stage, click target furniture f2 on canvas to inspect/adjust it
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f2"));
+
+      // AC-17: Opens applicable adjustment interface (FurnitureEditor inside decision-entity-inspector)
+      await waitFor(() => {
+        expect(screen.getByTestId("decision-entity-inspector")).toBeInTheDocument();
+        expect(screen.getByTestId("furniture-editor")).toBeInTheDocument();
+      });
+
+      // Increase bed width significantly (from 1800 to 4500) so it collides with walls
+      const widthInput = screen.getByTestId("furniture-width-input");
+      fireEvent.change(widthInput, { target: { value: "4500" } });
+      fireEvent.click(screen.getByTestId("apply-furniture-btn"));
+
+      // AC-14: Decision updates in real time to "not-recommended" ("不建议")
+      await waitFor(() => {
+        expect(screen.getByTestId("decision-status-badge")).toHaveTextContent("不建议");
+        expect(screen.getByTestId("decision-status-not-recommended")).toBeInTheDocument();
+      });
+
+      // AC-16: Prioritized relevant issues list with readable message, measured & recommended values
+      expect(screen.getByTestId("decision-issues-list")).toBeInTheDocument();
+      const collisionIssues = screen.getAllByTestId("decision-issue-furniture-wall-collision");
+      expect(collisionIssues.length).toBeGreaterThan(0);
+      expect(screen.getAllByTestId("decision-measured-furniture-wall-collision")[0]).toBeInTheDocument();
+      expect(screen.getAllByTestId("decision-recommended-furniture-wall-collision")[0]).toHaveTextContent("0 mm²");
+
+      // AC-17: Clicking an affected entity button in decision panel (e.g. wall w7) focuses wall in inspector
+      const wallBtn = screen.getByTestId("decision-entity-btn-w7");
+      expect(wallBtn).toBeInTheDocument();
+      fireEvent.click(wallBtn);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("inspector-wall-details")).toBeInTheDocument();
+      });
+
+      // Deselecting entity closes inspector
+      const closeBtn = screen.getByText("收起调整");
+      fireEvent.click(closeBtn);
+      expect(screen.queryByTestId("decision-entity-inspector")).not.toBeInTheDocument();
+      expect(screen.getByTestId("furniture-decision-panel")).toBeInTheDocument();
     });
   });
 });

@@ -56,6 +56,7 @@ import { FloorPlanWorkflowStepper, type WorkflowStage } from "./floor-plan-workf
 import { FloorPlanSelectorDialog } from "./floor-plan-selector-dialog";
 import { FurnitureCatalogDialog } from "./furniture-catalog-dialog";
 import { ContextFurniturePanel } from "./context-furniture-panel";
+import { FurnitureDecisionPanel } from "./furniture-decision-panel";
 import {
   addFurnitureInstance,
   computeRoomInitialDropPosition,
@@ -205,9 +206,9 @@ export function FloorPlanShell({
   // Mobile canvas mode: "pan" (pure pan, prevent accidental edits) vs "edit" (select & edit entities)
   const [canvasMode, setCanvasMode] = React.useState<"pan" | "edit">("edit");
 
-  // Mobile bottom properties surface state: "entity" | "furniture-palette" | "rules" | "catalog" | null
+  // Mobile bottom properties surface state: "entity" | "furniture-palette" | "rules" | "catalog" | "decision" | null
   const [mobileSheetType, setMobileSheetType] = React.useState<
-    "entity" | "furniture-palette" | "rules" | "catalog" | null
+    "entity" | "furniture-palette" | "rules" | "catalog" | "decision" | null
   >(null);
 
   const activePlanSummary = React.useMemo(
@@ -406,10 +407,16 @@ export function FloorPlanShell({
   }, []);
 
   // Select workflow stage
-  const handleSelectStage = React.useCallback((stage: WorkflowStage) => {
-    setCurrentStage(stage);
-    setSelectedEntity(null);
-  }, []);
+  const handleSelectStage = React.useCallback(
+    (stage: WorkflowStage) => {
+      setCurrentStage(stage);
+      setSelectedEntity(null);
+      if (isMobile && stage === "decision") {
+        setMobileSheetType("decision");
+      }
+    },
+    [isMobile],
+  );
 
   // Update plan in draft mode with autosave (AC-3: auto convert standard plan if needed)
   const handleUpdatePlan = React.useCallback(
@@ -666,8 +673,9 @@ export function FloorPlanShell({
     if (mobileSheetType === "furniture-palette") return t.mobileSheet.furnitureCatalog;
     if (mobileSheetType === "rules") return t.mobileSheet.spatialRules;
     if (mobileSheetType === "catalog") return t.mobileSheet.standardPlans;
+    if (mobileSheetType === "decision") return locale === "zh" ? "目标家具决策" : "Furniture Decision";
     return t.mobileSheet.details;
-  }, [selectedEntity, mobileSheetType, t]);
+  }, [selectedEntity, mobileSheetType, t, locale]);
 
   const mobileSheetBadge = React.useMemo(() => {
     if (selectedEntity) {
@@ -701,6 +709,7 @@ export function FloorPlanShell({
         <FloorPlanInspector
           plan={currentPlan}
           isDraftMode={isDraftMode}
+          allowSpanEdit={true}
           onUpdatePlan={handleUpdatePlan}
           selectedEntity={selectedEntity}
           onSelect={handleSelectEntity}
@@ -708,6 +717,21 @@ export function FloorPlanShell({
           locale={locale}
           onStartCalibration={handleStartCalibration}
           onEnsureUserPlan={ensureUserPlan}
+        />
+      );
+    }
+    if (mobileSheetType === "decision") {
+      return (
+        <FurnitureDecisionPanel
+          plan={currentPlan}
+          targetRoomId={targetRoomId}
+          targetFurnitureId={targetFurnitureId}
+          ruleResults={violations}
+          selectedEntity={selectedEntity}
+          onSelectEntity={(entity) => {
+            handleSelectEntity(entity);
+          }}
+          locale={locale}
         />
       );
     }
@@ -877,7 +901,7 @@ export function FloorPlanShell({
                 </div>
               </CardHeader>
               <CardScrollArea className="min-h-0 flex-1 px-4 pb-4">
-                {selectedEntity && (selectedEntity.type === "wall" || selectedEntity.type === "opening") ? (
+                {selectedEntity && currentStage !== "decision" && (selectedEntity.type === "wall" || selectedEntity.type === "opening") ? (
                   <FloorPlanInspector
                     plan={currentPlan}
                     isDraftMode={isDraftMode}
@@ -1204,15 +1228,6 @@ export function FloorPlanShell({
 
                     {currentStage === "decision" && (
                       <div data-testid="stage-decision-panel" className="space-y-4 text-xs">
-                        <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
-                          <span className="font-semibold text-foreground text-xs block">
-                            {t.workflow.decisionStage.title}
-                          </span>
-                          <p className="text-muted-foreground text-xs leading-relaxed">
-                            {t.workflow.decisionStage.placeholder}
-                          </p>
-                        </div>
-
                         {/* Target Furniture Solely Driving Decision (AC-22) */}
                         {targetFurniture && (
                           <div
@@ -1241,6 +1256,52 @@ export function FloorPlanShell({
                                 {targetFurniture.width} × {targetFurniture.depth} mm
                               </span>
                             </div>
+                          </div>
+                        )}
+
+                        {/* Furniture Decision Summary Panel (AC-14, AC-15, AC-16, AC-17) */}
+                        <FurnitureDecisionPanel
+                          plan={currentPlan}
+                          targetRoomId={targetRoomId}
+                          targetFurnitureId={targetFurnitureId}
+                          ruleResults={violations}
+                          selectedEntity={selectedEntity}
+                          onSelectEntity={handleSelectEntity}
+                          locale={locale}
+                        />
+
+                        {/* Applicable Adjustment Interface when an entity is selected (AC-17) */}
+                        {selectedEntity && (
+                          <div
+                            data-testid="decision-entity-inspector"
+                            className="space-y-2 pt-2 border-t border-border/60"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold text-foreground">
+                                {locale === "zh" ? "构件参数微调" : "Adjust Entity Parameters"}
+                              </span>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setSelectedEntity(null)}
+                                className="h-6 text-[10px] text-muted-foreground hover:text-foreground"
+                              >
+                                {locale === "zh" ? "收起调整" : "Close"}
+                              </Button>
+                            </div>
+                            <FloorPlanInspector
+                              plan={currentPlan}
+                              isDraftMode={isDraftMode}
+                              allowSpanEdit={true}
+                              onUpdatePlan={handleUpdatePlan}
+                              selectedEntity={selectedEntity}
+                              onSelect={handleSelectEntity}
+                              violations={violations}
+                              locale={locale}
+                              onStartCalibration={handleStartCalibration}
+                              onEnsureUserPlan={ensureUserPlan}
+                            />
                           </div>
                         )}
 
