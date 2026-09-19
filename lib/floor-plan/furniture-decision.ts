@@ -56,6 +56,60 @@ export interface SummarizeFurnitureDecisionParams {
   locale?: string;
 }
 
+export type PlanEntityType = "furniture" | "wall" | "room" | "opening";
+
+/**
+ * Identify the domain entity type (furniture, wall, room, opening) for a given entity ID.
+ */
+export function resolvePlanEntityType(
+  plan: FloorPlan,
+  entityId: string,
+): PlanEntityType | null {
+  if (plan.furniture.some((f) => f.id === entityId)) return "furniture";
+  if (plan.walls.some((w) => w.id === entityId)) return "wall";
+  if (plan.rooms.some((r) => r.id === entityId)) return "room";
+  if (plan.openings.some((o) => o.id === entityId)) return "opening";
+  return null;
+}
+
+/**
+ * Return a localized human-readable label for a plan entity.
+ */
+export function getPlanEntityLabel(
+  plan: FloorPlan,
+  entityId: string,
+  locale?: string,
+): string {
+  const isZh = locale?.toLowerCase().startsWith("zh");
+  const type = resolvePlanEntityType(plan, entityId);
+  if (isZh) {
+    switch (type) {
+      case "furniture":
+        return "家具";
+      case "wall":
+        return "墙体";
+      case "room":
+        return "房间";
+      case "opening":
+        return "门窗";
+      default:
+        return "构件";
+    }
+  }
+  switch (type) {
+    case "furniture":
+      return "Furniture";
+    case "wall":
+      return "Wall";
+    case "room":
+      return "Room";
+    case "opening":
+      return "Opening";
+    default:
+      return "Entity";
+  }
+}
+
 /**
  * Summarize Furniture Decision (AC-14, AC-15, AC-16)
  *
@@ -80,10 +134,7 @@ export function summarizeFurnitureDecision({
   const isZh = i18n.locale === "zh";
 
   // Check scale calibration (AC-14, AC-21)
-  const uncalibrated =
-    isPlanUnscaled(plan) ||
-    plan.meta?.unscaled === true ||
-    (plan.meta as { scaled?: boolean })?.scaled === false;
+  const uncalibrated = isPlanUnscaled(plan);
 
   // Resolve target furniture
   const targetFurniture = targetFurnitureId
@@ -185,90 +236,47 @@ export function summarizeFurnitureDecision({
     formatted: `${targetFurniture.width} × ${targetFurniture.depth} mm`,
   };
 
-  // Priority 1: Uncalibrated plan -> unavailable (AC-14)
-  if (uncalibrated) {
-    const statusLabel = isZh ? "暂无法判断" : "Unavailable";
-    const title = `${roomName} · ${furnitureName} (${dimensions.formatted}) - ${statusLabel}`;
-    const summary = isZh
-      ? `当前户型尚未标定真实毫米比例（显示相对像素坐标），暂无法判断净距与活动空间是否通过。当前规则未发现绝对物理重叠，但无法保证真实空间净距，请先校准真实尺寸后再做决策。`
-      : `The floor plan is uncalibrated (showing relative pixel coordinates); clearance and passage space cannot be determined. While no absolute boundary collisions were detected under current rules, real clearances cannot be guaranteed. Please calibrate dimensions first.`;
-
-    return {
-      status: "unavailable",
-      statusLabel,
-      title,
-      summary,
-      disclaimer,
-      roomName,
-      furnitureName,
-      dimensions,
-      relevantIssues,
-      totalViolationsCount: allViolations.length,
-      uncalibrated: true,
-      hasTargetFurniture: true,
-    };
-  }
-
   const hasErrors = relevantIssues.some((i) => i.severity === "error");
   const hasWarnings = relevantIssues.some((i) => i.severity === "warning");
 
-  // Priority 2: Relevant error -> not-recommended (AC-14)
-  if (hasErrors) {
-    const statusLabel = isZh ? "不建议" : "Not Recommended";
-    const title = `${roomName} · ${furnitureName} (${dimensions.formatted}) - ${statusLabel}`;
-    const summary = isZh
+  let status: FurnitureDecisionStatus;
+  let statusLabel: string;
+  let summary: string;
+
+  // Priority 1: Uncalibrated plan -> unavailable (AC-14)
+  if (uncalibrated) {
+    status = "unavailable";
+    statusLabel = isZh ? "暂无法判断" : "Unavailable";
+    summary = isZh
+      ? `当前户型尚未标定真实毫米比例（显示相对像素坐标），暂无法判断净距与活动空间是否通过。当前规则未发现绝对物理重叠，但无法保证真实空间净距，请先校准真实尺寸后再做决策。`
+      : `The floor plan is uncalibrated (showing relative pixel coordinates); clearance and passage space cannot be determined. While no absolute boundary collisions were detected under current rules, real clearances cannot be guaranteed. Please calibrate dimensions first.`;
+  } else if (hasErrors) {
+    // Priority 2: Relevant error -> not-recommended (AC-14)
+    status = "not-recommended";
+    statusLabel = isZh ? "不建议" : "Not Recommended";
+    summary = isZh
       ? `在当前${roomName}放入${furnitureName}（${dimensions.formatted}）存在严重空间冲突（如超出房间边界、墙体穿插或家具重叠），不建议按该规格购买或摆放，建议适当缩小尺寸或调整摆放位置。`
       : `Critical spatial conflicts (such as room boundary violation, wall collision, or furniture overlap) were detected for ${furnitureName} (${dimensions.formatted}) in ${roomName}. Purchasing or placing this specification is not recommended; consider smaller dimensions or adjusting position.`;
-
-    return {
-      status: "not-recommended",
-      statusLabel,
-      title,
-      summary,
-      disclaimer,
-      roomName,
-      furnitureName,
-      dimensions,
-      relevantIssues,
-      totalViolationsCount: allViolations.length,
-      uncalibrated: false,
-      hasTargetFurniture: true,
-    };
-  }
-
-  // Priority 3: Relevant warning -> caution (AC-14)
-  if (hasWarnings) {
-    const statusLabel = isZh ? "需要权衡" : "Caution";
-    const title = `${roomName} · ${furnitureName} (${dimensions.formatted}) - ${statusLabel}`;
-    const summary = isZh
+  } else if (hasWarnings) {
+    // Priority 3: Relevant warning -> caution (AC-14)
+    status = "caution";
+    statusLabel = isZh ? "需要权衡" : "Caution";
+    summary = isZh
       ? `${furnitureName}（${dimensions.formatted}）可以放入当前${roomName}，但存在部分空间净距或动线较紧（如床侧通道或门窗避让区不足），需要根据实际生活动线与使用习惯权衡考虑。`
       : `${furnitureName} (${dimensions.formatted}) can fit within ${roomName}, but some clearances or circulation paths are tight (such as bedside passage or door swing clearance). Trade-offs should be evaluated based on actual living habits.`;
-
-    return {
-      status: "caution",
-      statusLabel,
-      title,
-      summary,
-      disclaimer,
-      roomName,
-      furnitureName,
-      dimensions,
-      relevantIssues,
-      totalViolationsCount: allViolations.length,
-      uncalibrated: false,
-      hasTargetFurniture: true,
-    };
+  } else {
+    // Priority 4: Suitable (AC-14, AC-15)
+    status = "suitable";
+    statusLabel = isZh ? "适合" : "Suitable";
+    summary = isZh
+      ? `当前规则未发现问题。${furnitureName}（${dimensions.formatted}）在当前${roomName}内满足已配置的房间边界、墙体碰撞、家具避让及基础净距规则，推荐考虑。`
+      : `No issues found under current rules. ${furnitureName} (${dimensions.formatted}) satisfies all configured room boundary, collision, overlap, and clearance rules in ${roomName}. Recommended for consideration.`;
   }
 
-  // Priority 4: Suitable (AC-14, AC-15)
-  const statusLabel = isZh ? "适合" : "Suitable";
   const title = `${roomName} · ${furnitureName} (${dimensions.formatted}) - ${statusLabel}`;
-  const summary = isZh
-    ? `当前规则未发现问题。${furnitureName}（${dimensions.formatted}）在当前${roomName}内满足已配置的房间边界、墙体碰撞、家具避让及基础净距规则，推荐考虑。`
-    : `No issues found under current rules. ${furnitureName} (${dimensions.formatted}) satisfies all configured room boundary, collision, overlap, and clearance rules in ${roomName}. Recommended for consideration.`;
 
   return {
-    status: "suitable",
+    status,
     statusLabel,
     title,
     summary,
@@ -278,7 +286,7 @@ export function summarizeFurnitureDecision({
     dimensions,
     relevantIssues,
     totalViolationsCount: allViolations.length,
-    uncalibrated: false,
+    uncalibrated: status === "unavailable",
     hasTargetFurniture: true,
   };
 }

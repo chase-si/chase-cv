@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { FloorPlan, SpaceRuleConfig } from "@/lib/floor-plan/types";
 import { evaluatePlanRules, type RuleResult } from "@/lib/floor-plan/rules";
+import { getPlanEntityLabel } from "@/lib/floor-plan/furniture-decision";
 import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { cn } from "@/lib/utils";
 import type { EntitySelectHandler, SelectedEntity } from "./types";
@@ -85,20 +86,7 @@ export function RuleFeedbackPanel({
   );
 
   const getEntityLabel = React.useCallback(
-    (entityId: string) => {
-      if (i18n.locale === "zh") {
-        if (plan.furniture.some((f) => f.id === entityId)) return "家具";
-        if (plan.walls.some((w) => w.id === entityId)) return "墙体";
-        if (plan.rooms.some((r) => r.id === entityId)) return "房间";
-        if (plan.openings.some((o) => o.id === entityId)) return "门窗";
-        return "构件";
-      }
-      if (plan.furniture.some((f) => f.id === entityId)) return "Furniture";
-      if (plan.walls.some((w) => w.id === entityId)) return "Wall";
-      if (plan.rooms.some((r) => r.id === entityId)) return "Room";
-      if (plan.openings.some((o) => o.id === entityId)) return "Opening";
-      return "Entity";
-    },
+    (entityId: string) => getPlanEntityLabel(plan, entityId, i18n.locale),
     [plan, i18n.locale],
   );
 

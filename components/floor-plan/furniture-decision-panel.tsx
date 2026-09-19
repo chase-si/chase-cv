@@ -16,6 +16,8 @@ import type { FloorPlan, SpaceRuleConfig } from "@/lib/floor-plan/types";
 import type { RuleResult } from "@/lib/floor-plan/rules";
 import {
   summarizeFurnitureDecision,
+  resolvePlanEntityType,
+  getPlanEntityLabel,
   type FurnitureDecisionStatus,
 } from "@/lib/floor-plan/furniture-decision";
 import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
@@ -59,58 +61,14 @@ export function FurnitureDecisionPanel({
     });
   }, [plan, targetRoomId, targetFurnitureId, ruleResults, config, locale]);
 
-  const resolveEntityType = React.useCallback(
-    (entityId: string): "furniture" | "wall" | "room" | "opening" | null => {
-      if (plan.furniture.some((f) => f.id === entityId)) return "furniture";
-      if (plan.walls.some((w) => w.id === entityId)) return "wall";
-      if (plan.rooms.some((r) => r.id === entityId)) return "room";
-      if (plan.openings.some((o) => o.id === entityId)) return "opening";
-      return null;
-    },
-    [plan],
-  );
-
-  const getEntityLabel = React.useCallback(
-    (entityId: string) => {
-      const type = resolveEntityType(entityId);
-      if (isZh) {
-        switch (type) {
-          case "furniture":
-            return "家具";
-          case "wall":
-            return "墙体";
-          case "room":
-            return "房间";
-          case "opening":
-            return "门窗";
-          default:
-            return "构件";
-        }
-      }
-      switch (type) {
-        case "furniture":
-          return "Furniture";
-        case "wall":
-          return "Wall";
-        case "room":
-          return "Room";
-        case "opening":
-          return "Opening";
-        default:
-          return "Entity";
-      }
-    },
-    [resolveEntityType, isZh],
-  );
-
   const handleEntityClick = React.useCallback(
     (entityId: string) => {
-      const type = resolveEntityType(entityId);
+      const type = resolvePlanEntityType(plan, entityId);
       if (type && onSelectEntity) {
         onSelectEntity({ type, id: entityId });
       }
     },
-    [resolveEntityType, onSelectEntity],
+    [plan, onSelectEntity],
   );
 
   const renderStatusBadge = (status: FurnitureDecisionStatus) => {
@@ -331,7 +289,7 @@ export function FurnitureDecisionPanel({
                       </span>
                       {issue.relatedEntityIds.map((entityId) => {
                         const isSelected = selectedEntity?.id === entityId;
-                        const label = getEntityLabel(entityId);
+                        const label = getPlanEntityLabel(plan, entityId, locale);
 
                         return (
                           <Button
