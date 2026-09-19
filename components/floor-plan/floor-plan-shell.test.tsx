@@ -1395,4 +1395,208 @@ describe("FloorPlanShell Integration", () => {
       expect(screen.getByTestId("furniture-decision-panel")).toBeInTheDocument();
     });
   });
+
+  describe("Issue #203: Realtime Re-Evaluation and History Persistence (AC-18, AC-19, AC-20, AC-21)", () => {
+    it("AC-18: updates canvas, draft, and decision verdict in the same interaction after submitting legal width/depth without requiring explicit re-test button", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} initialActivePlan={VALID_STANDARD_FLOOR_PLAN} locale="zh" />);
+
+      // Navigate to decision stage with Master Bedroom (r2) and double bed f2 (1800 × 2000 mm)
+      fireEvent.click(screen.getByTestId("room-item-r2"));
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f2"));
+      fireEvent.click(screen.getByTestId("next-to-decision-btn"));
+
+      expect(screen.getByTestId("decision-target-furniture-dimensions")).toHaveTextContent("1800 × 2000 mm");
+
+      // Verify no "重新检测" / "re-test" button exists
+      expect(screen.queryByRole("button", { name: /重新检测|re-test|re-evaluate/i })).not.toBeInTheDocument();
+
+      // Open furniture editor via tune-target-furniture-btn on decision card
+      fireEvent.click(screen.getByTestId("tune-target-furniture-btn"));
+      expect(screen.getByTestId("furniture-editor")).toBeInTheDocument();
+
+      // Change bed width to legal value 2000 mm (bed-double range: [1500, 2000])
+      const widthInput = screen.getByTestId("furniture-width-input");
+      fireEvent.change(widthInput, { target: { value: "2000" } });
+      fireEvent.click(screen.getByTestId("apply-furniture-btn"));
+
+      // Canvas, Draft, and Verdict update immediately in the same interaction
+      await waitFor(async () => {
+        // 1. Decision panel verdict and dimensions updated
+        expect(screen.getByTestId("decision-target-furniture-dimensions")).toHaveTextContent("2000 × 2000 mm");
+        expect(screen.getByTestId("decision-title")).toHaveTextContent("2000 × 2000 mm");
+        expect(screen.getByTestId("decision-summary")).toHaveTextContent("2000 × 2000 mm");
+
+        // 2. Draft in storage updated
+        const draft = await storage.getDraft("floor-plan-std-2b1l-01");
+        const bed = draft?.furniture.find((f) => f.id === "f2");
+        expect(bed?.width).toBe(2000);
+      });
+
+      // Still no re-check button needed or clicked
+      expect(screen.queryByRole("button", { name: /重新检测|re-test|re-evaluate/i })).not.toBeInTheDocument();
+    });
+
+    it("AC-19: displays readable error for out-of-bounds dimensions without mutating furniture instance, verdict, or draft", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} initialActivePlan={VALID_STANDARD_FLOOR_PLAN} locale="zh" />);
+
+      // Navigate to decision stage with Master Bedroom (r2) and double bed f2 (1800 × 2000 mm)
+      fireEvent.click(screen.getByTestId("room-item-r2"));
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f2"));
+      fireEvent.click(screen.getByTestId("next-to-decision-btn"));
+
+      const initialDecisionSummary = screen.getByTestId("decision-summary").textContent;
+      const initialDimensions = screen.getByTestId("decision-target-furniture-dimensions").textContent;
+
+      // Open target furniture editor
+      fireEvent.click(screen.getByTestId("tune-target-furniture-btn"));
+      expect(screen.getByTestId("furniture-editor")).toBeInTheDocument();
+
+      // Enter out-of-bounds width (e.g. 1200 mm, below minimum 1500 mm for bed-double)
+      const widthInput = screen.getByTestId("furniture-width-input");
+      fireEvent.change(widthInput, { target: { value: "1200" } });
+      fireEvent.click(screen.getByTestId("apply-furniture-btn"));
+
+      // AC-19: Displays readable error message
+      expect(screen.getByTestId("furniture-error-alert")).toBeInTheDocument();
+      expect(screen.getByTestId("furniture-error-message")).toHaveTextContent(
+        /宽度 1200 mm 低于.*允许的最小尺寸 1500 mm|below minimum allowed 1500 mm/i,
+      );
+
+      // AC-19: Does NOT mutate furniture instance, verdict, or draft
+      expect(screen.getByTestId("decision-target-furniture-dimensions")).toHaveTextContent(initialDimensions!);
+      expect(screen.getByTestId("decision-summary")).toHaveTextContent(initialDecisionSummary!);
+
+      const draft = await storage.getDraft("floor-plan-std-2b1l-01");
+      const bed = draft?.furniture.find((f) => f.id === "f2");
+      expect(bed?.width).not.toBe(1200);
+      expect(bed?.width ?? 1800).toBe(1800);
+    });
+
+    it("AC-20: re-evaluates spatial rules and updates verdict & measured info when moving or rotating furniture", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} initialActivePlan={VALID_STANDARD_FLOOR_PLAN} locale="zh" />);
+
+      // Navigate to decision stage with Master Bedroom (r2) and double bed f2
+      fireEvent.click(screen.getByTestId("room-item-r2"));
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f2"));
+      fireEvent.click(screen.getByTestId("next-to-decision-btn"));
+
+      // Open furniture editor
+      fireEvent.click(screen.getByTestId("tune-target-furniture-btn"));
+
+      // 1. Move furniture into wall collision (move X to 3100, overlapping wall w2 at x=3000)
+      const xInput = screen.getByTestId("furniture-x-input");
+      fireEvent.change(xInput, { target: { value: "3100" } });
+      fireEvent.click(screen.getByTestId("apply-furniture-btn"));
+
+      // Rules re-evaluated: decision reflects collision error with measured value
+      await waitFor(() => {
+        expect(screen.getByTestId("decision-status-badge")).toHaveTextContent("不建议");
+        expect(screen.getByTestId("decision-issues-list")).toBeInTheDocument();
+      });
+
+      // Measured info is present
+      const measuredItems = screen.getAllByTestId(/decision-measured-/);
+      expect(measuredItems.length).toBeGreaterThan(0);
+
+      // 2. Rotate furniture by 90 degrees
+      fireEvent.click(screen.getByTestId("rotate-furniture-btn"));
+
+      // Verdict and draft automatically update with rotation
+      await waitFor(async () => {
+        const draft = await storage.getDraft("floor-plan-std-2b1l-01");
+        const bed = draft?.furniture.find((f) => f.id === "f2");
+        expect(bed?.rotation).toBe(90);
+      });
+    });
+
+    it("AC-21: pushes valid room calibrations and furniture size/position/rotation edits to history and autosaves; undo/redo restores canvas, verdict, and draft", async () => {
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} initialActivePlan={VALID_STANDARD_FLOOR_PLAN} locale="zh" />);
+
+      // Select room r2 and skip calibration to room stage
+      fireEvent.click(screen.getByTestId("room-item-r2"));
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+      fireEvent.click(screen.getByTestId("floor-plan-furniture-f2"));
+      fireEvent.click(screen.getByTestId("next-to-decision-btn"));
+
+      expect(screen.getByTestId("decision-target-furniture-dimensions")).toHaveTextContent("1800 × 2000 mm");
+      const initialVerdictText = screen.getByTestId("decision-title").textContent;
+
+      // 1. Valid furniture resize: increase width to 2000 mm
+      fireEvent.click(screen.getByTestId("tune-target-furniture-btn"));
+      const widthInput = screen.getByTestId("furniture-width-input");
+      fireEvent.change(widthInput, { target: { value: "2000" } });
+      fireEvent.click(screen.getByTestId("apply-furniture-btn"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("decision-target-furniture-dimensions")).toHaveTextContent("2000 × 2000 mm");
+      });
+
+      // 2. Valid furniture rotation: rotate 90°
+      fireEvent.click(screen.getByTestId("rotate-furniture-btn"));
+
+      await waitFor(async () => {
+        const draft = await storage.getDraft("floor-plan-std-2b1l-01");
+        const bed = draft?.furniture.find((f) => f.id === "f2");
+        expect(bed?.rotation).toBe(90);
+        expect(bed?.width).toBe(2000);
+      });
+
+      // 3. Trigger Undo (undo rotation)
+      const undoBtn = screen.getByTestId("undo-btn");
+      expect(undoBtn).toBeEnabled();
+      fireEvent.click(undoBtn);
+
+      // Rotation restored to 0, width remains 2000
+      await waitFor(async () => {
+        const draft = await storage.getDraft("floor-plan-std-2b1l-01");
+        const bed = draft?.furniture.find((f) => f.id === "f2");
+        expect(bed?.rotation).toBe(0);
+        expect(bed?.width).toBe(2000);
+      });
+
+      // 4. Trigger Undo (undo resize)
+      fireEvent.click(undoBtn);
+
+      // Width restored to 1800
+      await waitFor(async () => {
+        expect(screen.getByTestId("decision-target-furniture-dimensions")).toHaveTextContent("1800 × 2000 mm");
+        expect(screen.getByTestId("decision-title").textContent).toBe(initialVerdictText);
+        const draft = await storage.getDraft("floor-plan-std-2b1l-01");
+        const bed = draft?.furniture.find((f) => f.id === "f2");
+        expect(bed?.width).toBe(1800);
+      });
+
+      // 5. Trigger Redo (redo resize)
+      const redoBtn = screen.getByTestId("redo-btn");
+      expect(redoBtn).toBeEnabled();
+      fireEvent.click(redoBtn);
+
+      await waitFor(async () => {
+        expect(screen.getByTestId("decision-target-furniture-dimensions")).toHaveTextContent("2000 × 2000 mm");
+        const draft = await storage.getDraft("floor-plan-std-2b1l-01");
+        const bed = draft?.furniture.find((f) => f.id === "f2");
+        expect(bed?.width).toBe(2000);
+      });
+
+      // 6. Trigger Redo (redo rotation)
+      fireEvent.click(redoBtn);
+
+      await waitFor(async () => {
+        const draft = await storage.getDraft("floor-plan-std-2b1l-01");
+        const bed = draft?.furniture.find((f) => f.id === "f2");
+        expect(bed?.rotation).toBe(90);
+      });
+    });
+  });
 });

@@ -29,7 +29,7 @@ import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 interface OpeningEditorProps {
   plan: FloorPlan;
   openingId: string;
-  onUpdatePlan?: (updatedPlan: FloorPlan) => void;
+  onUpdatePlan?: (updatedPlan: FloorPlan, description?: string) => void;
   className?: string;
   locale?: string;
 }
@@ -115,7 +115,7 @@ export function OpeningEditor({
     if (result.success) {
       setPreviewResult(null);
       setErrorMessage(null);
-      onUpdatePlan?.(result.plan);
+      onUpdatePlan?.(result.plan, "Adjust opening");
     } else {
       setPreviewResult(null);
       setErrorMessage(result.error);
