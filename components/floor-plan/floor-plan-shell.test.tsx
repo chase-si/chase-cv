@@ -28,23 +28,31 @@ afterEach(() => {
 });
 
 describe("FloorPlanShell Integration", () => {
-  it("renders ToolPageChrome header, catalog, canvas, and inspector", () => {
+  it("renders ToolPageChrome header, 4-stage stepper, 2-pane workspace, and inspector", () => {
     render(<FloorPlanShell />);
 
     expect(
       screen.getByRole("heading", { level: 1, name: "Floor Plan Space Validator" }),
     ).toBeInTheDocument();
     expect(screen.getByTestId("tool-page-chrome")).toBeInTheDocument();
-    expect(screen.getByTestId("floor-plan-catalog")).toBeInTheDocument();
+    expect(screen.getByTestId("floor-plan-stage-stepper")).toBeInTheDocument();
     expect(screen.getByTestId("floor-plan-viewer-surface")).toBeInTheDocument();
     expect(screen.getByTestId("floor-plan-inspector")).toBeInTheDocument();
-    expect(screen.getByTestId("customize-plan-btn")).toBeInTheDocument();
+    expect(screen.getByTestId("open-plan-selector-btn")).toBeInTheDocument();
   });
 
-  it("switches plan when clicking on a different standard plan in the catalog", () => {
+  it("AC-2: browses and selects standard plan from on-demand selector dialog, updating canvas and summary", () => {
     render(<FloorPlanShell />);
 
-    // The catalogue begins with the first standardized studio plan.
+    // Catalog is not permanently taking up space in the desktop layout
+    expect(screen.queryByTestId("floor-plan-selector-dialog")).not.toBeInTheDocument();
+
+    // Click on-demand selector button
+    fireEvent.click(screen.getByTestId("open-plan-selector-btn"));
+
+    // On-demand dialog opens with catalog
+    expect(screen.getByTestId("floor-plan-selector-dialog")).toBeInTheDocument();
+    expect(screen.getByTestId("floor-plan-catalog")).toBeInTheDocument();
     expect(
       screen.getByTestId("plan-name-floor-plan-std-studio-01"),
     ).toHaveTextContent("Modern Compact Studio");
@@ -53,7 +61,10 @@ describe("FloorPlanShell Integration", () => {
     const studioOpenBtn = screen.getByTestId("open-plan-btn-floor-plan-std-studio-01");
     fireEvent.click(studioOpenBtn);
 
-    // Header badge updates
+    // Dialog closes
+    expect(screen.queryByTestId("floor-plan-selector-dialog")).not.toBeInTheDocument();
+
+    // Header badge and summary update
     expect(screen.getAllByText("Modern Compact Studio").length).toBeGreaterThanOrEqual(1);
 
     // Canvas renders studio rooms
@@ -81,8 +92,8 @@ describe("FloorPlanShell Integration", () => {
     expect(screen.getByTestId("inspector-plan-summary")).toBeInTheDocument();
   });
 
-  describe("AC-2: Starting an edit creates User plan while source Standard plan remains unchanged", () => {
-    it("converts to User plan and keeps the source Standard plan byte-for-byte unchanged", async () => {
+  describe("AC-3: Starting calibration or adding furniture automatically creates User plan while Standard plan remains unchanged", () => {
+    it("automatically creates User plan when starting calibration without requiring customize-plan button", async () => {
       const standardPlans = getStandardPlans();
       const standardPlan = standardPlans[0].plan;
       const initialStandardJson = JSON.stringify(standardPlan);
@@ -90,14 +101,18 @@ describe("FloorPlanShell Integration", () => {
       const storage = new MemoryDraftStorage();
       render(<FloorPlanShell storage={storage} initialPlans={standardPlans} />);
 
-      // Click "Customize Plan"
-      const customizeBtn = screen.getByTestId("customize-plan-btn");
-      fireEvent.click(customizeBtn);
+      // Click "Calibrate Dimensions" directly without clicking customize-plan-btn
+      const calibrateBtn = screen.getByTestId("start-calibration-btn");
+      fireEvent.click(calibrateBtn);
 
-      // Now in draft mode: save status badge is shown
+      // Now automatically in draft mode with user plan: save status badge is shown
       await waitFor(() => {
         expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
       });
+
+      // Storage has user draft
+      const draft = await storage.getDraft(standardPlans[0].id);
+      expect(draft?.meta.source).toBe("user");
 
       // Edit plan name in inspector
       const nameInput = screen.getByTestId("edit-plan-name-input");
@@ -108,7 +123,32 @@ describe("FloorPlanShell Integration", () => {
         expect(screen.getAllByText("My Modified Custom Suite").length).toBeGreaterThanOrEqual(1);
       });
 
-      // Ensure the source Standard plan in memory remained byte-for-byte unchanged (AC-2)
+      // Ensure the source Standard plan in memory remained byte-for-byte unchanged (AC-3)
+      expect(JSON.stringify(standardPlan)).toBe(initialStandardJson);
+    });
+
+    it("automatically creates User plan when adding furniture directly without requiring customize-plan button", async () => {
+      const standardPlans = getStandardPlans();
+      const standardPlan = standardPlans[0].plan;
+      const initialStandardJson = JSON.stringify(standardPlan);
+
+      const storage = new MemoryDraftStorage();
+      render(<FloorPlanShell storage={storage} initialPlans={standardPlans} />);
+
+      // Click "Add Furniture" directly without clicking customize-plan-btn
+      const addFurnitureBtn = screen.getByTestId("add-furniture-btn");
+      fireEvent.click(addFurnitureBtn);
+
+      // Automatically creates user plan and enters draft mode
+      await waitFor(() => {
+        expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
+      });
+
+      // Storage has user draft
+      const draft = await storage.getDraft(standardPlans[0].id);
+      expect(draft?.meta.source).toBe("user");
+
+      // Source standard plan remains byte-for-byte unchanged
       expect(JSON.stringify(standardPlan)).toBe(initialStandardJson);
     });
   });
@@ -190,6 +230,30 @@ describe("FloorPlanShell Integration", () => {
         expect(await storage.hasDraft("floor-plan-std-2b1l-01")).toBe(false);
         expect(screen.getAllByText("2BR-Nordic-Standard").length).toBeGreaterThanOrEqual(1);
       });
+    });
+  });
+
+  describe("AC-7: Skip calibration and proceed to room stage", () => {
+    it("allows user to proceed from plan stage to room stage without modifying any dimensions", () => {
+      render(<FloorPlanShell />);
+
+      // Initially in plan stage
+      expect(screen.getByTestId("stage-step-plan")).toHaveAttribute("aria-current", "step");
+      expect(screen.getByTestId("stage-plan-panel")).toBeInTheDocument();
+
+      // Skip calibration button is present
+      const skipBtn = screen.getByTestId("skip-calibration-btn");
+      expect(skipBtn).toBeInTheDocument();
+
+      // Click skip calibration
+      fireEvent.click(skipBtn);
+
+      // Successfully advances to room stage
+      expect(screen.getByTestId("stage-step-room")).toHaveAttribute("aria-current", "step");
+      expect(screen.getByTestId("stage-room-panel")).toBeInTheDocument();
+
+      // Plan stage is now marked completed
+      expect(screen.getByTestId("stage-step-plan")).not.toHaveAttribute("aria-current");
     });
   });
 
@@ -774,6 +838,7 @@ describe("FloorPlanShell Integration", () => {
       render(<FloorPlanShell storage={storage} />);
 
       // Switch to studio plan (which has 0 violations initially)
+      fireEvent.click(screen.getByTestId("open-plan-selector-btn"));
       fireEvent.click(screen.getByTestId("catalog-plan-card-floor-plan-std-studio-01"));
 
       // Customize plan into editable draft

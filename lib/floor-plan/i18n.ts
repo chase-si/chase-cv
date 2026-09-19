@@ -221,6 +221,59 @@ export interface FloorPlanDictionary {
     topologyStatus: string;
     serviceUnavailable: string;
   };
+  workflow: {
+    steps: {
+      plan: string;
+      room: string;
+      furniture: string;
+      decision: string;
+    };
+    stepDescriptions: {
+      plan: string;
+      room: string;
+      furniture: string;
+      decision: string;
+    };
+    actions: {
+      choosePlan: string;
+      changePlan: string;
+      calibrateDimensions: string;
+      skipCalibration: string;
+      nextToRoom: string;
+      backToPlan: string;
+      nextToFurniture: string;
+      backToRoom: string;
+      nextToDecision: string;
+      backToFurniture: string;
+      restartPlan: string;
+    };
+    planStage: {
+      title: string;
+      description: string;
+      currentPlanLabel: string;
+      calibratePrompt: string;
+      accurateNotice: string;
+      stepTag: string;
+    };
+    roomStage: {
+      title: string;
+      description: string;
+      placeholder: string;
+      stepTag: string;
+    };
+    furnitureStage: {
+      title: string;
+      description: string;
+      placeholder: string;
+      stepTag: string;
+    };
+    decisionStage: {
+      title: string;
+      description: string;
+      placeholder: string;
+      stepTag: string;
+    };
+  };
 }
 
 export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
@@ -440,6 +493,59 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
     topologyStatus: "拓扑连续性闭合",
     serviceUnavailable: "CubiCasa recognition service is currently unavailable",
   },
+  workflow: {
+    steps: {
+      plan: "户型",
+      room: "房间",
+      furniture: "家具",
+      decision: "结论",
+    },
+    stepDescriptions: {
+      plan: "选择并校准户型",
+      room: "选择检测房间",
+      furniture: "添加目标家具",
+      decision: "尺寸决策与微调",
+    },
+    actions: {
+      choosePlan: "选择标准户型",
+      changePlan: "更换户型",
+      calibrateDimensions: "微调房间开间进深",
+      skipCalibration: "跳过校准，进入房间选择",
+      nextToRoom: "进入房间阶段",
+      backToPlan: "返回户型阶段",
+      nextToFurniture: "进入家具阶段",
+      backToRoom: "返回房间阶段",
+      nextToDecision: "查看决策结论",
+      backToFurniture: "返回家具阶段",
+      restartPlan: "重新载入标准模板",
+    },
+    planStage: {
+      title: "户型确认与校准",
+      description: "确认标准户型；如尺寸与实际住宅不同可微调房间开间，若模板已足够准确可直接跳过。",
+      currentPlanLabel: "当前户型方案",
+      calibratePrompt: "房间尺寸校准（可选）",
+      accurateNotice: "模板尺寸已符合实际住宅，无需调整",
+      stepTag: "步骤 1/4",
+    },
+    roomStage: {
+      title: "选择目标房间",
+      description: "在画布或列表中选择本次需要进行家具尺寸检测的房间。",
+      placeholder: "请在画布中点击需要检测的房间，以确定空间范围与建议规则。",
+      stepTag: "步骤 2/4",
+    },
+    furnitureStage: {
+      title: "添加与配置家具",
+      description: "选择床或沙发等目标家具，放入当前房间进行尺寸检测。",
+      placeholder: "请选择需要检测的目标家具规格。",
+      stepTag: "步骤 3/4",
+    },
+    decisionStage: {
+      title: "空间尺寸决策",
+      description: "查看当前家具在目标房间中的通过情况与尺寸建议。",
+      placeholder: "微调家具尺寸、位置或旋转，查看实时空间规则复判。",
+      stepTag: "步骤 4/4",
+    },
+  },
 };
 
 export const FLOOR_PLAN_EN: FloorPlanDictionary = {
@@ -658,6 +764,59 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
     furnitureCount: "Furniture",
     topologyStatus: "Topology Closed",
     serviceUnavailable: "CubiCasa recognition service is currently unavailable",
+  },
+  workflow: {
+    steps: {
+      plan: "Plan",
+      room: "Room",
+      furniture: "Furniture",
+      decision: "Decision",
+    },
+    stepDescriptions: {
+      plan: "Select & calibrate plan",
+      room: "Select target room",
+      furniture: "Add target furniture",
+      decision: "Decision & fine-tune",
+    },
+    actions: {
+      choosePlan: "Choose Standard Plan",
+      changePlan: "Change Plan",
+      calibrateDimensions: "Calibrate Room Spans",
+      skipCalibration: "Skip calibration & continue to room",
+      nextToRoom: "Next: Select Room",
+      backToPlan: "Back to Plan",
+      nextToFurniture: "Next: Add Furniture",
+      backToRoom: "Back to Room",
+      nextToDecision: "Next: View Decision",
+      backToFurniture: "Back to Furniture",
+      restartPlan: "Restart from Standard Template",
+    },
+    planStage: {
+      title: "Plan Selection & Calibration",
+      description: "Select a standard floor plan; optionally fine-tune room spans, or skip if the template is accurate.",
+      currentPlanLabel: "Current Floor Plan",
+      calibratePrompt: "Room Span Calibration (Optional)",
+      accurateNotice: "Template is accurate enough, no calibration needed",
+      stepTag: "Step 1/4",
+    },
+    roomStage: {
+      title: "Select Target Room",
+      description: "Choose the target room on canvas or from list for furniture fit testing.",
+      placeholder: "Click a room on the canvas to set the evaluation space.",
+      stepTag: "Step 2/4",
+    },
+    furnitureStage: {
+      title: "Add & Configure Furniture",
+      description: "Add a bed, sofa, or other target furniture to the room.",
+      placeholder: "Select target furniture specification to test.",
+      stepTag: "Step 3/4",
+    },
+    decisionStage: {
+      title: "Space & Fit Decision",
+      description: "Review fit verdict and clearance suggestions for the target furniture.",
+      placeholder: "Fine-tune furniture dimensions, position, or rotation to re-evaluate fit in real time.",
+      stepTag: "Step 4/4",
+    },
   },
 };
 
