@@ -45,7 +45,7 @@ interface FloorPlanInspectorProps {
   plan: FloorPlan;
   isDraftMode?: boolean;
   allowSpanEdit?: boolean;
-  onUpdatePlan?: (updated: FloorPlan) => void;
+  onUpdatePlan?: (updated: FloorPlan, description?: string) => void;
   selectedEntity: SelectedEntity | null;
   onSelect: EntitySelectHandler;
   violations?: RuleResult[];
