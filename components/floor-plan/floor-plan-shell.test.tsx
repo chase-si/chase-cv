@@ -1703,4 +1703,131 @@ describe("FloorPlanShell Integration", () => {
       expect(screen.getByTestId("inspector-wall-details")).toBeInTheDocument();
     });
   });
+
+  describe("AC-24: Accessible names, programmatic selection, visible focus, and keyboard position adjustment", () => {
+    it("provides accessible names, visible focus classes, and programmatic selection state across main workflow", async () => {
+      render(<FloorPlanShell isMobile={false} />);
+
+      // Stepper accessibility
+      const stepper = screen.getByTestId("floor-plan-stage-stepper");
+      expect(stepper).toHaveAttribute("aria-label");
+      const step1 = screen.getByTestId("stage-step-plan");
+      expect(step1).toHaveAttribute("aria-current", "step");
+      expect(step1).toHaveAttribute("aria-label");
+      expect(step1.className).toMatch(/focus-visible:ring/);
+
+      // Room list accessibility in Stage 1
+      const roomList = screen.getByTestId("room-list");
+      expect(roomList).toBeInTheDocument();
+      const roomItem = screen.getByTestId("room-item-r1");
+      expect(roomItem).toHaveAttribute("aria-label");
+      expect(roomItem.className).toMatch(/focus-visible:ring/);
+
+      // Advance to Room stage
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      const step2 = screen.getByTestId("stage-step-room");
+      expect(step2).toHaveAttribute("aria-current", "step");
+
+      // Select room r1
+      const stageRoomItem = screen.getByTestId("room-item-r1");
+      fireEvent.click(stageRoomItem);
+      expect(stageRoomItem).toHaveAttribute("aria-selected", "true");
+
+      // Advance to Furniture stage
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+      const step3 = screen.getByTestId("stage-step-furniture");
+      expect(step3).toHaveAttribute("aria-current", "step");
+
+      // Context furniture items have accessible name and visible focus
+      const addBtns = screen.getAllByTestId(/^add-context-furniture-/);
+      expect(addBtns.length).toBeGreaterThan(0);
+      expect(addBtns[0]).toHaveAttribute("aria-label");
+      expect(addBtns[0].className).toMatch(/focus-visible:ring/);
+
+      // Add furniture
+      fireEvent.click(addBtns[0]);
+
+      // Transitions to Decision stage
+      await waitFor(() => {
+        const step4 = screen.getByTestId("stage-step-decision");
+        expect(step4).toHaveAttribute("aria-current", "step");
+      });
+
+      // Decision verdict status has accessible role or label
+      const statusBadge = screen.getByTestId("decision-status-badge");
+      expect(statusBadge).toBeInTheDocument();
+    });
+
+    it("nudges selected furniture position via Arrow keys (not drag only)", async () => {
+      render(<FloorPlanShell isMobile={false} />);
+
+      // Advance to furniture stage and add a furniture
+      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("room-item-r1"));
+      fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
+
+      const addBtns = screen.getAllByTestId(/^add-context-furniture-/);
+      fireEvent.click(addBtns[0]);
+
+      // Target furniture is added and decision stage is active
+      await waitFor(() => {
+        expect(screen.getByTestId("decision-target-furniture")).toBeInTheDocument();
+      });
+
+      // Find furniture element on SVG
+      const furnitureElements = screen.getAllByTestId(/^floor-plan-furniture-/);
+      const targetEl = furnitureElements[furnitureElements.length - 1];
+      const initialTransform = targetEl.getAttribute("transform");
+
+      // Select the furniture explicitly
+      fireEvent.click(targetEl);
+
+      // ArrowRight nudges X by +50mm
+      fireEvent.keyDown(window, { key: "ArrowRight" });
+      const transformAfterRight = targetEl.getAttribute("transform");
+      expect(transformAfterRight).not.toEqual(initialTransform);
+
+      // ArrowDown nudges Y by +50mm
+      fireEvent.keyDown(window, { key: "ArrowDown" });
+      const transformAfterDown = targetEl.getAttribute("transform");
+      expect(transformAfterDown).not.toEqual(transformAfterRight);
+
+      // Shift+ArrowLeft nudges X by -500mm
+      fireEvent.keyDown(window, { key: "ArrowLeft", shiftKey: true });
+      const transformAfterShiftLeft = targetEl.getAttribute("transform");
+      expect(transformAfterShiftLeft).not.toEqual(transformAfterDown);
+    });
+
+    it("provides coordinate step / nudge buttons in FurnitureEditor with 44px touch targets", () => {
+      render(<FloorPlanShell isMobile={false} />);
+
+      // Select existing sofa f1
+      const sofa = screen.getByTestId("floor-plan-furniture-f1");
+      fireEvent.click(sofa);
+
+      // Furniture editor appears
+      expect(screen.getByTestId("furniture-editor")).toBeInTheDocument();
+
+      // Directional nudge buttons exist with touch-sized targets
+      const nudgeUp = screen.getByTestId("nudge-furniture-up");
+      const nudgeDown = screen.getByTestId("nudge-furniture-down");
+      const nudgeLeft = screen.getByTestId("nudge-furniture-left");
+      const nudgeRight = screen.getByTestId("nudge-furniture-right");
+
+      expect(nudgeUp.className).toMatch(/min-h-\[44px\]|min-w-\[44px\]/);
+      expect(nudgeDown.className).toMatch(/min-h-\[44px\]|min-w-\[44px\]/);
+      expect(nudgeLeft.className).toMatch(/min-h-\[44px\]|min-w-\[44px\]/);
+      expect(nudgeRight.className).toMatch(/min-h-\[44px\]|min-w-\[44px\]/);
+
+      expect(nudgeUp).toHaveAttribute("aria-label");
+
+      // Click nudge right
+      const initialX = screen.getByTestId("furniture-x-input") as HTMLInputElement;
+      const initialXVal = Number(initialX.value);
+      fireEvent.click(nudgeRight);
+
+      const updatedX = screen.getByTestId("furniture-x-input") as HTMLInputElement;
+      expect(Number(updatedX.value)).toBeGreaterThan(initialXVal);
+    });
+  });
 });

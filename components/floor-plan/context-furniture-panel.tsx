@@ -186,8 +186,9 @@ export function ContextFurniturePanel({
                   size="sm"
                   variant="default"
                   data-testid={`add-context-furniture-${def.id}`}
+                  aria-label={`${cfT.addBtn} ${localizedName}`}
                   onClick={() => onAddFurniture(def.id)}
-                  className="h-8 px-2.5 text-xs font-medium gap-1 shrink-0 touch-manipulation shadow-xs"
+                  className="h-11 min-h-[44px] sm:h-8 sm:min-h-0 px-3 text-xs font-medium gap-1 shrink-0 touch-manipulation shadow-xs focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>{cfT.addBtn}</span>
@@ -206,7 +207,7 @@ export function ContextFurniturePanel({
           size="sm"
           data-testid="browse-full-catalog-btn"
           onClick={onOpenFullCatalog}
-          className="w-full text-xs font-medium gap-1.5 h-9 touch-manipulation"
+          className="w-full text-xs font-medium gap-1.5 h-11 min-h-[44px] sm:h-9 sm:min-h-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
         >
           <LayoutGrid className="h-3.5 w-3.5 text-primary" />
           <span>{cfT.browseFullCatalog}</span>
