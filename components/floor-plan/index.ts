@@ -8,6 +8,7 @@ export * from "./opening-editor";
 export * from "./furniture-editor";
 export * from "./furniture-catalog-palette";
 export * from "./floor-plan-shell";
+export * from "./floor-plan-toolbar";
 export * from "./rule-feedback-panel";
 export * from "./mobile-bottom-sheet";
 
