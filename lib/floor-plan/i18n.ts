@@ -287,6 +287,36 @@ export interface FloorPlanDictionary {
       stepTag: string;
     };
   };
+  advancedTools: {
+    title: string;
+    description: string;
+    trigger: string;
+    tabs: {
+      rules: string;
+      structure: string;
+      furniture: string;
+      manage: string;
+    };
+    structure: {
+      title: string;
+      description: string;
+      selectPrompt: string;
+      allWalls: string;
+      allOpenings: string;
+      wallTab: string;
+      openingTab: string;
+      noSelection: string;
+      inspectBtn: string;
+    };
+    manage: {
+      title: string;
+      description: string;
+      exportTitle: string;
+      exportDesc: string;
+      resetTitle: string;
+      resetDesc: string;
+    };
+  };
 }
 
 export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
@@ -572,6 +602,36 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
       stepTag: "步骤 4/4",
     },
   },
+  advancedTools: {
+    title: "高级与专家工具",
+    description: "按需使用全屋规则评估、墙体门窗结构属性微调、完整家具库及方案导出与重置。",
+    trigger: "高级工具",
+    tabs: {
+      rules: "全屋空间规则",
+      structure: "墙体与门窗",
+      furniture: "完整家具库",
+      manage: "方案管理与导出",
+    },
+    structure: {
+      title: "墙体与门窗结构属性调整",
+      description: "查看与微调户型中的任意墙体厚度、长度及门窗开间跨度参数。",
+      selectPrompt: "选择需要查看或微调的墙体或门窗：",
+      allWalls: "全部墙体",
+      allOpenings: "全部门窗",
+      wallTab: "墙体构件",
+      openingTab: "门窗洞口",
+      noSelection: "请选择上方墙体或门窗以查看几何参数。",
+      inspectBtn: "高级属性",
+    },
+    manage: {
+      title: "方案重置与数据导出",
+      description: "管理本地编辑方案的生命周期，支持重置为初始标准模板或导出为规范 JSON。",
+      exportTitle: "导出方案 JSON",
+      exportDesc: "将当前编辑的户型数据下载为符合规范的标准 JSON 文件。",
+      resetTitle: "方案重置",
+      resetDesc: "清空当前方案的所有修改，恢复为官方初始标准模板状态。此操作不可逆。",
+    },
+  },
 };
 
 export const FLOOR_PLAN_EN: FloorPlanDictionary = {
@@ -855,6 +915,36 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
       description: "Review fit verdict and clearance suggestions for the target furniture.",
       placeholder: "Fine-tune furniture dimensions, position, or rotation to re-evaluate fit in real time.",
       stepTag: "Step 4/4",
+    },
+  },
+  advancedTools: {
+    title: "Advanced & Expert Tools",
+    description: "On-demand access to full-house spatial rules, wall and opening structural properties, full furniture catalog, and plan export/reset.",
+    trigger: "Advanced Tools",
+    tabs: {
+      rules: "Spatial Rules",
+      structure: "Walls & Openings",
+      furniture: "Furniture Catalog",
+      manage: "Plan & Export",
+    },
+    structure: {
+      title: "Wall & Opening Properties",
+      description: "Inspect and fine-tune dimensions for any wall segment or opening in the plan.",
+      selectPrompt: "Select a wall or opening to inspect or tune:",
+      allWalls: "Walls",
+      allOpenings: "Openings",
+      wallTab: "Walls",
+      openingTab: "Openings",
+      noSelection: "Select a wall or opening above to inspect its parameters.",
+      inspectBtn: "Inspect",
+    },
+    manage: {
+      title: "Plan Reset & JSON Export",
+      description: "Manage plan lifecycle: export standard JSON or reset back to template.",
+      exportTitle: "Export Plan JSON",
+      exportDesc: "Download current plan as canonical schema-compliant JSON.",
+      resetTitle: "Reset Plan",
+      resetDesc: "Discard all changes and reset plan back to its initial standard template.",
     },
   },
 };

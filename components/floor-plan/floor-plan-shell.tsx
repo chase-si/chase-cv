@@ -7,6 +7,8 @@ import {
   Compass,
   SlidersHorizontal,
   Sparkles,
+  Wrench,
+  X,
 } from "lucide-react";
 import { ToolPageChrome } from "@/components/tool-page-chrome";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +57,7 @@ import { FurnitureCatalogPalette } from "./furniture-catalog-palette";
 import { FloorPlanWorkflowStepper, type WorkflowStage } from "./floor-plan-workflow-stepper";
 import { FloorPlanSelectorDialog } from "./floor-plan-selector-dialog";
 import { FurnitureCatalogDialog } from "./furniture-catalog-dialog";
+import { AdvancedToolsDialog, type AdvancedToolsTab } from "./advanced-tools-dialog";
 import { ContextFurniturePanel } from "./context-furniture-panel";
 import { FurnitureDecisionPanel } from "./furniture-decision-panel";
 import {
@@ -210,6 +213,18 @@ export function FloorPlanShell({
   const [mobileSheetType, setMobileSheetType] = React.useState<
     "entity" | "furniture-palette" | "rules" | "catalog" | "decision" | null
   >(null);
+
+  // On-demand Advanced Tools dialog open state (AC-26)
+  const [isAdvancedToolsOpen, setIsAdvancedToolsOpen] = React.useState<boolean>(false);
+  const [advancedToolsTab, setAdvancedToolsTab] = React.useState<AdvancedToolsTab>("rules");
+
+  const handleOpenAdvancedTools = React.useCallback(
+    (tab: AdvancedToolsTab = "rules") => {
+      setAdvancedToolsTab(tab);
+      setIsAdvancedToolsOpen(true);
+    },
+    [],
+  );
 
   const activePlanSummary = React.useMemo(
     () => plans.find((p) => p.id === activePlanId) ?? plans[0],
@@ -493,16 +508,16 @@ export function FloorPlanShell({
     [ensureUserPlan, targetRoomId, handleUpdatePlan],
   );
 
-  // Add furniture directly (AC-3, AC-12): ensures user plan and opens catalog
+  // Add furniture directly (AC-3, AC-12, AC-26): ensures user plan and opens catalog
   const handleOpenAddFurniture = React.useCallback(async () => {
     await ensureUserPlan();
     setSelectedEntity(null);
     if (isMobile) {
       setMobileSheetType("furniture-palette");
     } else {
-      setIsFurnitureCatalogOpen(true);
+      handleOpenAdvancedTools("furniture");
     }
-  }, [ensureUserPlan, isMobile]);
+  }, [ensureUserPlan, isMobile, handleOpenAdvancedTools]);
 
   // Undo committed operation (AC-8, AC-21)
   const handleUndo = React.useCallback(async () => {
@@ -832,11 +847,10 @@ export function FloorPlanShell({
         onOpenPlanSelector={() => setIsPlanSelectorOpen(true)}
         onUndo={handleUndo}
         onRedo={handleRedo}
-        onExportJson={handleExportJson}
-        onRestartFromTemplate={handleRestartFromTemplate}
         onCanvasModeChange={setCanvasMode}
         onOpenMobileSheet={setMobileSheetType}
         onClearSelection={() => setSelectedEntity(null)}
+        onOpenAdvancedTools={handleOpenAdvancedTools}
       />
 
       {/* 2-Pane Desktop Workspace (Canvas + Context Task Panel), Responsive Mobile Layout */}
@@ -917,34 +931,64 @@ export function FloorPlanShell({
                 </div>
               </CardHeader>
               <CardScrollArea className="min-h-0 flex-1 px-4 pb-4">
-                {selectedEntity && currentStage !== "decision" && (selectedEntity.type === "wall" || selectedEntity.type === "opening") ? (
-                  <FloorPlanInspector
-                    plan={currentPlan}
-                    isDraftMode={isDraftMode}
-                    onUpdatePlan={handleUpdatePlan}
-                    selectedEntity={selectedEntity}
-                    onSelect={handleSelectEntity}
-                    violations={violations}
-                    locale={locale}
-                    onStartCalibration={handleStartCalibration}
-                    onEnsureUserPlan={ensureUserPlan}
-                  />
-                ) : (
-                  <div className="space-y-4 pt-3">
-                    {currentStage === "plan" && (
-                      <div data-testid="stage-plan-panel" className="space-y-4 text-xs">
-                        <FloorPlanInspector
-                          plan={currentPlan}
-                          isDraftMode={isDraftMode}
-                          allowSpanEdit={true}
-                          onUpdatePlan={handleUpdatePlan}
-                          selectedEntity={selectedEntity}
-                          onSelect={handleSelectEntity}
-                          violations={violations}
-                          locale={locale}
-                          onStartCalibration={handleStartCalibration}
-                          onEnsureUserPlan={ensureUserPlan}
-                        />
+                <div className="space-y-4 pt-3">
+                  {/* Non-intrusive Wall / Opening selection cue (AC-26) */}
+                  {selectedEntity && (selectedEntity.type === "wall" || selectedEntity.type === "opening") && (
+                    <div
+                      data-testid="selected-structure-banner"
+                      className="rounded-xl border border-primary/20 bg-primary/5 p-2.5 flex items-center justify-between text-xs"
+                    >
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <Badge variant="outline" className="text-[10px] uppercase font-mono shrink-0">
+                          {selectedEntity.type}
+                        </Badge>
+                        <span className="font-semibold text-foreground truncate">{selectedEntity.id}</span>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          data-testid="open-structure-tools-btn"
+                          onClick={() => handleOpenAdvancedTools("structure")}
+                          className="h-6 text-[10px] font-medium gap-1"
+                        >
+                          <SlidersHorizontal className="h-3 w-3 text-primary" />
+                          <span>{t.advancedTools.structure.inspectBtn}</span>
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setSelectedEntity(null)}
+                          className="h-6 px-1.5 text-[10px] text-muted-foreground hover:text-foreground"
+                          title={t.actions.close}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {currentStage === "plan" && (
+                    <div data-testid="stage-plan-panel" className="space-y-4 text-xs">
+                      <FloorPlanInspector
+                        plan={currentPlan}
+                        isDraftMode={isDraftMode}
+                        allowSpanEdit={true}
+                        onUpdatePlan={handleUpdatePlan}
+                        selectedEntity={
+                          selectedEntity?.type === "wall" || selectedEntity?.type === "opening"
+                            ? null
+                            : selectedEntity
+                        }
+                        onSelect={handleSelectEntity}
+                        violations={violations}
+                        locale={locale}
+                        showRules={false}
+                        onStartCalibration={handleStartCalibration}
+                        onEnsureUserPlan={ensureUserPlan}
+                      />
 
                         {/* Room List for Preparation and Calibration (AC-5, AC-8) */}
                         <div className="space-y-1.5 pt-2 border-t border-border/60">
@@ -1374,8 +1418,22 @@ export function FloorPlanShell({
                         </Button>
                       </div>
                     )}
+
+                    {/* Persistent Advanced Tools Entry at bottom of context pane (AC-26) */}
+                    <div className="pt-3 border-t border-border/60">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        data-testid="open-advanced-tools-btn"
+                        onClick={() => handleOpenAdvancedTools()}
+                        className="w-full text-xs font-medium gap-1.5 text-muted-foreground hover:text-foreground"
+                      >
+                        <Wrench className="h-3.5 w-3.5 text-primary" />
+                        <span>{t.advancedTools.trigger}</span>
+                      </Button>
+                    </div>
                   </div>
-                )}
               </CardScrollArea>
             </Card>
           </aside>
@@ -1399,6 +1457,26 @@ export function FloorPlanShell({
         onOpenChange={setIsFurnitureCatalogOpen}
         plan={currentPlan}
         onSelectDefinition={handleAddContextFurniture}
+        locale={locale}
+        t={t}
+      />
+
+      {/* On-Demand Advanced Tools Dialog (AC-26) */}
+      <AdvancedToolsDialog
+        open={isAdvancedToolsOpen}
+        onOpenChange={setIsAdvancedToolsOpen}
+        defaultTab={advancedToolsTab}
+        plan={currentPlan}
+        isDraftMode={isDraftMode}
+        violations={violations}
+        selectedEntity={selectedEntity}
+        onSelectEntity={handleSelectEntity}
+        onUpdatePlan={handleUpdatePlan}
+        onEnsureUserPlan={ensureUserPlan}
+        onStartCalibration={handleStartCalibration}
+        onSelectDefinition={handleAddContextFurniture}
+        onExportJson={handleExportJson}
+        onRestartFromTemplate={handleRestartFromTemplate}
         locale={locale}
         t={t}
       />
