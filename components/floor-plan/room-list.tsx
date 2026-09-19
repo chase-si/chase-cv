@@ -57,17 +57,22 @@ export function RoomList({
   return (
     <div
       data-testid="room-list"
+      role="listbox"
+      aria-label={i18n.t.workflow?.roomListAriaLabel || (locale === "zh" ? "户型房间选择列表" : "Room selection list")}
       className={cn("flex flex-col gap-1.5", className)}
     >
       {roomItems.map(({ room, displayName, formattedAreaM2, spans, isSelected }) => (
         <button
           key={room.id}
           type="button"
+          role="option"
           data-testid={`room-item-${room.id}`}
           data-selected={isSelected ? "true" : "false"}
+          aria-selected={isSelected}
+          aria-label={`${displayName}, ${formattedAreaM2}${isSelected ? (locale === "zh" ? "，已选为目标房间" : ", selected target room") : ""}`}
           onClick={() => onSelectRoom(room.id)}
           className={cn(
-            "group flex w-full items-center justify-between rounded-xl border p-2.5 text-left text-xs transition-all touch-manipulation focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
+            "group flex w-full items-center justify-between rounded-xl border p-2.5 min-h-[44px] text-left text-xs transition-all touch-manipulation focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
             isSelected
               ? "border-primary/40 bg-primary/10 text-foreground font-semibold shadow-xs"
               : "border-border/70 bg-card text-muted-foreground hover:border-border hover:bg-muted/30 hover:text-foreground",

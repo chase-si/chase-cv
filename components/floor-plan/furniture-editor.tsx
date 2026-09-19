@@ -3,6 +3,10 @@
 import * as React from "react";
 import {
   AlertCircle,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
   Check,
   Eye,
   Minus,
@@ -214,6 +218,25 @@ export function FurnitureEditor({
     setErrorMessage(null);
   };
 
+  // Directional position nudging helper (AC-24, AC-23)
+  const handleNudge = (deltaX: number, deltaY: number) => {
+    const currentX = Number(xInput) || instance.x;
+    const currentY = Number(yInput) || instance.y;
+    const nextX = currentX + deltaX;
+    const nextY = currentY + deltaY;
+
+    setXInput(String(nextX));
+    setYInput(String(nextY));
+
+    const moveRes = moveFurnitureInstance(plan, furnitureId, nextX, nextY);
+    if (moveRes.success) {
+      setErrorMessage(null);
+      onUpdatePlan?.(moveRes.plan, "Nudge furniture position");
+    } else {
+      setErrorMessage(moveRes.error);
+    }
+  };
+
   return (
     <div
       data-testid="furniture-editor"
@@ -242,10 +265,13 @@ export function FurnitureEditor({
       </div>
 
       {/* 2. Position Coordinates (X, Y in mm) */}
-      <div className="space-y-1.5">
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <Move className="h-3 w-3" />
-          <span>{t.coordinates}</span>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <Move className="h-3 w-3" />
+            <span>{t.coordinates}</span>
+          </div>
+          <span className="font-mono text-[10px]">±50 mm</span>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="relative flex items-center">
@@ -263,7 +289,7 @@ export function FurnitureEditor({
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleApply();
               }}
-              className="h-8 pl-7 pr-8 font-mono text-xs bg-background"
+              className="h-9 pl-7 pr-8 font-mono text-xs bg-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             />
             <span className="absolute right-2 font-mono text-[10px] text-muted-foreground pointer-events-none">
               mm
@@ -284,12 +310,66 @@ export function FurnitureEditor({
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleApply();
               }}
-              className="h-8 pl-7 pr-8 font-mono text-xs bg-background"
+              className="h-9 pl-7 pr-8 font-mono text-xs bg-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             />
             <span className="absolute right-2 font-mono text-[10px] text-muted-foreground pointer-events-none">
               mm
             </span>
           </div>
+        </div>
+
+        {/* Directional Nudge Pad (AC-24 alternative adjustment & AC-23 44x44 touch targets) */}
+        <div className="flex items-center justify-center gap-2 pt-1 pb-0.5">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            data-testid="nudge-furniture-left"
+            onClick={() => handleNudge(-50, 0)}
+            aria-label={`${t.nudgeLeft} 50mm`}
+            className="h-11 w-11 min-h-[44px] min-w-[44px] p-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            title={`${t.nudgeLeft} 50mm`}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex flex-col gap-1.5">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              data-testid="nudge-furniture-up"
+              onClick={() => handleNudge(0, -50)}
+              aria-label={`${t.nudgeUp} 50mm`}
+              className="h-11 w-11 min-h-[44px] min-w-[44px] p-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              title={`${t.nudgeUp} 50mm`}
+            >
+              <ArrowUp className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              data-testid="nudge-furniture-down"
+              onClick={() => handleNudge(0, 50)}
+              aria-label={`${t.nudgeDown} 50mm`}
+              className="h-11 w-11 min-h-[44px] min-w-[44px] p-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              title={`${t.nudgeDown} 50mm`}
+            >
+              <ArrowDown className="h-4 w-4" />
+            </Button>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            data-testid="nudge-furniture-right"
+            onClick={() => handleNudge(50, 0)}
+            aria-label={`${t.nudgeRight} 50mm`}
+            className="h-11 w-11 min-h-[44px] min-w-[44px] p-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            title={`${t.nudgeRight} 50mm`}
+          >
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
@@ -310,8 +390,9 @@ export function FurnitureEditor({
             variant="outline"
             data-testid="furniture-width-dec-btn"
             onClick={() => handleStepDimension("width", -(widthRange?.step ?? 100))}
-            className="h-8 w-8 p-0 shrink-0"
+            className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 sm:min-h-0 sm:min-w-0 p-0 shrink-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             title={t.decWidth}
+            aria-label={t.decWidth}
           >
             <Minus className="h-3.5 w-3.5" />
           </Button>
@@ -329,9 +410,9 @@ export function FurnitureEditor({
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleApply();
               }}
-              className="h-8 pr-8 font-mono text-xs bg-background"
+              className="h-9 pr-8 font-mono text-xs bg-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             />
-            <span className="absolute right-2.5 top-2 font-mono text-[10px] text-muted-foreground pointer-events-none">
+            <span className="absolute right-2.5 top-2.5 font-mono text-[10px] text-muted-foreground pointer-events-none">
               mm
             </span>
           </div>
@@ -342,8 +423,9 @@ export function FurnitureEditor({
             variant="outline"
             data-testid="furniture-width-inc-btn"
             onClick={() => handleStepDimension("width", widthRange?.step ?? 100)}
-            className="h-8 w-8 p-0 shrink-0"
+            className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 sm:min-h-0 sm:min-w-0 p-0 shrink-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             title={t.incWidth}
+            aria-label={t.incWidth}
           >
             <Plus className="h-3.5 w-3.5" />
           </Button>
@@ -367,8 +449,9 @@ export function FurnitureEditor({
             variant="outline"
             data-testid="furniture-depth-dec-btn"
             onClick={() => handleStepDimension("depth", -(depthRange?.step ?? 50))}
-            className="h-8 w-8 p-0 shrink-0"
+            className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 sm:min-h-0 sm:min-w-0 p-0 shrink-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             title={t.decDepth}
+            aria-label={t.decDepth}
           >
             <Minus className="h-3.5 w-3.5" />
           </Button>
@@ -386,9 +469,9 @@ export function FurnitureEditor({
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleApply();
               }}
-              className="h-8 pr-8 font-mono text-xs bg-background"
+              className="h-9 pr-8 font-mono text-xs bg-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             />
-            <span className="absolute right-2.5 top-2 font-mono text-[10px] text-muted-foreground pointer-events-none">
+            <span className="absolute right-2.5 top-2.5 font-mono text-[10px] text-muted-foreground pointer-events-none">
               mm
             </span>
           </div>
@@ -399,8 +482,9 @@ export function FurnitureEditor({
             variant="outline"
             data-testid="furniture-depth-inc-btn"
             onClick={() => handleStepDimension("depth", depthRange?.step ?? 50)}
-            className="h-8 w-8 p-0 shrink-0"
+            className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 sm:min-h-0 sm:min-w-0 p-0 shrink-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             title={t.incDepth}
+            aria-label={t.incDepth}
           >
             <Plus className="h-3.5 w-3.5" />
           </Button>
@@ -450,7 +534,7 @@ export function FurnitureEditor({
           variant="outline"
           data-testid="preview-furniture-btn"
           onClick={handlePreview}
-          className="h-8 flex-1 text-xs flex items-center justify-center gap-1"
+          className="h-11 min-h-[44px] sm:h-8 sm:min-h-0 flex-1 text-xs flex items-center justify-center gap-1 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
         >
           <Eye className="h-3.5 w-3.5 text-primary" />
           <span>{t.preview}</span>
@@ -462,7 +546,7 @@ export function FurnitureEditor({
           variant="default"
           data-testid="apply-furniture-btn"
           onClick={handleApply}
-          className="h-8 flex-1 text-xs flex items-center justify-center gap-1"
+          className="h-11 min-h-[44px] sm:h-8 sm:min-h-0 flex-1 text-xs flex items-center justify-center gap-1 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
         >
           <Check className="h-3.5 w-3.5" />
           <span>{t.apply}</span>
@@ -474,8 +558,9 @@ export function FurnitureEditor({
           variant="ghost"
           data-testid="cancel-furniture-btn"
           onClick={handleCancel}
-          className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+          className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-auto sm:min-h-0 sm:min-w-0 px-2 text-xs text-muted-foreground hover:text-foreground touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           title={t.reset}
+          aria-label={t.reset}
         >
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
@@ -489,7 +574,7 @@ export function FurnitureEditor({
           variant="outline"
           data-testid="rotate-furniture-btn"
           onClick={() => handleRotate(90)}
-          className="flex-1 h-8 text-xs flex items-center justify-center gap-1.5"
+          className="flex-1 h-11 min-h-[44px] sm:h-8 sm:min-h-0 text-xs flex items-center justify-center gap-1.5 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
         >
           <RotateCw className="h-3.5 w-3.5 text-primary" />
           <span>{t.rotate90} ({instance.rotation}°)</span>
@@ -501,8 +586,9 @@ export function FurnitureEditor({
           variant="destructive"
           data-testid="delete-furniture-btn"
           onClick={handleDelete}
-          className="h-8 px-3 text-xs flex items-center justify-center gap-1"
+          className="h-11 min-h-[44px] sm:h-8 sm:min-h-0 px-3 text-xs flex items-center justify-center gap-1 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           title={t.deleteTitle}
+          aria-label={t.deleteTitle}
         >
           <Trash2 className="h-3.5 w-3.5" />
           <span>{t.delete}</span>

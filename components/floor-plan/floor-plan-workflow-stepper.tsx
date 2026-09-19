@@ -48,7 +48,7 @@ export function FloorPlanWorkflowStepper({
 
   return (
     <nav
-      aria-label="Floor plan workflow steps"
+      aria-label={t.workflow.stepperAriaLabel || "Floor plan workflow steps"}
       data-testid="floor-plan-stage-stepper"
       className={cn(
         "flex w-full shrink-0 items-center justify-between rounded-2xl border border-border bg-card p-1.5 shadow-xs overflow-x-auto",
@@ -68,6 +68,7 @@ export function FloorPlanWorkflowStepper({
                 type="button"
                 data-testid={`stage-step-${stage.id}`}
                 aria-current={isActive ? "step" : undefined}
+                aria-label={`${stage.stepNumber}. ${getStageTitle(stage.id)}`}
                 disabled={!isClickable}
                 onClick={() => {
                   if (isClickable) {
@@ -75,8 +76,8 @@ export function FloorPlanWorkflowStepper({
                   }
                 }}
                 className={cn(
-                  "group relative flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-xs transition-all touch-manipulation",
-                  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
+                  "group relative flex w-full items-center gap-2 rounded-xl px-2 py-1.5 min-h-[44px] text-left text-xs transition-all touch-manipulation",
+                  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
                   isActive &&
                     "bg-primary/10 border border-primary/30 text-foreground font-semibold shadow-xs",
                   !isActive && isCompleted &&

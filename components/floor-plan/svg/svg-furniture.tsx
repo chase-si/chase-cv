@@ -44,7 +44,11 @@ export function SvgFurniture({
       data-selected={isSelected ? "true" : "false"}
       data-has-violation={hasViolation ? "true" : "false"}
       transform={`translate(${x}, ${y}) rotate(${rotation})`}
-      className={isDraftMode ? "cursor-move" : "cursor-pointer"}
+      tabIndex={0}
+      role="button"
+      aria-label={`${definitionId} ${furniture.id}`}
+      aria-selected={isSelected}
+      className={isDraftMode ? "cursor-move focus-visible:outline-hidden" : "cursor-pointer focus-visible:outline-hidden"}
       onPointerDown={(e) => {
         if (e.button !== 0) return;
         onSelect({ type: "furniture", id: furniture.id });
