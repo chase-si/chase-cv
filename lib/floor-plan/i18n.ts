@@ -149,6 +149,18 @@ export interface FloorPlanDictionary {
     addToPlan: string;
     noResults: string;
   };
+  contextFurniture: {
+    recommendedTitle: string;
+    recommendedBeds: string;
+    recommendedSofas: string;
+    recommendedTables: string;
+    recommendedDesks: string;
+    defaultDimensions: string;
+    addBtn: string;
+    browseFullCatalog: string;
+    noTargetRoom: string;
+    promptText: string;
+  };
   rules: {
     title: string;
     allPassed: string;
@@ -421,6 +433,18 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
     addToPlan: "添加到户型",
     noResults: "未找到匹配的家具构件",
   },
+  contextFurniture: {
+    recommendedTitle: "推荐家具",
+    recommendedBeds: "推荐床类选项",
+    recommendedSofas: "推荐沙发选项",
+    recommendedTables: "推荐餐桌选项",
+    recommendedDesks: "推荐书桌选项",
+    defaultDimensions: "默认尺寸",
+    addBtn: "添加并检测",
+    browseFullCatalog: "浏览完整家具目录",
+    noTargetRoom: "请先选择目标房间",
+    promptText: "已根据当前房间功能为您匹配最适家具：",
+  },
   rules: {
     title: "空间规范审查",
     allPassed: "所有房间边界、活动净距、门窗避让及家具摆放规范检查通过。",
@@ -692,6 +716,18 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
     allCategory: "All",
     addToPlan: "Add to Plan",
     noResults: "No furniture found matching your search.",
+  },
+  contextFurniture: {
+    recommendedTitle: "Recommended Furniture",
+    recommendedBeds: "Recommended Beds",
+    recommendedSofas: "Recommended Sofas",
+    recommendedTables: "Recommended Dining Tables",
+    recommendedDesks: "Recommended Desks",
+    defaultDimensions: "Default size",
+    addBtn: "Add & Test",
+    browseFullCatalog: "Browse Full Furniture Catalog",
+    noTargetRoom: "Please select a target room first",
+    promptText: "Matched for current room function:",
   },
   rules: {
     title: "Spatial Rules",

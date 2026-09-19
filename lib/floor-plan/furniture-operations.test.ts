@@ -6,6 +6,7 @@ import {
 } from "./furniture-catalog";
 import {
   addFurnitureInstance,
+  computeRoomInitialDropPosition,
   deleteFurnitureInstance,
   moveFurnitureInstance,
   resizeFurnitureInstance,
@@ -56,6 +57,31 @@ describe("Furniture Operations (US-10, US-11, AC-10, AC-11)", () => {
         expect(result.instance.rotation).toBe(180);
         expect(result.instance.width).toBe(2100);
         expect(result.instance.depth).toBe(900);
+      }
+    });
+
+    it("AC-13: computes deterministic initial drop position in selected room", () => {
+      const plan = createTestPlan();
+      // Room r1 (Living Room): vertices v1(0,0), v2(3000,0), v3(3000,5000), v4(0,5000) -> centroid (1500, 2500)
+      const dropPosR1 = computeRoomInitialDropPosition(plan, "r1");
+      expect(dropPosR1).not.toBeNull();
+      expect(dropPosR1?.x).toBe(1500);
+      expect(dropPosR1?.y).toBe(2500);
+
+      // Room r2 (Master Bedroom): vertices v2(3000,0), v5(6000,0), v6(6000,5000), v3(3000,5000) -> centroid (4500, 2500)
+      const dropPosR2 = computeRoomInitialDropPosition(plan, "r2");
+      expect(dropPosR2).not.toBeNull();
+      expect(dropPosR2?.x).toBe(4500);
+      expect(dropPosR2?.y).toBe(2500);
+
+      // Placing with roomId places item at deterministic room drop position
+      const result = addFurnitureInstance(plan, catalog, "bed-double", {
+        roomId: "r2",
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.instance.x).toBe(4500);
+        expect(result.instance.y).toBe(2500);
       }
     });
 

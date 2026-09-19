@@ -38,6 +38,7 @@ interface FurnitureCatalogPaletteProps {
   catalog?: FurnitureCatalog;
   onUpdatePlan?: (updatedPlan: FloorPlan) => void;
   onSelect?: (entity: SelectedEntity | null) => void;
+  onSelectDefinition?: (definitionId: string) => void;
   onClose?: () => void;
   className?: string;
 }
@@ -58,6 +59,7 @@ export function FurnitureCatalogPalette({
   catalog: propCatalog,
   onUpdatePlan,
   onSelect,
+  onSelectDefinition,
   onClose,
   className = "",
 }: FurnitureCatalogPaletteProps) {
@@ -97,8 +99,16 @@ export function FurnitureCatalogPalette({
     });
   }, [catalog.definitions, selectedCategory, searchQuery, i18n]);
 
-  // Add furniture item using default dimensions (AC-10)
+  // Add furniture item using default dimensions (AC-10, AC-12)
   const handleAddFurniture = (def: FurnitureDefinition) => {
+    if (onSelectDefinition) {
+      onSelectDefinition(def.id);
+      if (onClose) {
+        onClose();
+      }
+      return;
+    }
+
     const res = addFurnitureInstance(plan, catalog, def.id);
     if (res.success) {
       setRecentlyAddedId(res.instance.id);
