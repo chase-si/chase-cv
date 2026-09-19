@@ -43,6 +43,7 @@ export type FloorPlanToolbarProps = {
   onRestartFromTemplate: () => void;
   onCanvasModeChange: (mode: "pan" | "edit") => void;
   onOpenMobileSheet: (type: "entity" | "furniture-palette" | "rules" | "catalog") => void;
+  onOpenPlanSelector?: () => void;
   onClearSelection: () => void;
 };
 
@@ -70,6 +71,7 @@ export function FloorPlanToolbar(props: FloorPlanToolbarProps) {
     onRestartFromTemplate,
     onCanvasModeChange,
     onOpenMobileSheet,
+    onOpenPlanSelector,
     onClearSelection,
   } = props;
 
@@ -209,6 +211,24 @@ export function FloorPlanToolbar(props: FloorPlanToolbarProps) {
             <Button
               type="button"
               size="sm"
+              variant="outline"
+              data-testid="toolbar-select-plan-btn"
+              onClick={
+                onOpenPlanSelector ??
+                (() => {
+                  onClearSelection();
+                  onOpenMobileSheet("catalog");
+                })
+              }
+              className={cn(touchBtn, "px-3 sm:px-2.5")}
+              title={t.actions.plans}
+            >
+              <Compass className="h-3.5 w-3.5 text-primary" />
+              <span>{t.actions.plans}</span>
+            </Button>
+            <Button
+              type="button"
+              size="sm"
               variant="default"
               data-testid="customize-plan-btn"
               onClick={onCustomizePlan}
@@ -223,8 +243,12 @@ export function FloorPlanToolbar(props: FloorPlanToolbarProps) {
               variant="outline"
               data-testid="mobile-catalog-btn"
               onClick={() => {
-                onClearSelection();
-                onOpenMobileSheet("catalog");
+                if (onOpenPlanSelector) {
+                  onOpenPlanSelector();
+                } else {
+                  onClearSelection();
+                  onOpenMobileSheet("catalog");
+                }
               }}
               className={cn(touchBtn, "px-2.5 lg:hidden")}
               title={t.actions.plans}

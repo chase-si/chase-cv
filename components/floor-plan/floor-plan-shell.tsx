@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import {
+  Armchair,
+  ArrowRight,
   Compass,
   SlidersHorizontal,
   Sparkles,
@@ -43,6 +45,8 @@ import { FloorPlanSvgViewer } from "./floor-plan-svg-viewer";
 import { FloorPlanToolbar } from "./floor-plan-toolbar";
 import { MobileBottomSheet } from "./mobile-bottom-sheet";
 import { FurnitureCatalogPalette } from "./furniture-catalog-palette";
+import { FloorPlanWorkflowStepper, type WorkflowStage } from "./floor-plan-workflow-stepper";
+import { FloorPlanSelectorDialog } from "./floor-plan-selector-dialog";
 import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { RuleFeedbackPanel } from "./rule-feedback-panel";
 import { cn } from "@/lib/utils";
@@ -169,6 +173,13 @@ export function FloorPlanShell({
   );
   const [selectedEntity, setSelectedEntity] = React.useState<SelectedEntity | null>(null);
 
+  // Four-stage workflow state (AC-1, AC-7)
+  const [currentStage, setCurrentStage] = React.useState<WorkflowStage>("plan");
+  const [completedStages, setCompletedStages] = React.useState<WorkflowStage[]>([]);
+
+  // On-demand plan selector dialog open state (AC-2)
+  const [isPlanSelectorOpen, setIsPlanSelectorOpen] = React.useState<boolean>(false);
+
   // Mobile canvas mode: "pan" (pure pan, prevent accidental edits) vs "edit" (select & edit entities)
   const [canvasMode, setCanvasMode] = React.useState<"pan" | "edit">("edit");
 
@@ -237,6 +248,8 @@ export function FloorPlanShell({
       setMobileSheetType(null);
       setIsDraftMode(false);
       setSaveStatus("idle");
+      setCurrentStage("plan");
+      setCompletedStages([]);
       const targetSummary = plans.find((p) => p.id === planId) ?? plans[0];
       if (targetSummary) {
         setCurrentPlan(targetSummary.plan);
@@ -260,13 +273,16 @@ export function FloorPlanShell({
     setMobileSheetType(null);
   }, []);
 
-  // Customize Plan: converts standard template into editable User plan
-  const handleCustomizePlan = React.useCallback(async () => {
-    if (!activePlanSummary) return;
+  // Ensure User Plan (AC-3): automatically converts standard template into editable User plan
+  const ensureUserPlan = React.useCallback(async (): Promise<FloorPlan> => {
+    if (isDraftMode && currentPlan.meta.source === "user") {
+      return currentPlan;
+    }
+    if (!activePlanSummary) return currentPlan;
 
     const userPlan = createOrResumeUserPlan(activePlanSummary.plan, storedDraft);
     setCurrentPlan(userPlan);
-    setHistory(createPlanHistory(userPlan, { description: "Initial custom draft" }));
+    setHistory(createPlanHistory(userPlan, { description: "Initial user plan" }));
     setIsDraftMode(true);
     setPromptRestore(false);
     setSaveStatus("saving");
@@ -278,25 +294,79 @@ export function FloorPlanShell({
     } catch {
       setSaveStatus("failed");
     }
-  }, [activePlanSummary, storedDraft, storage, activePlanId]);
+    return userPlan;
+  }, [isDraftMode, currentPlan, activePlanSummary, storedDraft, storage, activePlanId]);
 
-  // Update plan in draft mode with autosave
+  // Customize Plan: converts standard template into editable User plan
+  const handleCustomizePlan = React.useCallback(async () => {
+    await ensureUserPlan();
+  }, [ensureUserPlan]);
+
+  // Start Calibration (AC-3): ensures user plan and prepares room calibration
+  const handleStartCalibration = React.useCallback(async () => {
+    await ensureUserPlan();
+  }, [ensureUserPlan]);
+
+  // Skip calibration and proceed to room stage (AC-7)
+  const handleSkipCalibration = React.useCallback(() => {
+    setCompletedStages((prev) => Array.from(new Set([...prev, "plan"])));
+    setCurrentStage("room");
+    setSelectedEntity(null);
+  }, []);
+
+  // Select workflow stage
+  const handleSelectStage = React.useCallback((stage: WorkflowStage) => {
+    setCurrentStage(stage);
+    setSelectedEntity(null);
+  }, []);
+
+  // Add furniture directly (AC-3): ensures user plan automatically
+  const handleOpenAddFurniture = React.useCallback(async () => {
+    await ensureUserPlan();
+    setSelectedEntity(null);
+    setMobileSheetType("furniture-palette");
+  }, [ensureUserPlan]);
+
+  // Update plan in draft mode with autosave (AC-3: auto convert standard plan if needed)
   const handleUpdatePlan = React.useCallback(
     async (updatedPlan: FloorPlan, description?: string) => {
-      setCurrentPlan(updatedPlan);
-      onPlanChange?.(updatedPlan);
-      setHistory((prev) => commitPlanChange(prev, updatedPlan, description));
+      let planToCommit = updatedPlan;
+      if (!isDraftMode || currentPlan.meta.source !== "user") {
+        const userPlanBase = createOrResumeUserPlan(
+          activePlanSummary ? activePlanSummary.plan : currentPlan,
+          storedDraft,
+        );
+        planToCommit = {
+          ...updatedPlan,
+          meta: {
+            ...updatedPlan.meta,
+            id: userPlanBase.meta.id,
+            source: "user",
+            templateId: userPlanBase.meta.templateId ?? activePlanId,
+            name:
+              updatedPlan.meta.name === activePlanSummary?.plan.meta.name
+                ? userPlanBase.meta.name
+                : updatedPlan.meta.name,
+          },
+        };
+        setIsDraftMode(true);
+        setPromptRestore(false);
+      }
+
+      setCurrentPlan(planToCommit);
+      onPlanChange?.(planToCommit);
+      setHistory((prev) => commitPlanChange(prev, planToCommit, description));
       setSaveStatus("saving");
 
       try {
-        await storage.saveDraft(activePlanId, updatedPlan);
-        setStoredDraft(updatedPlan);
+        await storage.saveDraft(activePlanId, planToCommit);
+        setStoredDraft(planToCommit);
         setSaveStatus("saved");
       } catch {
         setSaveStatus("failed");
       }
     },
-    [activePlanId, storage, onPlanChange],
+    [isDraftMode, currentPlan, activePlanSummary, storedDraft, activePlanId, storage, onPlanChange],
   );
 
   // Undo committed operation (AC-8)
@@ -431,6 +501,8 @@ export function FloorPlanShell({
     setIsDraftMode(false);
     setSaveStatus("idle");
     setSelectedEntity(null);
+    setCurrentStage("plan");
+    setCompletedStages([]);
   }, [activePlanId, activePlanSummary, storage]);
 
   // Export current plan as JSON (AC-16)
@@ -504,6 +576,8 @@ export function FloorPlanShell({
           onSelect={handleSelectEntity}
           violations={violations}
           locale={locale}
+          onStartCalibration={handleStartCalibration}
+          onEnsureUserPlan={ensureUserPlan}
         />
       );
     }
@@ -566,6 +640,14 @@ export function FloorPlanShell({
       title={t.pageTitle}
       description={t.pageDescription}
     >
+      {/* Workflow Stage Stepper */}
+      <FloorPlanWorkflowStepper
+        currentStage={currentStage}
+        completedStages={completedStages}
+        onSelectStage={handleSelectStage}
+        t={t}
+      />
+
       <FloorPlanToolbar
         isDraftMode={isDraftMode}
         currentPlan={currentPlan}
@@ -576,6 +658,7 @@ export function FloorPlanShell({
         history={history}
         t={t}
         onCustomizePlan={handleCustomizePlan}
+        onOpenPlanSelector={() => setIsPlanSelectorOpen(true)}
         onUndo={handleUndo}
         onRedo={handleRedo}
         onExportJson={handleExportJson}
@@ -585,37 +668,12 @@ export function FloorPlanShell({
         onClearSelection={() => setSelectedEntity(null)}
       />
 
-      {/* 3-Pane Desktop Layout, Responsive Mobile Layout with Primary Canvas */}
-      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[19rem_minmax(0,1fr)_18rem] lg:items-stretch">
-        {/* Left Pane: Standard Plans Catalog */}
-        <aside className="hidden min-h-0 flex-col lg:flex">
-          <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <CardHeader className="shrink-0 pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <Compass className="h-4 w-4 text-primary" />
-                  <span>{t.catalog.title}</span>
-                </CardTitle>
-                <Badge variant="outline" className="text-[10px] font-mono">
-                  {plans.length} {t.catalog.approvedBadge}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardScrollArea className="min-h-0 flex-1 px-4 pb-4">
-              <FloorPlanCatalog
-                plans={plans}
-                activePlanId={activePlanId}
-                onSelectPlan={handleSelectPlan}
-                locale={locale}
-              />
-            </CardScrollArea>
-          </Card>
-        </aside>
-
-        {/* Center Pane: Interactive Responsive SVG Viewer Canvas + Draft Restoration Banner */}
+      {/* 2-Pane Desktop Workspace (Canvas + Context Task Panel), Responsive Mobile Layout */}
+      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-stretch">
+        {/* Left/Main Pane: Interactive Responsive SVG Viewer Canvas + Draft Restoration Banner */}
         <section className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <Card className="flex min-h-0 flex-1 flex-col overflow-hidden border-border bg-card p-0">
-            {/* Draft Restoration Banner (AC-15) */}
+            {/* Draft Restoration Banner (AC-4, AC-15) */}
             {promptRestore && storedDraft && !isDraftMode && (
               <div
                 data-testid="draft-restore-banner"
@@ -667,31 +725,227 @@ export function FloorPlanShell({
           </Card>
         </section>
 
-        {/* Right Pane: Entity Inspector / Plan Details (Desktop) */}
+        {/* Right Pane: Context Task Panel / Entity Inspector (Desktop) */}
         {!isMobile && (
-          <aside className="hidden min-h-0 flex-col lg:flex">
+          <aside className="hidden min-h-0 flex-col lg:flex" data-testid="desktop-context-pane">
             <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <CardHeader className="shrink-0 pb-3">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <SlidersHorizontal className="h-4 w-4 text-primary" />
-                  <span>{t.inspector.title}</span>
-                </CardTitle>
+              <CardHeader className="shrink-0 pb-3 border-b border-border/60">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <SlidersHorizontal className="h-4 w-4 text-primary" />
+                    <span>
+                      {selectedEntity
+                        ? t.inspector.title
+                        : `${t.workflow.steps[currentStage]} · ${t.workflow.stepDescriptions[currentStage]}`}
+                    </span>
+                  </CardTitle>
+                  <Badge variant="outline" className="text-[10px] font-mono">
+                    {t.workflow[`${currentStage}Stage`].stepTag}
+                  </Badge>
+                </div>
               </CardHeader>
               <CardScrollArea className="min-h-0 flex-1 px-4 pb-4">
-                <FloorPlanInspector
-                  plan={currentPlan}
-                  isDraftMode={isDraftMode}
-                  onUpdatePlan={handleUpdatePlan}
-                  selectedEntity={selectedEntity}
-                  onSelect={handleSelectEntity}
-                  violations={violations}
-                  locale={locale}
-                />
+                {selectedEntity ? (
+                  <FloorPlanInspector
+                    plan={currentPlan}
+                    isDraftMode={isDraftMode}
+                    onUpdatePlan={handleUpdatePlan}
+                    selectedEntity={selectedEntity}
+                    onSelect={handleSelectEntity}
+                    violations={violations}
+                    locale={locale}
+                    onStartCalibration={handleStartCalibration}
+                    onEnsureUserPlan={ensureUserPlan}
+                  />
+                ) : (
+                  <div className="space-y-4 pt-3">
+                    {currentStage === "plan" && (
+                      <div data-testid="stage-plan-panel" className="space-y-4 text-xs">
+                        <FloorPlanInspector
+                          plan={currentPlan}
+                          isDraftMode={isDraftMode}
+                          onUpdatePlan={handleUpdatePlan}
+                          selectedEntity={selectedEntity}
+                          onSelect={handleSelectEntity}
+                          violations={violations}
+                          locale={locale}
+                          onStartCalibration={handleStartCalibration}
+                          onEnsureUserPlan={ensureUserPlan}
+                        />
+
+                        {/* Stage 1 Workflow Actions (AC-2, AC-3, AC-7) */}
+                        <div className="space-y-2 pt-2 border-t border-border/60">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            data-testid="open-plan-selector-btn"
+                            onClick={() => setIsPlanSelectorOpen(true)}
+                            className="w-full text-xs font-medium gap-1.5"
+                          >
+                            <Compass className="h-3.5 w-3.5 text-primary" />
+                            <span>{t.workflow.actions.changePlan}</span>
+                          </Button>
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            data-testid="start-calibration-btn"
+                            onClick={handleStartCalibration}
+                            className="w-full text-xs font-medium gap-1.5"
+                          >
+                            <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
+                            <span>{t.workflow.actions.calibrateDimensions}</span>
+                          </Button>
+
+                          <Button
+                            type="button"
+                            variant="default"
+                            size="sm"
+                            data-testid="skip-calibration-btn"
+                            onClick={handleSkipCalibration}
+                            className="w-full h-10 text-xs font-medium gap-1.5 shadow-xs"
+                          >
+                            <span>{t.workflow.actions.skipCalibration}</span>
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </Button>
+                          <p className="text-[10px] text-muted-foreground text-center">
+                            {t.workflow.planStage.accurateNotice}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {currentStage === "room" && (
+                      <div data-testid="stage-room-panel" className="space-y-4 text-xs">
+                        <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
+                          <span className="font-semibold text-foreground text-xs block">
+                            {t.workflow.roomStage.title}
+                          </span>
+                          <p className="text-muted-foreground text-xs leading-relaxed">
+                            {t.workflow.roomStage.placeholder}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            data-testid="back-to-plan-btn"
+                            onClick={() => setCurrentStage("plan")}
+                            className="flex-1 text-xs"
+                          >
+                            {t.workflow.actions.backToPlan}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="default"
+                            size="sm"
+                            data-testid="next-to-furniture-btn"
+                            onClick={() => {
+                              setCompletedStages((prev) => Array.from(new Set([...prev, "room"])));
+                              setCurrentStage("furniture");
+                            }}
+                            className="flex-1 text-xs"
+                          >
+                            {t.workflow.actions.nextToFurniture}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {currentStage === "furniture" && (
+                      <div data-testid="stage-furniture-panel" className="space-y-4 text-xs">
+                        <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
+                          <span className="font-semibold text-foreground text-xs block">
+                            {t.workflow.furnitureStage.title}
+                          </span>
+                          <p className="text-muted-foreground text-xs leading-relaxed">
+                            {t.workflow.furnitureStage.placeholder}
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            data-testid="add-furniture-btn"
+                            onClick={handleOpenAddFurniture}
+                            className="w-full text-xs font-medium gap-1.5"
+                          >
+                            <Armchair className="h-3.5 w-3.5 text-primary" />
+                            <span>{t.actions.addFurniture}</span>
+                          </Button>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            data-testid="back-to-room-btn"
+                            onClick={() => setCurrentStage("room")}
+                            className="flex-1 text-xs"
+                          >
+                            {t.workflow.actions.backToRoom}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="default"
+                            size="sm"
+                            data-testid="next-to-decision-btn"
+                            onClick={() => {
+                              setCompletedStages((prev) =>
+                                Array.from(new Set([...prev, "furniture"])),
+                              );
+                              setCurrentStage("decision");
+                            }}
+                            className="flex-1 text-xs"
+                          >
+                            {t.workflow.actions.nextToDecision}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {currentStage === "decision" && (
+                      <div data-testid="stage-decision-panel" className="space-y-4 text-xs">
+                        <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
+                          <span className="font-semibold text-foreground text-xs block">
+                            {t.workflow.decisionStage.title}
+                          </span>
+                          <p className="text-muted-foreground text-xs leading-relaxed">
+                            {t.workflow.decisionStage.placeholder}
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          data-testid="back-to-furniture-btn"
+                          onClick={() => setCurrentStage("furniture")}
+                          className="w-full text-xs"
+                        >
+                          {t.workflow.actions.backToFurniture}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardScrollArea>
             </Card>
           </aside>
         )}
       </div>
+
+      {/* On-Demand Standard Plan Selector Dialog (AC-2) */}
+      <FloorPlanSelectorDialog
+        open={isPlanSelectorOpen}
+        onOpenChange={setIsPlanSelectorOpen}
+        plans={plans}
+        activePlanId={activePlanId}
+        onSelectPlan={handleSelectPlan}
+        locale={locale}
+        t={t}
+      />
 
       {/* Mobile Bottom Properties Surface (AC-5) */}
       {isMobile && (
