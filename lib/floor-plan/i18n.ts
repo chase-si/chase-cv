@@ -141,6 +141,7 @@ export interface FloorPlanDictionary {
     rotate90: string;
     delete: string;
     deleteTitle: string;
+    tuneDimensions: string;
   };
   furniturePalette: {
     title: string;
@@ -425,6 +426,7 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
     rotate90: "顺时针旋转 90°",
     delete: "删除",
     deleteTitle: "删除此家具",
+    tuneDimensions: "微调尺寸",
   },
   furniturePalette: {
     title: "家具构件库",
@@ -709,6 +711,7 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
     rotate90: "Rotate 90°",
     delete: "Delete",
     deleteTitle: "Delete furniture item",
+    tuneDimensions: "Tune Dimensions",
   },
   furniturePalette: {
     title: "Furniture Catalog",

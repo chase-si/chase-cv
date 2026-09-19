@@ -504,7 +504,7 @@ export function FloorPlanShell({
     }
   }, [ensureUserPlan, isMobile]);
 
-  // Undo committed operation (AC-8)
+  // Undo committed operation (AC-8, AC-21)
   const handleUndo = React.useCallback(async () => {
     if (!isDraftMode || !canUndo(history)) return;
 
@@ -512,6 +512,7 @@ export function FloorPlanShell({
     setHistory(nextHistory);
     const restoredPlan = nextHistory.present.plan;
     setCurrentPlan(restoredPlan);
+    onPlanChange?.(restoredPlan);
 
     // If selected entity no longer exists in restored plan, deselect
     setSelectedEntity((prev) => {
@@ -529,6 +530,13 @@ export function FloorPlanShell({
       return exists ? prev : null;
     });
 
+    if (targetFurnitureId && !restoredPlan.furniture.some((f) => f.id === targetFurnitureId)) {
+      setTargetFurnitureId(null);
+    }
+    if (targetRoomId && !restoredPlan.rooms.some((r) => r.id === targetRoomId)) {
+      setTargetRoomId(null);
+    }
+
     setSaveStatus("saving");
     try {
       await storage.saveDraft(activePlanId, restoredPlan);
@@ -537,9 +545,9 @@ export function FloorPlanShell({
     } catch {
       setSaveStatus("failed");
     }
-  }, [isDraftMode, history, activePlanId, storage]);
+  }, [isDraftMode, history, activePlanId, storage, onPlanChange, targetFurnitureId, targetRoomId]);
 
-  // Redo undone operation (AC-8)
+  // Redo undone operation (AC-8, AC-21)
   const handleRedo = React.useCallback(async () => {
     if (!isDraftMode || !canRedo(history)) return;
 
@@ -547,6 +555,7 @@ export function FloorPlanShell({
     setHistory(nextHistory);
     const restoredPlan = nextHistory.present.plan;
     setCurrentPlan(restoredPlan);
+    onPlanChange?.(restoredPlan);
 
     setSelectedEntity((prev) => {
       if (!prev) return null;
@@ -563,6 +572,13 @@ export function FloorPlanShell({
       return exists ? prev : null;
     });
 
+    if (targetFurnitureId && !restoredPlan.furniture.some((f) => f.id === targetFurnitureId)) {
+      setTargetFurnitureId(null);
+    }
+    if (targetRoomId && !restoredPlan.rooms.some((r) => r.id === targetRoomId)) {
+      setTargetRoomId(null);
+    }
+
     setSaveStatus("saving");
     try {
       await storage.saveDraft(activePlanId, restoredPlan);
@@ -571,7 +587,7 @@ export function FloorPlanShell({
     } catch {
       setSaveStatus("failed");
     }
-  }, [isDraftMode, history, activePlanId, storage]);
+  }, [isDraftMode, history, activePlanId, storage, onPlanChange, targetFurnitureId, targetRoomId]);
 
   // Global keyboard shortcuts for Undo (Cmd+Z / Ctrl+Z) and Redo (Cmd+Shift+Z / Ctrl+Shift+Z / Ctrl+Y)
   React.useEffect(() => {
@@ -871,7 +887,7 @@ export function FloorPlanShell({
               selectedEntity={selectedEntity}
               targetRoomId={targetRoomId}
               onSelect={handleSelectEntity}
-              isDraftMode={isDraftMode}
+              isDraftMode={isDraftMode || currentStage === "furniture" || currentStage === "decision"}
               onUpdatePlan={handleUpdatePlan}
               violations={violations}
               canvasMode={canvasMode}
@@ -1141,6 +1157,7 @@ export function FloorPlanShell({
                           <FloorPlanInspector
                             plan={currentPlan}
                             isDraftMode={isDraftMode}
+                            allowSpanEdit={true}
                             onUpdatePlan={handleUpdatePlan}
                             selectedEntity={selectedEntity}
                             onSelect={handleSelectEntity}
@@ -1238,9 +1255,24 @@ export function FloorPlanShell({
                               <span className="text-[11px] text-muted-foreground">
                                 {locale === "zh" ? "主结论检测目标" : "Main Decision Target"}
                               </span>
-                              <Badge variant="default" className="text-[10px]">
-                                {locale === "zh" ? "唯一目标" : "Sole Target"}
-                              </Badge>
+                              <div className="flex items-center gap-1.5">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  data-testid="tune-target-furniture-btn"
+                                  onClick={() => {
+                                    handleSelectEntity({ type: "furniture", id: targetFurniture.id });
+                                  }}
+                                  className="h-6 px-2 text-[10px] font-medium gap-1"
+                                >
+                                  <SlidersHorizontal className="h-3 w-3 text-primary" />
+                                  <span>{t.furnitureEditor.tuneDimensions}</span>
+                                </Button>
+                                <Badge variant="default" className="text-[10px]">
+                                  {locale === "zh" ? "唯一目标" : "Sole Target"}
+                                </Badge>
+                              </div>
                             </div>
                             <div className="flex items-baseline justify-between">
                               <span

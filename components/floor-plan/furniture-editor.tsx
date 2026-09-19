@@ -36,7 +36,7 @@ interface FurnitureEditorProps {
   plan: FloorPlan;
   catalog?: FurnitureCatalog;
   furnitureId: string;
-  onUpdatePlan?: (updatedPlan: FloorPlan) => void;
+  onUpdatePlan?: (updatedPlan: FloorPlan, description?: string) => void;
   onSelect?: (entity: SelectedEntity | null) => void;
   className?: string;
 }
@@ -115,7 +115,7 @@ export function FurnitureEditor({
     const w = Number(widthInput);
     const d = Number(depthInput);
 
-    const testRes = resizeFurnitureInstance(plan, catalog, furnitureId, w, d);
+    const testRes = resizeFurnitureInstance(plan, catalog, furnitureId, w, d, { locale });
     if (testRes.success) {
       setPreviewInfo({
         widthMm: testRes.instance.width,
@@ -128,7 +128,7 @@ export function FurnitureEditor({
     }
   };
 
-  // Apply dimension & position changes (AC-11)
+  // Apply dimension & position changes (AC-11, AC-18, AC-19, AC-20)
   const handleApply = () => {
     const w = Number(widthInput);
     const d = Number(depthInput);
@@ -141,7 +141,7 @@ export function FurnitureEditor({
     }
 
     // Step 1: Resize
-    const resizeRes = resizeFurnitureInstance(plan, catalog, furnitureId, w, d);
+    const resizeRes = resizeFurnitureInstance(plan, catalog, furnitureId, w, d, { locale });
     if (!resizeRes.success) {
       setErrorMessage(resizeRes.error);
       setPreviewInfo(null);
@@ -161,7 +161,7 @@ export function FurnitureEditor({
 
     setErrorMessage(null);
     setPreviewInfo(null);
-    onUpdatePlan?.(updatedPlan);
+    onUpdatePlan?.(updatedPlan, "Resize and adjust furniture");
   };
 
   const handleCancel = () => {
@@ -175,11 +175,11 @@ export function FurnitureEditor({
     setPreviewInfo(null);
   };
 
-  // 90° rotation step (AC-11)
+  // 90° rotation step (AC-11, AC-20)
   const handleRotate = (stepDeg: number = 90) => {
     const res = rotateFurnitureInstance(plan, furnitureId, stepDeg);
     if (res.success) {
-      onUpdatePlan?.(res.plan);
+      onUpdatePlan?.(res.plan, "Rotate furniture");
     } else {
       setErrorMessage(res.error);
     }
@@ -190,7 +190,7 @@ export function FurnitureEditor({
     const res = deleteFurnitureInstance(plan, furnitureId);
     if (res.success) {
       onSelect?.(null);
-      onUpdatePlan?.(res.plan);
+      onUpdatePlan?.(res.plan, "Delete furniture");
     } else {
       setErrorMessage(res.error);
     }
@@ -260,6 +260,9 @@ export function FurnitureEditor({
                 setXInput(e.target.value);
                 setErrorMessage(null);
               }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleApply();
+              }}
               className="h-8 pl-7 pr-8 font-mono text-xs bg-background"
             />
             <span className="absolute right-2 font-mono text-[10px] text-muted-foreground pointer-events-none">
@@ -277,6 +280,9 @@ export function FurnitureEditor({
               onChange={(e) => {
                 setYInput(e.target.value);
                 setErrorMessage(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleApply();
               }}
               className="h-8 pl-7 pr-8 font-mono text-xs bg-background"
             />
@@ -319,6 +325,9 @@ export function FurnitureEditor({
                 setWidthInput(e.target.value);
                 setPreviewInfo(null);
                 setErrorMessage(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleApply();
               }}
               className="h-8 pr-8 font-mono text-xs bg-background"
             />
@@ -373,6 +382,9 @@ export function FurnitureEditor({
                 setDepthInput(e.target.value);
                 setPreviewInfo(null);
                 setErrorMessage(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleApply();
               }}
               className="h-8 pr-8 font-mono text-xs bg-background"
             />

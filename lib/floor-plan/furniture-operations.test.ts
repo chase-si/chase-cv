@@ -289,6 +289,28 @@ describe("Furniture Operations (US-10, US-11, AC-10, AC-11)", () => {
       expect(unchanged?.depth).toBe(2000);
     });
 
+    it("returns readable localized Chinese error message when locale is zh (AC-19)", () => {
+      const plan = createTestPlan();
+      const addRes = addFurnitureInstance(plan, catalog, "bed-double");
+      expect(addRes.success).toBe(true);
+      if (!addRes.success) return;
+
+      const furnitureId = addRes.instance.id;
+      const resizeRes = resizeFurnitureInstance(
+        addRes.plan,
+        catalog,
+        furnitureId,
+        1400, // min is 1500
+        2000,
+        { locale: "zh" },
+      );
+
+      expect(resizeRes.success).toBe(false);
+      if (!resizeRes.success) {
+        expect(resizeRes.error).toContain("宽度 1400 mm 低于双人床 (1.8m)允许的最小尺寸 1500 mm");
+      }
+    });
+
     it("supports clamp option to bound dimensions to min and max", () => {
       const plan = createTestPlan();
       const addRes = addFurnitureInstance(plan, catalog, "bed-double");

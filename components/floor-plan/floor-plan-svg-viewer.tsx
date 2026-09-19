@@ -39,7 +39,7 @@ interface FloorPlanSvgViewerProps {
   targetRoomId?: string | null;
   onSelect: EntitySelectHandler;
   isDraftMode?: boolean;
-  onUpdatePlan?: (updated: FloorPlan) => void;
+  onUpdatePlan?: (updated: FloorPlan, description?: string) => void;
   violations?: RuleResult[];
   canvasMode?: "pan" | "edit";
   className?: string;
@@ -196,7 +196,7 @@ export function FloorPlanSvgViewer({
     if (!isDraftMode || !onUpdatePlan) return;
     const res = rotateFurnitureInstance(plan, furnitureId, stepDeg);
     if (res.success) {
-      onUpdatePlan(res.plan);
+      onUpdatePlan(res.plan, "Rotate furniture");
     }
   };
 
@@ -258,7 +258,7 @@ export function FloorPlanSvgViewer({
           draggingFurniture.currentY,
         );
         if (res.success) {
-          onUpdatePlan(res.plan);
+          onUpdatePlan(res.plan, "Move furniture");
         }
       }
       setDraggingFurniture(null);

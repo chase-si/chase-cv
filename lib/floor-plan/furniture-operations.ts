@@ -14,6 +14,7 @@ import type {
 } from "./types";
 
 import { cloneFloorPlan } from "./user-plan";
+import { getFloorPlanI18n } from "./i18n";
 
 export interface PlacementOptions {
   x?: number;
@@ -25,6 +26,7 @@ export interface PlacementOptions {
 
 export interface ResizeOptions {
   clamp?: boolean;
+  locale?: string;
 }
 
 export type AddFurnitureResult =
@@ -301,10 +303,14 @@ export function resizeFurnitureInstance(
   depthMm: number,
   options?: ResizeOptions,
 ): ResizeFurnitureResult {
+  const isZh = options?.locale?.toLowerCase().startsWith("zh");
+
   if (!Number.isFinite(widthMm) || !Number.isFinite(depthMm) || widthMm <= 0 || depthMm <= 0) {
     return {
       success: false,
-      error: "Dimensions width and depth must be positive numbers.",
+      error: isZh
+        ? "尺寸宽度和进深必须为大于 0 的有效数值。"
+        : "Dimensions width and depth must be positive numbers.",
     };
   }
 
@@ -312,7 +318,9 @@ export function resizeFurnitureInstance(
   if (!existing) {
     return {
       success: false,
-      error: `Furniture instance "${furnitureId}" not found.`,
+      error: isZh
+        ? `未在方案中找到编号为 "${furnitureId}" 的家具构件。`
+        : `Furniture instance "${furnitureId}" not found.`,
     };
   }
 
@@ -341,17 +349,25 @@ export function resizeFurnitureInstance(
       }
     }
   } else {
+    const furnitureName = def
+      ? (isZh ? getFloorPlanI18n(options?.locale).getFurnitureName(def.id, def.name) : def.name)
+      : existing.definitionId;
+
     if (widthRange) {
       if (finalWidth < widthRange.min) {
         return {
           success: false,
-          error: `Width ${finalWidth} mm is below minimum allowed ${widthRange.min} mm for ${def?.name ?? existing.definitionId}.`,
+          error: isZh
+            ? `宽度 ${finalWidth} mm 低于${furnitureName}允许的最小尺寸 ${widthRange.min} mm。`
+            : `Width ${finalWidth} mm is below minimum allowed ${widthRange.min} mm for ${furnitureName}.`,
         };
       }
       if (finalWidth > widthRange.max) {
         return {
           success: false,
-          error: `Width ${finalWidth} mm exceeds maximum allowed ${widthRange.max} mm for ${def?.name ?? existing.definitionId}.`,
+          error: isZh
+            ? `宽度 ${finalWidth} mm 超出${furnitureName}允许的最大尺寸 ${widthRange.max} mm。`
+            : `Width ${finalWidth} mm exceeds maximum allowed ${widthRange.max} mm for ${furnitureName}.`,
         };
       }
     }
@@ -360,13 +376,17 @@ export function resizeFurnitureInstance(
       if (finalDepth < depthRange.min) {
         return {
           success: false,
-          error: `Depth ${finalDepth} mm is below minimum allowed ${depthRange.min} mm for ${def?.name ?? existing.definitionId}.`,
+          error: isZh
+            ? `进深 ${finalDepth} mm 低于${furnitureName}允许的最小尺寸 ${depthRange.min} mm。`
+            : `Depth ${finalDepth} mm is below minimum allowed ${depthRange.min} mm for ${furnitureName}.`,
         };
       }
       if (finalDepth > depthRange.max) {
         return {
           success: false,
-          error: `Depth ${finalDepth} mm exceeds maximum allowed ${depthRange.max} mm for ${def?.name ?? existing.definitionId}.`,
+          error: isZh
+            ? `进深 ${finalDepth} mm 超出${furnitureName}允许的最大尺寸 ${depthRange.max} mm。`
+            : `Depth ${finalDepth} mm exceeds maximum allowed ${depthRange.max} mm for ${furnitureName}.`,
         };
       }
     }
