@@ -185,7 +185,7 @@ export function FloorPlanShell({
   }, [basePlans, recognizedSummary]);
 
   const [activePlanId, setActivePlanId] = React.useState<string>(
-    initialActivePlan?.meta.id ?? plans[0]?.id ?? "floor-plan-std-2b1l-01",
+    initialActivePlan?.meta.id ?? plans[0]?.id ?? "plan-cn-sh-ruidong-2br-67",
   );
   const [selectedEntity, setSelectedEntity] = React.useState<SelectedEntity | null>(null);
 

@@ -1,8 +1,19 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryDraftStorage } from "@/lib/floor-plan/draft-storage";
-import { getStandardPlans } from "@/lib/floor-plan/catalog";
+import { buildStandardPlanSummary } from "@/lib/floor-plan/catalog";
+import { VALID_STANDARD_FLOOR_PLAN } from "@/lib/floor-plan/fixtures/valid-standard-plan";
+import {
+  STUDIO_STANDARD_FLOOR_PLAN,
+  THREE_BED_STANDARD_FLOOR_PLAN,
+} from "@/lib/floor-plan/fixtures/standard-plans";
 import { FloorPlanShell } from "./floor-plan-shell";
+
+const FIXTURE_PLANS = [
+  VALID_STANDARD_FLOOR_PLAN,
+  STUDIO_STANDARD_FLOOR_PLAN,
+  THREE_BED_STANDARD_FLOOR_PLAN,
+].map((plan) => buildStandardPlanSummary(plan));
 
 // Mock ResizeObserver for jsdom
 class MockResizeObserver {
@@ -42,7 +53,7 @@ afterEach(() => {
 
 describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
   it("renders canvas as primary surface and exposes mobile touch-sized mode toggle", () => {
-    render(<FloorPlanShell />);
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
     // Canvas remains primary and visible
     expect(screen.getByTestId("floor-plan-viewer-surface")).toBeInTheDocument();
@@ -63,7 +74,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
   });
 
   it("prevents accidental entity selection and edits when in Pan Mode", () => {
-    render(<FloorPlanShell />);
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
     // Switch to Pan Mode
     const panModeBtn = screen.getByTestId("mode-toggle-pan");
@@ -77,7 +88,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
   });
 
   it("opens mobile bottom properties surface when an entity is selected in Edit Mode", () => {
-    render(<FloorPlanShell />);
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
     // Switch to Edit Mode
     const editModeBtn = screen.getByTestId("mode-toggle-edit");
@@ -106,7 +117,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
 
   it("reaches Room span editing in mobile bottom sheet during draft mode", async () => {
     const storage = new MemoryDraftStorage();
-    render(<FloorPlanShell storage={storage} />);
+    render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
     // Enter draft mode
     const customizeBtn = screen.getByTestId("customize-plan-btn");
@@ -133,7 +144,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
 
   it("reaches Opening position/width editing in mobile bottom sheet", async () => {
     const storage = new MemoryDraftStorage();
-    render(<FloorPlanShell storage={storage} />);
+    render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
     // Enter draft mode
     const customizeBtn = screen.getByTestId("customize-plan-btn");
@@ -160,7 +171,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
 
   it("reaches Furniture catalog palette from mobile action button", async () => {
     const storage = new MemoryDraftStorage();
-    render(<FloorPlanShell storage={storage} />);
+    render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
     // Enter draft mode
     const customizeBtn = screen.getByTestId("customize-plan-btn");
@@ -183,7 +194,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
 
   it("reaches Furniture rotate, delete, and resize in mobile bottom sheet", async () => {
     const storage = new MemoryDraftStorage();
-    render(<FloorPlanShell storage={storage} />);
+    render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
     // Enter draft mode
     const customizeBtn = screen.getByTestId("customize-plan-btn");
@@ -212,7 +223,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
 
   it("exposes Undo and Redo actions on mobile with touch-sized targets", async () => {
     const storage = new MemoryDraftStorage();
-    render(<FloorPlanShell storage={storage} />);
+    render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
     // Enter draft mode
     const customizeBtn = screen.getByTestId("customize-plan-btn");
@@ -232,7 +243,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
 
   it("exposes Spatial Rule Feedback panel in mobile bottom sheet", async () => {
     const storage = new MemoryDraftStorage();
-    render(<FloorPlanShell storage={storage} />);
+    render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
     // Mobile Rules button exists with >= 44px touch target
     const mobileRulesBtn = screen.getByTestId("mobile-rules-btn");
@@ -247,7 +258,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
 
   it("exposes Export JSON action on mobile with touch-sized target", async () => {
     const storage = new MemoryDraftStorage();
-    render(<FloorPlanShell storage={storage} />);
+    render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
     // Enter draft mode
     const customizeBtn = screen.getByTestId("customize-plan-btn");
@@ -269,7 +280,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
 
   describe("Mobile Workflow Decision Flow & Touch Ergonomics (AC-23)", () => {
     it("keeps canvas as primary surface and completes 4-stage workflow in mobile bottom panel", () => {
-      render(<FloorPlanShell isMobile={true} />);
+      render(<FloorPlanShell isMobile={true} initialPlans={FIXTURE_PLANS} />);
 
       // 1. Canvas is primary surface
       expect(screen.getByTestId("floor-plan-viewer-surface")).toBeInTheDocument();
@@ -315,7 +326,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
     });
 
     it("ensures critical touch targets on mobile are at least 44x44 CSS pixels", () => {
-      render(<FloorPlanShell isMobile={true} />);
+      render(<FloorPlanShell isMobile={true} initialPlans={FIXTURE_PLANS} />);
 
       // Stepper buttons
       const stepPlan = screen.getByTestId("stage-step-plan");
