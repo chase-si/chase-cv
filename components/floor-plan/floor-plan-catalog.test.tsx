@@ -77,20 +77,24 @@ describe("FloorPlanCatalog (AC-1)", () => {
       />,
     );
 
-    // Filter by studio
+    const studioPlans = plans.filter((p) => p.categoryKey === "studio");
+    const threeBrPlans = plans.filter((p) => p.categoryKey === "3b1l" || p.categoryKey === "3b2l");
+    expect(studioPlans.length).toBeGreaterThan(0);
+    expect(threeBrPlans.length).toBeGreaterThan(0);
+
     const studioFilterBtn = screen.getByTestId("catalog-filter-studio");
-    expect(studioFilterBtn).toHaveTextContent("Studio (4)");
+    expect(studioFilterBtn).toHaveTextContent(`Studio (${studioPlans.length})`);
     fireEvent.click(studioFilterBtn);
 
-    expect(screen.getByTestId("plan-name-floor-plan-cn-studio-01")).toBeInTheDocument();
-    expect(screen.queryByTestId("plan-name-floor-plan-cn-3b1l-01")).not.toBeInTheDocument();
+    expect(screen.getByTestId(`plan-name-${studioPlans[0].id}`)).toBeInTheDocument();
+    expect(screen.queryByTestId(`plan-name-${threeBrPlans[0].id}`)).not.toBeInTheDocument();
 
     // Toggle off or click All to restore
     const allFilterBtn = screen.getByTestId("catalog-filter-all");
     expect(allFilterBtn).toHaveTextContent(`All (${plans.length})`);
     fireEvent.click(allFilterBtn);
 
-    expect(screen.getByTestId("plan-name-floor-plan-cn-studio-01")).toBeInTheDocument();
-    expect(screen.getByTestId("plan-name-floor-plan-cn-3b1l-01")).toBeInTheDocument();
+    expect(screen.getByTestId(`plan-name-${studioPlans[0].id}`)).toBeInTheDocument();
+    expect(screen.getByTestId(`plan-name-${threeBrPlans[0].id}`)).toBeInTheDocument();
   });
 });
