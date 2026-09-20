@@ -20,6 +20,8 @@ afterEach(() => {
 describe("FloorPlanSelectorDialog (AC-2)", () => {
   const plans = getStandardPlans("en");
   const i18n = getFloorPlanI18n("en");
+  const activePlanId = plans[0]!.id;
+  const alternatePlan = plans.find((p) => p.id !== activePlanId) ?? plans[1]!;
 
   it("does not render popup when open is false", () => {
     render(
@@ -27,7 +29,7 @@ describe("FloorPlanSelectorDialog (AC-2)", () => {
         open={false}
         onOpenChange={vi.fn()}
         plans={plans}
-        activePlanId="floor-plan-std-2b1l-01"
+        activePlanId={activePlanId}
         onSelectPlan={vi.fn()}
         t={i18n.t}
       />,
@@ -45,7 +47,7 @@ describe("FloorPlanSelectorDialog (AC-2)", () => {
         open={true}
         onOpenChange={handleOpenChange}
         plans={plans}
-        activePlanId="floor-plan-std-2b1l-01"
+        activePlanId={activePlanId}
         onSelectPlan={handleSelectPlan}
         t={i18n.t}
       />,
@@ -59,11 +61,11 @@ describe("FloorPlanSelectorDialog (AC-2)", () => {
     // Reuses FloorPlanCatalog inside
     expect(screen.getByTestId("floor-plan-catalog")).toBeInTheDocument();
 
-    // Select studio plan
-    const studioOpenBtn = screen.getByTestId("open-plan-btn-floor-plan-std-studio-01");
-    fireEvent.click(studioOpenBtn);
+    // Select an alternate plan
+    const openBtn = screen.getByTestId(`open-plan-btn-${alternatePlan.id}`);
+    fireEvent.click(openBtn);
 
-    expect(handleSelectPlan).toHaveBeenCalledWith("floor-plan-std-studio-01");
+    expect(handleSelectPlan).toHaveBeenCalledWith(alternatePlan.id);
     expect(handleOpenChange).toHaveBeenCalledWith(false);
   });
 
@@ -75,7 +77,7 @@ describe("FloorPlanSelectorDialog (AC-2)", () => {
         open={true}
         onOpenChange={handleOpenChange}
         plans={plans}
-        activePlanId="floor-plan-std-2b1l-01"
+        activePlanId={activePlanId}
         onSelectPlan={vi.fn()}
         t={i18n.t}
       />,

@@ -41,14 +41,15 @@ test.describe("Floor Plan Two-Pane Furniture Decision Journey (Issue #206)", () 
     await expect(page.getByTestId("inspector-wall-details")).not.toBeVisible();
     await expect(page.getByTestId("inspector-furniture-details")).not.toBeVisible();
 
-    // 2. Open floor plan selector dialog and pick standard plan (e.g. floor-plan-std-2b1l-01)
+    // 2. Open floor plan selector dialog and pick a Chinese 2BR plan
     await page.getByTestId("open-plan-selector-btn").click();
     const catalogDialog = page.getByTestId("floor-plan-catalog");
     await expect(catalogDialog).toBeVisible();
 
-    const planCard = page.getByTestId("catalog-plan-card-floor-plan-std-2b1l-01");
+    const planId = "plan-cn-sh-ruidong-2br-67";
+    const planCard = page.getByTestId(`catalog-plan-card-${planId}`);
     await expect(planCard).toBeVisible();
-    await page.getByTestId("open-plan-btn-floor-plan-std-2b1l-01").click();
+    await page.getByTestId(`open-plan-btn-${planId}`).click();
 
     // Modal dialog closes and selected standard plan is loaded
     await expect(catalogDialog).not.toBeVisible();
@@ -64,7 +65,7 @@ test.describe("Floor Plan Two-Pane Furniture Decision Journey (Issue #206)", () 
     await expect(roomStep).toHaveAttribute("aria-current", "step");
     await expect(page.getByTestId("stage-room-panel")).toBeVisible();
 
-    // Select target room: pick bedroom (r2)
+    // Select target room: pick bedroom (r2 次卧)
     const roomR2 = page.getByTestId("room-item-r2");
     await expect(roomR2).toBeVisible();
     await roomR2.click();
@@ -72,7 +73,7 @@ test.describe("Floor Plan Two-Pane Furniture Decision Journey (Issue #206)", () 
 
     // Target room details reflect selection
     await expect(page.getByTestId("target-room-details")).toBeVisible();
-    await expect(page.getByTestId("target-room-name")).toContainText("Master Bedroom");
+    await expect(page.getByTestId("target-room-name")).toContainText("次卧");
 
     // Advance to Furniture stage
     await page.getByTestId("next-to-furniture-btn").click();

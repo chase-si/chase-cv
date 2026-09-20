@@ -1,12 +1,23 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryDraftStorage } from "@/lib/floor-plan/draft-storage";
-import { getStandardPlans } from "@/lib/floor-plan/catalog";
 import { createOrResumeUserPlan } from "@/lib/floor-plan/user-plan";
 import { validateFloorPlan } from "@/lib/floor-plan/validators";
 import { VALID_STANDARD_FLOOR_PLAN } from "@/lib/floor-plan/fixtures/valid-standard-plan";
+import {
+  STUDIO_STANDARD_FLOOR_PLAN,
+  THREE_BED_STANDARD_FLOOR_PLAN,
+} from "@/lib/floor-plan/fixtures/standard-plans";
+import { buildStandardPlanSummary } from "@/lib/floor-plan/catalog";
 import type { FloorPlan } from "@/lib/floor-plan/types";
 import { FloorPlanShell } from "./floor-plan-shell";
+
+/** Editor fixtures with furniture — used by shell integration tests (catalog UI uses the 50 CN plans). */
+const FIXTURE_PLANS = [
+  VALID_STANDARD_FLOOR_PLAN,
+  STUDIO_STANDARD_FLOOR_PLAN,
+  THREE_BED_STANDARD_FLOOR_PLAN,
+].map((plan) => buildStandardPlanSummary(plan));
 
 // Mock ResizeObserver for jsdom
 class MockResizeObserver {
@@ -31,7 +42,7 @@ afterEach(() => {
 
 describe("FloorPlanShell Integration", () => {
   it("renders ToolPageChrome header, 4-stage stepper, 2-pane workspace, and inspector", () => {
-    render(<FloorPlanShell />);
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
     expect(
       screen.getByRole("heading", { level: 1, name: "Floor Plan Space Validator" }),
@@ -44,7 +55,7 @@ describe("FloorPlanShell Integration", () => {
   });
 
   it("AC-2: browses and selects standard plan from on-demand selector dialog, updating canvas and summary", () => {
-    render(<FloorPlanShell />);
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
     // Catalog is not permanently taking up space in the desktop layout
     expect(screen.queryByTestId("floor-plan-selector-dialog")).not.toBeInTheDocument();
@@ -74,7 +85,7 @@ describe("FloorPlanShell Integration", () => {
   });
 
   it("AC-26: selects wall on canvas without expanding details in main workflow, and opens details in Advanced Tools", () => {
-    render(<FloorPlanShell />);
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
     // Initially shows plan summary
     expect(screen.getByTestId("inspector-plan-summary")).toBeInTheDocument();
@@ -108,7 +119,7 @@ describe("FloorPlanShell Integration", () => {
 
   describe("AC-3: Starting calibration or adding furniture automatically creates User plan while Standard plan remains unchanged", () => {
     it("automatically creates User plan when starting calibration without requiring customize-plan button", async () => {
-      const standardPlans = getStandardPlans();
+      const standardPlans = FIXTURE_PLANS;
       const standardPlan = standardPlans[0].plan;
       const initialStandardJson = JSON.stringify(standardPlan);
 
@@ -142,7 +153,7 @@ describe("FloorPlanShell Integration", () => {
     });
 
     it("automatically creates User plan when adding furniture directly without requiring customize-plan button", async () => {
-      const standardPlans = getStandardPlans();
+      const standardPlans = FIXTURE_PLANS;
       const standardPlan = standardPlans[0].plan;
       const initialStandardJson = JSON.stringify(standardPlan);
 
@@ -170,7 +181,7 @@ describe("FloorPlanShell Integration", () => {
   describe("AC-15: Autosave, Status Badge, Restore Prompt & Restart", () => {
     it("automatically persists edits into storage with saved status badge", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // Start customize
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
@@ -196,7 +207,7 @@ describe("FloorPlanShell Integration", () => {
 
     it("displays restore prompt banner when standard plan has an existing draft", async () => {
       const storage = new MemoryDraftStorage();
-      const standardPlans = getStandardPlans();
+      const standardPlans = FIXTURE_PLANS;
       const template = standardPlans[0].plan;
       const existingDraft = createOrResumeUserPlan(template);
       existingDraft.meta.name = "Pre-existing Stored Draft";
@@ -224,7 +235,7 @@ describe("FloorPlanShell Integration", () => {
 
     it("restarts from template when clicking restart button, removing draft from storage", async () => {
       const storage = new MemoryDraftStorage();
-      const standardPlans = getStandardPlans();
+      const standardPlans = FIXTURE_PLANS;
       const template = standardPlans[0].plan;
       const existingDraft = createOrResumeUserPlan(template);
       existingDraft.meta.name = "Draft To Be Discarded";
@@ -249,7 +260,7 @@ describe("FloorPlanShell Integration", () => {
 
   describe("AC-7: Skip calibration and proceed to room stage", () => {
     it("allows user to proceed from plan stage to room stage without modifying any dimensions", () => {
-      render(<FloorPlanShell />);
+      render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
       // Initially in plan stage
       expect(screen.getByTestId("stage-step-plan")).toHaveAttribute("aria-current", "step");
@@ -274,7 +285,7 @@ describe("FloorPlanShell Integration", () => {
   describe("AC-16: Download / Export current User plan as valid JSON", () => {
     it("exports current User plan as JSON that passes canonical validateFloorPlan", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // Start customize
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
@@ -307,7 +318,7 @@ describe("FloorPlanShell Integration", () => {
   describe("AC-6 & AC-7: Room Span Editing in FloorPlanShell", () => {
     it("adjusts room span in draft mode, updates canvas room area and dimensions, and autosaves to storage", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // 1. Enter draft mode
       const customizeBtn = screen.getByTestId("customize-plan-btn");
@@ -349,7 +360,7 @@ describe("FloorPlanShell Integration", () => {
 
     it("prevents committing invalid dimension and shows error message without mutating plan in storage", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // Enter draft mode
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
@@ -384,7 +395,7 @@ describe("FloorPlanShell Integration", () => {
   describe("AC-9: Move and resize wall-bound openings in draft mode", () => {
     it("edits opening width and position, autosaving the updated User plan", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // 1. Enter draft mode
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
@@ -425,7 +436,7 @@ describe("FloorPlanShell Integration", () => {
   describe("AC-10: Browse configured furniture categories and add an item with default dimensions", () => {
     it("opens furniture catalog palette, filters by category, and adds furniture instance", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // 1. Enter draft mode
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
@@ -466,7 +477,7 @@ describe("FloorPlanShell Integration", () => {
   describe("AC-11: Manipulate furniture: rotate 90°, resize with limits/preview, and delete", () => {
     it("rotates, resizes with immediate preview, and deletes furniture", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // 1. Enter draft mode
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
@@ -525,7 +536,7 @@ describe("FloorPlanShell Integration", () => {
   describe("AC-8: Undo and Redo all committed plan edits in FloorPlanShell", () => {
     it("renders undo and redo buttons with disabled states initially, enabling undo upon mutation", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // Enter draft mode
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
@@ -569,7 +580,7 @@ describe("FloorPlanShell Integration", () => {
 
     it("undoes and redoes room span adjustments and keeps storage persistence in sync", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // Enter draft mode
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
@@ -616,7 +627,7 @@ describe("FloorPlanShell Integration", () => {
 
     it("undoes and redoes opening move and resize operations", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // Enter draft mode
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
@@ -660,7 +671,7 @@ describe("FloorPlanShell Integration", () => {
 
     it("undoes and redoes furniture manipulation operations (rotate, delete)", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // Enter draft mode
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
@@ -728,7 +739,7 @@ describe("FloorPlanShell Integration", () => {
 
     it("triggers undo and redo via keyboard shortcuts (Cmd+Z / Ctrl+Z and Cmd+Shift+Z / Ctrl+Shift+Z / Ctrl+Y)", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // Enter draft mode
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
@@ -783,7 +794,7 @@ describe("FloorPlanShell Integration", () => {
 
     it("does not trigger plan undo via shortcut when focused inside an input element", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // Enter draft mode
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
@@ -817,7 +828,7 @@ describe("FloorPlanShell Integration", () => {
 
     it("creates exactly one history entry for a continuous pointer drag gesture", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // Enter draft mode
       fireEvent.click(screen.getByTestId("customize-plan-btn"));
@@ -856,7 +867,7 @@ describe("FloorPlanShell Integration", () => {
   describe("AC-12 & AC-14: Report furniture boundary and overlap violations in FloorPlanShell", () => {
     it("reports violations via header badge, inspector panel, and canvas indicators", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // Switch to studio plan (which has 0 violations initially)
       fireEvent.click(screen.getByTestId("open-plan-selector-btn"));
@@ -900,7 +911,7 @@ describe("FloorPlanShell Integration", () => {
 
   describe("AC-8: Target Room Selection Synchronized Between Canvas and Room List", () => {
     it("sets the same target room from canvas click or room list item, synchronously reflecting highlight, name, area, and main spans", async () => {
-      render(<FloorPlanShell />);
+      render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
       // Room list is rendered
       expect(screen.getByTestId("room-list")).toBeInTheDocument();
@@ -947,7 +958,7 @@ describe("FloorPlanShell Integration", () => {
   describe("AC-5: Room Span Modification in Plan Stage", () => {
     it("allows viewing and modifying width/depth in plan stage, synchronously updating dimensions, area, canvas, and draft in storage", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // In plan stage
       expect(screen.getByTestId("stage-step-plan")).toHaveAttribute("aria-current", "step");
@@ -981,7 +992,7 @@ describe("FloorPlanShell Integration", () => {
   describe("AC-6: Invalid Room Span Adjustments Rejected", () => {
     it("displays readable error reason and does not modify canvas, history, or saved draft", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // Select room r1
       fireEvent.click(screen.getByTestId("room-item-r1"));
@@ -1013,7 +1024,7 @@ describe("FloorPlanShell Integration", () => {
 
   describe("AC-9: Switching Target Room Clears Previous Target Furniture and Returns to Furniture Stage", () => {
     it("clears old target furniture and transitions back to furniture stage when user switches target room", async () => {
-      render(<FloorPlanShell />);
+      render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
       // Select room r1 (Living Room)
       fireEvent.click(screen.getByTestId("room-item-r1"));
@@ -1048,7 +1059,7 @@ describe("FloorPlanShell Integration", () => {
 
   describe("Issue #201: Add Room Context Furniture & Establish Target (AC-10, AC-11, AC-12, AC-13, AC-22)", () => {
     it("AC-10: displays bed options and default dimensions when target room is master_bedroom or bedroom", async () => {
-      render(<FloorPlanShell />);
+      render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
       // Select Master Bedroom (r2)
       fireEvent.click(screen.getByTestId("room-item-r2"));
@@ -1071,7 +1082,7 @@ describe("FloorPlanShell Integration", () => {
     });
 
     it("AC-11: displays sofa options and default dimensions when target room is living_room", async () => {
-      render(<FloorPlanShell />);
+      render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
       // Select Living Room (r1)
       fireEvent.click(screen.getByTestId("room-item-r1"));
@@ -1095,7 +1106,7 @@ describe("FloorPlanShell Integration", () => {
 
     it("AC-12: enters full furniture catalog from context recommendation and adds any definition", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // Select Living Room (r1)
       fireEvent.click(screen.getByTestId("room-item-r1"));
@@ -1136,7 +1147,7 @@ describe("FloorPlanShell Integration", () => {
 
     it("AC-13: adds furniture with deterministic initial drop position, creates valid instance, saves to User plan, and sets as active target", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} />);
+      render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
 
       // Select Master Bedroom (r2)
       fireEvent.click(screen.getByTestId("room-item-r2"));
@@ -1175,7 +1186,7 @@ describe("FloorPlanShell Integration", () => {
     });
 
     it("AC-22: changing floor plan clears old room and target furniture and returns to room selection stage", async () => {
-      render(<FloorPlanShell />);
+      render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
       // 1. Select room r1 (Living Room)
       fireEvent.click(screen.getByTestId("room-item-r1"));
@@ -1202,7 +1213,7 @@ describe("FloorPlanShell Integration", () => {
     });
 
     it("AC-22: changing target furniture makes new furniture the sole target driving main decision", async () => {
-      render(<FloorPlanShell />);
+      render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
       // Select Living Room (r1)
       fireEvent.click(screen.getByTestId("room-item-r1"));
@@ -1227,7 +1238,7 @@ describe("FloorPlanShell Integration", () => {
     });
 
     it("renders context furniture in Chinese (zh) without dictionary missing keys", async () => {
-      render(<FloorPlanShell locale="zh" />);
+      render(<FloorPlanShell locale="zh" initialPlans={FIXTURE_PLANS} />);
 
       fireEvent.click(screen.getByTestId("room-item-r2"));
       fireEvent.click(screen.getByTestId("skip-calibration-btn"));
@@ -1626,7 +1637,7 @@ describe("FloorPlanShell Integration", () => {
 
   describe("Issue #204: Shelve Expert Editing Tools into Advanced Menu (AC-26)", () => {
     it("default main workflow panel does not expand rules, wall/opening properties, full furniture catalog, export, or reset", () => {
-      render(<FloorPlanShell isMobile={false} />);
+      render(<FloorPlanShell isMobile={false} initialPlans={FIXTURE_PLANS} />);
 
       // 1. Rules panel is not expanded in the main context panel
       expect(screen.queryByTestId("rule-feedback-panel")).not.toBeInTheDocument();
@@ -1649,7 +1660,7 @@ describe("FloorPlanShell Integration", () => {
 
     it("accesses and operates all 5 capabilities through Advanced Tools dialog", async () => {
       const storage = new MemoryDraftStorage();
-      render(<FloorPlanShell storage={storage} isMobile={false} />);
+      render(<FloorPlanShell storage={storage} isMobile={false} initialPlans={FIXTURE_PLANS} />);
 
       // Open Advanced Tools via the context pane button
       fireEvent.click(screen.getByTestId("open-advanced-tools-btn"));
@@ -1688,7 +1699,7 @@ describe("FloorPlanShell Integration", () => {
     });
 
     it("opens structure tools directly when clicking open-structure-tools-btn from structure banner", () => {
-      render(<FloorPlanShell isMobile={false} />);
+      render(<FloorPlanShell isMobile={false} initialPlans={FIXTURE_PLANS} />);
 
       // Click wall on canvas
       const wall = screen.getByTestId("floor-plan-wall-w1");
@@ -1706,7 +1717,7 @@ describe("FloorPlanShell Integration", () => {
 
   describe("AC-24: Accessible names, programmatic selection, visible focus, and keyboard position adjustment", () => {
     it("provides accessible names, visible focus classes, and programmatic selection state across main workflow", async () => {
-      render(<FloorPlanShell isMobile={false} />);
+      render(<FloorPlanShell isMobile={false} initialPlans={FIXTURE_PLANS} />);
 
       // Stepper accessibility
       const stepper = screen.getByTestId("floor-plan-stage-stepper");
@@ -1759,7 +1770,7 @@ describe("FloorPlanShell Integration", () => {
     });
 
     it("nudges selected furniture position via Arrow keys (not drag only)", async () => {
-      render(<FloorPlanShell isMobile={false} />);
+      render(<FloorPlanShell isMobile={false} initialPlans={FIXTURE_PLANS} />);
 
       // Advance to furniture stage and add a furniture
       fireEvent.click(screen.getByTestId("skip-calibration-btn"));
@@ -1799,7 +1810,7 @@ describe("FloorPlanShell Integration", () => {
     });
 
     it("provides coordinate step / nudge buttons in FurnitureEditor with 44px touch targets", () => {
-      render(<FloorPlanShell isMobile={false} />);
+      render(<FloorPlanShell isMobile={false} initialPlans={FIXTURE_PLANS} />);
 
       // Select existing sofa f1
       const sofa = screen.getByTestId("floor-plan-furniture-f1");

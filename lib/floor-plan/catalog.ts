@@ -49,6 +49,62 @@ export function formatRoomBreakdown(plan: StandardFloorPlan, locale?: string): s
   return i18n.formatRoomBreakdown(plan);
 }
 
+function countBedrooms(plan: StandardFloorPlan): number {
+  return plan.rooms.filter(
+    (r) => r.type === "bedroom" || r.type === "master_bedroom",
+  ).length;
+}
+
+function countLivingAreas(plan: StandardFloorPlan): number {
+  return plan.rooms.filter(
+    (r) => r.type === "living_room" || r.type === "dining_room",
+  ).length;
+}
+
+/** Parse `1br` / `2br0` / `3br` style tokens from realistic Chinese plan IDs. */
+function parseBrToken(id: string): { bedrooms: number; livingHint: number | null } | null {
+  const match = id.match(/(?:^|-)(\d)br(0?)(?:-|$)/i);
+  if (!match) return null;
+  const bedrooms = Number(match[1]);
+  const livingHint = match[2] === "0" ? 0 : null;
+  return { bedrooms, livingHint };
+}
+
+function categoryFromCounts(
+  bedroomCount: number,
+  livingCount: number,
+): FloorPlanCategoryKey {
+  if (bedroomCount === 0 || (bedroomCount === 1 && livingCount === 0)) return "studio";
+  if (bedroomCount === 1) return "1b1l";
+  if (bedroomCount === 2) return livingCount >= 2 ? "2b2l" : "2b1l";
+  if (bedroomCount === 3) return livingCount >= 2 ? "3b2l" : "3b1l";
+  return "4b_plus";
+}
+
+function tagFromCounts(
+  bedroomCount: number,
+  livingCount: number,
+  isZh: boolean,
+): string[] {
+  if (bedroomCount === 0 || (bedroomCount === 1 && livingCount === 0)) {
+    return [isZh ? "开间" : "Studio"];
+  }
+  if (bedroomCount === 1) return [isZh ? "一室一厅" : "1B1L"];
+  if (bedroomCount === 2) {
+    return livingCount >= 2
+      ? [isZh ? "两室两厅" : "2B2L"]
+      : [isZh ? "两室一厅" : "2B1L"];
+  }
+  if (bedroomCount === 3) {
+    return livingCount >= 2
+      ? [isZh ? "三室两厅" : "3B2L"]
+      : [isZh ? "三室一厅" : "3B1L"];
+  }
+  if (bedroomCount === 4) return [isZh ? "四室两厅" : "4B2L"];
+  if (bedroomCount === 5) return [isZh ? "五室两厅" : "5B2L"];
+  return [isZh ? "四室及以上" : "4B+"];
+}
+
 export function resolvePlanCategory(plan: StandardFloorPlan): FloorPlanCategoryKey {
   const id = (plan.meta.id ?? "").toLowerCase();
   if (id.includes("studio")) return "studio";
@@ -57,16 +113,16 @@ export function resolvePlanCategory(plan: StandardFloorPlan): FloorPlanCategoryK
   if (id.includes("2b2l")) return "2b2l";
   if (id.includes("3b1l")) return "3b1l";
   if (id.includes("3b2l")) return "3b2l";
-  if (id.includes("4b2l") || id.includes("5b2l") || id.includes("4b") || id.includes("5b")) return "4b_plus";
+  if (id.includes("4b2l") || id.includes("5b2l")) return "4b_plus";
 
-  const bedroomCount = plan.rooms.filter((r) =>
-    r.type === "bedroom" || r.type === "master_bedroom"
-  ).length;
-  if (bedroomCount === 0) return "studio";
-  if (bedroomCount === 1) return "1b1l";
-  if (bedroomCount === 2) return "2b1l";
-  if (bedroomCount === 3) return "3b1l";
-  return "4b_plus";
+  const br = parseBrToken(id);
+  const bedroomCount = br?.bedrooms ?? countBedrooms(plan);
+  const livingCount =
+    br?.livingHint !== null && br?.livingHint !== undefined
+      ? br.livingHint
+      : countLivingAreas(plan);
+
+  return categoryFromCounts(bedroomCount, livingCount);
 }
 
 export function resolvePlanTags(plan: StandardFloorPlan, locale?: string): string[] {
@@ -98,14 +154,14 @@ export function resolvePlanTags(plan: StandardFloorPlan, locale?: string): strin
     return [isZh ? "五室两厅" : "5B2L"];
   }
 
-  const bedroomCount = plan.rooms.filter((r) =>
-    r.type === "bedroom" || r.type === "master_bedroom"
-  ).length;
-  if (bedroomCount === 0) return [isZh ? "开间" : "Studio"];
-  if (bedroomCount === 1) return [isZh ? "一室一厅" : "1B1L"];
-  if (bedroomCount === 2) return [isZh ? "两室一厅" : "2B1L"];
-  if (bedroomCount === 3) return [isZh ? "三室一厅" : "3B1L"];
-  return [isZh ? "四室及以上" : "4B+"];
+  const br = parseBrToken(id);
+  const bedroomCount = br?.bedrooms ?? countBedrooms(plan);
+  const livingCount =
+    br?.livingHint !== null && br?.livingHint !== undefined
+      ? br.livingHint
+      : countLivingAreas(plan);
+
+  return tagFromCounts(bedroomCount, livingCount, isZh);
 }
 
 export function buildStandardPlanSummary(plan: StandardFloorPlan, locale?: string): StandardPlanSummary {
