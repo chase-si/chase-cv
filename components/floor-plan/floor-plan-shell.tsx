@@ -81,44 +81,40 @@ export interface FloorPlanShellProps {
 }
 
 export function useIsMobile(propIsMobile?: boolean): boolean {
-  const [isMobile, setIsMobile] = React.useState<boolean>(() => {
+  const subscribe = React.useCallback(
+    (onStoreChange: () => void) => {
+      if (typeof window === "undefined" || propIsMobile !== undefined) {
+        return () => {};
+      }
+      if (typeof window.matchMedia !== "function") {
+        window.addEventListener("resize", onStoreChange);
+        return () => window.removeEventListener("resize", onStoreChange);
+      }
+      const mql = window.matchMedia("(max-width: 1023px)");
+      mql.addEventListener("change", onStoreChange);
+      window.addEventListener("resize", onStoreChange);
+      return () => {
+        mql.removeEventListener("change", onStoreChange);
+        window.removeEventListener("resize", onStoreChange);
+      };
+    },
+    [propIsMobile],
+  );
+
+  const getSnapshot = React.useCallback(() => {
     if (propIsMobile !== undefined) return propIsMobile;
-    if (typeof window !== "undefined") {
-      if (typeof window.matchMedia === "function") {
-        return window.matchMedia("(max-width: 1023px)").matches;
-      }
-      return window.innerWidth < 1024;
+    if (typeof window === "undefined") return false;
+    if (typeof window.matchMedia === "function") {
+      return window.matchMedia("(max-width: 1023px)").matches;
     }
-    return false;
-  });
-
-  React.useEffect(() => {
-    if (propIsMobile !== undefined) {
-      setIsMobile(propIsMobile);
-      return;
-    }
-
-    const checkMobile = () => {
-      if (typeof window !== "undefined") {
-        if (typeof window.matchMedia === "function") {
-          return window.matchMedia("(max-width: 1023px)").matches;
-        }
-        return window.innerWidth < 1024;
-      }
-      return false;
-    };
-
-    setIsMobile(checkMobile());
-
-    const handleResize = () => {
-      setIsMobile(checkMobile());
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    return window.innerWidth < 1024;
   }, [propIsMobile]);
 
-  return propIsMobile ?? isMobile;
+  const getServerSnapshot = React.useCallback(() => {
+    return propIsMobile ?? false;
+  }, [propIsMobile]);
+
+  return React.useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
 export function FloorPlanShell({
@@ -340,7 +336,9 @@ export function FloorPlanShell({
     (roomId: string) => {
       const isDifferentRoom = targetRoomId !== null && targetRoomId !== roomId;
       setTargetRoomId(roomId);
-      setSelectedEntity({ type: "room", id: roomId });
+      if (!isMobile) {
+        setSelectedEntity({ type: "room", id: roomId });
+      }
 
       if (isDifferentRoom) {
         // AC-9: When user switches target room, old target furniture no longer drives current decision
@@ -351,26 +349,33 @@ export function FloorPlanShell({
         }
       }
     },
-    [targetRoomId, currentStage],
+    [targetRoomId, currentStage, isMobile],
   );
 
   const handleSelectEntity = React.useCallback(
     (entity: SelectedEntity | null) => {
       if (entity?.type === "room") {
         handleSelectTargetRoom(entity.id);
+        if (isDraftMode) {
+          setSelectedEntity(entity);
+        }
       } else {
         setSelectedEntity(entity);
         if (entity?.type === "furniture") {
           setTargetFurnitureId(entity.id);
         }
       }
-      if (entity) {
+      if (
+        entity &&
+        currentStage !== "decision" &&
+        (entity.type !== "room" || isDraftMode)
+      ) {
         setMobileSheetType("entity");
       } else {
         setMobileSheetType((prev) => (prev === "entity" ? null : prev));
       }
     },
-    [handleSelectTargetRoom],
+    [handleSelectTargetRoom, currentStage, isDraftMode],
   );
 
   const handleCloseMobileSheet = React.useCallback(() => {
@@ -420,16 +425,11 @@ export function FloorPlanShell({
   }, []);
 
   // Select workflow stage
-  const handleSelectStage = React.useCallback(
-    (stage: WorkflowStage) => {
-      setCurrentStage(stage);
-      setSelectedEntity(null);
-      if (isMobile && stage === "decision") {
-        setMobileSheetType("decision");
-      }
-    },
-    [isMobile],
-  );
+  const handleSelectStage = React.useCallback((stage: WorkflowStage) => {
+    setCurrentStage(stage);
+    setSelectedEntity(null);
+    setMobileSheetType(null);
+  }, []);
 
   // Update plan in draft mode with autosave (AC-3: auto convert standard plan if needed)
   const handleUpdatePlan = React.useCallback(
@@ -724,7 +724,7 @@ export function FloorPlanShell({
     return null;
   }
 
-  const isMobileSheetOpen = isMobile && (selectedEntity !== null || mobileSheetType !== null);
+  const isMobileSheetOpen = isMobile && mobileSheetType !== null;
 
   const mobileSheetTitle = React.useMemo(() => {
     if (selectedEntity) {
