@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("Floor Plan SVG Viewer & Catalog (Issue #175)", () => {
+test.describe("Floor Plan SVG Viewer & Catalog (Issue #175 & #206)", () => {
   test("AC-1: catalog displays approved standard plans with thumbnail, name, area, room counts, and tags, and opens selected plan", async ({
     page,
   }) => {
@@ -11,7 +11,8 @@ test.describe("Floor Plan SVG Viewer & Catalog (Issue #175)", () => {
       page.getByRole("heading", { level: 1, name: "Floor Plan Space Validator" }),
     ).toBeVisible();
 
-    // Catalog is present
+    // Catalog is opened on-demand via selector dialog (AC-1, AC-2)
+    await page.getByTestId("open-plan-selector-btn").click();
     const catalog = page.getByTestId("floor-plan-catalog");
     await expect(catalog).toBeVisible();
 
@@ -33,13 +34,14 @@ test.describe("Floor Plan SVG Viewer & Catalog (Issue #175)", () => {
     const studioOpenBtn = page.getByTestId("open-plan-btn-floor-plan-std-studio-01");
     await studioOpenBtn.click();
 
-    // Active plan card changes
+    // Canvas renders studio rooms.
+    await expect(page.getByTestId("floor-plan-room-sr1")).toBeVisible();
+
+    // Reopen selector to verify active plan card attribute
+    await page.getByTestId("open-plan-selector-btn").click();
     await expect(
       page.getByTestId("catalog-plan-card-floor-plan-std-studio-01"),
     ).toHaveAttribute("data-active-plan", "true");
-
-    // Canvas renders studio rooms.
-    await expect(page.getByTestId("floor-plan-room-sr1")).toBeVisible();
   });
 
   test("AC-3: valid FloorPlan renders walls, ordered room boundaries, openings, furniture, and principal dimensions consistently", async ({
@@ -118,39 +120,40 @@ test.describe("Floor Plan SVG Viewer & Catalog (Issue #175)", () => {
     const wall5 = page.getByTestId("floor-plan-wall-w5");
     await wall5.click();
     await expect(wall5).toHaveAttribute("data-selected", "true");
+    await expect(page.getByTestId("selected-structure-banner")).toBeVisible();
+    await page.getByTestId("open-structure-tools-btn").click();
     await expect(page.getByTestId("inspector-wall-details")).toBeVisible();
     await expect(page.getByTestId("inspector-wall-details")).toContainText("3000 mm");
-
-    // Select entity: room
-    const room1 = page.getByTestId("floor-plan-room-r1");
-    await room1.click();
-    await expect(room1).toHaveAttribute("data-selected", "true");
-    await expect(page.getByTestId("inspector-room-details")).toBeVisible();
-    await expect(page.getByTestId("inspector-room-details")).toContainText("Living Room");
+    await page.keyboard.press("Escape");
 
     // Select entity: opening
     const window1 = page.getByTestId("floor-plan-opening-win1");
     await window1.click();
     await expect(window1).toHaveAttribute("data-selected", "true");
+    await expect(page.getByTestId("selected-structure-banner")).toBeVisible();
+    await page.getByTestId("open-structure-tools-btn").click();
     await expect(page.getByTestId("inspector-opening-details")).toBeVisible();
     await expect(page.getByTestId("inspector-opening-details")).toContainText("1500 mm");
+    await page.keyboard.press("Escape");
 
-    // Select entity: furniture
+    // Advance to room stage & select room
+    await page.getByTestId("skip-calibration-btn").click();
+    const room1 = page.getByTestId("floor-plan-room-r1");
+    await room1.click();
+    await expect(room1).toHaveAttribute("data-selected", "true");
+    await expect(page.getByTestId("target-room-details")).toBeVisible();
+    await expect(page.getByTestId("target-room-details")).toContainText("Living Room");
+
+    // Advance to furniture stage & select furniture
+    await page.getByTestId("next-to-furniture-btn").click();
     const sofa = page.getByTestId("floor-plan-furniture-f1");
     await sofa.click();
     await expect(sofa).toHaveAttribute("data-selected", "true");
     await expect(page.getByTestId("inspector-furniture-details")).toBeVisible();
-    await expect(page.getByTestId("inspector-furniture-details")).toContainText(
-      "sofa-3seat",
-    );
-
-    // Deselect entity
-    const deselectBtn = page.getByTestId("inspector-deselect-btn");
-    await deselectBtn.click();
-    await expect(page.getByTestId("inspector-plan-summary")).toBeVisible();
+    await expect(page.getByTestId("inspector-furniture-details")).toContainText("3-Seat Sofa");
   });
 
-  test("AC-3: mobile viewport renders plan elements and supports tab switching", async ({
+  test("AC-3: mobile viewport renders plan elements and supports modal plan selector", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 375, height: 667 });
@@ -166,18 +169,18 @@ test.describe("Floor Plan SVG Viewer & Catalog (Issue #175)", () => {
     // Save mobile screenshot for visual review
     await page.screenshot({ path: "test-results/floor-plan-mobile.png" });
 
-    // Open catalog in bottom sheet on mobile
-    await page.getByTestId("mobile-catalog-btn").click();
-    const mobileCatalog = page.getByTestId("mobile-bottom-sheet").getByTestId("floor-plan-catalog");
+    // Open catalog in modal selector dialog on mobile
+    await page.getByTestId("toolbar-select-plan-btn").click();
+    const mobileCatalog = page.getByTestId("floor-plan-catalog");
     await expect(mobileCatalog).toBeVisible();
 
-    // Close catalog bottom sheet
-    await page.getByTestId("mobile-bottom-sheet-close").click();
+    // Close catalog selector dialog
+    await page.keyboard.press("Escape");
+    await expect(mobileCatalog).not.toBeVisible();
 
-    // Select entity to open details inspector in bottom sheet on mobile
-    await page.getByTestId("floor-plan-room-r1").click();
-    const mobileInspector = page.getByTestId("mobile-bottom-sheet").getByTestId("floor-plan-inspector");
-    await expect(mobileInspector).toBeVisible();
+    // Workflow stepper & mobile bottom panel are visible
+    await expect(page.getByTestId("floor-plan-stage-stepper")).toBeVisible();
+    await expect(page.getByTestId("mobile-step-panel")).toBeVisible();
   });
 
   test("internal route contract: robots meta has noindex, nofollow", async ({
