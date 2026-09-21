@@ -348,8 +348,8 @@ export interface FloorPlanDictionary {
 }
 
 export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
-  pageTitle: "标准户型空间验证器",
-  pageDescription: "标准户型库浏览与响应式 SVG 空间验证，精确验证房间边界、洞口位置及家具活动间距。",
+  pageTitle: "我家适合买多大的床或沙发？",
+  pageDescription: "选择户型、房间和家具，快速判断尺寸与摆放是否合适。",
   badges: {
     userDraft: "(用户草稿)",
     saved: "已保存",
@@ -691,8 +691,8 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
 };
 
 export const FLOOR_PLAN_EN: FloorPlanDictionary = {
-  pageTitle: "Floor Plan Space Validator",
-  pageDescription: "Browse standard floor plans in responsive SVG viewer, verify room boundaries, openings, and furniture dimensions.",
+  pageTitle: "What size bed or sofa fits my home?",
+  pageDescription: "Choose a floor plan, room, and furniture item to check size and placement.",
   badges: {
     userDraft: "(User Draft)",
     saved: "Saved",

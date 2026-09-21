@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, Compass, LayoutGrid, Armchair, Sparkles } from "lucide-react";
+import { Check } from "lucide-react";
 import type { FloorPlanDictionary } from "@/lib/floor-plan/i18n";
 import { cn } from "@/lib/utils";
 
@@ -18,14 +18,13 @@ export interface FloorPlanWorkflowStepperProps {
 interface StageConfig {
   id: WorkflowStage;
   stepNumber: number;
-  icon: React.ComponentType<{ className?: string }>;
 }
 
 const STAGES: StageConfig[] = [
-  { id: "plan", stepNumber: 1, icon: Compass },
-  { id: "room", stepNumber: 2, icon: LayoutGrid },
-  { id: "furniture", stepNumber: 3, icon: Armchair },
-  { id: "decision", stepNumber: 4, icon: Sparkles },
+  { id: "plan", stepNumber: 1 },
+  { id: "room", stepNumber: 2 },
+  { id: "furniture", stepNumber: 3 },
+  { id: "decision", stepNumber: 4 },
 ];
 
 export function FloorPlanWorkflowStepper({
@@ -51,19 +50,26 @@ export function FloorPlanWorkflowStepper({
       aria-label={t.workflow.stepperAriaLabel || "Floor plan workflow steps"}
       data-testid="floor-plan-stage-stepper"
       className={cn(
-        "flex w-full shrink-0 items-center justify-between rounded-2xl border border-border bg-card p-1.5 shadow-xs overflow-x-auto",
+        "flex w-full shrink-0 items-center justify-between overflow-x-auto border-b border-border/70 bg-background/80 px-1 pb-2",
         className,
       )}
     >
-      <ol className="flex w-full min-w-[320px] items-center gap-1 sm:gap-2">
+      <ol className="flex w-full min-w-[320px] items-center gap-1 sm:gap-3">
         {STAGES.map((stage, idx) => {
           const isActive = currentStage === stage.id;
           const isCompleted = completedStages.includes(stage.id) || idx < currentIndex;
           const isClickable = isCompleted || isActive;
-          const Icon = stage.icon;
-
           return (
-            <li key={stage.id} className="flex-1 min-w-0">
+            <li key={stage.id} className="relative flex-1 min-w-0">
+              {idx > 0 && (
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "absolute right-[calc(50%+1.35rem)] left-[calc(-50%+1.35rem)] top-4 h-px",
+                    idx <= currentIndex ? "bg-primary/50" : "bg-border",
+                  )}
+                />
+              )}
               <button
                 type="button"
                 data-testid={`stage-step-${stage.id}`}
@@ -76,22 +82,22 @@ export function FloorPlanWorkflowStepper({
                   }
                 }}
                 className={cn(
-                  "group relative flex w-full items-center gap-2 rounded-xl px-2 py-1.5 min-h-[44px] text-left text-xs transition-all touch-manipulation",
+                  "group relative z-10 flex w-full items-center justify-center gap-2 rounded-xl px-2 py-1 min-h-[44px] text-left text-xs transition-colors touch-manipulation",
                   "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
                   isActive &&
-                    "bg-primary/10 border border-primary/30 text-foreground font-semibold shadow-xs",
+                    "text-foreground font-semibold",
                   !isActive && isCompleted &&
-                    "hover:bg-muted/60 text-muted-foreground hover:text-foreground cursor-pointer border border-transparent",
+                    "text-muted-foreground hover:text-foreground cursor-pointer",
                   !isActive && !isCompleted &&
-                    "text-muted-foreground/50 cursor-not-allowed border border-transparent opacity-75",
+                    "text-muted-foreground/45 cursor-not-allowed",
                 )}
               >
                 <div
                   className={cn(
-                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-mono font-medium transition-colors",
-                    isActive && "bg-primary text-primary-foreground font-bold shadow-xs",
-                    !isActive && isCompleted && "bg-primary/20 text-primary font-bold",
-                    !isActive && !isCompleted && "bg-muted text-muted-foreground/60",
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-mono font-medium transition-colors",
+                    isActive && "border-primary bg-primary text-primary-foreground font-bold shadow-xs",
+                    !isActive && isCompleted && "border-primary/35 bg-background text-primary font-bold",
+                    !isActive && !isCompleted && "border-border bg-background text-muted-foreground/60",
                   )}
                 >
                   {isCompleted && !isActive ? (
@@ -107,9 +113,7 @@ export function FloorPlanWorkflowStepper({
                       {getStageTitle(stage.id)}
                     </span>
                   </div>
-                  <p className="hidden md:block truncate text-[10px] text-muted-foreground leading-tight mt-0.5 font-normal">
-                    {getStageDesc(stage.id)}
-                  </p>
+                  <p className="hidden xl:block truncate text-[10px] text-muted-foreground leading-tight mt-0.5 font-normal">{getStageDesc(stage.id)}</p>
                 </div>
               </button>
             </li>
