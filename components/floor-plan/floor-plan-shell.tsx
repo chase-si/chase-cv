@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import {
-  Armchair,
   ArrowRight,
+  ChevronDown,
   Compass,
+  PencilRuler,
   SlidersHorizontal,
   Sparkles,
   Wrench,
@@ -60,6 +61,7 @@ import { FurnitureCatalogDialog } from "./furniture-catalog-dialog";
 import { AdvancedToolsDialog, type AdvancedToolsTab } from "./advanced-tools-dialog";
 import { ContextFurniturePanel } from "./context-furniture-panel";
 import { FurnitureDecisionPanel } from "./furniture-decision-panel";
+import { FurnitureDecisionControls } from "./furniture-decision-controls";
 import {
   addFurnitureInstance,
   computeRoomInitialDropPosition,
@@ -79,6 +81,13 @@ export interface FloorPlanShellProps {
   isMobile?: boolean;
   locale?: string;
 }
+
+const WORKFLOW_STAGE_NUMBER: Record<WorkflowStage, number> = {
+  plan: 1,
+  room: 2,
+  furniture: 3,
+  decision: 4,
+};
 
 export function useIsMobile(propIsMobile?: boolean): boolean {
   const subscribe = React.useCallback(
@@ -130,6 +139,9 @@ export function FloorPlanShell({
   const storage = customStorage ?? defaultStorage;
   const i18n = useFloorPlanI18n(locale);
   const t = i18n.t;
+  const isZh = i18n.locale === "zh";
+  const workflowTopRef = React.useRef<HTMLDivElement>(null);
+  const stagePanelScrollRef = React.useRef<HTMLDivElement>(null);
 
   const recognizedSummary = React.useMemo<StandardPlanSummary | null>(() => {
     if (!initialActivePlan) return null;
@@ -215,6 +227,18 @@ export function FloorPlanShell({
   const [isAdvancedToolsOpen, setIsAdvancedToolsOpen] = React.useState<boolean>(false);
   const [advancedToolsTab, setAdvancedToolsTab] = React.useState<AdvancedToolsTab>("rules");
 
+  React.useEffect(() => {
+    const node = stagePanelScrollRef.current;
+    if (node && typeof node.scrollTo === "function") {
+      node.scrollTo({ top: 0 });
+    }
+
+    const workflowTop = workflowTopRef.current;
+    if (isMobile && workflowTop && typeof workflowTop.scrollIntoView === "function") {
+      workflowTop.scrollIntoView({ block: "start" });
+    }
+  }, [currentStage, isMobile]);
+
   const handleOpenAdvancedTools = React.useCallback(
     (tab: AdvancedToolsTab = "rules") => {
       setAdvancedToolsTab(tab);
@@ -266,7 +290,7 @@ export function FloorPlanShell({
       area,
       spans,
     };
-  }, [targetRoom, currentPlan, locale, i18n]);
+  }, [targetRoom, currentPlan, i18n]);
 
   const targetFurniture = React.useMemo(() => {
     if (!targetFurnitureId) return null;
@@ -414,8 +438,14 @@ export function FloorPlanShell({
 
   // Start Calibration (AC-3): ensures user plan and prepares room calibration
   const handleStartCalibration = React.useCallback(async () => {
-    await ensureUserPlan();
-  }, [ensureUserPlan]);
+    const editablePlan = await ensureUserPlan();
+    const roomId = targetRoomId ?? editablePlan.rooms[0]?.id ?? null;
+    if (roomId) {
+      setTargetRoomId(roomId);
+    }
+    setSelectedEntity(null);
+    handleOpenAdvancedTools("structure");
+  }, [ensureUserPlan, targetRoomId, handleOpenAdvancedTools]);
 
   // Skip calibration and proceed to room stage (AC-7)
   const handleSkipCalibration = React.useCallback(() => {
@@ -496,7 +526,7 @@ export function FloorPlanShell({
         }
         await handleUpdatePlan(res.plan, "Add target furniture");
         setTargetFurnitureId(res.instance.id);
-        setSelectedEntity({ type: "furniture", id: res.instance.id });
+        setSelectedEntity(null);
         setCompletedStages((prev) => Array.from(new Set([...prev, "furniture"])));
         setCurrentStage("decision");
         setIsFurnitureCatalogOpen(false);
@@ -505,17 +535,6 @@ export function FloorPlanShell({
     },
     [ensureUserPlan, targetRoomId, handleUpdatePlan],
   );
-
-  // Add furniture directly (AC-3, AC-12, AC-26): ensures user plan and opens catalog
-  const handleOpenAddFurniture = React.useCallback(async () => {
-    await ensureUserPlan();
-    setSelectedEntity(null);
-    if (isMobile) {
-      setMobileSheetType("furniture-palette");
-    } else {
-      handleOpenAdvancedTools("furniture");
-    }
-  }, [ensureUserPlan, isMobile, handleOpenAdvancedTools]);
 
   // Undo committed operation (AC-8, AC-21)
   const handleUndo = React.useCallback(async () => {
@@ -720,10 +739,6 @@ export function FloorPlanShell({
     downloadFloorPlanJson(currentPlan);
   }, [currentPlan]);
 
-  if (!activePlanSummary) {
-    return null;
-  }
-
   const isMobileSheetOpen = isMobile && mobileSheetType !== null;
 
   const mobileSheetTitle = React.useMemo(() => {
@@ -860,72 +875,115 @@ export function FloorPlanShell({
     plans,
     activePlanId,
     handleSelectPlan,
+    handleAddContextFurniture,
+    handleStartCalibration,
+    ensureUserPlan,
+    targetRoomId,
+    targetFurnitureId,
     locale,
   ]);
+
+  if (!activePlanSummary) {
+    return null;
+  }
 
   const renderWorkflowStagePanel = () => {
     return (
       <>
         {currentStage === "plan" && (
-          <div data-testid="stage-plan-panel" className="space-y-4 text-xs">
-            <FloorPlanInspector
-              plan={currentPlan}
-              isDraftMode={isDraftMode}
-              allowSpanEdit={true}
-              onUpdatePlan={handleUpdatePlan}
-              selectedEntity={
-                selectedEntity?.type === "wall" || selectedEntity?.type === "opening"
-                  ? null
-                  : selectedEntity
-              }
-              onSelect={handleSelectEntity}
-              violations={violations}
-              locale={locale}
-              showRules={false}
-              onStartCalibration={handleStartCalibration}
-              onEnsureUserPlan={ensureUserPlan}
-            />
-
-            {/* Room List for Preparation and Calibration (AC-5, AC-8) */}
-            <div className="space-y-1.5 pt-2 border-t border-border/60">
-              <span className="text-[11px] font-medium text-foreground block">
-                {t.workflow.roomStage.roomsInPlan}
-              </span>
-              <RoomList
-                plan={currentPlan}
-                targetRoomId={targetRoomId}
-                onSelectRoom={handleSelectTargetRoom}
-                locale={locale}
-              />
+          <div data-testid="stage-plan-panel" className="space-y-3 text-xs">
+            <div className="space-y-2.5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] text-muted-foreground">
+                    {isZh ? "当前户型模板" : "Current floor-plan template"}
+                  </p>
+                  <h2 className="mt-1 truncate text-base font-semibold text-foreground">
+                    {activePlanSummary.name}
+                  </h2>
+                </div>
+                <Badge variant="secondary" className="shrink-0 font-mono text-[10px]">
+                  {activePlanSummary.formattedArea}
+                </Badge>
+              </div>
+              <p className="leading-relaxed text-muted-foreground">
+                {isZh
+                  ? "先选择最接近你家的户型。房间尺寸不完全一致也没关系，需要时再调整。"
+                  : "Choose the closest template first. Exact room dimensions can be adjusted only when needed."}
+              </p>
+              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                <span>{currentPlan.rooms.length} {isZh ? "个房间" : "rooms"}</span>
+                <span aria-hidden="true">·</span>
+                <span>
+                  {currentPlan.meta.unscaled
+                    ? isZh ? "待校准尺寸" : "Needs calibration"
+                    : isZh ? "尺寸已标定" : "Calibrated"}
+                </span>
+              </div>
             </div>
 
-            {/* Stage 1 Workflow Actions (AC-2, AC-3, AC-7) */}
-            <div className="space-y-2 pt-2 border-t border-border/60">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                data-testid="open-plan-selector-btn"
-                aria-label={t.workflow.actions.changePlan}
-                onClick={() => setIsPlanSelectorOpen(true)}
-                className="w-full h-11 min-h-[44px] sm:h-9 sm:min-h-0 text-xs font-medium gap-1.5 focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <Compass className="h-3.5 w-3.5 text-primary" />
-                <span>{t.workflow.actions.changePlan}</span>
-              </Button>
+            <details className="group rounded-xl border border-border/70 bg-card">
+              <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground">
+                <span>{isZh ? "查看户型信息" : "View floor-plan details"}</span>
+                <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="border-t border-border/60 p-3">
+                <FloorPlanInspector
+                  plan={currentPlan}
+                  isDraftMode={isDraftMode}
+                  allowSpanEdit={true}
+                  onUpdatePlan={handleUpdatePlan}
+                  selectedEntity={
+                    selectedEntity?.type === "wall" || selectedEntity?.type === "opening"
+                      ? null
+                      : selectedEntity
+                  }
+                  onSelect={handleSelectEntity}
+                  violations={violations}
+                  locale={locale}
+                  showRules={false}
+                  onStartCalibration={handleStartCalibration}
+                  onEnsureUserPlan={ensureUserPlan}
+                />
+                <div className="mt-3 border-t border-border/60 pt-3">
+                  <RoomList
+                    plan={currentPlan}
+                    targetRoomId={targetRoomId}
+                    onSelectRoom={handleSelectTargetRoom}
+                    locale={locale}
+                  />
+                </div>
+              </div>
+            </details>
 
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                data-testid="start-calibration-btn"
-                aria-label={t.workflow.actions.calibrateDimensions}
-                onClick={handleStartCalibration}
-                className="w-full h-11 min-h-[44px] sm:h-9 sm:min-h-0 text-xs font-medium gap-1.5 focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
-                <span>{t.workflow.actions.calibrateDimensions}</span>
-              </Button>
+            <div className="space-y-2 border-t border-border/60 pt-3">
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  data-testid="open-plan-selector-btn"
+                  aria-label={t.workflow.actions.changePlan}
+                  onClick={() => setIsPlanSelectorOpen(true)}
+                  className="h-11 min-h-[44px] min-w-0 gap-1.5 px-2 text-xs font-medium focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:min-h-0"
+                >
+                  <Compass className="h-3.5 w-3.5 text-primary" />
+                  <span>{t.workflow.actions.changePlan}</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  data-testid="start-calibration-btn"
+                  aria-label={t.workflow.actions.calibrateDimensions}
+                  onClick={handleStartCalibration}
+                  className="h-11 min-h-[44px] min-w-0 gap-1.5 px-2 text-xs font-medium text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:min-h-0"
+                >
+                  <PencilRuler className="h-3.5 w-3.5" />
+                  <span className="truncate">{isZh ? "调整房间（可选）" : "Adjust rooms (optional)"}</span>
+                </Button>
+              </div>
 
               <Button
                 type="button"
@@ -934,14 +992,11 @@ export function FloorPlanShell({
                 data-testid="skip-calibration-btn"
                 aria-label={t.workflow.actions.skipCalibration}
                 onClick={handleSkipCalibration}
-                className="w-full h-11 min-h-[44px] sm:h-10 sm:min-h-0 text-xs font-medium gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-primary"
+                className="h-11 min-h-[44px] w-full gap-1.5 text-xs font-medium focus-visible:ring-2 focus-visible:ring-primary sm:h-10 sm:min-h-0"
               >
-                <span>{t.workflow.actions.skipCalibration}</span>
+                <span>{isZh ? "使用这个户型" : "Use this floor plan"}</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Button>
-              <p className="text-[10px] text-muted-foreground text-center">
-                {t.workflow.planStage.accurateNotice}
-              </p>
             </div>
           </div>
         )}
@@ -967,6 +1022,7 @@ export function FloorPlanShell({
                 targetRoomId={targetRoomId}
                 onSelectRoom={handleSelectTargetRoom}
                 locale={locale}
+                compact
               />
             </div>
 
@@ -974,43 +1030,23 @@ export function FloorPlanShell({
             {targetRoomDetails && (
               <div
                 data-testid="target-room-details"
-                className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-2 text-xs"
+                className="rounded-xl border border-primary/30 bg-primary/5 p-2.5 text-xs"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-muted-foreground">
-                    {t.workflow.roomStage.selectedTargetRoom}
-                  </span>
-                  <Badge variant="default" className="text-[10px]">
-                    {t.workflow.roomStage.targetBadge}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <span data-testid="target-room-name" className="block truncate text-sm font-semibold text-foreground">
+                      {targetRoomDetails.displayName}
+                    </span>
+                    {targetRoomDetails.spans && (
+                      <span data-testid="target-room-spans" className="font-mono text-[10px] text-muted-foreground">
+                        {targetRoomDetails.spans.horizontal?.spanMm ?? "—"} × {targetRoomDetails.spans.vertical?.spanMm ?? "—"} mm
+                      </span>
+                    )}
+                  </div>
+                  <Badge variant="default" className="shrink-0 text-[10px]">
+                    <span data-testid="target-room-area">{targetRoomDetails.area.formattedAreaM2}</span>
                   </Badge>
                 </div>
-                <div className="flex items-baseline justify-between">
-                  <span
-                    data-testid="target-room-name"
-                    className="text-sm font-semibold text-foreground"
-                  >
-                    {targetRoomDetails.displayName}
-                  </span>
-                  <span
-                    data-testid="target-room-area"
-                    className="font-mono font-medium text-foreground"
-                  >
-                    {targetRoomDetails.area.formattedAreaM2}
-                  </span>
-                </div>
-                {targetRoomDetails.spans && (
-                  <div
-                    data-testid="target-room-spans"
-                    className="flex items-center gap-3 pt-1 text-[11px] font-mono text-muted-foreground border-t border-primary/20"
-                  >
-                    <span>
-                      {t.roomSpanEditor.widthAxis}: {targetRoomDetails.spans.horizontal?.spanMm ?? "—"} mm
-                    </span>
-                    <span>
-                      {t.roomSpanEditor.depthAxis}: {targetRoomDetails.spans.vertical?.spanMm ?? "—"} mm
-                    </span>
-                  </div>
-                )}
               </div>
             )}
 
@@ -1095,65 +1131,21 @@ export function FloorPlanShell({
               </div>
             )}
 
-            {/* Furniture Inspector when an item is selected */}
-            {selectedEntity?.type === "furniture" && (
-              <FloorPlanInspector
-                plan={currentPlan}
-                isDraftMode={isDraftMode}
-                allowSpanEdit={true}
-                onUpdatePlan={handleUpdatePlan}
-                selectedEntity={selectedEntity}
-                onSelect={handleSelectEntity}
-                violations={violations}
-                locale={locale}
-                onStartCalibration={handleStartCalibration}
-                onEnsureUserPlan={ensureUserPlan}
-              />
-            )}
-
-            <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
-              <span className="font-semibold text-foreground text-xs block">
-                {t.workflow.furnitureStage.title}
-              </span>
-              <p className="text-muted-foreground text-xs leading-relaxed">
-                {t.workflow.furnitureStage.placeholder}
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                data-testid="add-furniture-btn"
-                aria-label={t.actions.addFurniture}
-                onClick={handleOpenAddFurniture}
-                className="w-full h-11 min-h-[44px] sm:h-8 sm:min-h-0 text-xs font-medium gap-1.5 focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <Armchair className="h-3.5 w-3.5 text-primary" />
-                <span>{t.actions.addFurniture}</span>
-              </Button>
-            </div>
-
-            {/* Room context & switcher (AC-9, AC-22) */}
-            <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-foreground text-xs">
-                  {t.workflow.targetFurniture.heading}
-                </span>
-                {targetRoomDetails && (
-                  <Badge variant="secondary" className="text-[10px]">
-                    {targetRoomDetails.displayName} · {targetRoomDetails.area.formattedAreaM2}
-                  </Badge>
-                )}
+            <details className="group rounded-xl border border-border/70 bg-card">
+              <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground">
+                <span>{isZh ? "换一个房间" : "Change room"}</span>
+                <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="border-t border-border/60 p-2">
+                <RoomList
+                  plan={currentPlan}
+                  targetRoomId={targetRoomId}
+                  onSelectRoom={handleSelectTargetRoom}
+                  locale={locale}
+                  compact
+                />
               </div>
-              <p className="text-[11px] text-muted-foreground">
-                {t.workflow.targetFurniture.switchPrompt}
-              </p>
-              <RoomList
-                plan={currentPlan}
-                targetRoomId={targetRoomId}
-                onSelectRoom={handleSelectTargetRoom}
-                locale={locale}
-              />
-            </div>
+            </details>
 
             <div className="flex gap-2">
               <Button
@@ -1167,6 +1159,7 @@ export function FloorPlanShell({
               >
                 {t.workflow.actions.backToRoom}
               </Button>
+              {targetFurniture && (
               <Button
                 type="button"
                 variant="default"
@@ -1183,6 +1176,7 @@ export function FloorPlanShell({
               >
                 {t.workflow.actions.nextToDecision}
               </Button>
+              )}
             </div>
           </div>
         )}
@@ -1193,13 +1187,17 @@ export function FloorPlanShell({
             {targetFurniture && (
               <div
                 data-testid="decision-target-furniture"
-                className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-2 text-xs"
+                className="flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 p-2.5 text-xs"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-muted-foreground">
-                    {t.workflow.targetFurniture.mainDecisionTarget}
+                <div className="min-w-0">
+                  <span data-testid="decision-target-furniture-name" className="block truncate text-sm font-semibold text-foreground">
+                    {i18n.getFurnitureName(targetFurniture.definitionId, targetFurniture.definitionId)}
                   </span>
-                  <div className="flex items-center gap-1.5">
+                  <span data-testid="decision-target-furniture-dimensions" className="font-mono text-[10px] text-muted-foreground">
+                    {targetFurniture.width} × {targetFurniture.depth} mm
+                  </span>
+                </div>
+                <div className="flex shrink-0 items-center gap-1.5">
                     <Button
                       type="button"
                       size="sm"
@@ -1217,35 +1215,40 @@ export function FloorPlanShell({
                     <Badge variant="default" className="text-[10px]">
                       {t.workflow.targetFurniture.soleTarget}
                     </Badge>
-                  </div>
-                </div>
-                <div className="flex items-baseline justify-between">
-                  <span
-                    data-testid="decision-target-furniture-name"
-                    className="text-sm font-semibold text-foreground"
-                  >
-                    {i18n.getFurnitureName(targetFurniture.definitionId, targetFurniture.definitionId)}
-                  </span>
-                  <span
-                    data-testid="decision-target-furniture-dimensions"
-                    className="font-mono font-medium text-foreground"
-                  >
-                    {targetFurniture.width} × {targetFurniture.depth} mm
-                  </span>
                 </div>
               </div>
             )}
 
-            {/* Furniture Decision Summary Panel (AC-14, AC-15, AC-16, AC-17) */}
-            <FurnitureDecisionPanel
+            <FurnitureDecisionControls
               plan={currentPlan}
               targetRoomId={targetRoomId}
               targetFurnitureId={targetFurnitureId}
               ruleResults={violations}
-              selectedEntity={selectedEntity}
-              onSelectEntity={handleSelectEntity}
               locale={locale}
+              onUpdatePlan={handleUpdatePlan}
+              onAdjustRoom={handleStartCalibration}
+              onMoreSettings={() => handleOpenAdvancedTools("furniture")}
             />
+
+            {/* Full diagnostics remain available on demand instead of dominating the main decision. */}
+            <details className="group rounded-xl border border-border/70 bg-card">
+              <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2.5 text-xs font-medium text-muted-foreground">
+                <span>{isZh ? "查看完整空间规则" : "View all spatial checks"}</span>
+                <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="border-t border-border/60 p-3">
+                <FurnitureDecisionPanel
+                  plan={currentPlan}
+                  targetRoomId={targetRoomId}
+                  targetFurnitureId={targetFurnitureId}
+                  ruleResults={violations}
+                  selectedEntity={selectedEntity}
+                  onSelectEntity={handleSelectEntity}
+                  locale={locale}
+                  className="border-0 p-0 shadow-none"
+                />
+              </div>
+            </details>
 
             {/* Applicable Adjustment Interface when an entity is selected (AC-17) */}
             {selectedEntity && (
@@ -1283,40 +1286,28 @@ export function FloorPlanShell({
               </div>
             )}
 
-            {/* Room switcher in decision stage (AC-9, AC-22) */}
-            <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-foreground text-xs">
-                  {t.workflow.decisionStage.switchRoom}
-                </span>
-                {targetRoomDetails && (
-                  <Badge variant="secondary" className="text-[10px]">
-                    {targetRoomDetails.displayName}
-                  </Badge>
-                )}
-              </div>
-              <p className="text-[11px] text-muted-foreground">
-                {t.workflow.decisionStage.switchPrompt}
-              </p>
-              <RoomList
-                plan={currentPlan}
-                targetRoomId={targetRoomId}
-                onSelectRoom={handleSelectTargetRoom}
-                locale={locale}
-              />
+            <div className="grid grid-cols-2 gap-2 border-t border-border/60 pt-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentStage("room")}
+                className="text-xs"
+              >
+                {isZh ? "换一个房间" : "Change room"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                data-testid="back-to-furniture-btn"
+                aria-label={t.workflow.actions.backToFurniture}
+                onClick={() => setCurrentStage("furniture")}
+                className="text-xs"
+              >
+                {isZh ? "换一件家具" : "Change furniture"}
+              </Button>
             </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              data-testid="back-to-furniture-btn"
-              aria-label={t.workflow.actions.backToFurniture}
-              onClick={() => setCurrentStage("furniture")}
-              className="w-full h-11 min-h-[44px] sm:h-8 sm:min-h-0 text-xs focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              {t.workflow.actions.backToFurniture}
-            </Button>
           </div>
         )}
       </>
@@ -1329,14 +1320,17 @@ export function FloorPlanShell({
       description={t.pageDescription}
     >
       {/* Workflow Stage Stepper */}
-      <FloorPlanWorkflowStepper
-        currentStage={currentStage}
-        completedStages={completedStages}
-        onSelectStage={handleSelectStage}
-        t={t}
-      />
+      <div ref={workflowTopRef} className="scroll-mt-20">
+        <FloorPlanWorkflowStepper
+          currentStage={currentStage}
+          completedStages={completedStages}
+          onSelectStage={handleSelectStage}
+          t={t}
+        />
+      </div>
 
       <FloorPlanToolbar
+        className="hidden"
         isDraftMode={isDraftMode}
         currentPlan={currentPlan}
         activePlanSummary={activePlanSummary}
@@ -1356,9 +1350,9 @@ export function FloorPlanShell({
       />
 
       {/* 2-Pane Desktop Workspace (Canvas + Context Task Panel), Responsive Mobile Layout */}
-      <div className="flex min-h-0 flex-1 flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-stretch overflow-x-hidden">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-stretch">
         {/* Left/Main Pane: Interactive Responsive SVG Viewer Canvas + Draft Restoration Banner */}
-        <section className="flex min-h-[340px] sm:min-h-[420px] lg:min-h-0 flex-1 flex-col overflow-hidden">
+        <section className="order-2 flex min-h-[340px] flex-1 flex-col overflow-hidden sm:min-h-[420px] lg:order-none lg:min-h-0">
           <Card className="flex min-h-0 flex-1 flex-col overflow-hidden border-border bg-card p-0">
             {/* Draft Restoration Banner (AC-4, AC-15) */}
             {promptRestore && storedDraft && !isDraftMode && (
@@ -1417,20 +1411,9 @@ export function FloorPlanShell({
         {isMobile && (
           <section
             data-testid="mobile-step-panel"
-            className="lg:hidden w-full shrink-0 space-y-4 pb-6 overflow-x-hidden"
+            className="order-1 w-full shrink-0 space-y-4 overflow-x-hidden lg:hidden"
           >
             <Card className="p-4 border-border bg-card overflow-hidden">
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-border/60">
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-semibold">
-                    {`${t.workflow.steps[currentStage]} · ${t.workflow.stepDescriptions[currentStage]}`}
-                  </span>
-                </div>
-                <Badge variant="outline" className="text-[10px] font-mono">
-                  {t.workflow[`${currentStage}Stage`].stepTag}
-                </Badge>
-              </div>
               {renderWorkflowStagePanel()}
             </Card>
           </section>
@@ -1439,23 +1422,25 @@ export function FloorPlanShell({
         {/* Right Pane: Context Task Panel / Entity Inspector (Desktop) */}
         {!isMobile && (
           <aside className="hidden min-h-0 flex-col lg:flex" data-testid="desktop-context-pane">
-            <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <CardHeader className="shrink-0 pb-3 border-b border-border/60">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <SlidersHorizontal className="h-4 w-4 text-primary" />
-                    <span>
-                      {selectedEntity
-                        ? t.inspector.title
-                        : `${t.workflow.steps[currentStage]} · ${t.workflow.stepDescriptions[currentStage]}`}
-                    </span>
-                  </CardTitle>
-                  <Badge variant="outline" className="text-[10px] font-mono">
-                    {t.workflow[`${currentStage}Stage`].stepTag}
-                  </Badge>
+            <Card className="flex min-h-0 flex-1 flex-col overflow-hidden border-border bg-card">
+              <CardHeader className="shrink-0 border-b border-border/60 px-5 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <Badge variant="outline" className="shrink-0 border-primary/30 text-[10px] font-mono text-primary">
+                      {t.workflow[`${currentStage}Stage`].stepTag}
+                    </Badge>
+                    <CardTitle className="truncate text-sm font-semibold">
+                      {t.workflow.steps[currentStage]}
+                    </CardTitle>
+                  </div>
+                  {currentStage !== "decision" && (
+                    <Badge variant="outline" className="shrink-0 text-[10px] font-mono">
+                      {WORKFLOW_STAGE_NUMBER[currentStage]}/4
+                    </Badge>
+                  )}
                 </div>
               </CardHeader>
-              <CardScrollArea className="min-h-0 flex-1 px-4 pb-4">
+              <CardScrollArea ref={stagePanelScrollRef} className="min-h-0 flex-1 px-5 pb-5">
                 <div className="space-y-4 pt-3">
                   {/* Non-intrusive Wall / Opening selection cue (AC-26) */}
                   {selectedEntity && (selectedEntity.type === "wall" || selectedEntity.type === "opening") && (

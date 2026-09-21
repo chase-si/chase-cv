@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, Compass, Layers, Maximize2 } from "lucide-react";
+import { Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { FloorPlan } from "@/lib/floor-plan/types";
 import {
@@ -20,6 +20,7 @@ export interface RoomListProps {
   onSelectRoom: (roomId: string) => void;
   locale?: string;
   className?: string;
+  compact?: boolean;
 }
 
 export function RoomList({
@@ -28,6 +29,7 @@ export function RoomList({
   onSelectRoom,
   locale,
   className = "",
+  compact = false,
 }: RoomListProps) {
   const i18n = useFloorPlanI18n(locale);
   const vertexMap = React.useMemo(() => getVertexMap(plan), [plan]);
@@ -59,7 +61,7 @@ export function RoomList({
       data-testid="room-list"
       role="listbox"
       aria-label={i18n.t.workflow?.roomListAriaLabel || (locale === "zh" ? "户型房间选择列表" : "Room selection list")}
-      className={cn("flex flex-col gap-1.5", className)}
+      className={cn(compact ? "grid grid-cols-2 gap-2" : "flex flex-col gap-1.5", className)}
     >
       {roomItems.map(({ room, displayName, formattedAreaM2, spans, isSelected }) => (
         <button
@@ -73,6 +75,7 @@ export function RoomList({
           onClick={() => onSelectRoom(room.id)}
           className={cn(
             "group flex w-full items-center justify-between rounded-xl border p-2.5 min-h-[44px] text-left text-xs transition-all touch-manipulation focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+            compact && "p-2",
             isSelected
               ? "border-primary/40 bg-primary/10 text-foreground font-semibold shadow-xs"
               : "border-border/70 bg-card text-muted-foreground hover:border-border hover:bg-muted/30 hover:text-foreground",
@@ -94,7 +97,7 @@ export function RoomList({
             </div>
             <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground font-mono">
               <span>{formattedAreaM2}</span>
-              {spans?.horizontal && spans?.vertical && (
+              {!compact && spans?.horizontal && spans?.vertical && (
                 <span className="text-muted-foreground/70">
                   {spans.horizontal.spanMm} × {spans.vertical.spanMm} mm
                 </span>

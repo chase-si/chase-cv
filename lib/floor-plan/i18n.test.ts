@@ -22,7 +22,7 @@ describe("Floor Plan i18n module", () => {
   it("provides Chinese translations and helper labels", () => {
     const zh = getFloorPlanI18n("zh");
     expect(zh.locale).toBe("zh");
-    expect(zh.t.pageTitle).toBe("标准户型空间验证器");
+    expect(zh.t.pageTitle).toBe("我家适合买多大的床或沙发？");
     expect(zh.t.inspector.title).toBe("空间属性检查器");
     expect(zh.t.rules.title).toBe("空间规范审查");
 
@@ -61,7 +61,7 @@ describe("Floor Plan i18n module", () => {
   it("provides English translations and fallback behavior", () => {
     const en = getFloorPlanI18n("en");
     expect(en.locale).toBe("en");
-    expect(en.t.pageTitle).toBe("Floor Plan Space Validator");
+    expect(en.t.pageTitle).toBe("What size bed or sofa fits my home?");
     expect(en.t.workflow.steps.plan).toBe("Plan");
     expect(en.t.workflow.steps.room).toBe("Room");
     expect(en.t.workflow.steps.furniture).toBe("Furniture");

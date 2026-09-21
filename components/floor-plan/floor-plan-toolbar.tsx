@@ -27,6 +27,7 @@ import type { FloorPlan } from "@/lib/floor-plan/types";
 import { cn } from "@/lib/utils";
 
 export type FloorPlanToolbarProps = {
+  className?: string;
   isDraftMode: boolean;
   currentPlan: FloorPlan;
   activePlanSummary: StandardPlanSummary;
@@ -54,6 +55,7 @@ const touchBtn =
  */
 export function FloorPlanToolbar(props: FloorPlanToolbarProps) {
   const {
+    className,
     isDraftMode,
     currentPlan,
     activePlanSummary,
@@ -80,7 +82,10 @@ export function FloorPlanToolbar(props: FloorPlanToolbarProps) {
   return (
     <div
       data-testid="floor-plan-toolbar"
-      className="flex shrink-0 flex-col gap-2 rounded-2xl border border-border bg-card p-2 shadow-md sm:flex-row sm:items-center sm:justify-between"
+      className={cn(
+        "flex shrink-0 flex-col gap-2 rounded-2xl border border-border bg-card p-2 shadow-md sm:flex-row sm:items-center sm:justify-between",
+        className,
+      )}
     >
       <div className="flex min-w-0 flex-wrap items-center gap-1.5">
         {isDraftMode ? (

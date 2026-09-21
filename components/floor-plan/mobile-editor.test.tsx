@@ -279,7 +279,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
   });
 
   describe("Mobile Workflow Decision Flow & Touch Ergonomics (AC-23)", () => {
-    it("keeps canvas as primary surface and completes 4-stage workflow in mobile bottom panel", () => {
+    it("keeps canvas as primary surface and completes 4-stage workflow in mobile bottom panel", async () => {
       render(<FloorPlanShell isMobile={true} initialPlans={FIXTURE_PLANS} />);
 
       // 1. Canvas is primary surface
@@ -315,12 +315,12 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
       expect(addContextBtns[0].className).toMatch(/min-h-\[44px\]|h-11/);
       fireEvent.click(addContextBtns[0]);
 
-      const nextToDecisionBtn = within(mobilePanel).getByTestId("next-to-decision-btn");
-      expect(nextToDecisionBtn.className).toMatch(/min-h-\[44px\]|h-11/);
-      fireEvent.click(nextToDecisionBtn);
+      // Adding a recommendation immediately produces the decision.
+      await waitFor(() => {
+        expect(within(mobilePanel).getByTestId("stage-decision-panel")).toBeInTheDocument();
+      });
 
       // Stage 4: Decision stage
-      expect(within(mobilePanel).getByTestId("stage-decision-panel")).toBeInTheDocument();
       expect(within(mobilePanel).getByTestId("furniture-decision-panel")).toBeInTheDocument();
       expect(within(mobilePanel).getByTestId("decision-status-badge")).toBeInTheDocument();
     });
