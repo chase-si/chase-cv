@@ -45,7 +45,7 @@ describe("FloorPlanShell Integration", () => {
     render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "Floor Plan Space Validator" }),
+      screen.getByRole("heading", { level: 1, name: "What size bed or sofa fits my home?" }),
     ).toBeInTheDocument();
     expect(screen.getByTestId("tool-page-chrome")).toBeInTheDocument();
     expect(screen.getByTestId("floor-plan-stage-stepper")).toBeInTheDocument();

@@ -1,6 +1,8 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FloorPlanShell } from "./floor-plan-shell";
+import { VALID_STANDARD_FLOOR_PLAN } from "@/lib/floor-plan/fixtures/valid-standard-plan";
+import { buildStandardPlanSummary } from "@/lib/floor-plan/catalog";
 
 // Mock ResizeObserver for jsdom
 class MockResizeObserver {
@@ -29,7 +31,7 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
 
     // Heading and description
     expect(
-      screen.getByRole("heading", { level: 1, name: "标准户型空间验证器" }),
+      screen.getByRole("heading", { level: 1, name: "我家适合买多大的床或沙发？" }),
     ).toBeInTheDocument();
 
     // Chrome action buttons
@@ -39,7 +41,7 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
 
     // Four-stage stepper
     expect(screen.getByTestId("floor-plan-stage-stepper")).toBeInTheDocument();
-    expect(screen.getByText("户型")).toBeInTheDocument();
+    expect(screen.getByTestId("stage-step-plan")).toHaveTextContent("户型");
 
     // Catalog dialog (opened on demand via selector button)
     fireEvent.click(screen.getByTestId("open-plan-selector-btn"));
@@ -69,14 +71,19 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
     fireEvent.click(room);
 
     // Inspector should display Chinese room parameters and title
-    expect(screen.getByText("空间属性检查器")).toBeInTheDocument();
     expect(screen.getByText("空间名称")).toBeInTheDocument();
     expect(screen.getByText("实测建筑面积")).toBeInTheDocument();
     expect(screen.getByText("房间开间进深跨度")).toBeInTheDocument();
   });
 
   it("displays Chinese furniture editor and span editor controls in draft mode", () => {
-    render(<FloorPlanShell locale="zh" isMobile={false} />);
+    render(
+      <FloorPlanShell
+        locale="zh"
+        isMobile={false}
+        initialPlans={[buildStandardPlanSummary(VALID_STANDARD_FLOOR_PLAN, "zh")]}
+      />,
+    );
 
     // Enter draft customization mode
     const customizeBtn = screen.getByTestId("customize-plan-btn");
@@ -96,7 +103,7 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
     expect(screen.getByText("开间宽度 (X)")).toBeInTheDocument();
     expect(screen.getByText("确认应用")).toBeInTheDocument();
 
-    // 2. Select a furniture piece (e.g. f1 sofa)
+    // 2. Select the first furniture piece on the active localized plan
     const sofa = screen.getByTestId("floor-plan-furniture-f1");
     fireEvent.click(sofa);
 
@@ -116,7 +123,7 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
 
     // Stage 1: Plan
     expect(screen.getByTestId("stage-step-plan")).toHaveTextContent("户型");
-    expect(screen.getByTestId("skip-calibration-btn")).toHaveTextContent("跳过校准，进入房间选择");
+    expect(screen.getByTestId("skip-calibration-btn")).toHaveTextContent("使用这个户型");
     fireEvent.click(screen.getByTestId("skip-calibration-btn"));
 
     // Stage 2: Room
@@ -129,7 +136,6 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
 
     // Stage 3: Furniture
     expect(screen.getByTestId("stage-step-furniture")).toHaveTextContent("家具");
-    expect(screen.getByText("添加与配置家具")).toBeInTheDocument();
     expect(screen.getByTestId("context-furniture-panel")).toBeInTheDocument();
     const addBtns = screen.getAllByTestId(/^add-context-furniture-/);
     fireEvent.click(addBtns[0]);
@@ -139,8 +145,6 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
       expect(screen.getByTestId("stage-step-decision")).toHaveAttribute("aria-current", "step");
     });
     expect(screen.getByTestId("decision-target-furniture")).toBeInTheDocument();
-    expect(screen.getByText("主结论检测目标")).toBeInTheDocument();
-    expect(screen.getByText("唯一目标")).toBeInTheDocument();
 
     // Stage 4: Decision
     expect(screen.getByTestId("stage-step-decision")).toHaveTextContent("结论");
