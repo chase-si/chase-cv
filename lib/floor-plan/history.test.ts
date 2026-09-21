@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getStandardPlans } from "./catalog";
+import { VALID_STANDARD_FLOOR_PLAN } from "./fixtures/valid-standard-plan";
 import { adjustRoomSpan } from "./room-adjustment";
 import { updateOpening } from "./opening-adjustment";
 import {
@@ -22,7 +22,7 @@ import {
 } from "./history";
 
 describe("Unified Command History (AC-8)", () => {
-  const basePlan = getStandardPlans()[0].plan;
+  const basePlan = VALID_STANDARD_FLOOR_PLAN;
 
   describe("createPlanHistory", () => {
     it("initializes history with empty past and future, and sets present", () => {
