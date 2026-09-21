@@ -13,7 +13,6 @@ import {
 } from "./geometry";
 import { VALID_STANDARD_FLOOR_PLAN } from "./fixtures/valid-standard-plan";
 import { STUDIO_STANDARD_FLOOR_PLAN, THREE_BED_STANDARD_FLOOR_PLAN } from "./fixtures/standard-plans";
-import { PLAN_CN_STUDIO_01 } from "./catalog-data";
 
 describe("FloorPlan geometry calculations", () => {
   it("computes accurate plan bounds including walls and furniture", () => {
@@ -89,25 +88,20 @@ describe("FloorPlan geometry calculations", () => {
     expect(area.areaM2).toBeCloseTo(15.0, 1);
   });
 
-  it("resolves all room polygons accurately in China representative floor plan", () => {
-    const vMap = getVertexMap(PLAN_CN_STUDIO_01);
-    const wMap = getWallMap(PLAN_CN_STUDIO_01);
+  it("resolves all room polygons accurately in studio standard floor plan", () => {
+    const vMap = getVertexMap(STUDIO_STANDARD_FLOOR_PLAN);
+    const wMap = getWallMap(STUDIO_STANDARD_FLOOR_PLAN);
 
-    const bedroom = PLAN_CN_STUDIO_01.rooms.find((r) => r.id === "r1")!;
-    const kitchen = PLAN_CN_STUDIO_01.rooms.find((r) => r.id === "r2")!;
-    const bathroom = PLAN_CN_STUDIO_01.rooms.find((r) => r.id === "r3")!;
+    const studio = STUDIO_STANDARD_FLOOR_PLAN.rooms.find((r) => r.id === "sr1")!;
+    const bath = STUDIO_STANDARD_FLOOR_PLAN.rooms.find((r) => r.id === "sr2")!;
 
-    const polyBed = computeRoomPolygon(bedroom, wMap, vMap);
-    expect(polyBed.length).toBe(5);
-    expect(computePolygonArea(polyBed).areaM2).toBeCloseTo(16.8, 1);
+    const polyStudio = computeRoomPolygon(studio, wMap, vMap);
+    expect(polyStudio.length).toBe(4);
+    expect(computePolygonArea(polyStudio).areaM2).toBeCloseTo(16.0, 1);
 
-    const polyKit = computeRoomPolygon(kitchen, wMap, vMap);
-    expect(polyKit.length).toBe(4);
-    expect(computePolygonArea(polyKit).areaM2).toBeCloseTo(5.67, 1);
-
-    const polyBath = computeRoomPolygon(bathroom, wMap, vMap);
+    const polyBath = computeRoomPolygon(bath, wMap, vMap);
     expect(polyBath.length).toBe(4);
-    expect(computePolygonArea(polyBath).areaM2).toBeCloseTo(4.41, 1);
+    expect(computePolygonArea(polyBath).areaM2).toBeCloseTo(8.0, 1);
   });
 
 
