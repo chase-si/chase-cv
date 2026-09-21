@@ -1,83 +1,44 @@
-# FloorPlan v1 Contract Specification
+# Floor-plan MVP target contract
 
-This document defines the canonical **FloorPlan v1** contract for the floor plan editor, standard plans, user drafts, exports, and image importers.
+> This is the target domain contract for the converged MVP. The current `FloorPlan v1` implementation may temporarily retain embedded furniture and legacy resize fields while migration issues are completed.
 
-All real-world dimensions across all contract models use **millimetres (`mm`)** as specified in `AC-17`.
+All real-world dimensions use millimetres (`mm`). IDs are stable, unique within their collection, and compared as opaque strings.
 
----
+## 1. Standard floor plan
 
-## 1. Plan Source-Package Metadata (`PlanSourcePackageMetadata`)
-
-Used for image uploads, CubiCasa recognition results, and imported source packages before or during topology normalization.
+A standard floor plan is curated, read-only topology. Furniture placement is not part of the standard-plan definition.
 
 ```ts
-interface PlanSourcePackageMetadata {
-  version: 1;
-  unit: "mm";
-  imageId: string;
-  imageUri?: string;
-  imageHash: string;
-  imageWidthPx: number;
-  imageHeightPx: number;
-  sourceType: "cubicasa" | "image" | "cad" | "template";
-  calibration: {
-    realLengthMm: number; // in mm
-    selectedPixelLength: number; // in px
-    mmPerPixel: number; // calculated: realLengthMm / selectedPixelLength
-    scaled: boolean; // true if two-point calibration has been performed
-  };
-  inference?: {
-    engine: string;
-    modelVersion: string;
-    inferenceMs?: number;
-  };
-  meta: {
-    name: string;
-    source: string;
-    createdAt: string; // ISO 8601
-    updatedAt?: string;
-  };
-}
-```
-
----
-
-## 2. Normalized Standard Plan (`FloorPlan` / `StandardFloorPlan`)
-
-Canonical, scale-aware topology shared by standard templates, user plans, exports, and storage.
-
-```ts
-interface FloorPlan {
-  version: 1;
+interface StandardFloorPlan {
+  version: 2;
   unit: "mm";
   meta: {
-    id?: string;
+    id: string;
     name: string;
-    source: "template" | "user" | "cubicasa" | "import";
-    createdAt: string; // ISO 8601
-    updatedAt: string; // ISO 8601
-    isStandard?: boolean; // true for curated read-only standard plans
+    source: "template";
+    createdAt: string;
+    updatedAt: string;
     description?: string;
   };
   vertices: Array<{
     id: string;
-    x: number; // in mm
-    y: number; // in mm
+    x: number;
+    y: number;
   }>;
   walls: Array<{
     id: string;
-    from: string; // references Vertex.id
-    to: string; // references Vertex.id
-    thickness: number; // in mm (e.g. 120, 200, 240)
+    from: string;
+    to: string;
+    thickness: number;
     lockAxis: "horizontal" | "vertical" | "none";
   }>;
   openings: Array<{
     id: string;
     type: "door" | "window" | "sliding_door" | "opening";
-    wallId: string; // references Wall.id
-    position: number; // 0.0 to 1.0 along the wall
-    width: number; // in mm (e.g. 900, 1500)
-    height?: number; // in mm (optional)
+    wallId: string;
+    position: number;
+    width: number;
+    height?: number;
   }>;
   rooms: Array<{
     id: string;
@@ -94,103 +55,176 @@ interface FloorPlan {
       | "storage"
       | "other";
     name?: string;
-    boundaryWallIds: string[]; // ordered cycle of wall IDs
-  }>;
-  furniture: Array<{
-    id: string;
-    definitionId: string; // references FurnitureDefinition.id
-    x: number; // in mm
-    y: number; // in mm
-    width: number; // in mm
-    depth: number; // in mm
-    rotation: number; // in degrees (0, 90, 180, 270)
-    elevation?: number; // in mm (optional)
+    boundaryWallIds: string[];
   }>;
 }
 ```
 
----
+`boundaryWallIds` must describe one closed room boundary. Rendering must reject an invalid boundary rather than reorder or repair it.
 
-## 3. Furniture Catalog & Definitions (`FurnitureCatalog`)
+## 2. Furniture catalog
 
-Defines available furniture types with default real-world dimensions, allowed dimension ranges, and clearance rules for spatial verification.
+A furniture definition is a generic kind. A furniture specification is one predefined size of that kind. The catalog does not represent a brand, product, price, or SKU.
 
 ```ts
+type FurnitureSide = "front" | "back" | "left" | "right";
+
+interface ClearanceThreshold {
+  minimum: number;
+  recommended: number;
+}
+
+interface FurnitureSpecification {
+  id: string;
+  name: string;
+  width: number;
+  depth: number;
+  height?: number;
+  clearance: Record<FurnitureSide, ClearanceThreshold>;
+}
+
 interface FurnitureDefinition {
   id: string;
   name: string;
-  category: "bed" | "sofa" | "table" | "chair" | "storage" | "desk" | "tv_stand" | "other";
-  defaultSize: {
-    width: number; // in mm
-    depth: number; // in mm
-    height?: number; // in mm
-  };
-  allowedSizeRanges?: {
-    width?: { min: number; max: number; step?: number }; // in mm
-    depth?: { min: number; max: number; step?: number }; // in mm
-    height?: { min: number; max: number; step?: number }; // in mm
-  };
-  clearanceRules?: {
-    front?: number; // in mm
-    back?: number; // in mm
-    left?: number; // in mm
-    right?: number; // in mm
-    all?: number; // in mm
-  };
+  category:
+    | "bed"
+    | "sofa"
+    | "table"
+    | "chair"
+    | "storage"
+    | "desk"
+    | "tv_stand"
+    | "other";
+  specifications: FurnitureSpecification[];
 }
 
 interface FurnitureCatalog {
-  version: 1;
+  version: 2;
   unit: "mm";
   definitions: FurnitureDefinition[];
 }
 ```
 
----
+Furniture orientation is defined as:
 
-## 4. Space-Rule Configuration (`SpaceRuleConfig`)
+- `front`: the primary use or approach side;
+- `back`: the side normally facing a wall for beds and sofas;
+- `left` and `right`: viewed while facing the furniture front.
 
-Configurable spatial rules and thresholds in millimetres for collision, circulation, door swing zones, and furniture clearance.
+For every side, `0 <= minimum <= recommended`. A zero value means that side may touch an obstacle without a clearance shortfall; it does not permit physical overlap.
+
+## 3. Placement scenario
+
+A placement scenario combines a standard plan with user-selected furniture specifications.
 
 ```ts
-interface SpaceRuleConfig {
+interface FurniturePlacement {
+  id: string;
+  definitionId: string;
+  specificationId: string;
+  x: number;
+  y: number;
+  rotation: 0 | 90 | 180 | 270;
+}
+
+interface PlacementScenario {
   version: 1;
   unit: "mm";
-  rules: {
-    collision: {
-      enabled: boolean;
-      severity: "error" | "warning";
-    };
-    doorSwing: {
-      enabled: boolean;
-      severity: "error" | "warning";
-      minClearanceDepthMm: number; // e.g. 900 mm
-    };
-    circulation: {
-      enabled: boolean;
-      severity: "warning" | "info";
-      minMainPassageWidthMm: number; // e.g. 900 mm
-      minSecondaryPassageWidthMm: number; // e.g. 600 mm
-    };
-    furnitureClearance: {
-      enabled: boolean;
-      severity: "warning" | "info";
-      bedSideClearanceMm: number; // e.g. 600 mm
-      bedFootClearanceMm: number; // e.g. 600 mm
-      wardrobeFrontClearanceMm: number; // e.g. 800 mm
-      diningChairPulloutMm: number; // e.g. 750 mm
-    };
-  };
+  planId: string;
+  placements: FurniturePlacement[];
+  targetPlacementId?: string;
 }
 ```
 
----
+Width, depth, and clearance are resolved from the selected furniture specification. A placement does not contain arbitrary dimension overrides in the MVP.
 
-## 5. Schema Migration & Safe Storage Failure Guarantee (`AC-18`)
+When a user changes `specificationId`, the placement keeps its center point and rotation. The next space assessment determines whether it remains suitable.
 
-1. **Supported Versions**:
-   - Current schema: Version `1` (`FloorPlan`)
-   - Previous schema: Version `0` (`FloorPlanV0` - legacy plans migrated automatically, normalizing meters to mm and `wallIds` to `boundaryWallIds`).
-2. **Safe Failure**:
-   - Documents with unsupported schema versions (e.g. `version >= 2` or negative numbers) or corrupt data (broken JSON, malformed coordinates, broken topological references) fail gracefully via `loadFloorPlanRecord()`.
-   - `FloorPlanRepository.updateSafely()` guarantees that existing stored plans are never mutated or overwritten when parsing or migration fails.
+## 4. Space assessment
+
+```ts
+type AssessmentStatus =
+  | "suitable"
+  | "trade-off"
+  | "must-adjust"
+  | "unavailable";
+
+type AssessmentFindingKind =
+  | "furniture-overlap"
+  | "wall-overlap"
+  | "outside-room"
+  | "below-minimum-clearance"
+  | "below-recommended-clearance";
+
+interface AssessmentFinding {
+  kind: AssessmentFindingKind;
+  placementId: string;
+  relatedPlacementId?: string;
+  wallId?: string;
+  side?: FurnitureSide;
+  measuredMm?: number;
+  minimumMm?: number;
+  recommendedMm?: number;
+}
+
+interface SpaceAssessment {
+  status: AssessmentStatus;
+  findings: AssessmentFinding[];
+}
+```
+
+Status precedence is deterministic:
+
+1. Unscaled plan: `unavailable`.
+2. Any physical collision or below-minimum clearance: `must-adjust`.
+3. Any below-recommended clearance: `trade-off`.
+4. No findings: `suitable`.
+
+Physical collisions compare solid geometry:
+
+- furniture footprint against furniture footprint;
+- furniture footprint against walls;
+- furniture footprint against room boundaries.
+
+Directional clearance compares one placement's clearance zone against walls, room boundaries, and other furniture footprints. Clearance zones are never compared with other clearance zones.
+
+Domain findings contain measurements and object references, not localized prose. User-facing text and repair suggestions are derived outside the assessment contract.
+
+## 5. Candidate asset validation
+
+Candidate floor-plan validation guarantees only that data is safe to render and assess:
+
+- required fields and types are valid;
+- coordinates are finite;
+- IDs are non-empty and unique;
+- references resolve;
+- walls have positive length and thickness;
+- opening position is within the wall;
+- opening width fits within the available wall length;
+- each room boundary forms a closed cycle.
+
+Candidate furniture validation guarantees:
+
+- definition and specification IDs are non-empty and unique;
+- every definition contains at least one specification;
+- dimensions are positive finite millimetres;
+- all clearances are finite and non-negative;
+- each side satisfies `minimum <= recommended`.
+
+Validators do not decide whether room relationships, window placement, or circulation are sensible. Those are human visual-review concerns for the MVP.
+
+## 6. Development asset preview
+
+The development-only asset preview accepts candidate data, displays deterministic validation errors, renders valid candidates, and lets the maintainer copy the final class-like JSON into the codebase.
+
+It has no database, approval workflow, automatic semantic review, or automatic repair. Machine-generated repair suggestions are limited to deterministic validation failures.
+
+## 7. Migration constraints
+
+Until the implementation migration is complete:
+
+- the changed standard-plan and furniture-catalog shapes require a version bump instead of silently redefining version 1;
+- existing `FloorPlan.furniture` may temporarily carry placements;
+- existing `allowedSizeRanges` and arbitrary resize logic are legacy and must not define new MVP behaviour;
+- existing recognition metadata and recognition adapters are outside the target contract;
+- migrations must preserve existing valid catalog data long enough to convert it into furniture specifications and placement scenarios.
