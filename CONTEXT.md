@@ -21,36 +21,56 @@ Flow **logic** lives under `lib/flow/`; presentation tokens in `lib/flow/svg-pre
 
 ## Floor-plan language
 
-Floor-plan domain **logic, types, and validators** live under `lib/floor-plan/`; contract specifications in `docs/floor-plan-contract.md`.
+The floor-plan product helps a user compare predefined furniture specifications inside a curated plan. Domain logic, types, and validators live under `lib/floor-plan/`; the target contract is documented in `docs/floor-plan-contract.md`.
 
-**FloorPlan**:
-The canonical, scale-aware topology shared by templates, user edits, and image importers. It describes vertices, walls, ordered room boundaries, wall-bound openings, and furniture in real-world units.
-_Avoid_: Canvas state, CubiCasa result
+**Floor plan**:
+A scale-aware residential topology made from vertices, walls, ordered room boundaries, and wall-bound openings in real-world units.
+_Avoid_: Placement scenario, canvas state
+
+**Candidate plan**:
+A newly collected floor plan awaiting basic data validation and human visual review before it joins the catalog.
+_Avoid_: Standard plan, imported image
 
 **Standard plan**:
-A curated, read-only FloorPlan that can be copied to start editing.
-_Avoid_: User plan, draft
-
-**User plan**:
-An editable local copy of a standard plan whose committed changes are saved in the browser.
-_Avoid_: Template, standard plan
+A curated, read-only floor plan available for furniture placement.
+_Avoid_: Candidate plan, placement scenario
 
 **Room boundary**:
-An ordered cycle of directed wall references that encloses one room.
+An ordered, closed cycle of walls enclosing one room.
 _Avoid_: Unordered wall IDs
 
 **Opening**:
-A door or window attached to one wall by a center-position ratio and a real-world width. MVP openings do not model door leaves or swing direction.
+A door or window attached to one wall by a relative position and real-world width.
 _Avoid_: Free-positioned door, free-positioned window
 
 **Furniture definition**:
-A built-in furniture type containing default dimensions, allowed dimension ranges, and default clearance guidance. A user plan may override dimensions on each furniture instance.
-_Avoid_: Furniture instance
+A generic furniture kind, such as a double bed or three-seat sofa, offered by the built-in catalog.
+_Avoid_: Product, SKU, furniture placement
 
-**Local clearance**:
-The immediately measurable free space around an opening or furniture item. It does not mean whole-plan route finding or accessibility compliance.
-_Avoid_: Main circulation path, code compliance
+**Furniture specification**:
+One predefined size option of a furniture definition, with its physical footprint and directional minimum and recommended clearances.
+_Avoid_: Arbitrary resize, product variant, SKU
 
-**Recognition lab**:
-A local, internal workflow that converts a source floor-plan image into a correctable FloorPlan without being part of the main editor release.
-_Avoid_: Main editor, automatic floor-plan guarantee
+**Furniture placement**:
+One selected furniture specification at a position and orientation inside a floor plan.
+_Avoid_: Furniture definition, furniture specification
+
+**Placement scenario**:
+A standard plan together with the furniture placements currently being compared.
+_Avoid_: Standard plan, furniture catalog
+
+**Physical collision**:
+An overlap between solid footprints, an overlap with a wall, or placement outside the room boundary.
+_Avoid_: Clearance shortfall
+
+**Directional clearance**:
+The minimum and recommended free space measured from the front, back, left, or right side of a furniture placement, relative to its orientation.
+_Avoid_: Whole-plan route finding, accessibility compliance
+
+**Clearance shortfall**:
+A directional clearance zone occupied by a wall, room boundary, or another furniture footprint. Clearance zones are not compared with other clearance zones.
+_Avoid_: Physical collision
+
+**Space assessment**:
+The deterministic result for a placement scenario: suitable, trade-off, must adjust, or unavailable.
+_Avoid_: Building-code approval, automatic layout
