@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   validateFloorPlan,
   validateFurnitureCatalog,
+  validatePlacementScenario,
   validateSpaceRuleConfig,
 } from "./validators";
 import {
@@ -202,4 +203,83 @@ describe("AC-17: FloorPlan v1 Contract Formats & Validators", () => {
       expect(validateSpaceRuleConfig(invalidThreshold).ok).toBe(false);
     });
   });
+
+  describe("PlacementScenario v1", () => {
+    it("validates valid PlacementScenario with multiple placements and target placement", () => {
+      const scenario = {
+        version: 1,
+        unit: "mm",
+        planId: "floor-plan-std-01",
+        placements: [
+          {
+            id: "p1",
+            definitionId: "bed-double",
+            specificationId: "bed-double-1800x2000",
+            x: 1000,
+            y: 1200,
+            rotation: 0,
+          },
+          {
+            id: "p2",
+            definitionId: "desk",
+            specificationId: "desk-1200x600",
+            x: 2500,
+            y: 1200,
+            rotation: 90,
+          },
+        ],
+        targetPlacementId: "p1",
+      };
+
+      const res = validatePlacementScenario(scenario);
+      expect(res.ok).toBe(true);
+    });
+
+    it("rejects invalid PlacementScenario properties", () => {
+      // Non-object
+      expect(validatePlacementScenario(null).ok).toBe(false);
+      // Wrong version
+      expect(validatePlacementScenario({ version: 2, unit: "mm", planId: "p", placements: [] }).ok).toBe(false);
+      // Missing planId
+      expect(validatePlacementScenario({ version: 1, unit: "mm", planId: "", placements: [] }).ok).toBe(false);
+      // Non-array placements
+      expect(validatePlacementScenario({ version: 1, unit: "mm", planId: "p", placements: "bad" }).ok).toBe(false);
+      // Duplicate placement id
+      expect(
+        validatePlacementScenario({
+          version: 1,
+          unit: "mm",
+          planId: "p",
+          placements: [
+            { id: "p1", definitionId: "bed", specificationId: "s1", x: 0, y: 0, rotation: 0 },
+            { id: "p1", definitionId: "bed", specificationId: "s2", x: 10, y: 10, rotation: 0 },
+          ],
+        }).ok,
+      ).toBe(false);
+      // Invalid rotation
+      expect(
+        validatePlacementScenario({
+          version: 1,
+          unit: "mm",
+          planId: "p",
+          placements: [
+            { id: "p1", definitionId: "bed", specificationId: "s1", x: 0, y: 0, rotation: 45 },
+          ],
+        }).ok,
+      ).toBe(false);
+      // Non-existent targetPlacementId
+      expect(
+        validatePlacementScenario({
+          version: 1,
+          unit: "mm",
+          planId: "p",
+          placements: [
+            { id: "p1", definitionId: "bed", specificationId: "s1", x: 0, y: 0, rotation: 0 },
+          ],
+          targetPlacementId: "non-existent-target",
+        }).ok,
+      ).toBe(false);
+    });
+  });
 });
+
