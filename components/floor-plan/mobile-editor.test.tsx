@@ -292,9 +292,9 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
 
       // Stage 1: Plan stage is active
       expect(within(mobilePanel).getByTestId("stage-plan-panel")).toBeInTheDocument();
-      const skipBtn = within(mobilePanel).getByTestId("skip-calibration-btn");
-      expect(skipBtn.className).toMatch(/min-h-\[44px\]|h-11/);
-      fireEvent.click(skipBtn);
+      const usePlanBtn = within(mobilePanel).getByTestId("use-plan-btn");
+      expect(usePlanBtn.className).toMatch(/min-h-\[44px\]|h-11/);
+      fireEvent.click(usePlanBtn);
 
       // Stage 2: Room stage
       expect(within(mobilePanel).getByTestId("stage-room-panel")).toBeInTheDocument();
@@ -341,11 +341,8 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
       const openPlanBtn = within(mobilePanel).getByTestId("open-plan-selector-btn");
       expect(openPlanBtn.className).toMatch(/min-h-\[44px\]|h-11/);
 
-      const startCalibrateBtn = within(mobilePanel).getByTestId("start-calibration-btn");
-      expect(startCalibrateBtn.className).toMatch(/min-h-\[44px\]|h-11/);
-
-      const skipCalibrateBtn = within(mobilePanel).getByTestId("skip-calibration-btn");
-      expect(skipCalibrateBtn.className).toMatch(/min-h-\[44px\]|h-11/);
+      const usePlanBtn = within(mobilePanel).getByTestId("use-plan-btn");
+      expect(usePlanBtn.className).toMatch(/min-h-\[44px\]|h-11/);
     });
   });
 });

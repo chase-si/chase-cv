@@ -117,8 +117,8 @@ describe("FloorPlanShell Integration", () => {
     expect(screen.getByTestId("inspector-plan-summary")).toBeInTheDocument();
   });
 
-  describe("AC-3: Starting calibration or adding furniture automatically creates User plan while Standard plan remains unchanged", () => {
-    it("automatically creates User plan when starting calibration without requiring customize-plan button", async () => {
+  describe("AC-3: Customizing plan or adding furniture automatically creates User plan while Standard plan remains unchanged", () => {
+    it("automatically creates User plan when customizing plan while Standard plan remains unchanged", async () => {
       const standardPlans = FIXTURE_PLANS;
       const standardPlan = standardPlans[0].plan;
       const initialStandardJson = JSON.stringify(standardPlan);
@@ -126,9 +126,9 @@ describe("FloorPlanShell Integration", () => {
       const storage = new MemoryDraftStorage();
       render(<FloorPlanShell storage={storage} initialPlans={standardPlans} />);
 
-      // Click "Calibrate Dimensions" directly without clicking customize-plan-btn
-      const calibrateBtn = screen.getByTestId("start-calibration-btn");
-      fireEvent.click(calibrateBtn);
+      // Click "Customize Plan" directly
+      const customizeBtn = screen.getByTestId("customize-plan-btn");
+      fireEvent.click(customizeBtn);
 
       // Now automatically in draft mode with user plan: save status badge is shown
       await waitFor(() => {
@@ -258,7 +258,7 @@ describe("FloorPlanShell Integration", () => {
     });
   });
 
-  describe("AC-7: Skip calibration and proceed to room stage", () => {
+  describe("AC-7: Use selected plan and proceed to room stage", () => {
     it("allows user to proceed from plan stage to room stage without modifying any dimensions", () => {
       render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
 
@@ -266,12 +266,12 @@ describe("FloorPlanShell Integration", () => {
       expect(screen.getByTestId("stage-step-plan")).toHaveAttribute("aria-current", "step");
       expect(screen.getByTestId("stage-plan-panel")).toBeInTheDocument();
 
-      // Skip calibration button is present
-      const skipBtn = screen.getByTestId("skip-calibration-btn");
-      expect(skipBtn).toBeInTheDocument();
+      // Use plan button is present
+      const usePlanBtn = screen.getByTestId("use-plan-btn");
+      expect(usePlanBtn).toBeInTheDocument();
 
-      // Click skip calibration
-      fireEvent.click(skipBtn);
+      // Click use plan
+      fireEvent.click(usePlanBtn);
 
       // Successfully advances to room stage
       expect(screen.getByTestId("stage-step-room")).toHaveAttribute("aria-current", "step");
@@ -1030,7 +1030,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("room-item-r1"));
 
       // Skip calibration or proceed to room stage
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       expect(screen.getByTestId("stage-step-room")).toHaveAttribute("aria-current", "step");
 
       // In room stage, proceed to furniture stage
@@ -1065,7 +1065,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("room-item-r2"));
 
       // Skip calibration to room stage
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
 
       // Next to furniture stage
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
@@ -1088,7 +1088,7 @@ describe("FloorPlanShell Integration", () => {
       fireEvent.click(screen.getByTestId("room-item-r1"));
 
       // Skip calibration to room stage
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
 
       // Next to furniture stage
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
@@ -1110,7 +1110,7 @@ describe("FloorPlanShell Integration", () => {
 
       // Select Living Room (r1)
       fireEvent.click(screen.getByTestId("room-item-r1"));
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
 
       // Click "Browse Full Catalog" button in ContextFurniturePanel
@@ -1151,7 +1151,7 @@ describe("FloorPlanShell Integration", () => {
 
       // Select Master Bedroom (r2)
       fireEvent.click(screen.getByTestId("room-item-r2"));
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
 
       // Add double bed from context recommendations
@@ -1190,7 +1190,7 @@ describe("FloorPlanShell Integration", () => {
 
       // 1. Select room r1 (Living Room)
       fireEvent.click(screen.getByTestId("room-item-r1"));
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
 
       // 2. Select sofa f1 as target furniture and advance to decision
@@ -1217,7 +1217,7 @@ describe("FloorPlanShell Integration", () => {
 
       // Select Living Room (r1)
       fireEvent.click(screen.getByTestId("room-item-r1"));
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
 
       // Select sofa f1 as initial target furniture
@@ -1241,7 +1241,7 @@ describe("FloorPlanShell Integration", () => {
       render(<FloorPlanShell locale="zh" initialPlans={FIXTURE_PLANS} />);
 
       fireEvent.click(screen.getByTestId("room-item-r2"));
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
 
       expect(screen.getByTestId("context-furniture-panel")).toBeInTheDocument();
@@ -1318,7 +1318,7 @@ describe("FloorPlanShell Integration", () => {
 
       // Select Master Bedroom (r1)
       fireEvent.click(screen.getByTestId("room-item-r1"));
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
 
       // Select double bed f1 and advance to decision stage
@@ -1359,7 +1359,7 @@ describe("FloorPlanShell Integration", () => {
 
       // Advance to decision stage with bed f2
       fireEvent.click(screen.getByTestId("room-item-r2"));
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
       fireEvent.click(screen.getByTestId("floor-plan-furniture-f2"));
       fireEvent.click(screen.getByTestId("next-to-decision-btn"));
@@ -1378,7 +1378,7 @@ describe("FloorPlanShell Integration", () => {
 
       // Navigate to furniture stage with Master Bedroom (r2)
       fireEvent.click(screen.getByTestId("room-item-r2"));
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
 
       // Select double bed f2 and advance to decision
@@ -1438,7 +1438,7 @@ describe("FloorPlanShell Integration", () => {
 
       // Navigate to decision stage with Master Bedroom (r2) and double bed f2 (1800 × 2000 mm)
       fireEvent.click(screen.getByTestId("room-item-r2"));
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
       fireEvent.click(screen.getByTestId("floor-plan-furniture-f2"));
       fireEvent.click(screen.getByTestId("next-to-decision-btn"));
@@ -1480,7 +1480,7 @@ describe("FloorPlanShell Integration", () => {
 
       // Navigate to decision stage with Master Bedroom (r2) and double bed f2 (1800 × 2000 mm)
       fireEvent.click(screen.getByTestId("room-item-r2"));
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
       fireEvent.click(screen.getByTestId("floor-plan-furniture-f2"));
       fireEvent.click(screen.getByTestId("next-to-decision-btn"));
@@ -1519,7 +1519,7 @@ describe("FloorPlanShell Integration", () => {
 
       // Navigate to decision stage with Master Bedroom (r2) and double bed f2
       fireEvent.click(screen.getByTestId("room-item-r2"));
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
       fireEvent.click(screen.getByTestId("floor-plan-furniture-f2"));
       fireEvent.click(screen.getByTestId("next-to-decision-btn"));
@@ -1559,7 +1559,7 @@ describe("FloorPlanShell Integration", () => {
 
       // Select room r2 and skip calibration to room stage
       fireEvent.click(screen.getByTestId("room-item-r2"));
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
       fireEvent.click(screen.getByTestId("floor-plan-furniture-f2"));
       fireEvent.click(screen.getByTestId("next-to-decision-btn"));
@@ -1735,7 +1735,7 @@ describe("FloorPlanShell Integration", () => {
       expect(roomItem.className).toMatch(/focus-visible:ring/);
 
       // Advance to Room stage
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       const step2 = screen.getByTestId("stage-step-room");
       expect(step2).toHaveAttribute("aria-current", "step");
 
@@ -1773,7 +1773,7 @@ describe("FloorPlanShell Integration", () => {
       render(<FloorPlanShell isMobile={false} initialPlans={FIXTURE_PLANS} />);
 
       // Advance to furniture stage and add a furniture
-      fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+      fireEvent.click(screen.getByTestId("use-plan-btn"));
       fireEvent.click(screen.getByTestId("room-item-r1"));
       fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
-import { RecognitionLabShell } from "@/components/floor-plan/recognition-lab/recognition-lab-shell";
+import { FloorPlanShell } from "@/components/floor-plan/floor-plan-shell";
 import type { AppLocale } from "@/i18n/routing";
 import {
   FLOOR_PLAN_ROBOTS_METADATA,
@@ -18,12 +18,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title:
       locale === "zh"
-        ? "CubiCasa 识图实验室 | Chase's CV"
-        : "CubiCasa Recognition Lab | Chase's CV",
+        ? "户型实验室 | Chase's CV"
+        : "Floor Plan Lab | Chase's CV",
     description:
       locale === "zh"
-        ? "CubiCasa 户型图片识别、两点尺度标定与拓扑规整实验室"
-        : "CubiCasa floor plan recognition, two-point scale calibration, and topology normalization lab",
+        ? "候选户型资产预览与空间验证实验室"
+        : "Candidate floor plan asset preview and spatial validation lab",
     robots: FLOOR_PLAN_ROBOTS_METADATA,
   };
 }
@@ -36,5 +36,5 @@ export default async function FloorPlanLabPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <RecognitionLabShell locale={locale} />;
+  return <FloorPlanShell locale={locale} />;
 }

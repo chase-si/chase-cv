@@ -55,7 +55,7 @@ describe("Floor Plan i18n module", () => {
     expect(zh.t.workflow.steps.room).toBe("房间");
     expect(zh.t.workflow.steps.furniture).toBe("家具");
     expect(zh.t.workflow.steps.decision).toBe("结论");
-    expect(zh.t.workflow.actions.skipCalibration).toContain("跳过校准");
+    expect(zh.t.workflow.actions.usePlan).toContain("使用这个户型");
   });
 
   it("provides English translations and fallback behavior", () => {
@@ -66,7 +66,7 @@ describe("Floor Plan i18n module", () => {
     expect(en.t.workflow.steps.room).toBe("Room");
     expect(en.t.workflow.steps.furniture).toBe("Furniture");
     expect(en.t.workflow.steps.decision).toBe("Decision");
-    expect(en.t.workflow.actions.skipCalibration).toContain("Skip calibration");
+    expect(en.t.workflow.actions.usePlan).toContain("Use this floor plan");
     expect(en.getRoomTypeLabel("living_room")).toBe("Living Room");
     expect(en.getFurnitureCategoryLabel("bed")).toBe("Beds");
     expect(en.getFurnitureName("bed-double", "Double Bed")).toBe("Double Bed");
