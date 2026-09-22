@@ -207,39 +207,6 @@ export interface FloorPlanDictionary {
   lab: {
     title: string;
     description: string;
-    step1Title: string;
-    step1Desc: string;
-    step2Title: string;
-    step2Desc: string;
-    step3Title: string;
-    step3Desc: string;
-    samplePlans: string;
-    uploadImage: string;
-    chooseFile: string;
-    selectedFile: string;
-    point1: string;
-    point2: string;
-    knownLength: string;
-    pixelDistance: string;
-    calculatedScale: string;
-    calibrateScale: string;
-    skipCalibration: string;
-    unscaledModeNotice: string;
-    runInference: string;
-    runningInference: string;
-    inferenceError: string;
-    evalReportTitle: string;
-    exportReport: string;
-    openEditor: string;
-    returnToLab: string;
-    approvePlan: string;
-    approvedNotice: string;
-    wallCount: string;
-    openingCount: string;
-    roomCount: string;
-    furnitureCount: string;
-    topologyStatus: string;
-    serviceUnavailable: string;
   };
   workflow: {
     stepperAriaLabel: string;
@@ -259,8 +226,7 @@ export interface FloorPlanDictionary {
     actions: {
       choosePlan: string;
       changePlan: string;
-      calibrateDimensions: string;
-      skipCalibration: string;
+      usePlan: string;
       nextToRoom: string;
       backToPlan: string;
       nextToFurniture: string;
@@ -281,8 +247,6 @@ export interface FloorPlanDictionary {
       title: string;
       description: string;
       currentPlanLabel: string;
-      calibratePrompt: string;
-      accurateNotice: string;
       stepTag: string;
     };
     roomStage: {
@@ -548,41 +512,8 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
     stepPanel: "当前流程步骤",
   },
   lab: {
-    title: "CubiCasa 识图实验室",
-    description: "CubiCasa 户型图片识别、两点尺度标定与拓扑规整实验室",
-    step1Title: "第一步：选择户型底图",
-    step1Desc: "选用内置代表性样例或上传自定义光栅户型图",
-    step2Title: "第二步：两点尺度标定",
-    step2Desc: "设定已知距离的两个基准点建立毫米坐标系",
-    step3Title: "第三步：模型识别与拓扑规整",
-    step3Desc: "运行语义分割、拓扑规整并评估几何精度",
-    samplePlans: "示例户型底图",
-    uploadImage: "上传自定义户型图",
-    chooseFile: "选择图片文件",
-    selectedFile: "已选图片",
-    point1: "标定参考点 A",
-    point2: "标定参考点 B",
-    knownLength: "已知两点真实距离 (mm)",
-    pixelDistance: "像素跨度",
-    calculatedScale: "标定比例换算",
-    calibrateScale: "完成两点标定",
-    skipCalibration: "跳过标定（使用未标定相对像素几何）",
-    unscaledModeNotice: "未标定模式：保留相对像素几何，抑制绝对尺寸规则",
-    runInference: "运行 CubiCasa 智能识别",
-    runningInference: "正在进行图像分割与拓扑规整...",
-    inferenceError: "识别运行出错",
-    evalReportTitle: "评测与规整基准报告",
-    exportReport: "导出评测报告 (JSON)",
-    openEditor: "进入编辑器精细微调",
-    returnToLab: "返回识图实验室",
-    approvePlan: "审核通过并定稿",
-    approvedNotice: "该识别方案已成功审核定稿",
-    wallCount: "识别墙体数",
-    openingCount: "识别门窗数",
-    roomCount: "识别房间数",
-    furnitureCount: "识别家具数",
-    topologyStatus: "拓扑连续性闭合",
-    serviceUnavailable: "CubiCasa recognition service is currently unavailable",
+    title: "户型实验室",
+    description: "候选户型资产预览与空间验证实验室",
   },
   workflow: {
     stepperAriaLabel: "户型与家具决策流程",
@@ -594,7 +525,7 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
       decision: "结论",
     },
     stepDescriptions: {
-      plan: "选择并校准户型",
+      plan: "选择户型",
       room: "选择检测房间",
       furniture: "添加目标家具",
       decision: "尺寸决策与微调",
@@ -602,8 +533,7 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
     actions: {
       choosePlan: "选择标准户型",
       changePlan: "更换户型",
-      calibrateDimensions: "微调房间开间进深",
-      skipCalibration: "跳过校准，进入房间选择",
+      usePlan: "使用这个户型",
       nextToRoom: "进入房间阶段",
       backToPlan: "返回户型阶段",
       nextToFurniture: "进入家具阶段",
@@ -621,11 +551,9 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
       switchPrompt: "在画布或列表中点击其他房间即可更换检测空间：",
     },
     planStage: {
-      title: "户型确认与校准",
-      description: "确认标准户型；如尺寸与实际住宅不同可微调房间开间，若模板已足够准确可直接跳过。",
+      title: "户型确认",
+      description: "确认标准户型，直接使用进入房间与家具尺寸决策。",
       currentPlanLabel: "当前户型方案",
-      calibratePrompt: "房间尺寸校准（可选）",
-      accurateNotice: "模板尺寸已符合实际住宅，无需调整",
       stepTag: "步骤 1/4",
     },
     roomStage: {
@@ -633,7 +561,7 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
       description: "在画布或列表中选择本次需要进行家具尺寸检测的房间。",
       placeholder: "请在画布中点击需要检测的房间，以确定空间范围与建议规则。",
       stepTag: "步骤 2/4",
-      roomsInPlan: "户型房间列表（选择目标房间核对与校准尺寸）",
+      roomsInPlan: "户型房间列表",
       selectPrompt: "可选房间列表",
       selectedTargetRoom: "已选目标房间",
       targetBadge: "目标",
@@ -891,41 +819,8 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
     stepPanel: "Current Step",
   },
   lab: {
-    title: "CubiCasa Recognition Lab",
-    description: "CubiCasa floor plan recognition, two-point scale calibration, and topology normalization lab",
-    step1Title: "Step 1: Image Source",
-    step1Desc: "Select representative sample or upload a raster floor plan",
-    step2Title: "Step 2: Two-Point Scale Calibration",
-    step2Desc: "Pick 2 points with known distance to establish scale",
-    step3Title: "Step 3: Recognition & Normalization",
-    step3Desc: "Run semantic recognition, normalize topology and verify",
-    samplePlans: "Sample Floor Plans",
-    uploadImage: "Upload Custom Image",
-    chooseFile: "Choose File",
-    selectedFile: "Selected file",
-    point1: "Point 1",
-    point2: "Point 2",
-    knownLength: "Known Length (mm)",
-    pixelDistance: "Pixel distance",
-    calculatedScale: "Calculated scale",
-    calibrateScale: "Calibrate Scale",
-    skipCalibration: "Skip Calibration (Produce Unscaled Geometry)",
-    unscaledModeNotice: "Uncalibrated mode: Preserves relative pixel geometry without real millimeter scale",
-    runInference: "Run CubiCasa Recognition",
-    runningInference: "Recognizing floor plan & normalizing topology...",
-    inferenceError: "Inference Error",
-    evalReportTitle: "Evaluation & Benchmark Report",
-    exportReport: "Export Evaluation Report (JSON)",
-    openEditor: "Open in Editor",
-    returnToLab: "Return to Recognition Lab",
-    approvePlan: "Approve Plan",
-    approvedNotice: "Recognized plan approved",
-    wallCount: "Walls",
-    openingCount: "Openings",
-    roomCount: "Rooms",
-    furnitureCount: "Furniture",
-    topologyStatus: "Topology Closed",
-    serviceUnavailable: "CubiCasa recognition service is currently unavailable",
+    title: "Floor Plan Lab",
+    description: "Candidate floor plan asset preview and spatial validation lab",
   },
   workflow: {
     stepperAriaLabel: "Floor plan and furniture decision workflow",
@@ -937,7 +832,7 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
       decision: "Decision",
     },
     stepDescriptions: {
-      plan: "Select & calibrate plan",
+      plan: "Select plan",
       room: "Select target room",
       furniture: "Add target furniture",
       decision: "Decision & fine-tune",
@@ -945,8 +840,7 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
     actions: {
       choosePlan: "Choose Standard Plan",
       changePlan: "Change Plan",
-      calibrateDimensions: "Calibrate Room Spans",
-      skipCalibration: "Skip calibration & continue to room",
+      usePlan: "Use this floor plan",
       nextToRoom: "Next: Select Room",
       backToPlan: "Back to Plan",
       nextToFurniture: "Next: Add Furniture",
@@ -964,11 +858,9 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
       switchPrompt: "Click another room on canvas or list to switch:",
     },
     planStage: {
-      title: "Plan Selection & Calibration",
-      description: "Select a standard floor plan; optionally fine-tune room spans, or skip if the template is accurate.",
+      title: "Plan Selection",
+      description: "Select a standard floor plan to proceed with room and furniture fit testing.",
       currentPlanLabel: "Current Floor Plan",
-      calibratePrompt: "Room Span Calibration (Optional)",
-      accurateNotice: "Template is accurate enough, no calibration needed",
       stepTag: "Step 1/4",
     },
     roomStage: {
@@ -976,7 +868,7 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
       description: "Choose the target room on canvas or from list for furniture fit testing.",
       placeholder: "Click a room on the canvas to set the evaluation space.",
       stepTag: "Step 2/4",
-      roomsInPlan: "Rooms in Floor Plan (Select to Calibrate)",
+      roomsInPlan: "Rooms in Floor Plan",
       selectPrompt: "Select Room from List",
       selectedTargetRoom: "Selected Target Room",
       targetBadge: "Target",

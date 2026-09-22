@@ -200,10 +200,10 @@
       "ogImageAlt": "Floor Plan Space Validator: browse standard plans and verify spatial dimensions",
       "applicationName": "Floor Plan Space Validator",
       "lab": {
-        "title": "CubiCasa Recognition Lab | Chase's CV",
-        "description": "CubiCasa floor plan recognition, two-point scale calibration, and topology normalization lab",
-        "ogImageAlt": "CubiCasa Recognition Lab: floor plan segmentation and calibration",
-        "applicationName": "CubiCasa Recognition Lab"
+        "title": "Floor Plan Lab | Chase's CV",
+        "description": "Candidate floor plan asset preview and spatial validation lab",
+        "ogImageAlt": "Floor Plan Lab: candidate floor plan asset preview",
+        "applicationName": "Floor Plan Lab"
       }
     }
   },
@@ -1111,41 +1111,8 @@
       "details": "Details"
     },
     "lab": {
-      "title": "CubiCasa Recognition Lab",
-      "description": "CubiCasa floor plan recognition, two-point scale calibration, and topology normalization lab",
-      "step1Title": "Step 1: Image Source",
-      "step1Desc": "Select representative sample or upload a raster floor plan",
-      "step2Title": "Step 2: Two-Point Scale Calibration",
-      "step2Desc": "Pick 2 points with known distance to establish scale",
-      "step3Title": "Step 3: Recognition & Normalization",
-      "step3Desc": "Run semantic recognition, normalize topology and verify",
-      "samplePlans": "Sample Floor Plans",
-      "uploadImage": "Upload Custom Image",
-      "chooseFile": "Choose File",
-      "selectedFile": "Selected file",
-      "point1": "Point 1",
-      "point2": "Point 2",
-      "knownLength": "Known Length (mm)",
-      "pixelDistance": "Pixel distance",
-      "calculatedScale": "Calculated scale",
-      "calibrateScale": "Calibrate Scale",
-      "skipCalibration": "Skip Calibration (Produce Unscaled Geometry)",
-      "unscaledModeNotice": "Uncalibrated mode: Preserves relative pixel geometry without real millimeter scale",
-      "runInference": "Run CubiCasa Recognition",
-      "runningInference": "Recognizing floor plan & normalizing topology...",
-      "inferenceError": "Inference Error",
-      "evalReportTitle": "Evaluation & Benchmark Report",
-      "exportReport": "Export Evaluation Report (JSON)",
-      "openEditor": "Open in Editor",
-      "returnToLab": "Return to Recognition Lab",
-      "approvePlan": "Approve Plan",
-      "approvedNotice": "Recognized plan approved",
-      "wallCount": "Walls",
-      "openingCount": "Openings",
-      "roomCount": "Rooms",
-      "furnitureCount": "Furniture",
-      "topologyStatus": "Topology Closed",
-      "serviceUnavailable": "CubiCasa recognition service is currently unavailable"
+      "title": "Floor Plan Lab",
+      "description": "Candidate floor plan asset preview and spatial validation lab"
     }
   }
 }

@@ -2,15 +2,9 @@ import {
   CANONICAL_UNIT,
   type FloorPlan,
   type FurnitureCatalog,
-  type FurnitureDefinition,
-  type Opening,
-  type PlanSourcePackageMetadata,
-  type Room,
   type SpaceRuleConfig,
   type ValidationError,
   type ValidationResult,
-  type Vertex,
-  type Wall,
 } from "./types";
 
 function isObject(val: unknown): val is Record<string, unknown> {
@@ -31,109 +25,6 @@ function isPositiveNumber(val: unknown): val is number {
 
 function isNonNegativeNumber(val: unknown): val is number {
   return typeof val === "number" && Number.isFinite(val) && val >= 0;
-}
-
-/**
- * Validate Plan Source-Package Metadata
- */
-export function validatePlanSourcePackage(
-  input: unknown,
-): ValidationResult<PlanSourcePackageMetadata> {
-  const errors: ValidationError[] = [];
-
-  if (!isObject(input)) {
-    return {
-      ok: false,
-      errors: [{ path: "", message: "Plan source package must be a JSON object" }],
-    };
-  }
-
-  if (input.version !== 1) {
-    errors.push({ path: "version", message: "Source package version must be 1" });
-  }
-
-  if (input.unit !== CANONICAL_UNIT) {
-    errors.push({
-      path: "unit",
-      message: `Source package unit must be '${CANONICAL_UNIT}' (millimetres)`,
-    });
-  }
-
-  if (!isNonEmptyString(input.imageId)) {
-    errors.push({ path: "imageId", message: "imageId must be a non-empty string" });
-  }
-
-  if (!isNonEmptyString(input.imageHash)) {
-    errors.push({ path: "imageHash", message: "imageHash must be a non-empty string" });
-  }
-
-  if (!isPositiveNumber(input.imageWidthPx)) {
-    errors.push({
-      path: "imageWidthPx",
-      message: "imageWidthPx must be a positive number",
-    });
-  }
-
-  if (!isPositiveNumber(input.imageHeightPx)) {
-    errors.push({
-      path: "imageHeightPx",
-      message: "imageHeightPx must be a positive number",
-    });
-  }
-
-  const validSourceTypes = ["cubicasa", "image", "cad", "template"];
-  if (!isNonEmptyString(input.sourceType) || !validSourceTypes.includes(input.sourceType)) {
-    errors.push({
-      path: "sourceType",
-      message: `sourceType must be one of: ${validSourceTypes.join(", ")}`,
-    });
-  }
-
-  if (!isObject(input.calibration)) {
-    errors.push({
-      path: "calibration",
-      message: "calibration must be an object with realLengthMm, selectedPixelLength, mmPerPixel, scaled",
-    });
-  } else {
-    const cal = input.calibration;
-    if (!isPositiveNumber(cal.realLengthMm)) {
-      errors.push({
-        path: "calibration.realLengthMm",
-        message: "calibration.realLengthMm must be positive millimetres",
-      });
-    }
-    if (!isPositiveNumber(cal.selectedPixelLength)) {
-      errors.push({
-        path: "calibration.selectedPixelLength",
-        message: "calibration.selectedPixelLength must be a positive number",
-      });
-    }
-    if (!isPositiveNumber(cal.mmPerPixel)) {
-      errors.push({
-        path: "calibration.mmPerPixel",
-        message: "calibration.mmPerPixel must be a positive number",
-      });
-    }
-    if (typeof cal.scaled !== "boolean") {
-      errors.push({
-        path: "calibration.scaled",
-        message: "calibration.scaled must be a boolean",
-      });
-    }
-  }
-
-  if (!isObject(input.meta) || !isNonEmptyString(input.meta.name)) {
-    errors.push({
-      path: "meta.name",
-      message: "meta.name must be a non-empty string",
-    });
-  }
-
-  if (errors.length > 0) {
-    return { ok: false, errors };
-  }
-
-  return { ok: true, value: input as unknown as PlanSourcePackageMetadata };
 }
 
 /**

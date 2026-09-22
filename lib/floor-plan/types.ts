@@ -10,7 +10,7 @@
 export const CANONICAL_UNIT = "mm" as const;
 export type UnitMillimetre = typeof CANONICAL_UNIT;
 
-export type PlanSourceType = "template" | "user" | "cubicasa" | "import";
+export type PlanSourceType = "template" | "user" | "import";
 
 export type LockAxis = "horizontal" | "vertical" | "none";
 
@@ -120,41 +120,6 @@ export type StandardFloorPlan = FloorPlan & {
     source: "template";
   };
 };
-
-/**
- * Plan Source-Package Metadata (image/import source metadata)
- */
-export interface SourcePackageCalibration {
-  realLengthMm: number;
-  selectedPixelLength: number;
-  mmPerPixel: number;
-  scaled: boolean;
-}
-
-export interface SourcePackageInferenceMeta {
-  engine: string;
-  modelVersion: string;
-  inferenceMs?: number;
-}
-
-export interface PlanSourcePackageMetadata {
-  version: 1;
-  unit: UnitMillimetre;
-  imageId: string;
-  imageUri?: string;
-  imageHash: string;
-  imageWidthPx: number;
-  imageHeightPx: number;
-  sourceType: "cubicasa" | "image" | "cad" | "template";
-  calibration: SourcePackageCalibration;
-  inference?: SourcePackageInferenceMeta;
-  meta: {
-    name: string;
-    source: string;
-    createdAt: string;
-    updatedAt?: string;
-  };
-}
 
 /**
  * Furniture Catalog & Definitions
