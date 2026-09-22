@@ -71,9 +71,29 @@ export interface Room {
   boundaryWallIds: string[]; // ordered cycle of directed wall references
 }
 
+export type FurnitureRotation = 0 | 90 | 180 | 270;
+
+export interface FurniturePlacement {
+  id: string;
+  definitionId: string;
+  specificationId: string;
+  x: number;
+  y: number;
+  rotation: FurnitureRotation;
+}
+
+export interface PlacementScenario {
+  version: 1;
+  unit: UnitMillimetre;
+  planId: string;
+  placements: FurniturePlacement[];
+  targetPlacementId?: string;
+}
+
 export interface FurnitureInstance {
   id: string;
   definitionId: string; // references FurnitureDefinition.id
+  specificationId?: string; // references FurnitureSpecification.id
   x: number; // in mm (plan coordinate space)
   y: number; // in mm
   width: number; // in mm

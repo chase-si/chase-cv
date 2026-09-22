@@ -16,7 +16,11 @@ import {
   resolvePlanCategory,
   type StandardPlanSummary,
 } from "@/lib/floor-plan/catalog";
-import type { FloorPlan } from "@/lib/floor-plan/types";
+import type { FloorPlan, PlacementScenario } from "@/lib/floor-plan/types";
+import {
+  applyPlacementScenarioToFloorPlan,
+  floorPlanToPlacementScenario,
+} from "@/lib/floor-plan/placement-scenario";
 import { evaluatePlanRules } from "@/lib/floor-plan/rules";
 import {
   computePolygonArea,
@@ -51,7 +55,9 @@ import { cn } from "@/lib/utils";
 export interface FloorPlanShellProps {
   initialPlans?: StandardPlanSummary[];
   initialActivePlan?: FloorPlan;
+  initialScenario?: PlacementScenario;
   onPlanChange?: (plan: FloorPlan) => void;
+  onScenarioChange?: (scenario: PlacementScenario) => void;
   storage?: any; // Deprecated prop retained for backward compatibility
   isMobile?: boolean;
   locale?: string;
@@ -97,7 +103,9 @@ export function useIsMobile(propIsMobile?: boolean): boolean {
 export function FloorPlanShell({
   initialPlans,
   initialActivePlan,
+  initialScenario,
   onPlanChange,
+  onScenarioChange,
   isMobile: propIsMobile,
   locale,
 }: FloorPlanShellProps) {
@@ -151,7 +159,9 @@ export function FloorPlanShell({
 
   // Target room & target furniture state
   const [targetRoomId, setTargetRoomId] = React.useState<string | null>(null);
-  const [targetFurnitureId, setTargetFurnitureId] = React.useState<string | null>(null);
+  const [targetFurnitureId, setTargetFurnitureId] = React.useState<string | null>(
+    initialScenario?.targetPlacementId ?? null,
+  );
 
   // On-demand dialog states
   const [isPlanSelectorOpen, setIsPlanSelectorOpen] = React.useState<boolean>(false);
@@ -171,17 +181,28 @@ export function FloorPlanShell({
   );
 
   // Active FloorPlan in memory
-  const [currentPlan, setCurrentPlan] = React.useState<FloorPlan>(
-    initialActivePlan ?? (activePlanSummary ? activePlanSummary.plan : ({} as FloorPlan)),
-  );
+  const [currentPlan, setCurrentPlan] = React.useState<FloorPlan>(() => {
+    const base =
+      initialActivePlan ?? (activePlanSummary ? activePlanSummary.plan : ({} as FloorPlan));
+    if (initialScenario) {
+      return applyPlacementScenarioToFloorPlan(base, initialScenario);
+    }
+    return base;
+  });
 
-  // Synchronize initial plan if prop changes
+  // Synchronize initial plan or scenario if prop changes
   React.useEffect(() => {
     if (initialActivePlan) {
-      setCurrentPlan(initialActivePlan);
+      const base = initialScenario
+        ? applyPlacementScenarioToFloorPlan(initialActivePlan, initialScenario)
+        : initialActivePlan;
+      setCurrentPlan(base);
       setActivePlanId(initialActivePlan.meta.id ?? "plan-preview");
+      if (initialScenario?.targetPlacementId !== undefined) {
+        setTargetFurnitureId(initialScenario.targetPlacementId);
+      }
     }
-  }, [initialActivePlan]);
+  }, [initialActivePlan, initialScenario]);
 
   // Evaluate spatial rules deterministically
   const violations = React.useMemo(() => evaluatePlanRules(currentPlan), [currentPlan]);
@@ -249,12 +270,16 @@ export function FloorPlanShell({
         setTargetRoomId(entity.id);
       } else if (entity?.type === "furniture") {
         setTargetFurnitureId(entity.id);
+        if (onScenarioChange) {
+          const scenario = floorPlanToPlacementScenario(currentPlan, entity.id);
+          onScenarioChange(scenario);
+        }
       }
       if (entity && isMobile) {
         setMobileSheetType("entity");
       }
     },
-    [isMobile],
+    [currentPlan, isMobile, onScenarioChange],
   );
 
   const handleCloseMobileSheet = React.useCallback(() => {
@@ -263,11 +288,19 @@ export function FloorPlanShell({
   }, []);
 
   const handleUpdatePlan = React.useCallback(
-    (updatedPlan: FloorPlan, _description?: string) => {
+    (updatedPlan: FloorPlan, _description?: string, overrideTargetId?: string | null) => {
       setCurrentPlan(updatedPlan);
       onPlanChange?.(updatedPlan);
+      if (onScenarioChange) {
+        const effectiveTarget =
+          overrideTargetId !== undefined
+            ? overrideTargetId ?? undefined
+            : targetFurnitureId ?? undefined;
+        const scenario = floorPlanToPlacementScenario(updatedPlan, effectiveTarget);
+        onScenarioChange(scenario);
+      }
     },
-    [onPlanChange],
+    [onPlanChange, onScenarioChange, targetFurnitureId],
   );
 
   // Add furniture to active plan
@@ -290,7 +323,7 @@ export function FloorPlanShell({
         if (!targetRoomId && effectiveRoomId) {
           setTargetRoomId(effectiveRoomId);
         }
-        handleUpdatePlan(res.plan, "Add furniture");
+        handleUpdatePlan(res.plan, "Add furniture", res.instance.id);
         setTargetFurnitureId(res.instance.id);
         setSelectedEntity({ type: "furniture", id: res.instance.id });
         setIsFurnitureCatalogOpen(false);
@@ -316,7 +349,7 @@ export function FloorPlanShell({
         setSelectedEntity(null);
       }
       setTargetFurnitureId(null);
-      handleUpdatePlan(res.plan, "Delete furniture");
+      handleUpdatePlan(res.plan, "Delete furniture", null);
     }
   }, [currentPlan, targetFurniture, selectedEntity, handleUpdatePlan]);
 
@@ -375,7 +408,7 @@ export function FloorPlanShell({
             if (targetFurnitureId === selectedEntity.id) {
               setTargetFurnitureId(null);
             }
-            handleUpdatePlan(res.plan, "Delete furniture");
+            handleUpdatePlan(res.plan, "Delete furniture", null);
           }
         }
       }

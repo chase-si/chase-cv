@@ -6,6 +6,12 @@ import {
   THREE_BED_STANDARD_FLOOR_PLAN,
 } from "@/lib/floor-plan/fixtures/standard-plans";
 import { buildStandardPlanSummary } from "@/lib/floor-plan/catalog";
+import {
+  createPlacementScenario,
+  type FurniturePlacement,
+  type PlacementScenario,
+  type StandardFloorPlan,
+} from "@/lib/floor-plan";
 import { FloorPlanShell } from "./floor-plan-shell";
 
 /** Editor fixtures with furniture — used by shell integration tests */
@@ -234,4 +240,81 @@ describe("FloorPlanShell Integration (Streamlined MVP Architecture)", () => {
     expect(editBtn.className).toContain("bg-primary");
     expect(panBtn.className).not.toContain("bg-primary");
   });
+
+  it("integrates PlacementScenario end-to-end: retains multiple placements, respects target selection, and leaves standard plan unmutated (AC-2, AC-3)", () => {
+    // Deep freeze standard plan to strictly prove topology cannot be mutated
+    const originalPlan: StandardFloorPlan = JSON.parse(
+      JSON.stringify(STUDIO_STANDARD_FLOOR_PLAN),
+    );
+    Object.freeze(originalPlan);
+    Object.freeze(originalPlan.vertices);
+    Object.freeze(originalPlan.walls);
+    Object.freeze(originalPlan.openings);
+    Object.freeze(originalPlan.rooms);
+    const planSnapshot = JSON.stringify(originalPlan);
+
+    const bedPlacement: FurniturePlacement = {
+      id: "placement-bed",
+      definitionId: "bed-double",
+      specificationId: "bed-double-1800x2000",
+      x: 1500,
+      y: 1500,
+      rotation: 0,
+    };
+    const sofaPlacement: FurniturePlacement = {
+      id: "placement-sofa",
+      definitionId: "sofa-3seat",
+      specificationId: "sofa-3seat-2100x900",
+      x: 2500,
+      y: 2500,
+      rotation: 90,
+    };
+
+    const initialScenario = createPlacementScenario(
+      originalPlan.meta.id!,
+      [bedPlacement, sofaPlacement],
+      "placement-bed",
+    );
+
+    const onScenarioChange = vi.fn();
+    const onPlanChange = vi.fn();
+
+    render(
+      <FloorPlanShell
+        initialActivePlan={originalPlan}
+        initialScenario={initialScenario}
+        onScenarioChange={onScenarioChange}
+        onPlanChange={onPlanChange}
+      />,
+    );
+
+    // Both furniture items from scenario must be rendered on the canvas
+    expect(screen.getByTestId("floor-plan-furniture-placement-bed")).toBeInTheDocument();
+    expect(screen.getByTestId("floor-plan-furniture-placement-sofa")).toBeInTheDocument();
+
+    // Primary decision panel focuses on the selected target (bed)
+    expect(screen.getByTestId("furniture-decision-panel")).toBeInTheDocument();
+
+    // Switch target by clicking sofa on canvas
+    fireEvent.click(screen.getByTestId("floor-plan-furniture-placement-sofa"));
+    expect(onScenarioChange).toHaveBeenCalled();
+    const latestScenario: PlacementScenario =
+      onScenarioChange.mock.calls[onScenarioChange.mock.calls.length - 1][0];
+    expect(latestScenario.targetPlacementId).toBe("placement-sofa");
+    expect(latestScenario.placements).toHaveLength(2);
+
+    // Rotate the selected sofa
+    fireEvent.click(screen.getByTestId("rotate-furniture-btn"));
+    const scenarioAfterRotate: PlacementScenario =
+      onScenarioChange.mock.calls[onScenarioChange.mock.calls.length - 1][0];
+    expect(scenarioAfterRotate.placements).toHaveLength(2);
+    const rotatedSofa = scenarioAfterRotate.placements.find(
+      (p) => p.id === "placement-sofa",
+    );
+    expect(rotatedSofa?.rotation).toBe(180);
+
+    // Prove topology of original StandardFloorPlan is 100% unmutated
+    expect(JSON.stringify(originalPlan)).toBe(planSnapshot);
+  });
 });
+
