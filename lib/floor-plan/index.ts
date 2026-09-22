@@ -14,3 +14,5 @@ export * from "./rules";
 export * from "./internal-boundary";
 export * from "./furniture-decision";
 export * from "./i18n";
+export * from "./placement-scenario";
+
