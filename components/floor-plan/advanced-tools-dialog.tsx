@@ -37,7 +37,6 @@ export interface AdvancedToolsDialogProps {
   onSelectEntity: EntitySelectHandler;
   onUpdatePlan?: (updated: FloorPlan, description?: string) => void;
   onEnsureUserPlan?: () => Promise<FloorPlan>;
-  onStartCalibration?: () => void;
   onSelectDefinition?: (definitionId: string) => void;
   onExportJson: () => void;
   onRestartFromTemplate: () => void;
@@ -57,7 +56,6 @@ export function AdvancedToolsDialog({
   onSelectEntity,
   onUpdatePlan,
   onEnsureUserPlan,
-  onStartCalibration,
   onSelectDefinition,
   onExportJson,
   onRestartFromTemplate,
@@ -322,7 +320,6 @@ export function AdvancedToolsDialog({
                   violations={violations}
                   locale={locale}
                   showRules={false}
-                  onStartCalibration={onStartCalibration}
                   onEnsureUserPlan={onEnsureUserPlan}
                 />
               ) : (

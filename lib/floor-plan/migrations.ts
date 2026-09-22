@@ -58,7 +58,7 @@ export function migrateV0ToV1(raw: Record<string, unknown>): MigrationOutcome<Fl
     const scaleFactor = isMeters ? 1000 : 1;
 
     const rawMeta = isObject(raw.meta) ? raw.meta : {};
-    const validSources: PlanSourceType[] = ["template", "user", "cubicasa", "import"];
+    const validSources: PlanSourceType[] = ["template", "user", "import"];
     const source: PlanSourceType =
       typeof rawMeta.source === "string" && validSources.includes(rawMeta.source as PlanSourceType)
         ? (rawMeta.source as PlanSourceType)

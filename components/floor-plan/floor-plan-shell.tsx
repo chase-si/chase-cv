@@ -143,26 +143,20 @@ export function FloorPlanShell({
   const workflowTopRef = React.useRef<HTMLDivElement>(null);
   const stagePanelScrollRef = React.useRef<HTMLDivElement>(null);
 
-  const recognizedSummary = React.useMemo<StandardPlanSummary | null>(() => {
+  const previewSummary = React.useMemo<StandardPlanSummary | null>(() => {
     if (!initialActivePlan) return null;
     return {
-      id: initialActivePlan.meta.id ?? "plan-custom-recognized",
+      id: initialActivePlan.meta.id ?? "plan-preview",
       name: initialActivePlan.meta.name,
-      description: initialActivePlan.meta.unscaled
-        ? locale === "zh"
-          ? "CubiCasa 未标定相对几何"
-          : "CubiCasa Uncalibrated Plan"
-        : locale === "zh"
-          ? "CubiCasa 已标定标准方案"
-          : "CubiCasa Calibrated Plan",
+      description:
+        locale === "zh"
+          ? "方案资产预览"
+          : "Plan Asset Preview",
       areaM2: 0,
-      formattedArea: initialActivePlan.meta.unscaled
-        ? locale === "zh"
-          ? "未标定真实尺寸"
-          : "Uncalibrated"
-        : locale === "zh"
-          ? "已标定"
-          : "Calibrated",
+      formattedArea:
+        locale === "zh"
+          ? "预览方案"
+          : "Preview Plan",
       roomCount: initialActivePlan.rooms.length,
       roomBreakdown:
         locale === "zh"
@@ -171,16 +165,7 @@ export function FloorPlanShell({
       categoryKey: resolvePlanCategory(
         initialActivePlan as StandardPlanSummary["plan"],
       ),
-      tags: [
-        initialActivePlan.meta.source,
-        initialActivePlan.meta.unscaled
-          ? locale === "zh"
-            ? "未标定"
-            : "Unscaled"
-          : locale === "zh"
-            ? "已标定"
-            : "Calibrated",
-      ],
+      tags: [initialActivePlan.meta.source],
       plan: initialActivePlan as unknown as StandardPlanSummary["plan"],
     };
   }, [initialActivePlan, locale]);
@@ -190,11 +175,11 @@ export function FloorPlanShell({
     [initialPlans, locale],
   );
   const plans = React.useMemo(() => {
-    if (recognizedSummary) {
-      return [recognizedSummary, ...basePlans.filter((p) => p.id !== recognizedSummary.id)];
+    if (previewSummary) {
+      return [previewSummary, ...basePlans.filter((p) => p.id !== previewSummary.id)];
     }
     return basePlans;
-  }, [basePlans, recognizedSummary]);
+  }, [basePlans, previewSummary]);
 
   const [activePlanId, setActivePlanId] = React.useState<string>(
     initialActivePlan?.meta.id ?? plans[0]?.id ?? "plan-cn-sh-ruidong-2br-67",
@@ -436,8 +421,8 @@ export function FloorPlanShell({
     await ensureUserPlan();
   }, [ensureUserPlan]);
 
-  // Start Calibration (AC-3): ensures user plan and prepares room calibration
-  const handleStartCalibration = React.useCallback(async () => {
+  // Adjust room: ensures user plan and prepares room editing
+  const handleAdjustRoom = React.useCallback(async () => {
     const editablePlan = await ensureUserPlan();
     const roomId = targetRoomId ?? editablePlan.rooms[0]?.id ?? null;
     if (roomId) {
@@ -447,8 +432,8 @@ export function FloorPlanShell({
     handleOpenAdvancedTools("structure");
   }, [ensureUserPlan, targetRoomId, handleOpenAdvancedTools]);
 
-  // Skip calibration and proceed to room stage (AC-7)
-  const handleSkipCalibration = React.useCallback(() => {
+  // Use plan and proceed to room stage (AC-7)
+  const handleUsePlan = React.useCallback(() => {
     setCompletedStages((prev) => Array.from(new Set([...prev, "plan"])));
     setCurrentStage("room");
     setSelectedEntity(null);
@@ -803,7 +788,7 @@ export function FloorPlanShell({
           onSelect={handleSelectEntity}
           violations={violations}
           locale={locale}
-          onStartCalibration={handleStartCalibration}
+          showRules={false}
           onEnsureUserPlan={ensureUserPlan}
         />
       );
@@ -830,9 +815,9 @@ export function FloorPlanShell({
           onUpdatePlan={handleUpdatePlan}
           onSelect={(entity) => {
             handleSelectEntity(entity);
+            handleCloseMobileSheet();
           }}
-          onSelectDefinition={handleAddContextFurniture}
-          onClose={() => setMobileSheetType(null)}
+          onClose={handleCloseMobileSheet}
           locale={locale}
         />
       );
@@ -855,9 +840,9 @@ export function FloorPlanShell({
         <FloorPlanCatalog
           plans={plans}
           activePlanId={activePlanId}
-          onSelectPlan={(id) => {
-            handleSelectPlan(id);
-            setMobileSheetType(null);
+          onSelectPlan={(planId) => {
+            handleSelectPlan(planId);
+            handleCloseMobileSheet();
           }}
           locale={locale}
         />
@@ -876,7 +861,7 @@ export function FloorPlanShell({
     activePlanId,
     handleSelectPlan,
     handleAddContextFurniture,
-    handleStartCalibration,
+    handleAdjustRoom,
     ensureUserPlan,
     targetRoomId,
     targetFurnitureId,
@@ -913,12 +898,12 @@ export function FloorPlanShell({
               </p>
               <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                 <span>{currentPlan.rooms.length} {isZh ? "个房间" : "rooms"}</span>
-                <span aria-hidden="true">·</span>
-                <span>
-                  {currentPlan.meta.unscaled
-                    ? isZh ? "待校准尺寸" : "Needs calibration"
-                    : isZh ? "尺寸已标定" : "Calibrated"}
-                </span>
+                {activePlanSummary.roomBreakdown && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <span>{activePlanSummary.roomBreakdown}</span>
+                  </>
+                )}
               </div>
             </div>
 
@@ -942,7 +927,6 @@ export function FloorPlanShell({
                   violations={violations}
                   locale={locale}
                   showRules={false}
-                  onStartCalibration={handleStartCalibration}
                   onEnsureUserPlan={ensureUserPlan}
                 />
                 <div className="mt-3 border-t border-border/60 pt-3">
@@ -973,30 +957,17 @@ export function FloorPlanShell({
 
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="default"
                   size="sm"
-                  data-testid="start-calibration-btn"
-                  aria-label={t.workflow.actions.calibrateDimensions}
-                  onClick={handleStartCalibration}
-                  className="h-11 min-h-[44px] min-w-0 gap-1.5 px-2 text-xs font-medium text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:min-h-0"
+                  data-testid="use-plan-btn"
+                  aria-label={t.workflow.actions.usePlan}
+                  onClick={handleUsePlan}
+                  className="h-11 min-h-[44px] min-w-0 gap-1.5 px-2 text-xs font-medium focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:min-h-0"
                 >
-                  <PencilRuler className="h-3.5 w-3.5" />
-                  <span className="truncate">{isZh ? "调整房间（可选）" : "Adjust rooms (optional)"}</span>
+                  <span>{isZh ? "使用这个户型" : "Use this floor plan"}</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
-
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                data-testid="skip-calibration-btn"
-                aria-label={t.workflow.actions.skipCalibration}
-                onClick={handleSkipCalibration}
-                className="h-11 min-h-[44px] w-full gap-1.5 text-xs font-medium focus-visible:ring-2 focus-visible:ring-primary sm:h-10 sm:min-h-0"
-              >
-                <span>{isZh ? "使用这个户型" : "Use this floor plan"}</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
             </div>
           </div>
         )}
@@ -1226,7 +1197,7 @@ export function FloorPlanShell({
               ruleResults={violations}
               locale={locale}
               onUpdatePlan={handleUpdatePlan}
-              onAdjustRoom={handleStartCalibration}
+              onAdjustRoom={handleAdjustRoom}
               onMoreSettings={() => handleOpenAdvancedTools("furniture")}
             />
 
@@ -1280,7 +1251,7 @@ export function FloorPlanShell({
                   onSelect={handleSelectEntity}
                   violations={violations}
                   locale={locale}
-                  onStartCalibration={handleStartCalibration}
+                  showRules={false}
                   onEnsureUserPlan={ensureUserPlan}
                 />
               </div>
@@ -1536,7 +1507,6 @@ export function FloorPlanShell({
         onSelectEntity={handleSelectEntity}
         onUpdatePlan={handleUpdatePlan}
         onEnsureUserPlan={ensureUserPlan}
-        onStartCalibration={handleStartCalibration}
         onSelectDefinition={handleAddContextFurniture}
         onExportJson={handleExportJson}
         onRestartFromTemplate={handleRestartFromTemplate}
