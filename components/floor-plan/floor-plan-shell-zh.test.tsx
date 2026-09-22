@@ -26,41 +26,35 @@ afterEach(() => {
 });
 
 describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
-  it("renders Chinese headings, actions, catalog, and inspector overview", () => {
+  it("renders Chinese headings, actions, catalog, and context panel", () => {
     render(<FloorPlanShell locale="zh" isMobile={false} />);
 
     // Heading and description
     expect(
       screen.getByRole("heading", { level: 1, name: "我家适合买多大的床或沙发？" }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText("选择预设户型，添加通用家具规格，实时评估实体冲突与方向净距。"),
+    ).toBeInTheDocument();
 
     // Chrome action buttons
-    expect(screen.getByTestId("customize-plan-btn")).toHaveTextContent("自定义户型");
+    expect(screen.getByTestId("open-plan-selector-btn")).toHaveTextContent("切换户型");
+    expect(screen.getByTestId("open-furniture-catalog-btn")).toHaveTextContent("+ 放置家具");
     expect(screen.getByTestId("mode-toggle-pan")).toHaveTextContent("平移");
     expect(screen.getByTestId("mode-toggle-edit")).toHaveTextContent("编辑");
-
-    // Four-stage stepper
-    expect(screen.getByTestId("floor-plan-stage-stepper")).toBeInTheDocument();
-    expect(screen.getByTestId("stage-step-plan")).toHaveTextContent("户型");
 
     // Catalog dialog (opened on demand via selector button)
     fireEvent.click(screen.getByTestId("open-plan-selector-btn"));
     expect(screen.getByText("标准户型库")).toBeInTheDocument();
     expect(screen.getByTestId("catalog-category-filters")).toBeInTheDocument();
-    expect(screen.getByText(/全部/)).toBeInTheDocument();
+    expect(screen.getByTestId("catalog-filter-all")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("plan-selector-close-btn"));
 
-    // Context task panel / Inspector overview
+    // Context task panel
     expect(screen.getByTestId("desktop-context-pane")).toBeInTheDocument();
-    expect(screen.getByText("户型全局概览")).toBeInTheDocument();
-    expect(screen.getByText("套内总面积")).toBeInTheDocument();
-    expect(screen.getByText("功能分区数")).toBeInTheDocument();
-    expect(screen.getByText("家具配置数")).toBeInTheDocument();
-
-    // AC-26: Spatial rules are shelved into Advanced Tools
-    fireEvent.click(screen.getByTestId("open-advanced-tools-btn"));
-    expect(screen.getByText("空间规范审查")).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId("advanced-tools-close-btn"));
+    expect(screen.getByText("当前户型")).toBeInTheDocument();
+    expect(screen.getByText("选择重点评估房间")).toBeInTheDocument();
+    expect(screen.getByText("添加家具")).toBeInTheDocument();
   });
 
   it("displays Chinese labels when inspecting room entity", () => {
@@ -73,10 +67,9 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
     // Inspector should display Chinese room parameters and title
     expect(screen.getByText("空间名称")).toBeInTheDocument();
     expect(screen.getByText("实测建筑面积")).toBeInTheDocument();
-    expect(screen.getByText("房间开间进深跨度")).toBeInTheDocument();
   });
 
-  it("displays Chinese furniture editor and span editor controls in draft mode", () => {
+  it("displays Chinese furniture inspector controls without arbitrary resize inputs (AC-4)", () => {
     render(
       <FloorPlanShell
         locale="zh"
@@ -85,69 +78,40 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
       />,
     );
 
-    // Enter draft customization mode
-    const customizeBtn = screen.getByTestId("customize-plan-btn");
-    fireEvent.click(customizeBtn);
-
-    // Draft mode actions: accessible via Advanced Tools (AC-26)
-    fireEvent.click(screen.getByTestId("advanced-tools-btn"));
-    fireEvent.click(screen.getByTestId("advanced-tab-manage"));
-    expect(screen.getByTestId("export-json-btn")).toHaveTextContent("导出 JSON");
-    fireEvent.click(screen.getByTestId("advanced-tools-close-btn"));
-
-    // 1. Select a room and verify RoomSpanEditor in Chinese
-    const room = screen.getByTestId("floor-plan-room-r1");
-    fireEvent.click(room);
-    expect(screen.getByTestId("room-span-editor")).toBeInTheDocument();
-    expect(screen.getByText("房间开间与进深微调")).toBeInTheDocument();
-    expect(screen.getByText("开间宽度 (X)")).toBeInTheDocument();
-    expect(screen.getByText("确认应用")).toBeInTheDocument();
-
-    // 2. Select the first furniture piece on the active localized plan
+    // Select the first furniture piece on the active localized plan
     const sofa = screen.getByTestId("floor-plan-furniture-f1");
     fireEvent.click(sofa);
 
-    // FurnitureEditor should be displayed with Chinese labels
-    expect(screen.getByTestId("furniture-editor")).toBeInTheDocument();
-    expect(screen.getByText("平面坐标 (X, Y)")).toBeInTheDocument();
-    expect(screen.getByText("宽度")).toBeInTheDocument();
-    expect(screen.getByText("进深")).toBeInTheDocument();
-    expect(screen.getByTestId("preview-furniture-btn")).toHaveTextContent("预览调整");
-    expect(screen.getByTestId("apply-furniture-btn")).toHaveTextContent("确认应用");
-    expect(screen.getByTestId("rotate-furniture-btn")).toHaveTextContent("顺时针旋转 90°");
+    // Inspector should be displayed with Chinese labels
+    expect(screen.getByTestId("inspector-furniture-details")).toBeInTheDocument();
+    expect(screen.getByText("家具名称")).toBeInTheDocument();
+    expect(screen.getByText("平面尺寸 (宽 × 深 × 高)")).toBeInTheDocument();
+    expect(screen.getByText("旋转角度")).toBeInTheDocument();
+    expect(screen.getByTestId("rotate-furniture-btn")).toHaveTextContent("旋转 90°");
     expect(screen.getByTestId("delete-furniture-btn")).toHaveTextContent("删除");
+
+    // AC-4: No arbitrary width or depth inputs
+    expect(screen.queryByTestId("furniture-width-input")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("furniture-depth-input")).not.toBeInTheDocument();
   });
 
-  it("AC-25: executes complete 4-stage decision flow with complete Chinese copy and no fallback leaks", async () => {
+  it("executes decision flow with complete Chinese copy and spatial feedback", async () => {
     render(<FloorPlanShell locale="zh" isMobile={false} />);
 
-    // Stage 1: Plan
-    expect(screen.getByTestId("stage-step-plan")).toHaveTextContent("户型");
-    expect(screen.getByTestId("use-plan-btn")).toHaveTextContent("使用这个户型");
-    fireEvent.click(screen.getByTestId("use-plan-btn"));
-
-    // Stage 2: Room
-    expect(screen.getByTestId("stage-step-room")).toHaveTextContent("房间");
-    expect(screen.getByText("选择目标房间")).toBeInTheDocument();
+    // 1. Focus room selection
     const roomBtn = screen.getByTestId("room-item-r1");
     fireEvent.click(roomBtn);
-    expect(screen.getByTestId("next-to-furniture-btn")).toHaveTextContent("进入家具阶段");
-    fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
 
-    // Stage 3: Furniture
-    expect(screen.getByTestId("stage-step-furniture")).toHaveTextContent("家具");
-    expect(screen.getByTestId("context-furniture-panel")).toBeInTheDocument();
+    // 2. Add furniture from context recommendations
     const addBtns = screen.getAllByTestId(/^add-context-furniture-/);
+    expect(addBtns.length).toBeGreaterThan(0);
     fireEvent.click(addBtns[0]);
 
-    // Adding furniture transitions to Decision stage (or sets target furniture)
+    // 3. Decision section is present
     await waitFor(() => {
-      expect(screen.getByTestId("stage-step-decision")).toHaveAttribute("aria-current", "step");
+      expect(screen.getByTestId("decision-target-furniture")).toBeInTheDocument();
     });
-    expect(screen.getByTestId("decision-target-furniture")).toBeInTheDocument();
 
-    // Stage 4: Decision
-    expect(screen.getByTestId("stage-step-decision")).toHaveTextContent("结论");
     expect(screen.getByTestId("furniture-decision-panel")).toBeInTheDocument();
     expect(screen.getByText("目标家具决策结论")).toBeInTheDocument();
     expect(screen.getByTestId("decision-status-badge")).toBeInTheDocument();
@@ -155,8 +119,7 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
       "本结论基于当前空间规则计算，不构成施工、结构安全保证或绝对使用承诺。",
     );
 
-    // Verify position nudge controls in Chinese
-    fireEvent.click(screen.getByTestId("tune-target-furniture-btn"));
-    expect(screen.getByTestId("nudge-furniture-left")).toHaveAttribute("aria-label", expect.stringMatching(/向左/));
+    // Verify position nudge controls in Chinese inspector
+    expect(screen.getByTestId("nudge-furniture-left")).toHaveAttribute("aria-label", "向左微调");
   });
 });
