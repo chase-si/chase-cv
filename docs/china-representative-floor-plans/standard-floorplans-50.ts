@@ -1,6 +1,7 @@
 // 中国代表性真实住宅户型数据集 — 50套
 // 说明：source 字段按既有 StandardFloorPlan schema 固定为 "template"；真实来源见独立 research-manifest.json。
 // 所有对象均为 raw StandardFloorPlan；无运行时布局生成器。
+import type { StandardFloorPlan } from "@/lib/floor-plan/types";
 
 // Stage 2 / Batch 01 — source-derived real Chinese residential floor plans.
 // No geometry helper/template is used at runtime; each export is a raw StandardFloorPlan object.

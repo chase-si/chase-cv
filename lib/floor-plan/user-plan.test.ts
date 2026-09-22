@@ -51,39 +51,6 @@ describe("User Plan Lifecycle & Immutability (AC-2, AC-16)", () => {
       expect(standardTemplate.furniture.length).not.toBe(userPlan.furniture.length);
       expect(standardTemplate.meta.name).not.toBe(userPlan.meta.name);
     });
-
-    it("resumes an existing user draft when provided", () => {
-      const existingDraft: FloorPlan = {
-        ...standardTemplate,
-        meta: {
-          ...standardTemplate.meta,
-          id: `user-plan-${standardTemplate.meta.id}`,
-          name: "My Resumed Draft",
-          source: "user",
-          isStandard: false,
-          templateId: standardTemplate.meta.id,
-          createdAt: "2026-09-17T00:00:00.000Z",
-          updatedAt: "2026-09-17T01:00:00.000Z",
-        },
-        furniture: [
-          ...standardTemplate.furniture,
-          {
-            id: "f-draft-resumed",
-            definitionId: "chair-arm",
-            x: 200,
-            y: 200,
-            width: 800,
-            depth: 800,
-            rotation: 0,
-          },
-        ],
-      };
-
-      const resumed = createOrResumeUserPlan(standardTemplate, existingDraft);
-      expect(resumed.meta.name).toBe("My Resumed Draft");
-      expect(resumed.furniture.some((f) => f.id === "f-draft-resumed")).toBe(true);
-      expect(resumed.meta.templateId).toBe(standardTemplate.meta.id);
-    });
   });
 
   describe("isUserPlan", () => {

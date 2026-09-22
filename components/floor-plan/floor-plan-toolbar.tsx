@@ -4,23 +4,15 @@ import {
   AlertCircle,
   AlertTriangle,
   Armchair,
-  Check,
   Compass,
   Hand,
   Home,
-  Loader2,
   MousePointer2,
-  PenTool,
-  Redo2,
-  SlidersHorizontal,
-  Undo2,
-  Wrench,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { StandardPlanSummary } from "@/lib/floor-plan/catalog";
-import { canRedo, canUndo, type PlanHistory } from "@/lib/floor-plan/history";
 import type { FloorPlanDictionary } from "@/lib/floor-plan/i18n";
 import type { RuleResult } from "@/lib/floor-plan/rules/types";
 import type { FloorPlan } from "@/lib/floor-plan/types";
@@ -28,50 +20,38 @@ import { cn } from "@/lib/utils";
 
 export type FloorPlanToolbarProps = {
   className?: string;
-  isDraftMode: boolean;
   currentPlan: FloorPlan;
   activePlanSummary: StandardPlanSummary;
-  saveStatus: "idle" | "saving" | "saved" | "failed";
   violations: RuleResult[];
   canvasMode: "pan" | "edit";
-  history: PlanHistory;
   t: FloorPlanDictionary;
-  onCustomizePlan: () => void;
-  onUndo: () => void;
-  onRedo: () => void;
   onCanvasModeChange: (mode: "pan" | "edit") => void;
   onOpenMobileSheet: (type: "entity" | "furniture-palette" | "rules" | "catalog") => void;
   onOpenPlanSelector?: () => void;
   onClearSelection: () => void;
-  onOpenAdvancedTools?: (tab?: "rules" | "structure" | "furniture" | "manage") => void;
+  onOpenFurnitureCatalog?: () => void;
 };
 
 const touchBtn =
   "h-11 min-h-[44px] min-w-[44px] sm:h-7 sm:min-h-0 sm:min-w-0 text-xs flex items-center gap-1.5 touch-manipulation";
 
 /**
- * Full-width tool strip below ToolPageChrome title.
- * Keeps plan identity + draft actions out of the chrome's 36rem actions slot.
+ * Clean, streamlined toolbar for the floor-plan workspace.
+ * Preserves plan identity, canvas modes, plan selector, furniture addition, and spatial rule indicators.
  */
 export function FloorPlanToolbar(props: FloorPlanToolbarProps) {
   const {
     className,
-    isDraftMode,
     currentPlan,
     activePlanSummary,
-    saveStatus,
     violations,
     canvasMode,
-    history,
     t,
-    onCustomizePlan,
-    onUndo,
-    onRedo,
     onCanvasModeChange,
     onOpenMobileSheet,
     onOpenPlanSelector,
     onClearSelection,
-    onOpenAdvancedTools,
+    onOpenFurnitureCatalog,
   } = props;
 
   const openRules = () => {
@@ -88,53 +68,14 @@ export function FloorPlanToolbar(props: FloorPlanToolbarProps) {
       )}
     >
       <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-        {isDraftMode ? (
-          <Badge
-            variant="outline"
-            className="inline-flex items-center gap-1.5 font-mono text-xs px-2.5 py-1 border-primary/40 bg-primary/5 text-primary"
-          >
-            <PenTool className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate max-w-[160px]">{currentPlan.meta.name}</span>
-            <span className="text-muted-foreground text-[10px]">{t.badges.userDraft}</span>
-          </Badge>
-        ) : (
-          <Badge
-            variant="secondary"
-            className="inline-flex items-center gap-1.5 font-mono text-xs px-2.5 py-1"
-          >
-            <Home className="h-3.5 w-3.5 shrink-0 text-primary" />
-            <span className="truncate max-w-[140px]">{activePlanSummary.name}</span>
-            <span className="text-muted-foreground">({activePlanSummary.formattedArea})</span>
-          </Badge>
-        )}
-
-        {isDraftMode && (
-          <Badge
-            data-testid="save-status-badge"
-            variant="outline"
-            className={cn(
-              "inline-flex items-center gap-1.5 text-xs font-mono px-2 py-0.5 transition-colors",
-              saveStatus === "saved" &&
-                "text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/5",
-              saveStatus === "saving" && "text-primary border-primary/30 bg-primary/5",
-              saveStatus === "failed" &&
-                "text-destructive border-destructive/30 bg-destructive/5",
-            )}
-          >
-            {saveStatus === "saving" && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
-            {saveStatus === "saved" && <Check className="h-3 w-3 text-emerald-500" />}
-            {saveStatus === "failed" && <AlertCircle className="h-3 w-3 text-destructive" />}
-            <span className="capitalize">
-              {saveStatus === "saving"
-                ? t.badges.saving
-                : saveStatus === "saved"
-                  ? t.badges.saved
-                  : saveStatus === "failed"
-                    ? t.badges.saveFailed
-                    : t.badges.draft}
-            </span>
-          </Badge>
-        )}
+        <Badge
+          variant="secondary"
+          className="inline-flex items-center gap-1.5 font-mono text-xs px-2.5 py-1"
+        >
+          <Home className="h-3.5 w-3.5 shrink-0 text-primary" />
+          <span className="truncate max-w-[140px]">{activePlanSummary.name}</span>
+          <span className="text-muted-foreground">({activePlanSummary.formattedArea})</span>
+        </Badge>
 
         {violations.length > 0 && (
           <Badge
@@ -146,14 +87,7 @@ export function FloorPlanToolbar(props: FloorPlanToolbarProps) {
                 ? "border-destructive/40 bg-destructive/10 text-destructive"
                 : "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400",
             )}
-            onClick={() => {
-              onClearSelection();
-              if (onOpenAdvancedTools) {
-                onOpenAdvancedTools("rules");
-              } else {
-                openRules();
-              }
-            }}
+            onClick={openRules}
             title={t.actions.rules}
           >
             {violations.some((v) => v.severity === "error") ? (
@@ -215,182 +149,89 @@ export function FloorPlanToolbar(props: FloorPlanToolbarProps) {
           </Button>
         </div>
 
-        {!isDraftMode ? (
-          <>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              data-testid="toolbar-select-plan-btn"
-              onClick={
-                onOpenPlanSelector ??
-                (() => {
-                  onClearSelection();
-                  onOpenMobileSheet("catalog");
-                })
-              }
-              className={cn(touchBtn, "px-3 sm:px-2.5")}
-              title={t.actions.plans}
-            >
-              <Compass className="h-3.5 w-3.5 text-primary" />
-              <span>{t.actions.plans}</span>
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="default"
-              data-testid="customize-plan-btn"
-              onClick={onCustomizePlan}
-              className={cn(touchBtn, "px-3 sm:px-2.5")}
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5" />
-              <span>{t.actions.customizePlan}</span>
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              data-testid="advanced-tools-btn"
-              onClick={() => onOpenAdvancedTools?.()}
-              className={cn(touchBtn, "px-3 sm:px-2.5")}
-              title={t.advancedTools.title}
-            >
-              <Wrench className="h-3.5 w-3.5 text-primary" />
-              <span>{t.advancedTools.trigger}</span>
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              data-testid="mobile-catalog-btn"
-              onClick={() => {
-                if (onOpenPlanSelector) {
-                  onOpenPlanSelector();
-                } else {
-                  onClearSelection();
-                  onOpenMobileSheet("catalog");
-                }
-              }}
-              className={cn(touchBtn, "px-2.5 lg:hidden")}
-              title={t.actions.plans}
-            >
-              <Compass className="h-3.5 w-3.5 text-primary" />
-              <span className="hidden sm:inline">{t.actions.plans}</span>
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              data-testid="mobile-rules-btn"
-              onClick={openRules}
-              className={cn(touchBtn, "px-2.5 lg:hidden")}
-              title={t.actions.rules}
-            >
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-              <span className="hidden sm:inline">{t.actions.rules}</span>
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              data-testid="undo-btn"
-              onClick={onUndo}
-              disabled={!canUndo(history)}
-              className={cn(touchBtn, "gap-1 px-2.5")}
-              title="Undo (Ctrl+Z / ⌘Z)"
-              aria-label={t.actions.undo}
-            >
-              <Undo2 className="h-3.5 w-3.5" />
-              <span className="hidden md:inline">{t.actions.undo}</span>
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              data-testid="redo-btn"
-              onClick={onRedo}
-              disabled={!canRedo(history)}
-              className={cn(touchBtn, "gap-1 px-2.5")}
-              title="Redo (Ctrl+Shift+Z / ⌘⇧Z / Ctrl+Y)"
-              aria-label={t.actions.redo}
-            >
-              <Redo2 className="h-3.5 w-3.5" />
-              <span className="hidden md:inline">{t.actions.redo}</span>
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              data-testid="advanced-tools-btn"
-              onClick={() => onOpenAdvancedTools?.()}
-              className={cn(touchBtn, "px-3 sm:px-2.5")}
-              title={t.advancedTools.title}
-            >
-              <Wrench className="h-3.5 w-3.5 text-primary" />
-              <span>{t.advancedTools.trigger}</span>
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              data-testid="mobile-add-furniture-btn"
-              onClick={() => {
-                onClearSelection();
-                onOpenMobileSheet("furniture-palette");
-              }}
-              className={cn(touchBtn, "px-2.5 lg:hidden")}
-              title={t.actions.addFurniture}
-            >
-              <Armchair className="h-3.5 w-3.5 text-primary" />
-              <span>{t.actions.addFurniture}</span>
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              data-testid="mobile-rules-btn"
-              onClick={openRules}
-              className={cn(touchBtn, "px-2.5 lg:hidden")}
-              title={t.actions.rules}
-            >
-              {violations.some((v) => v.severity === "error") ? (
-                <AlertCircle className="h-3.5 w-3.5 text-destructive" />
-              ) : violations.length > 0 ? (
-                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-              ) : (
-                <Check className="h-3.5 w-3.5 text-emerald-500" />
-              )}
-              <span className="hidden sm:inline">{t.actions.rules}</span>
-              {violations.length > 0 && (
-                <Badge variant="secondary" className="px-1.5 py-0 font-mono text-[10px]">
-                  {violations.length}
-                </Badge>
-              )}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              data-testid="mobile-catalog-btn"
-              onClick={() => {
-                if (onOpenPlanSelector) {
-                  onOpenPlanSelector();
-                } else {
-                  onClearSelection();
-                  onOpenMobileSheet("catalog");
-                }
-              }}
-              className={cn(touchBtn, "px-2.5 lg:hidden")}
-              title={t.actions.plans}
-            >
-              <Compass className="h-3.5 w-3.5 text-primary" />
-              <span className="hidden sm:inline">{t.actions.plans}</span>
-            </Button>
-          </>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          data-testid="toolbar-select-plan-btn"
+          onClick={
+            onOpenPlanSelector ??
+            (() => {
+              onClearSelection();
+              onOpenMobileSheet("catalog");
+            })
+          }
+          className={cn(touchBtn, "px-3 sm:px-2.5")}
+          title={t.actions.plans}
+        >
+          <Compass className="h-3.5 w-3.5 text-primary" />
+          <span>{t.actions.plans}</span>
+        </Button>
+
+        {onOpenFurnitureCatalog && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            data-testid="toolbar-add-furniture-btn"
+            onClick={onOpenFurnitureCatalog}
+            className={cn(touchBtn, "px-3 sm:px-2.5 hidden sm:flex")}
+            title={t.actions.addFurniture}
+          >
+            <Armchair className="h-3.5 w-3.5 text-primary" />
+            <span>{t.actions.addFurniture}</span>
+          </Button>
         )}
+
+        {/* Mobile controls */}
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          data-testid="mobile-add-furniture-btn"
+          onClick={() => {
+            onClearSelection();
+            onOpenMobileSheet("furniture-palette");
+          }}
+          className={cn(touchBtn, "px-2.5 lg:hidden")}
+          title={t.actions.addFurniture}
+        >
+          <Armchair className="h-3.5 w-3.5 text-primary" />
+          <span>{t.actions.addFurniture}</span>
+        </Button>
+
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          data-testid="mobile-catalog-btn"
+          onClick={() => {
+            if (onOpenPlanSelector) {
+              onOpenPlanSelector();
+            } else {
+              onClearSelection();
+              onOpenMobileSheet("catalog");
+            }
+          }}
+          className={cn(touchBtn, "px-2.5 lg:hidden")}
+          title={t.actions.plans}
+        >
+          <Compass className="h-3.5 w-3.5 text-primary" />
+          <span className="hidden sm:inline">{t.actions.plans}</span>
+        </Button>
+
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          data-testid="mobile-rules-btn"
+          onClick={openRules}
+          className={cn(touchBtn, "px-2.5 lg:hidden")}
+          title={t.actions.rules}
+        >
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+          <span className="hidden sm:inline">{t.actions.rules}</span>
+        </Button>
       </div>
     </div>
   );

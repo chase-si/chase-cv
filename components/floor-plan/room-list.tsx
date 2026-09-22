@@ -10,7 +10,6 @@ import {
   getVertexMap,
   getWallMap,
 } from "@/lib/floor-plan/geometry";
-import { getRoomSpans } from "@/lib/floor-plan/room-adjustment";
 import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { cn } from "@/lib/utils";
 
@@ -39,7 +38,6 @@ export function RoomList({
     return plan.rooms.map((room) => {
       const points = computeRoomPolygon(room, wallMap, vertexMap);
       const { formattedAreaM2 } = computePolygonArea(points);
-      const spans = getRoomSpans(plan, room.id);
       const displayName =
         room.name ??
         (locale === "zh"
@@ -50,7 +48,6 @@ export function RoomList({
         room,
         displayName,
         formattedAreaM2,
-        spans,
         isSelected: targetRoomId === room.id,
       };
     });
@@ -63,7 +60,7 @@ export function RoomList({
       aria-label={i18n.t.workflow?.roomListAriaLabel || (locale === "zh" ? "户型房间选择列表" : "Room selection list")}
       className={cn(compact ? "grid grid-cols-2 gap-2" : "flex flex-col gap-1.5", className)}
     >
-      {roomItems.map(({ room, displayName, formattedAreaM2, spans, isSelected }) => (
+      {roomItems.map(({ room, displayName, formattedAreaM2, isSelected }) => (
         <button
           key={room.id}
           type="button"
@@ -97,11 +94,6 @@ export function RoomList({
             </div>
             <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground font-mono">
               <span>{formattedAreaM2}</span>
-              {!compact && spans?.horizontal && spans?.vertical && (
-                <span className="text-muted-foreground/70">
-                  {spans.horizontal.spanMm} × {spans.vertical.spanMm} mm
-                </span>
-              )}
             </div>
           </div>
 

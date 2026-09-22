@@ -3,23 +3,18 @@
 import * as React from "react";
 import {
   Armchair,
+  ArrowDown,
+  ArrowLeft,
   ArrowRight,
-  Box,
-  DoorOpen,
+  ArrowUp,
   Info,
-  Layers,
-  Maximize2,
-  Minimize2,
   Plus,
   RotateCw,
-  SlidersHorizontal,
-  Square,
   Trash2,
   X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import type { FloorPlan } from "@/lib/floor-plan";
 import {
   computeOpeningGeometry,
@@ -31,10 +26,11 @@ import {
   getVertexMap,
   getWallMap,
 } from "@/lib/floor-plan/geometry";
-import { getRoomSpans } from "@/lib/floor-plan/room-adjustment";
-import { RoomSpanEditor } from "./room-span-editor";
-import { OpeningEditor } from "./opening-editor";
-import { FurnitureEditor } from "./furniture-editor";
+import {
+  deleteFurnitureInstance,
+  moveFurnitureInstance,
+  rotateFurnitureInstance,
+} from "@/lib/floor-plan/furniture-operations";
 import { FurnitureCatalogPalette } from "./furniture-catalog-palette";
 import { RuleFeedbackPanel } from "./rule-feedback-panel";
 import type { RuleResult } from "@/lib/floor-plan/rules";
@@ -43,29 +39,23 @@ import type { EntitySelectHandler, SelectedEntity } from "./types";
 
 interface FloorPlanInspectorProps {
   plan: FloorPlan;
-  isDraftMode?: boolean;
-  allowSpanEdit?: boolean;
   onUpdatePlan?: (updated: FloorPlan, description?: string) => void;
   selectedEntity: SelectedEntity | null;
   onSelect: EntitySelectHandler;
   violations?: RuleResult[];
   className?: string;
   locale?: string;
-  onEnsureUserPlan?: () => void;
   showRules?: boolean;
 }
 
 export function FloorPlanInspector({
   plan,
-  isDraftMode = false,
-  allowSpanEdit = false,
   onUpdatePlan,
   selectedEntity,
   onSelect,
   violations,
   className = "",
   locale,
-  onEnsureUserPlan,
   showRules = false,
 }: FloorPlanInspectorProps) {
   const i18n = useFloorPlanI18n(locale);
@@ -122,24 +112,51 @@ export function FloorPlanInspector({
     return dims.find((d) => d.id === selectedEntity.id) ?? null;
   }, [selectedEntity, plan]);
 
-  // Room Spans for selected room
-  const roomSpans = React.useMemo(() => {
-    if (!selectedRoom) return null;
-    return getRoomSpans(plan, selectedRoom.room.id);
-  }, [selectedRoom, plan]);
-
   // Rooms bounded by selected wall
   const boundedRooms = React.useMemo(() => {
     if (!selectedWall) return [];
     return plan.rooms.filter((r) => r.boundaryWallIds.includes(selectedWall.wall.id));
   }, [selectedWall, plan.rooms]);
 
+  const handleRotateFurniture = React.useCallback(() => {
+    if (!selectedFurniture) return;
+    const res = rotateFurnitureInstance(plan, selectedFurniture.id, 90);
+    if (res.success) {
+      onUpdatePlan?.(res.plan, "Rotate furniture");
+    }
+  }, [selectedFurniture, plan, onUpdatePlan]);
+
+  const handleDeleteFurniture = React.useCallback(() => {
+    if (!selectedFurniture) return;
+    const res = deleteFurnitureInstance(plan, selectedFurniture.id);
+    if (res.success) {
+      onSelect(null);
+      onUpdatePlan?.(res.plan, "Delete furniture");
+    }
+  }, [selectedFurniture, plan, onSelect, onUpdatePlan]);
+
+  const handleNudgeFurniture = React.useCallback(
+    (deltaX: number, deltaY: number) => {
+      if (!selectedFurniture) return;
+      const res = moveFurnitureInstance(
+        plan,
+        selectedFurniture.id,
+        selectedFurniture.x + deltaX,
+        selectedFurniture.y + deltaY,
+      );
+      if (res.success) {
+        onUpdatePlan?.(res.plan, "Nudge furniture position");
+      }
+    },
+    [selectedFurniture, plan, onUpdatePlan],
+  );
+
   return (
     <div
       data-testid="floor-plan-inspector"
       className={`flex flex-col gap-3 p-1 ${className}`}
     >
-      {/* Spatial Rule Feedback Panel (US-12, US-14, AC-12, AC-14) */}
+      {/* Spatial Rule Feedback Panel */}
       {showRules && (
         <RuleFeedbackPanel
           plan={plan}
@@ -267,43 +284,6 @@ export function FloorPlanInspector({
             </div>
           </div>
 
-          {/* Room Spans Overview (Read-Only) or Interactive Room Span Editor (Draft Mode or allowSpanEdit) */}
-          {isDraftMode || allowSpanEdit ? (
-            <div data-testid="target-room-spans" className="space-y-1.5">
-              <span className="text-[11px] font-medium text-foreground block">
-                {locale === "zh" ? "房间开间进深跨度" : "Room Spans"}
-              </span>
-              <RoomSpanEditor
-                plan={plan}
-                roomId={selectedRoom.room.id}
-                onUpdatePlan={onUpdatePlan}
-                locale={locale}
-              />
-            </div>
-          ) : (
-            roomSpans && (
-              <div data-testid="target-room-spans" className="rounded-lg border border-border/80 bg-muted/20 p-2.5 space-y-1.5 text-xs">
-                <span className="text-[11px] font-medium text-foreground block">
-                  {locale === "zh" ? "房间开间进深跨度" : "Room Spans"}
-                </span>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded border border-border/60 bg-background p-1.5">
-                    <span className="text-[10px] text-muted-foreground block">{t.roomSpanEditor.widthAxis}</span>
-                    <span className="font-mono font-semibold text-foreground">
-                      {roomSpans.horizontal ? `${roomSpans.horizontal.spanMm} mm` : "—"}
-                    </span>
-                  </div>
-                  <div className="rounded border border-border/60 bg-background p-1.5">
-                    <span className="text-[10px] text-muted-foreground block">{t.roomSpanEditor.depthAxis}</span>
-                    <span className="font-mono font-semibold text-foreground">
-                      {roomSpans.vertical ? `${roomSpans.vertical.spanMm} mm` : "—"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )
-          )}
-
           <div className="space-y-1 text-xs">
             <span className="text-[10px] text-muted-foreground">
               {locale === "zh" ? `围合墙体 (${selectedRoom.room.boundaryWallIds.length})` : `Boundary Walls (${selectedRoom.room.boundaryWallIds.length})`}
@@ -333,88 +313,160 @@ export function FloorPlanInspector({
             </p>
           </div>
 
-          {isDraftMode || allowSpanEdit ? (
-            <div className="pt-1">
-              <OpeningEditor
-                plan={plan}
-                openingId={selectedOpening.opening.id}
-                onUpdatePlan={onUpdatePlan}
-                locale={locale}
-              />
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
+              <span className="text-[10px] text-muted-foreground block">{t.inspector.openingWidth}</span>
+              <span className="font-mono font-semibold text-foreground">
+                {selectedOpening.opening.width} mm
+              </span>
             </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
-                <span className="text-[10px] text-muted-foreground block">{t.inspector.openingWidth}</span>
-                <span className="font-mono font-semibold text-foreground">
-                  {selectedOpening.opening.width} mm
-                </span>
-              </div>
-              <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
-                <span className="text-[10px] text-muted-foreground block">{t.inspector.openingPosition}</span>
-                <span className="font-mono font-semibold text-foreground">
-                  {(selectedOpening.opening.position * 100).toFixed(0)}%
-                </span>
-              </div>
-              <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
-                <span className="text-[10px] text-muted-foreground block">{locale === "zh" ? "附着墙体" : "Attached Wall"}</span>
-                <span className="font-mono font-semibold text-foreground">
-                  {selectedOpening.opening.wallId}
-                </span>
-              </div>
-              <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
-                <span className="text-[10px] text-muted-foreground block">{t.inspector.openingHeight}</span>
-                <span className="font-mono font-semibold text-foreground">
-                  {selectedOpening.opening.height ? `${selectedOpening.opening.height} mm` : "—"}
-                </span>
-              </div>
+            <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
+              <span className="text-[10px] text-muted-foreground block">{t.inspector.openingPosition}</span>
+              <span className="font-mono font-semibold text-foreground">
+                {(selectedOpening.opening.position * 100).toFixed(0)}%
+              </span>
             </div>
-          )}
+            <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
+              <span className="text-[10px] text-muted-foreground block">{locale === "zh" ? "附着墙体" : "Attached Wall"}</span>
+              <span className="font-mono font-semibold text-foreground">
+                {selectedOpening.opening.wallId}
+              </span>
+            </div>
+            <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
+              <span className="text-[10px] text-muted-foreground block">{t.inspector.openingHeight}</span>
+              <span className="font-mono font-semibold text-foreground">
+                {selectedOpening.opening.height ? `${selectedOpening.opening.height} mm` : "—"}
+              </span>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* 4. Furniture Inspection */}
+      {/* 4. Furniture Inspection (AC-4: Read-only dimensions, Rotate/Delete/Move actions, NO arbitrary inputs) */}
       {selectedFurniture && (
         <div data-testid="inspector-furniture-details" className="space-y-3">
-          {isDraftMode || allowSpanEdit ? (
-            <FurnitureEditor
-              plan={plan}
-              furnitureId={selectedFurniture.id}
-              onUpdatePlan={onUpdatePlan}
-              onSelect={onSelect}
-              locale={locale}
-            />
-          ) : (
-            <>
-              <div className="space-y-1">
-                <span className="text-[11px] text-muted-foreground">{t.inspector.furnitureItem}</span>
-                <p className="font-semibold text-sm text-foreground">
-                  {i18n.getFurnitureName(selectedFurniture.definitionId, selectedFurniture.definitionId)}
-                </p>
-              </div>
+          <div className="flex items-start justify-between gap-2 border-b border-border/60 pb-2">
+            <div className="space-y-0.5 min-w-0">
+              <span className="text-[11px] text-muted-foreground">{t.inspector.furnitureItem}</span>
+              <p
+                data-testid="target-furniture-name"
+                className="font-semibold text-sm text-foreground truncate"
+              >
+                {i18n.getFurnitureName(selectedFurniture.definitionId, selectedFurniture.definitionId)}
+              </p>
+            </div>
+            <Badge
+              data-testid="furniture-category-badge"
+              variant="secondary"
+              className="font-mono text-[10px] uppercase shrink-0"
+            >
+              {selectedFurniture.definitionId}
+            </Badge>
+          </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
-                  <span className="text-[10px] text-muted-foreground block">{t.inspector.furnitureDimensions}</span>
-                  <span className="font-mono font-semibold text-foreground">
-                    {selectedFurniture.width} × {selectedFurniture.depth} mm
-                  </span>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
+              <span className="text-[10px] text-muted-foreground block">{t.inspector.furnitureDimensions}</span>
+              <span data-testid="inspector-furniture-dimensions" className="font-mono font-semibold text-foreground">
+                {selectedFurniture.width} × {selectedFurniture.depth} mm
+              </span>
+            </div>
+            <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
+              <span className="text-[10px] text-muted-foreground block">{t.inspector.furnitureRotation}</span>
+              <span className="font-mono font-semibold text-foreground">
+                {selectedFurniture.rotation}°
+              </span>
+            </div>
+            <div className="rounded-lg border border-border/80 bg-muted/30 p-2 col-span-2">
+              <span className="text-[10px] text-muted-foreground block">{t.inspector.furniturePosition}</span>
+              <span className="font-mono font-semibold text-foreground">
+                X: {selectedFurniture.x} mm, Y: {selectedFurniture.y} mm
+              </span>
+            </div>
+          </div>
+
+          {/* Action buttons: Rotate, Delete, Nudge (NO arbitrary size input) */}
+          <div className="space-y-2 pt-1 border-t border-border/60">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                data-testid="rotate-furniture-btn"
+                onClick={handleRotateFurniture}
+                className="h-9 text-xs flex items-center justify-center gap-1.5"
+              >
+                <RotateCw className="h-3.5 w-3.5" />
+                <span>{locale === "zh" ? "旋转 90°" : "Rotate 90°"}</span>
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                data-testid="delete-furniture-btn"
+                onClick={handleDeleteFurniture}
+                className="h-9 text-xs flex items-center justify-center gap-1.5 text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>{t.actions.close === "关闭" ? "删除" : "Delete"}</span>
+              </Button>
+            </div>
+
+            {/* Position Nudge Controls */}
+            <div className="space-y-1.5 pt-1">
+              <span className="text-[10px] text-muted-foreground block">
+                {locale === "zh" ? "微调摆放位置 (100mm)" : "Nudge Position (100mm)"}
+              </span>
+              <div className="flex items-center justify-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  data-testid="nudge-furniture-left"
+                  onClick={() => handleNudgeFurniture(-100, 0)}
+                  aria-label={locale === "zh" ? "向左微调" : "Nudge left"}
+                  className="h-9 w-9 min-h-[36px] min-w-[36px] p-0"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div className="flex flex-col gap-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    data-testid="nudge-furniture-up"
+                    onClick={() => handleNudgeFurniture(0, -100)}
+                    aria-label={locale === "zh" ? "向上微调" : "Nudge up"}
+                    className="h-9 w-9 min-h-[36px] min-w-[36px] p-0"
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    data-testid="nudge-furniture-down"
+                    onClick={() => handleNudgeFurniture(0, 100)}
+                    aria-label={locale === "zh" ? "向下微调" : "Nudge down"}
+                    className="h-9 w-9 min-h-[36px] min-w-[36px] p-0"
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                  </Button>
                 </div>
-                <div className="rounded-lg border border-border/80 bg-muted/30 p-2">
-                  <span className="text-[10px] text-muted-foreground block">{t.inspector.furnitureRotation}</span>
-                  <span className="font-mono font-semibold text-foreground">
-                    {selectedFurniture.rotation}°
-                  </span>
-                </div>
-                <div className="rounded-lg border border-border/80 bg-muted/30 p-2 col-span-2">
-                  <span className="text-[10px] text-muted-foreground block">{t.inspector.furniturePosition}</span>
-                  <span className="font-mono font-semibold text-foreground">
-                    X: {selectedFurniture.x} mm, Y: {selectedFurniture.y} mm
-                  </span>
-                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  data-testid="nudge-furniture-right"
+                  onClick={() => handleNudgeFurniture(100, 0)}
+                  aria-label={locale === "zh" ? "向右微调" : "Nudge right"}
+                  className="h-9 w-9 min-h-[36px] min-w-[36px] p-0"
+                >
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
               </div>
-            </>
-          )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -448,15 +500,6 @@ export function FloorPlanInspector({
               </span>
             </div>
           </div>
-
-          <div className="rounded-lg border border-border/70 bg-muted/20 p-2.5 text-xs text-muted-foreground space-y-1">
-            <span className="font-medium text-foreground block">{locale === "zh" ? "空间微调建议" : "Spatial Adjustment Tip"}</span>
-            <p className="leading-relaxed">
-              {locale === "zh"
-                ? "如需调整此项总尺寸，请在方案中选择任意房间，通过开间与进深微调工具移动墙体边界。"
-                : "To adjust this dimension, select any room on the plan to adjust its boundary span using numeric wall translation."}
-            </p>
-          </div>
         </div>
       )}
 
@@ -469,33 +512,10 @@ export function FloorPlanInspector({
           </div>
 
           <div className="rounded-xl border border-border/80 bg-muted/20 p-3 space-y-2">
-            {isDraftMode ? (
-              <div className="space-y-1">
-                <span className="text-[11px] text-muted-foreground block font-medium">
-                  {locale === "zh" ? "方案名称" : "Plan Name"}
-                </span>
-                <Input
-                  data-testid="edit-plan-name-input"
-                  value={plan.meta.name}
-                  onChange={(e) => {
-                    onUpdatePlan?.({
-                      ...plan,
-                      meta: {
-                        ...plan.meta,
-                        name: e.target.value,
-                      },
-                    });
-                  }}
-                  className="h-8 text-xs font-semibold bg-background"
-                  placeholder={locale === "zh" ? "自定义方案名称" : "Custom Plan Name"}
-                />
-              </div>
-            ) : (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">{locale === "zh" ? "方案名称" : "Plan Name"}</span>
-                <span className="font-semibold text-foreground">{plan.meta.name}</span>
-              </div>
-            )}
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{locale === "zh" ? "方案名称" : "Plan Name"}</span>
+              <span className="font-semibold text-foreground">{plan.meta.name}</span>
+            </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t.inspector.totalArea}</span>
               <span className="font-mono font-semibold text-foreground">{totalArea.formattedAreaM2}</span>
@@ -547,10 +567,7 @@ export function FloorPlanInspector({
                 size="sm"
                 variant="outline"
                 data-testid="add-furniture-btn"
-                onClick={() => {
-                  onEnsureUserPlan?.();
-                  setShowFurniturePalette(true);
-                }}
+                onClick={() => setShowFurniturePalette(true)}
                 className="w-full h-8 text-xs flex items-center justify-center gap-1.5"
               >
                 <Plus className="h-3.5 w-3.5 text-primary" />

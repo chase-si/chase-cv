@@ -22,40 +22,21 @@ describe("FloorPlanInspector Component (AC-6, AC-7)", () => {
     expect(screen.getByText("2BR-Nordic-Standard")).toBeInTheDocument();
   });
 
-  it("renders room details with read-only spans when selected in read-only mode", () => {
+  it("renders room details with area and walls and no span editor", () => {
     const handleSelect = vi.fn();
     render(
       <FloorPlanInspector
         plan={VALID_STANDARD_FLOOR_PLAN}
-        isDraftMode={false}
         selectedEntity={{ type: "room", id: "r1" }}
         onSelect={handleSelect}
       />,
     );
 
     expect(screen.getByTestId("inspector-room-details")).toBeInTheDocument();
-    expect(screen.getByText("Living Room")).toBeInTheDocument();
-    expect(screen.getByText("3000 mm")).toBeInTheDocument(); // Width
-    expect(screen.getByText("5000 mm")).toBeInTheDocument(); // Depth
+    expect(screen.getByTestId("target-room-name")).toHaveTextContent("Living Room");
+    expect(screen.getByTestId("target-room-area")).toHaveTextContent("15.0 m²");
     expect(screen.queryByTestId("room-span-editor")).not.toBeInTheDocument();
-  });
-
-  it("renders interactive RoomSpanEditor when room is selected in draft mode (AC-6)", () => {
-    const handleSelect = vi.fn();
-    const handleUpdatePlan = vi.fn();
-    render(
-      <FloorPlanInspector
-        plan={VALID_STANDARD_FLOOR_PLAN}
-        isDraftMode={true}
-        onUpdatePlan={handleUpdatePlan}
-        selectedEntity={{ type: "room", id: "r1" }}
-        onSelect={handleSelect}
-      />,
-    );
-
-    expect(screen.getByTestId("inspector-room-details")).toBeInTheDocument();
-    expect(screen.getByTestId("room-span-editor")).toBeInTheDocument();
-    expect(screen.getByTestId("target-span-input")).toHaveValue(3000);
+    expect(screen.queryByTestId("target-span-input")).not.toBeInTheDocument();
   });
 
   it("renders wall details and bounded rooms with navigation", () => {
@@ -109,12 +90,11 @@ describe("FloorPlanInspector Component (AC-6, AC-7)", () => {
     expect(handleSelect).toHaveBeenCalledWith(null);
   });
 
-  it("renders opening details in read-only mode when opening is selected (AC-9)", () => {
+  it("renders opening details in read-only mode without opening editor", () => {
     const handleSelect = vi.fn();
     render(
       <FloorPlanInspector
         plan={VALID_STANDARD_FLOOR_PLAN}
-        isDraftMode={false}
         selectedEntity={{ type: "opening", id: "door1" }}
         onSelect={handleSelect}
       />,
@@ -123,34 +103,41 @@ describe("FloorPlanInspector Component (AC-6, AC-7)", () => {
     expect(screen.getByTestId("inspector-opening-details")).toBeInTheDocument();
     expect(screen.getByText("900 mm")).toBeInTheDocument();
     expect(screen.queryByTestId("opening-editor")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("opening-width-input")).not.toBeInTheDocument();
   });
 
-  it("renders interactive OpeningEditor in draft mode and updates plan (AC-9)", () => {
+  it("renders furniture details with rotate and delete actions and without arbitrary resize inputs (AC-4)", () => {
     const handleSelect = vi.fn();
     const handleUpdatePlan = vi.fn();
     render(
       <FloorPlanInspector
         plan={VALID_STANDARD_FLOOR_PLAN}
-        isDraftMode={true}
         onUpdatePlan={handleUpdatePlan}
-        selectedEntity={{ type: "opening", id: "door1" }}
+        selectedEntity={{ type: "furniture", id: "f1" }}
         onSelect={handleSelect}
       />,
     );
 
-    expect(screen.getByTestId("inspector-opening-details")).toBeInTheDocument();
-    expect(screen.getByTestId("opening-editor")).toBeInTheDocument();
-    expect(screen.getByTestId("opening-width-input")).toHaveValue(900);
+    expect(screen.getByTestId("inspector-furniture-details")).toBeInTheDocument();
+    expect(screen.getByTestId("inspector-furniture-dimensions")).toHaveTextContent("2100 × 900 mm");
 
-    // Change width to 1000 mm and apply
-    fireEvent.change(screen.getByTestId("opening-width-input"), {
-      target: { value: "1000" },
-    });
-    fireEvent.click(screen.getByTestId("apply-opening-btn"));
+    // AC-4: No arbitrary width or depth inputs
+    expect(screen.queryByTestId("furniture-width-input")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("furniture-depth-input")).not.toBeInTheDocument();
 
-    expect(handleUpdatePlan).toHaveBeenCalledTimes(1);
-    const updatedPlan = handleUpdatePlan.mock.calls[0][0];
-    const updatedDoor = updatedPlan.openings.find((o: any) => o.id === "door1");
-    expect(updatedDoor.width).toBe(1000);
+    // Rotate button rotates furniture
+    const rotateBtn = screen.getByTestId("rotate-furniture-btn");
+    fireEvent.click(rotateBtn);
+    expect(handleUpdatePlan).toHaveBeenCalled();
+    const rotatedPlan = handleUpdatePlan.mock.calls[0][0];
+    const rotatedF1 = rotatedPlan.furniture.find((f: any) => f.id === "f1");
+    expect(rotatedF1.rotation).toBe(90);
+
+    // Delete button removes furniture
+    const deleteBtn = screen.getByTestId("delete-furniture-btn");
+    fireEvent.click(deleteBtn);
+    expect(handleUpdatePlan).toHaveBeenCalledTimes(2);
+    const deletedPlan = handleUpdatePlan.mock.calls[1][0];
+    expect(deletedPlan.furniture.find((f: any) => f.id === "f1")).toBeUndefined();
   });
 });
