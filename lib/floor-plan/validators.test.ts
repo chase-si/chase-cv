@@ -2,52 +2,15 @@ import { describe, expect, it } from "vitest";
 import {
   validateFloorPlan,
   validateFurnitureCatalog,
-  validatePlanSourcePackage,
   validateSpaceRuleConfig,
 } from "./validators";
 import {
   VALID_FURNITURE_CATALOG,
-  VALID_PLAN_SOURCE_PACKAGE,
   VALID_SPACE_RULE_CONFIG,
   VALID_STANDARD_FLOOR_PLAN,
 } from "./fixtures";
 
 describe("AC-17: FloorPlan v1 Contract Formats & Validators", () => {
-  describe("Plan Source-Package Metadata", () => {
-    it("validates a valid plan source package using millimetres", () => {
-      const result = validatePlanSourcePackage(VALID_PLAN_SOURCE_PACKAGE);
-      expect(result.ok).toBe(true);
-      if (result.ok) {
-        expect(result.value.unit).toBe("mm");
-        expect(result.value.calibration.realLengthMm).toBeGreaterThan(0);
-        expect(result.value.calibration.mmPerPixel).toBeGreaterThan(0);
-      }
-    });
-
-    it("rejects packages without unit: 'mm' or with invalid units", () => {
-      const invalid = {
-        ...VALID_PLAN_SOURCE_PACKAGE,
-        unit: "cm",
-      };
-      const result = validatePlanSourcePackage(invalid);
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        expect(result.errors.some((e) => e.path.includes("unit"))).toBe(true);
-      }
-    });
-
-    it("rejects non-positive calibration dimensions", () => {
-      const invalid = {
-        ...VALID_PLAN_SOURCE_PACKAGE,
-        calibration: {
-          ...VALID_PLAN_SOURCE_PACKAGE.calibration,
-          realLengthMm: -100,
-        },
-      };
-      const result = validatePlanSourcePackage(invalid);
-      expect(result.ok).toBe(false);
-    });
-  });
 
   describe("Normalized Standard FloorPlan v1", () => {
     it("validates a valid canonical FloorPlan with real-world dimensions in mm", () => {

@@ -51,7 +51,6 @@ interface FloorPlanInspectorProps {
   violations?: RuleResult[];
   className?: string;
   locale?: string;
-  onStartCalibration?: () => void;
   onEnsureUserPlan?: () => void;
   showRules?: boolean;
 }
@@ -66,7 +65,6 @@ export function FloorPlanInspector({
   violations,
   className = "",
   locale,
-  onStartCalibration,
   onEnsureUserPlan,
   showRules = false,
 }: FloorPlanInspectorProps) {
@@ -281,19 +279,6 @@ export function FloorPlanInspector({
                 onUpdatePlan={onUpdatePlan}
                 locale={locale}
               />
-              {!isDraftMode && onStartCalibration && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  data-testid="start-calibration-btn"
-                  onClick={onStartCalibration}
-                  className="w-full text-xs font-medium mt-1 gap-1.5"
-                >
-                  <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
-                  <span>{t.workflow?.actions?.calibrateDimensions ?? t.inspector.adjustSpans}</span>
-                </Button>
-              )}
             </div>
           ) : (
             roomSpans && (
@@ -315,19 +300,6 @@ export function FloorPlanInspector({
                     </span>
                   </div>
                 </div>
-                {onStartCalibration && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    data-testid="start-calibration-btn"
-                    onClick={onStartCalibration}
-                    className="w-full text-xs font-medium mt-1 gap-1.5"
-                  >
-                    <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
-                    <span>{t.workflow?.actions?.calibrateDimensions ?? t.inspector.adjustSpans}</span>
-                  </Button>
-                )}
               </div>
             )
           )}
@@ -576,7 +548,7 @@ export function FloorPlanInspector({
                 variant="outline"
                 data-testid="add-furniture-btn"
                 onClick={() => {
-                  (onEnsureUserPlan ?? onStartCalibration)?.();
+                  onEnsureUserPlan?.();
                   setShowFurniturePalette(true);
                 }}
                 className="w-full h-8 text-xs flex items-center justify-center gap-1.5"

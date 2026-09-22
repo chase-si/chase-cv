@@ -56,10 +56,10 @@ test.describe("Floor Plan Two-Pane Furniture Decision Journey (Issue #206)", () 
     await expect(page.getByTestId("floor-plan-room-r1")).toBeVisible();
     await expect(page.getByTestId("floor-plan-room-r2")).toBeVisible();
 
-    // 3. In Plan stage, test calibration action seam or skip calibration to advance to Room stage
+    // 3. In Plan stage, advance to Room stage with use-plan-btn
     await expect(page.getByTestId("stage-plan-panel")).toBeVisible();
-    await expect(page.getByTestId("start-calibration-btn")).toBeVisible();
-    await page.getByTestId("skip-calibration-btn").click();
+    await expect(page.getByTestId("use-plan-btn")).toBeVisible();
+    await page.getByTestId("use-plan-btn").click();
 
     // 4. Stepper marks Plan completed and Room current
     await expect(roomStep).toHaveAttribute("aria-current", "step");
@@ -160,7 +160,7 @@ test.describe("Floor Plan Two-Pane Furniture Decision Journey (Issue #206)", () 
     await expect(page.getByTestId("desktop-context-pane")).not.toBeVisible();
 
     // Advance through plan stage
-    await page.getByTestId("skip-calibration-btn").click();
+    await page.getByTestId("use-plan-btn").click();
     await expect(page.getByTestId("stage-room-panel")).toBeVisible();
 
     // Pick bedroom on mobile

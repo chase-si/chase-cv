@@ -129,7 +129,7 @@ test.describe("Floor Plan SVG Viewer & Catalog (Issue #175 & #206)", () => {
     await page.keyboard.press("Escape");
 
     // Advance to room stage & select room
-    await page.getByTestId("skip-calibration-btn").click();
+    await page.getByTestId("use-plan-btn").click();
     const room1 = page.getByTestId("floor-plan-room-r1");
     await room1.click();
     await expect(room1).toHaveAttribute("data-selected", "true");

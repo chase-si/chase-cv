@@ -200,10 +200,10 @@
       "ogImageAlt": "标准户型空间验证器：浏览标准户型并验证空间尺寸",
       "applicationName": "标准户型空间验证器",
       "lab": {
-        "title": "CubiCasa 识图实验室 | Chase's CV",
-        "description": "CubiCasa 户型图片识别、两点尺度标定与拓扑规整实验室",
-        "ogImageAlt": "CubiCasa 识图实验室：户型图像分割与两点标定",
-        "applicationName": "CubiCasa 识图实验室"
+        "title": "户型实验室 | Chase's CV",
+        "description": "候选户型资产预览与空间验证实验室",
+        "ogImageAlt": "户型实验室：候选户型资产预览与空间验证",
+        "applicationName": "户型实验室"
       }
     }
   },
@@ -1111,41 +1111,8 @@
       "details": "详细信息"
     },
     "lab": {
-      "title": "CubiCasa 识图实验室",
-      "description": "CubiCasa 户型图片识别、两点尺度标定与拓扑规整实验室",
-      "step1Title": "第一步：选择户型底图",
-      "step1Desc": "选用内置代表性样例或上传自定义光栅户型图",
-      "step2Title": "第二步：两点尺度标定",
-      "step2Desc": "设定已知距离的两个基准点建立毫米坐标系",
-      "step3Title": "第三步：模型识别与拓扑规整",
-      "step3Desc": "运行语义分割、拓扑规整并评估几何精度",
-      "samplePlans": "示例户型底图",
-      "uploadImage": "上传自定义户型图",
-      "chooseFile": "选择图片文件",
-      "selectedFile": "已选图片",
-      "point1": "标定参考点 A",
-      "point2": "标定参考点 B",
-      "knownLength": "已知两点真实距离 (mm)",
-      "pixelDistance": "像素跨度",
-      "calculatedScale": "标定比例换算",
-      "calibrateScale": "完成两点标定",
-      "skipCalibration": "跳过标定（使用未标定相对像素几何）",
-      "unscaledModeNotice": "未标定模式：保留相对像素几何，抑制绝对尺寸规则",
-      "runInference": "运行 CubiCasa 智能识别",
-      "runningInference": "正在进行图像分割与拓扑规整...",
-      "inferenceError": "识别运行出错",
-      "evalReportTitle": "评测与规整基准报告",
-      "exportReport": "导出评测报告 (JSON)",
-      "openEditor": "进入编辑器精细微调",
-      "returnToLab": "返回识图实验室",
-      "approvePlan": "审核通过并定稿",
-      "approvedNotice": "该识别方案已成功审核定稿",
-      "wallCount": "识别墙体数",
-      "openingCount": "识别门窗数",
-      "roomCount": "识别房间数",
-      "furnitureCount": "识别家具数",
-      "topologyStatus": "拓扑连续性闭合",
-      "serviceUnavailable": "CubiCasa recognition service is currently unavailable"
+      "title": "户型实验室",
+      "description": "候选户型资产预览与空间验证实验室"
     }
   }
 }

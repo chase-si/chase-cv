@@ -1,4 +1,3 @@
-export * from "./valid-source-package";
 export * from "./valid-standard-plan";
 export * from "./valid-furniture-catalog";
 export * from "./valid-space-rules";

@@ -123,8 +123,8 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
 
     // Stage 1: Plan
     expect(screen.getByTestId("stage-step-plan")).toHaveTextContent("户型");
-    expect(screen.getByTestId("skip-calibration-btn")).toHaveTextContent("使用这个户型");
-    fireEvent.click(screen.getByTestId("skip-calibration-btn"));
+    expect(screen.getByTestId("use-plan-btn")).toHaveTextContent("使用这个户型");
+    fireEvent.click(screen.getByTestId("use-plan-btn"));
 
     // Stage 2: Room
     expect(screen.getByTestId("stage-step-room")).toHaveTextContent("房间");
