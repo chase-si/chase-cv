@@ -37,8 +37,6 @@ type FurnitureDecisionControlsProps = {
   ruleResults: RuleResult[];
   locale?: string;
   onUpdatePlan: (plan: FloorPlan, description?: string) => void | Promise<void>;
-  onAdjustRoom: () => void;
-  onMoreSettings: () => void;
 };
 
 const statusStyles: Record<FurnitureDecisionStatus, string> = {
@@ -62,8 +60,6 @@ export function FurnitureDecisionControls({
   ruleResults,
   locale,
   onUpdatePlan,
-  onAdjustRoom,
-  onMoreSettings,
 }: FurnitureDecisionControlsProps) {
   const isZh = locale?.toLowerCase().startsWith("zh") ?? false;
   const catalog = React.useMemo(() => getDefaultFurnitureCatalog(), []);
@@ -265,17 +261,6 @@ export function FurnitureDecisionControls({
           </p>
         </div>
       )}
-
-      <div className="grid grid-cols-2 gap-2 border-t border-border/60 pt-3">
-        <Button type="button" variant="ghost" size="sm" onClick={onAdjustRoom} className="justify-start px-2 text-xs text-muted-foreground">
-          <Maximize2 className="h-3.5 w-3.5" />
-          {isZh ? "调整房间" : "Adjust room"}
-        </Button>
-        <Button type="button" variant="ghost" size="sm" onClick={onMoreSettings} className="justify-end px-2 text-xs text-muted-foreground">
-          <SlidersHorizontal className="h-3.5 w-3.5" />
-          {isZh ? "更多设置" : "More settings"}
-        </Button>
-      </div>
     </div>
   );
 }

@@ -36,10 +36,8 @@ describe("AC-27: Prune recognition, calibration, and source-import capabilities"
     expect(screen.queryByText(/待校准尺寸/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/尺寸已标定/i)).not.toBeInTheDocument();
 
-    // 2. Clean 'use-plan-btn' is used to advance to room stage
-    const usePlanBtns = screen.getAllByTestId("use-plan-btn");
-    expect(usePlanBtns.length).toBeGreaterThan(0);
-    expect(usePlanBtns[0]).toHaveTextContent("使用这个户型");
+    // 2. Clean 'open-plan-selector-btn' is used to switch predefined plans
+    expect(screen.getByTestId("open-plan-selector-btn")).toBeInTheDocument();
 
     // 3. No source-image upload or file input exists in floor plan shell
     expect(screen.queryByTestId("file-upload-input")).not.toBeInTheDocument();
@@ -78,23 +76,19 @@ describe("AC-27: Prune recognition, calibration, and source-import capabilities"
   it("verifies preserved floor-plan viewing, furniture addition, movement, rotation, and basic collision feedback", async () => {
     render(<FloorPlanShell initialPlans={FIXTURE_PLANS} locale="zh" isMobile={false} />);
 
-    // 1. Advance through workflow using use-plan-btn
-    fireEvent.click(screen.getAllByTestId("use-plan-btn")[0]);
-    expect(screen.getByTestId("stage-step-room")).toHaveAttribute("aria-current", "step");
+    // 1. Floor plan viewer is present
+    expect(screen.getByTestId("floor-plan-viewer-surface")).toBeInTheDocument();
 
     // 2. Select room r1
     fireEvent.click(screen.getByTestId("room-item-r1"));
-    fireEvent.click(screen.getByTestId("next-to-furniture-btn"));
-    expect(screen.getByTestId("stage-step-furniture")).toHaveAttribute("aria-current", "step");
 
-    // 3. Add furniture from palette
+    // 3. Add furniture from context palette
     const addBtns = screen.getAllByTestId(/^add-context-furniture-/);
     expect(addBtns.length).toBeGreaterThan(0);
     fireEvent.click(addBtns[0]);
 
-    // 4. Decision stage reached with basic spatial feedback
+    // 4. Decision panel reached with basic spatial feedback
     await waitFor(() => {
-      expect(screen.getByTestId("stage-step-decision")).toHaveAttribute("aria-current", "step");
       expect(screen.getByTestId("decision-target-furniture")).toBeInTheDocument();
     });
   });

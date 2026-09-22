@@ -5,7 +5,7 @@ import { Armchair, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CardScrollArea } from "@/components/ui/card";
 import type { FloorPlan } from "@/lib/floor-plan/types";
-import type { FloorPlanDictionary } from "@/lib/floor-plan/i18n";
+import { useFloorPlanI18n, type FloorPlanDictionary } from "@/lib/floor-plan/i18n";
 import { FurnitureCatalogPalette } from "./furniture-catalog-palette";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ export interface FurnitureCatalogDialogProps {
   plan: FloorPlan;
   onSelectDefinition: (definitionId: string) => void;
   locale?: string;
-  t: FloorPlanDictionary;
+  t?: FloorPlanDictionary;
   className?: string;
 }
 
@@ -25,9 +25,11 @@ export function FurnitureCatalogDialog({
   plan,
   onSelectDefinition,
   locale,
-  t,
+  t: propT,
   className,
 }: FurnitureCatalogDialogProps) {
+  const i18n = useFloorPlanI18n(locale);
+  const t = propT ?? i18n.t;
   // Handle escape key
   React.useEffect(() => {
     if (!open) return;
