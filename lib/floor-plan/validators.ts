@@ -2,6 +2,8 @@ import {
   CANONICAL_UNIT,
   type FloorPlan,
   type FurnitureCatalog,
+  type FurniturePlacement,
+  type PlacementScenario,
   type SpaceRuleConfig,
   type ValidationError,
   type ValidationResult,
@@ -565,3 +567,131 @@ export function validateSpaceRuleConfig(
 
   return { ok: true, value: input as unknown as SpaceRuleConfig };
 }
+
+/**
+ * Validate PlacementScenario (Contract section 3)
+ */
+export function validatePlacementScenario(
+  input: unknown,
+): ValidationResult<PlacementScenario> {
+  const errors: ValidationError[] = [];
+
+  if (!isObject(input)) {
+    return {
+      ok: false,
+      errors: [{ path: "", message: "PlacementScenario must be a JSON object" }],
+    };
+  }
+
+  if (input.version !== 1) {
+    errors.push({
+      path: "version",
+      message: `PlacementScenario version must be 1 (received ${input.version})`,
+    });
+  }
+
+  if (input.unit !== CANONICAL_UNIT) {
+    errors.push({
+      path: "unit",
+      message: `PlacementScenario unit must be '${CANONICAL_UNIT}' (millimetres), received '${input.unit}'`,
+    });
+  }
+
+  if (!isNonEmptyString(input.planId)) {
+    errors.push({
+      path: "planId",
+      message: "planId must be a non-empty string",
+    });
+  }
+
+  const placementIdSet = new Set<string>();
+
+  if (!Array.isArray(input.placements)) {
+    errors.push({
+      path: "placements",
+      message: "placements must be an array",
+    });
+  } else {
+    input.placements.forEach((p: unknown, idx: number) => {
+      const pathPrefix = `placements[${idx}]`;
+      if (!isObject(p)) {
+        errors.push({
+          path: pathPrefix,
+          message: "FurniturePlacement must be an object",
+        });
+        return;
+      }
+
+      if (!isNonEmptyString(p.id)) {
+        errors.push({
+          path: `${pathPrefix}.id`,
+          message: "FurniturePlacement id must be a non-empty string",
+        });
+      } else if (placementIdSet.has(p.id)) {
+        errors.push({
+          path: `${pathPrefix}.id`,
+          message: `Duplicate placement id '${p.id}'`,
+        });
+      } else {
+        placementIdSet.add(p.id);
+      }
+
+      if (!isNonEmptyString(p.definitionId)) {
+        errors.push({
+          path: `${pathPrefix}.definitionId`,
+          message: "FurniturePlacement definitionId must be a non-empty string",
+        });
+      }
+
+      if (!isNonEmptyString(p.specificationId)) {
+        errors.push({
+          path: `${pathPrefix}.specificationId`,
+          message: "FurniturePlacement specificationId must be a non-empty string",
+        });
+      }
+
+      if (!isFiniteNumber(p.x)) {
+        errors.push({
+          path: `${pathPrefix}.x`,
+          message: "FurniturePlacement x must be a finite number in mm",
+        });
+      }
+
+      if (!isFiniteNumber(p.y)) {
+        errors.push({
+          path: `${pathPrefix}.y`,
+          message: "FurniturePlacement y must be a finite number in mm",
+        });
+      }
+
+      const validRotations = [0, 90, 180, 270];
+      if (typeof p.rotation !== "number" || !validRotations.includes(p.rotation)) {
+        errors.push({
+          path: `${pathPrefix}.rotation`,
+          message: "FurniturePlacement rotation must be 0, 90, 180, or 270",
+        });
+      }
+    });
+  }
+
+  if (input.targetPlacementId !== undefined) {
+    if (!isNonEmptyString(input.targetPlacementId)) {
+      errors.push({
+        path: "targetPlacementId",
+        message: "targetPlacementId must be a non-empty string if specified",
+      });
+    } else if (Array.isArray(input.placements) && !placementIdSet.has(input.targetPlacementId)) {
+      errors.push({
+        path: "targetPlacementId",
+        message: `targetPlacementId '${input.targetPlacementId}' not found in placements`,
+      });
+    }
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return { ok: true, value: input as unknown as PlacementScenario };
+}
+
