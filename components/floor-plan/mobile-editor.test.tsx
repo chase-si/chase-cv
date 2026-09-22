@@ -1,6 +1,5 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { MemoryDraftStorage } from "@/lib/floor-plan/draft-storage";
 import { buildStandardPlanSummary } from "@/lib/floor-plan/catalog";
 import { VALID_STANDARD_FLOOR_PLAN } from "@/lib/floor-plan/fixtures/valid-standard-plan";
 import {
@@ -51,9 +50,9 @@ afterEach(() => {
   cleanup();
 });
 
-describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
+describe("Mobile Floor Plan Editor Ergonomics (AC-5, AC-4, AC-27)", () => {
   it("renders canvas as primary surface and exposes mobile touch-sized mode toggle", () => {
-    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} isMobile={true} />);
 
     // Canvas remains primary and visible
     expect(screen.getByTestId("floor-plan-viewer-surface")).toBeInTheDocument();
@@ -74,7 +73,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
   });
 
   it("prevents accidental entity selection and edits when in Pan Mode", () => {
-    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} isMobile={true} />);
 
     // Switch to Pan Mode
     const panModeBtn = screen.getByTestId("mode-toggle-pan");
@@ -88,7 +87,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
   });
 
   it("opens mobile bottom properties surface when an entity is selected in Edit Mode", () => {
-    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} isMobile={true} />);
 
     // Switch to Edit Mode
     const editModeBtn = screen.getByTestId("mode-toggle-edit");
@@ -115,71 +114,8 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
     expect(screen.queryByTestId("mobile-bottom-sheet")).not.toBeInTheDocument();
   });
 
-  it("reaches Room span editing in mobile bottom sheet during draft mode", async () => {
-    const storage = new MemoryDraftStorage();
-    render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
-
-    // Enter draft mode
-    const customizeBtn = screen.getByTestId("customize-plan-btn");
-    fireEvent.click(customizeBtn);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
-    });
-
-    // Ensure Edit Mode
-    const editModeBtn = screen.getByTestId("mode-toggle-edit");
-    fireEvent.click(editModeBtn);
-
-    // Select Living Room (r1)
-    const room1 = screen.getByTestId("floor-plan-room-r1");
-    fireEvent.click(room1);
-
-    // Mobile bottom sheet opens with Room Span Editor
-    const sheet = screen.getByTestId("mobile-bottom-sheet");
-    expect(sheet).toBeInTheDocument();
-    expect(within(sheet).getByTestId("room-span-editor")).toBeInTheDocument();
-    expect(within(sheet).getByTestId("apply-span-btn")).toBeInTheDocument();
-  });
-
-  it("reaches Opening position/width editing in mobile bottom sheet", async () => {
-    const storage = new MemoryDraftStorage();
-    render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
-
-    // Enter draft mode
-    const customizeBtn = screen.getByTestId("customize-plan-btn");
-    fireEvent.click(customizeBtn);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
-    });
-
-    // Ensure Edit Mode
-    const editModeBtn = screen.getByTestId("mode-toggle-edit");
-    fireEvent.click(editModeBtn);
-
-    // Select Door door1
-    const door1 = screen.getByTestId("floor-plan-opening-door1");
-    fireEvent.click(door1);
-
-    // Mobile bottom sheet opens with Opening Editor
-    const sheet = screen.getByTestId("mobile-bottom-sheet");
-    expect(sheet).toBeInTheDocument();
-    expect(within(sheet).getByTestId("opening-editor")).toBeInTheDocument();
-    expect(within(sheet).getByTestId("opening-width-input")).toBeInTheDocument();
-  });
-
-  it("reaches Furniture catalog palette from mobile action button", async () => {
-    const storage = new MemoryDraftStorage();
-    render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
-
-    // Enter draft mode
-    const customizeBtn = screen.getByTestId("customize-plan-btn");
-    fireEvent.click(customizeBtn);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
-    });
+  it("reaches Furniture catalog palette from mobile action button", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} isMobile={true} />);
 
     // Tap mobile "Add Furniture" action button
     const addFurnitureBtn = screen.getByTestId("mobile-add-furniture-btn");
@@ -192,17 +128,8 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
     expect(within(sheet).getByTestId("furniture-catalog-palette")).toBeInTheDocument();
   });
 
-  it("reaches Furniture rotate, delete, and resize in mobile bottom sheet", async () => {
-    const storage = new MemoryDraftStorage();
-    render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
-
-    // Enter draft mode
-    const customizeBtn = screen.getByTestId("customize-plan-btn");
-    fireEvent.click(customizeBtn);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
-    });
+  it("reaches Furniture rotate and delete in mobile bottom sheet without arbitrary resize inputs (AC-4)", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} isMobile={true} />);
 
     // Ensure Edit Mode
     const editModeBtn = screen.getByTestId("mode-toggle-edit");
@@ -212,38 +139,20 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
     const sofa = screen.getByTestId("floor-plan-furniture-f1");
     fireEvent.click(sofa);
 
-    // Furniture Editor opens in mobile bottom sheet
+    // Inspector opens in mobile bottom sheet
     const sheet = screen.getByTestId("mobile-bottom-sheet");
     expect(sheet).toBeInTheDocument();
-    expect(within(sheet).getByTestId("furniture-editor")).toBeInTheDocument();
+    expect(within(sheet).getByTestId("inspector-furniture-details")).toBeInTheDocument();
     expect(within(sheet).getByTestId("rotate-furniture-btn")).toBeInTheDocument();
     expect(within(sheet).getByTestId("delete-furniture-btn")).toBeInTheDocument();
-    expect(within(sheet).getByTestId("furniture-width-input")).toBeInTheDocument();
+
+    // AC-4: No arbitrary width or depth inputs
+    expect(within(sheet).queryByTestId("furniture-width-input")).not.toBeInTheDocument();
+    expect(within(sheet).queryByTestId("furniture-depth-input")).not.toBeInTheDocument();
   });
 
-  it("exposes Undo and Redo actions on mobile with touch-sized targets", async () => {
-    const storage = new MemoryDraftStorage();
-    render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
-
-    // Enter draft mode
-    const customizeBtn = screen.getByTestId("customize-plan-btn");
-    fireEvent.click(customizeBtn);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
-    });
-
-    // Undo and Redo buttons exist with >= 44px touch targets
-    const undoBtn = screen.getByTestId("undo-btn");
-    const redoBtn = screen.getByTestId("redo-btn");
-
-    expect(undoBtn.className).toMatch(/min-h-\[44px\]|h-11/);
-    expect(redoBtn.className).toMatch(/min-h-\[44px\]|h-11/);
-  });
-
-  it("exposes Spatial Rule Feedback panel in mobile bottom sheet", async () => {
-    const storage = new MemoryDraftStorage();
-    render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
+  it("exposes Spatial Rule Feedback panel in mobile bottom sheet", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} isMobile={true} />);
 
     // Mobile Rules button exists with >= 44px touch target
     const mobileRulesBtn = screen.getByTestId("mobile-rules-btn");
@@ -256,93 +165,23 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5)", () => {
     expect(within(sheet).getByTestId("rule-feedback-panel")).toBeInTheDocument();
   });
 
-  it("exposes Export JSON action on mobile with touch-sized target", async () => {
-    const storage = new MemoryDraftStorage();
-    render(<FloorPlanShell storage={storage} initialPlans={FIXTURE_PLANS} />);
+  it("ensures critical touch targets on mobile are at least 44x44 CSS pixels", () => {
+    render(<FloorPlanShell isMobile={true} initialPlans={FIXTURE_PLANS} />);
 
-    // Enter draft mode
-    const customizeBtn = screen.getByTestId("customize-plan-btn");
-    fireEvent.click(customizeBtn);
+    // Mode toggle buttons
+    const panModeBtn = screen.getByTestId("mode-toggle-pan");
+    expect(panModeBtn.className).toMatch(/min-h-\[44px\]|h-11/);
+    const editModeBtn = screen.getByTestId("mode-toggle-edit");
+    expect(editModeBtn.className).toMatch(/min-h-\[44px\]|h-11/);
 
-    await waitFor(() => {
-      expect(screen.getByTestId("save-status-badge")).toBeInTheDocument();
-    });
+    // Toolbar buttons
+    const addFurnitureBtn = screen.getByTestId("mobile-add-furniture-btn");
+    expect(addFurnitureBtn.className).toMatch(/min-h-\[44px\]|h-11/);
 
-    // Open Advanced Tools dialog (AC-26)
-    const advancedBtn = screen.getByTestId("advanced-tools-btn");
-    expect(advancedBtn.className).toMatch(/min-h-\[44px\]|h-11/);
-    fireEvent.click(advancedBtn);
-    fireEvent.click(screen.getByTestId("advanced-tab-manage"));
+    const catalogBtn = screen.getByTestId("mobile-catalog-btn");
+    expect(catalogBtn.className).toMatch(/min-h-\[44px\]|h-11/);
 
-    const exportBtn = screen.getByTestId("export-json-btn");
-    expect(exportBtn.className).toMatch(/min-h-\[44px\]|h-11/);
-  });
-
-  describe("Mobile Workflow Decision Flow & Touch Ergonomics (AC-23)", () => {
-    it("keeps canvas as primary surface and completes 4-stage workflow in mobile bottom panel", async () => {
-      render(<FloorPlanShell isMobile={true} initialPlans={FIXTURE_PLANS} />);
-
-      // 1. Canvas is primary surface
-      expect(screen.getByTestId("floor-plan-viewer-surface")).toBeInTheDocument();
-      expect(screen.getByTestId("floor-plan-svg-canvas")).toBeInTheDocument();
-
-      // 2. Active workflow step is presented in mobile bottom panel
-      const mobilePanel = screen.getByTestId("mobile-step-panel");
-      expect(mobilePanel).toBeInTheDocument();
-
-      // Stage 1: Plan stage is active
-      expect(within(mobilePanel).getByTestId("stage-plan-panel")).toBeInTheDocument();
-      const usePlanBtn = within(mobilePanel).getByTestId("use-plan-btn");
-      expect(usePlanBtn.className).toMatch(/min-h-\[44px\]|h-11/);
-      fireEvent.click(usePlanBtn);
-
-      // Stage 2: Room stage
-      expect(within(mobilePanel).getByTestId("stage-room-panel")).toBeInTheDocument();
-      const roomItem = within(mobilePanel).getByTestId("room-item-r1");
-      expect(roomItem.className).toMatch(/min-h-\[44px\]/);
-      fireEvent.click(roomItem);
-      const nextToFurnitureBtn = within(mobilePanel).getByTestId("next-to-furniture-btn");
-      expect(nextToFurnitureBtn.className).toMatch(/min-h-\[44px\]|h-11/);
-      fireEvent.click(nextToFurnitureBtn);
-
-      // Stage 3: Furniture stage
-      expect(within(mobilePanel).getByTestId("stage-furniture-panel")).toBeInTheDocument();
-      const contextPanel = within(mobilePanel).getByTestId("context-furniture-panel");
-      expect(contextPanel).toBeInTheDocument();
-      // Verify touch target on context furniture add buttons
-      const addContextBtns = within(contextPanel).getAllByTestId(/^add-context-furniture-/);
-      expect(addContextBtns.length).toBeGreaterThan(0);
-      expect(addContextBtns[0].className).toMatch(/min-h-\[44px\]|h-11/);
-      fireEvent.click(addContextBtns[0]);
-
-      // Adding a recommendation immediately produces the decision.
-      await waitFor(() => {
-        expect(within(mobilePanel).getByTestId("stage-decision-panel")).toBeInTheDocument();
-      });
-
-      // Stage 4: Decision stage
-      expect(within(mobilePanel).getByTestId("furniture-decision-panel")).toBeInTheDocument();
-      expect(within(mobilePanel).getByTestId("decision-status-badge")).toBeInTheDocument();
-    });
-
-    it("ensures critical touch targets on mobile are at least 44x44 CSS pixels", () => {
-      render(<FloorPlanShell isMobile={true} initialPlans={FIXTURE_PLANS} />);
-
-      // Stepper buttons
-      const stepPlan = screen.getByTestId("stage-step-plan");
-      expect(stepPlan.className).toMatch(/min-h-\[44px\]|h-11/);
-
-      // Room item buttons
-      const mobilePanel = screen.getByTestId("mobile-step-panel");
-      const roomItems = within(mobilePanel).getAllByTestId(/^room-item-/);
-      expect(roomItems[0].className).toMatch(/min-h-\[44px\]/);
-
-      // Workflow actions
-      const openPlanBtn = within(mobilePanel).getByTestId("open-plan-selector-btn");
-      expect(openPlanBtn.className).toMatch(/min-h-\[44px\]|h-11/);
-
-      const usePlanBtn = within(mobilePanel).getByTestId("use-plan-btn");
-      expect(usePlanBtn.className).toMatch(/min-h-\[44px\]|h-11/);
-    });
+    const rulesBtn = screen.getByTestId("mobile-rules-btn");
+    expect(rulesBtn.className).toMatch(/min-h-\[44px\]|h-11/);
   });
 });

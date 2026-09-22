@@ -16,17 +16,12 @@ export function isUserPlan(plan: FloorPlan): boolean {
 }
 
 /**
- * Creates a new User plan from a Standard plan or resumes an existing draft (AC-2).
+ * Creates a new User plan working copy from a Standard plan (AC-2).
  * The original standard plan remains byte-for-byte unchanged.
  */
 export function createOrResumeUserPlan(
   standardPlan: StandardFloorPlan | FloorPlan,
-  existingDraft?: FloorPlan | null,
 ): FloorPlan {
-  if (existingDraft) {
-    return cloneFloorPlan(existingDraft);
-  }
-
   const templateId = standardPlan.meta.id ?? standardPlan.meta.name;
   const now = new Date().toISOString();
 
