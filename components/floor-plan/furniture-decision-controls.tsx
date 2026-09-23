@@ -87,9 +87,10 @@ export function FurnitureDecisionControls({
     const range = definition.allowedSizeRanges?.width;
     if (!range) return [furniture.width];
 
+    const defaultW = definition.defaultSize?.width ?? definition.specifications?.[0]?.width ?? 1000;
     const preferred = definition.category === "bed"
       ? [1500, 1600, 1800]
-      : [range.min, definition.defaultSize.width, range.max];
+      : [range.min, defaultW, range.max];
 
     return Array.from(new Set(preferred.filter((value) => value >= range.min && value <= range.max)));
   }, [definition, furniture]);

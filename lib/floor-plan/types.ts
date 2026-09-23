@@ -142,8 +142,24 @@ export type StandardFloorPlan = FloorPlan & {
 };
 
 /**
- * Furniture Catalog & Definitions
+ * Furniture Catalog & Definitions (Contract Section 2)
  */
+export type FurnitureSide = "front" | "back" | "left" | "right";
+
+export interface ClearanceThreshold {
+  minimum: number;
+  recommended: number;
+}
+
+export interface FurnitureSpecification {
+  id: string;
+  name: string;
+  width: number;
+  depth: number;
+  height?: number;
+  clearance: Record<FurnitureSide, ClearanceThreshold>;
+}
+
 export interface FurnitureDimensions {
   width: number; // in mm
   depth: number; // in mm
@@ -174,15 +190,32 @@ export interface FurnitureDefinition {
   id: string;
   name: string;
   category: FurnitureCategory;
-  defaultSize: FurnitureDimensions;
+  specifications: FurnitureSpecification[];
+  // Legacy compatibility fields preserved during expand phase (AC-4 adapter)
+  defaultSize?: FurnitureDimensions;
   allowedSizeRanges?: FurnitureAllowedRanges;
   clearanceRules?: FurnitureClearanceRules;
 }
 
 export interface FurnitureCatalog {
-  version: 1;
+  version: 2;
   unit: UnitMillimetre;
   definitions: FurnitureDefinition[];
+}
+
+export interface FurnitureDefinitionV1 {
+  id: string;
+  name: string;
+  category: FurnitureCategory;
+  defaultSize: FurnitureDimensions;
+  allowedSizeRanges?: FurnitureAllowedRanges;
+  clearanceRules?: FurnitureClearanceRules;
+}
+
+export interface FurnitureCatalogV1 {
+  version: 1;
+  unit: UnitMillimetre;
+  definitions: FurnitureDefinitionV1[];
 }
 
 /**
