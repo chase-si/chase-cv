@@ -228,18 +228,21 @@ export function placementScenarioToFurnitureInstances(
 ): FurnitureInstance[] {
   return scenario.placements.map((p) => {
     const def = catalog.definitions.find((d) => d.id === p.definitionId);
-    let width = def?.defaultSize.width ?? 1000;
-    let depth = def?.defaultSize.depth ?? 1000;
-    const height = def?.defaultSize.height;
+    const spec = def?.specifications?.find((s) => s.id === p.specificationId);
+    let width = spec?.width ?? def?.defaultSize?.width ?? 1000;
+    let depth = spec?.depth ?? def?.defaultSize?.depth ?? 1000;
+    const height = spec?.height ?? def?.defaultSize?.height;
 
-    // If specification ID contains dimensions like "1800x2000" or similar
-    const dimMatch = p.specificationId.match(/(\d+)x(\d+)/i);
-    if (dimMatch) {
-      const parsedW = parseInt(dimMatch[1], 10);
-      const parsedD = parseInt(dimMatch[2], 10);
-      if (parsedW > 0 && parsedD > 0) {
-        width = parsedW;
-        depth = parsedD;
+    // If specification was not directly found by id, check for dimension pattern in specificationId
+    if (!spec) {
+      const dimMatch = p.specificationId.match(/(\d+)x(\d+)/i);
+      if (dimMatch) {
+        const parsedW = parseInt(dimMatch[1], 10);
+        const parsedD = parseInt(dimMatch[2], 10);
+        if (parsedW > 0 && parsedD > 0) {
+          width = parsedW;
+          depth = parsedD;
+        }
       }
     }
 

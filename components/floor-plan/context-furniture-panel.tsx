@@ -149,8 +149,8 @@ export function ContextFurniturePanel({
       {/* Recommended Furniture Items (AC-10, AC-11) */}
       <div className="space-y-2">
         {recommendedDefinitions.map((def) => {
-          const width = def.defaultSize.width;
-          const depth = def.defaultSize.depth;
+          const width = def.defaultSize?.width ?? def.specifications?.[0]?.width ?? 0;
+          const depth = def.defaultSize?.depth ?? def.specifications?.[0]?.depth ?? 0;
           const localizedName = i18n.getFurnitureName(def.id, def.name);
 
           return (
