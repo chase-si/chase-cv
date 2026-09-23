@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   validateFloorPlan,
   validateFurnitureCatalog,
+  validateFurnitureDefinition,
   validatePlacementScenario,
   validateSpaceRuleConfig,
 } from "./validators";
@@ -136,39 +137,252 @@ describe("AC-17: FloorPlan v1 Contract Formats & Validators", () => {
     });
   });
 
-  describe("Furniture Catalog", () => {
-    it("validates a standard furniture catalog using millimetres", () => {
+  describe("Furniture Catalog & Definitions (AC-4, AC-19)", () => {
+    it("validates a standard furniture catalog v2 with predefined specifications (AC-4)", () => {
       const result = validateFurnitureCatalog(VALID_FURNITURE_CATALOG);
       expect(result.ok).toBe(true);
       if (result.ok) {
+        expect(result.value.version).toBe(2);
         expect(result.value.unit).toBe("mm");
         expect(result.value.definitions.length).toBeGreaterThan(0);
         for (const def of result.value.definitions) {
-          expect(def.defaultSize.width).toBeGreaterThan(0);
-          expect(def.defaultSize.depth).toBeGreaterThan(0);
+          expect(def.specifications.length).toBeGreaterThanOrEqual(1);
+          for (const spec of def.specifications) {
+            expect(spec.width).toBeGreaterThan(0);
+            expect(spec.depth).toBeGreaterThan(0);
+            expect(spec.clearance.front.minimum).toBeLessThanOrEqual(spec.clearance.front.recommended);
+            expect(spec.clearance.back.minimum).toBeLessThanOrEqual(spec.clearance.back.recommended);
+            expect(spec.clearance.left.minimum).toBeLessThanOrEqual(spec.clearance.left.recommended);
+            expect(spec.clearance.right.minimum).toBeLessThanOrEqual(spec.clearance.right.recommended);
+          }
         }
       }
     });
 
-    it("rejects catalog with non-mm unit or negative clearance rules", () => {
-      const invalidUnit = {
-        ...VALID_FURNITURE_CATALOG,
-        unit: "meter",
-      };
-      expect(validateFurnitureCatalog(invalidUnit).ok).toBe(false);
+    it("validates a standalone valid FurnitureDefinition (AC-19)", () => {
+      const def = VALID_FURNITURE_CATALOG.definitions[0];
+      const result = validateFurnitureDefinition(def);
+      expect(result.ok).toBe(true);
+    });
 
-      const invalidClearance = {
+    it("rejects non-object or wrong version/unit for FurnitureCatalog", () => {
+      expect(validateFurnitureCatalog(null).ok).toBe(false);
+      expect(validateFurnitureCatalog("not-an-object").ok).toBe(false);
+
+      const invalidVersion = { ...VALID_FURNITURE_CATALOG, version: 1 };
+      const resVer = validateFurnitureCatalog(invalidVersion);
+      expect(resVer.ok).toBe(false);
+      if (!resVer.ok) {
+        expect(resVer.errors.some((e) => e.path === "version")).toBe(true);
+      }
+
+      const invalidUnit = { ...VALID_FURNITURE_CATALOG, unit: "meter" };
+      const resUnit = validateFurnitureCatalog(invalidUnit);
+      expect(resUnit.ok).toBe(false);
+      if (!resUnit.ok) {
+        expect(resUnit.errors.some((e) => e.path === "unit")).toBe(true);
+      }
+    });
+
+    it("rejects duplicate definition IDs in catalog (AC-19)", () => {
+      const dupCatalog = {
         ...VALID_FURNITURE_CATALOG,
         definitions: [
+          VALID_FURNITURE_CATALOG.definitions[0],
+          { ...VALID_FURNITURE_CATALOG.definitions[0], name: "Duplicate Bed" },
+        ],
+      };
+      const res = validateFurnitureCatalog(dupCatalog);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.errors.some((e) => e.message.includes("Duplicate FurnitureDefinition id"))).toBe(true);
+      }
+    });
+
+    it("rejects duplicate specification IDs across definitions in catalog (AC-19)", () => {
+      const def1 = VALID_FURNITURE_CATALOG.definitions[0];
+      const def2 = {
+        ...VALID_FURNITURE_CATALOG.definitions[1],
+        id: "bed-single-unique",
+        specifications: [
           {
-            ...VALID_FURNITURE_CATALOG.definitions[0],
-            clearanceRules: {
-              front: -200,
+            ...VALID_FURNITURE_CATALOG.definitions[1].specifications[0],
+            id: def1.specifications[0].id, // duplicate spec ID from def1
+          },
+        ],
+      };
+      const dupSpecCatalog = {
+        ...VALID_FURNITURE_CATALOG,
+        definitions: [def1, def2],
+      };
+      const res = validateFurnitureCatalog(dupSpecCatalog);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.errors.some((e) => e.message.includes("Duplicate FurnitureSpecification id"))).toBe(true);
+      }
+    });
+
+    it("rejects definition with empty specifications array (AC-19)", () => {
+      const emptySpecsDef = {
+        ...VALID_FURNITURE_CATALOG.definitions[0],
+        specifications: [],
+      };
+      const res = validateFurnitureDefinition(emptySpecsDef);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.errors.some((e) => e.message.includes("must contain at least one specification"))).toBe(true);
+      }
+    });
+
+    it("rejects definition with duplicate specification IDs within same definition (AC-19)", () => {
+      const dupSpecDef = {
+        ...VALID_FURNITURE_CATALOG.definitions[0],
+        specifications: [
+          VALID_FURNITURE_CATALOG.definitions[0].specifications[0],
+          { ...VALID_FURNITURE_CATALOG.definitions[0].specifications[0], name: "Clone" },
+        ],
+      };
+      const res = validateFurnitureDefinition(dupSpecDef);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.errors.some((e) => e.message.includes("Duplicate FurnitureSpecification id"))).toBe(true);
+      }
+    });
+
+    it("rejects specification with non-positive dimensions (negative, zero, NaN, Infinity) (AC-19)", () => {
+      const invalidDimensions = [
+        { width: -100, depth: 2000, desc: "negative width" },
+        { width: 0, depth: 2000, desc: "zero width" },
+        { width: NaN, depth: 2000, desc: "NaN width" },
+        { width: Infinity, depth: 2000, desc: "Infinity width" },
+        { width: 1800, depth: -500, desc: "negative depth" },
+        { width: 1800, depth: 0, desc: "zero depth" },
+        { width: 1800, depth: NaN, desc: "NaN depth" },
+        { width: 1800, depth: 2000, height: -10, desc: "negative height" },
+        { width: 1800, depth: 2000, height: 0, desc: "zero height" },
+      ];
+
+      for (const item of invalidDimensions) {
+        const badDef = {
+          ...VALID_FURNITURE_CATALOG.definitions[0],
+          specifications: [
+            {
+              ...VALID_FURNITURE_CATALOG.definitions[0].specifications[0],
+              width: item.width,
+              depth: item.depth,
+              ...(item.height !== undefined ? { height: item.height } : {}),
+            },
+          ],
+        };
+        const res = validateFurnitureDefinition(badDef);
+        expect(res.ok, `Should reject ${item.desc}`).toBe(false);
+      }
+    });
+
+    it("rejects specification with negative clearance thresholds (AC-19)", () => {
+      const badDef = {
+        ...VALID_FURNITURE_CATALOG.definitions[0],
+        specifications: [
+          {
+            ...VALID_FURNITURE_CATALOG.definitions[0].specifications[0],
+            clearance: {
+              ...VALID_FURNITURE_CATALOG.definitions[0].specifications[0].clearance,
+              front: { minimum: -100, recommended: 500 },
             },
           },
         ],
       };
-      expect(validateFurnitureCatalog(invalidClearance).ok).toBe(false);
+      const res = validateFurnitureDefinition(badDef);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.errors.some((e) => e.path.includes("clearance.front.minimum"))).toBe(true);
+      }
+    });
+
+    it("rejects specification when minimum clearance > recommended clearance (AC-19)", () => {
+      const badDef = {
+        ...VALID_FURNITURE_CATALOG.definitions[0],
+        specifications: [
+          {
+            ...VALID_FURNITURE_CATALOG.definitions[0].specifications[0],
+            clearance: {
+              ...VALID_FURNITURE_CATALOG.definitions[0].specifications[0].clearance,
+              left: { minimum: 800, recommended: 600 },
+            },
+          },
+        ],
+      };
+      const res = validateFurnitureDefinition(badDef);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.errors.some((e) => e.message.includes("must be <= recommended"))).toBe(true);
+      }
+    });
+
+    it("rejects specification when clearance object or required side is missing", () => {
+      const missingClearance = {
+        ...VALID_FURNITURE_CATALOG.definitions[0],
+        specifications: [
+          {
+            id: "spec-1",
+            name: "Spec 1",
+            width: 1000,
+            depth: 1000,
+          },
+        ],
+      };
+      expect(validateFurnitureDefinition(missingClearance).ok).toBe(false);
+
+      const missingSide = {
+        ...VALID_FURNITURE_CATALOG.definitions[0],
+        specifications: [
+          {
+            id: "spec-1",
+            name: "Spec 1",
+            width: 1000,
+            depth: 1000,
+            clearance: {
+              front: { minimum: 100, recommended: 200 },
+              // back, left, right missing
+            },
+          },
+        ],
+      };
+      expect(validateFurnitureDefinition(missingSide).ok).toBe(false);
+    });
+
+    it("reports specific asset and specification ID on failure (AC-21)", () => {
+      const catalogWithFailure = {
+        ...VALID_FURNITURE_CATALOG,
+        definitions: [
+          {
+            id: "problematic-sofa",
+            name: "Faulty Sofa",
+            category: "sofa",
+            specifications: [
+              {
+                id: "faulty-spec-01",
+                name: "Faulty Spec",
+                width: 2000,
+                depth: 900,
+                clearance: {
+                  front: { minimum: 1000, recommended: 500 }, // minimum > recommended!
+                  back: { minimum: 0, recommended: 0 },
+                  left: { minimum: 0, recommended: 0 },
+                  right: { minimum: 0, recommended: 0 },
+                },
+              },
+            ],
+          },
+        ],
+      };
+
+      const res = validateFurnitureCatalog(catalogWithFailure);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.errors.some((e) => e.path.includes("definitions[0].specifications[0]"))).toBe(true);
+        expect(res.errors.some((e) => e.message.includes("faulty-spec-01"))).toBe(true);
+      }
     });
   });
 

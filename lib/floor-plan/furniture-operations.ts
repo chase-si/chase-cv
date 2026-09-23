@@ -197,16 +197,22 @@ export function addFurnitureInstance(
   const id =
     placement?.id ?? `f-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
-  // Default dimensions from definition
+  const defaultSpec = def.specifications?.[0];
+  const width = def.defaultSize?.width ?? defaultSpec?.width ?? 1000;
+  const depth = def.defaultSize?.depth ?? defaultSpec?.depth ?? 1000;
+  const height = def.defaultSize?.height ?? defaultSpec?.height;
+
+  // Default dimensions from definition or primary specification
   const instance: FurnitureInstance = {
     id,
     definitionId: def.id,
+    specificationId: defaultSpec?.id,
     x: Math.round(posX),
     y: Math.round(posY),
-    width: def.defaultSize.width,
-    depth: def.defaultSize.depth,
+    width,
+    depth,
     rotation,
-    ...(def.defaultSize.height !== undefined ? { elevation: 0 } : {}),
+    ...(height !== undefined ? { elevation: 0 } : {}),
   };
 
   const nextPlan = cloneFloorPlan(plan);

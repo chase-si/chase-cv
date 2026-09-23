@@ -2,7 +2,11 @@ import {
   CANONICAL_UNIT,
   type FloorPlan,
   type FurnitureCatalog,
+  type FurnitureCatalogV1,
+  type FurnitureDefinition,
   type FurniturePlacement,
+  type FurnitureSide,
+  type FurnitureSpecification,
   type PlacementScenario,
   type SpaceRuleConfig,
   type ValidationError,
@@ -345,12 +349,289 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
   return { ok: true, value: input as unknown as FloorPlan };
 }
 
+const VALID_FURNITURE_CATEGORIES = [
+  "bed",
+  "sofa",
+  "table",
+  "chair",
+  "storage",
+  "desk",
+  "tv_stand",
+  "other",
+] as const;
+
+const VALID_FURNITURE_SIDES: FurnitureSide[] = [
+  "front",
+  "back",
+  "left",
+  "right",
+];
+
 /**
- * Validate Furniture Catalog
+ * Validate FurnitureDefinition (Contract Section 2, Section 5, AC-4, AC-19)
+ */
+export function validateFurnitureDefinition(
+  input: unknown,
+): ValidationResult<FurnitureDefinition> {
+  const errors: ValidationError[] = [];
+
+  if (!isObject(input)) {
+    return {
+      ok: false,
+      errors: [{ path: "", message: "FurnitureDefinition must be a JSON object" }],
+    };
+  }
+
+  if (!isNonEmptyString(input.id)) {
+    errors.push({
+      path: "id",
+      message: "FurnitureDefinition id must be a non-empty string",
+    });
+  }
+
+  if (!isNonEmptyString(input.name)) {
+    errors.push({
+      path: "name",
+      message: "FurnitureDefinition name must be a non-empty string",
+    });
+  }
+
+  if (
+    !isNonEmptyString(input.category) ||
+    !VALID_FURNITURE_CATEGORIES.includes(input.category as any)
+  ) {
+    errors.push({
+      path: "category",
+      message: `FurnitureDefinition category must be one of: ${VALID_FURNITURE_CATEGORIES.join(", ")}`,
+    });
+  }
+
+  if (!Array.isArray(input.specifications)) {
+    errors.push({
+      path: "specifications",
+      message: "FurnitureDefinition specifications must be an array",
+    });
+  } else if (input.specifications.length === 0) {
+    errors.push({
+      path: "specifications",
+      message: `FurnitureDefinition '${input.id || ""}' must contain at least one specification`,
+    });
+  } else {
+    const specIdSet = new Set<string>();
+    input.specifications.forEach((spec: unknown, sIdx: number) => {
+      const specPath = `specifications[${sIdx}]`;
+      if (!isObject(spec)) {
+        errors.push({
+          path: specPath,
+          message: "FurnitureSpecification must be an object",
+        });
+        return;
+      }
+
+      if (!isNonEmptyString(spec.id)) {
+        errors.push({
+          path: `${specPath}.id`,
+          message: "FurnitureSpecification id must be a non-empty string",
+        });
+      } else if (specIdSet.has(spec.id)) {
+        errors.push({
+          path: `${specPath}.id`,
+          message: `Duplicate FurnitureSpecification id '${spec.id}' in definition '${input.id || ""}'`,
+        });
+      } else {
+        specIdSet.add(spec.id);
+      }
+
+      if (!isNonEmptyString(spec.name)) {
+        errors.push({
+          path: `${specPath}.name`,
+          message: `FurnitureSpecification '${spec.id || sIdx}' name must be a non-empty string`,
+        });
+      }
+
+      if (!isPositiveNumber(spec.width)) {
+        errors.push({
+          path: `${specPath}.width`,
+          message: `Specification '${spec.id || sIdx}' width must be a positive finite number in mm`,
+        });
+      }
+
+      if (!isPositiveNumber(spec.depth)) {
+        errors.push({
+          path: `${specPath}.depth`,
+          message: `Specification '${spec.id || sIdx}' depth must be a positive finite number in mm`,
+        });
+      }
+
+      if (spec.height !== undefined && !isPositiveNumber(spec.height)) {
+        errors.push({
+          path: `${specPath}.height`,
+          message: `Specification '${spec.id || sIdx}' height must be a positive finite number in mm if specified`,
+        });
+      }
+
+      if (!isObject(spec.clearance)) {
+        errors.push({
+          path: `${specPath}.clearance`,
+          message: `Specification '${spec.id || sIdx}' clearance must be an object containing front, back, left, and right thresholds`,
+        });
+      } else {
+        for (const side of VALID_FURNITURE_SIDES) {
+          const sideThreshold = (spec.clearance as Record<string, unknown>)[side];
+          const sidePath = `${specPath}.clearance.${side}`;
+          if (!isObject(sideThreshold)) {
+            errors.push({
+              path: sidePath,
+              message: `Clearance threshold for side '${side}' in specification '${spec.id || sIdx}' must be an object with minimum and recommended`,
+            });
+            continue;
+          }
+
+          const { minimum, recommended } = sideThreshold;
+          let minValid = true;
+          let recValid = true;
+
+          if (!isNonNegativeNumber(minimum)) {
+            errors.push({
+              path: `${sidePath}.minimum`,
+              message: `Clearance minimum for side '${side}' in specification '${spec.id || sIdx}' must be a non-negative finite number in mm`,
+            });
+            minValid = false;
+          }
+
+          if (!isNonNegativeNumber(recommended)) {
+            errors.push({
+              path: `${sidePath}.recommended`,
+              message: `Clearance recommended for side '${side}' in specification '${spec.id || sIdx}' must be a non-negative finite number in mm`,
+            });
+            recValid = false;
+          }
+
+          if (minValid && recValid && (minimum as number) > (recommended as number)) {
+            errors.push({
+              path: sidePath,
+              message: `Clearance minimum (${minimum}) must be <= recommended (${recommended}) for side '${side}' in specification '${spec.id || sIdx}'`,
+            });
+          }
+        }
+      }
+    });
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return { ok: true, value: input as unknown as FurnitureDefinition };
+}
+
+/**
+ * Validate Furniture Catalog (Contract Section 2, Section 5, AC-4, AC-19, AC-21)
  */
 export function validateFurnitureCatalog(
   input: unknown,
 ): ValidationResult<FurnitureCatalog> {
+  const errors: ValidationError[] = [];
+
+  if (!isObject(input)) {
+    return {
+      ok: false,
+      errors: [{ path: "", message: "FurnitureCatalog must be a JSON object" }],
+    };
+  }
+
+  if (input.version !== 2) {
+    errors.push({
+      path: "version",
+      message: `FurnitureCatalog version must be 2 (received ${input.version})`,
+    });
+  }
+
+  if (input.unit !== CANONICAL_UNIT) {
+    errors.push({
+      path: "unit",
+      message: `FurnitureCatalog unit must be '${CANONICAL_UNIT}' (millimetres), received '${input.unit}'`,
+    });
+  }
+
+  const defIdSet = new Set<string>();
+  const catalogSpecIdSet = new Set<string>();
+
+  if (!Array.isArray(input.definitions)) {
+    errors.push({
+      path: "definitions",
+      message: "FurnitureCatalog definitions must be an array",
+    });
+  } else {
+    input.definitions.forEach((def: unknown, idx: number) => {
+      const defPathPrefix = `definitions[${idx}]`;
+      if (!isObject(def)) {
+        errors.push({
+          path: defPathPrefix,
+          message: "FurnitureDefinition must be an object",
+        });
+        return;
+      }
+
+      if (!isNonEmptyString(def.id)) {
+        errors.push({
+          path: `${defPathPrefix}.id`,
+          message: "FurnitureDefinition id must be a non-empty string",
+        });
+      } else if (defIdSet.has(def.id)) {
+        errors.push({
+          path: `${defPathPrefix}.id`,
+          message: `Duplicate FurnitureDefinition id '${def.id}'`,
+        });
+      } else {
+        defIdSet.add(def.id);
+      }
+
+      const defResult = validateFurnitureDefinition(def);
+      if (!defResult.ok) {
+        for (const err of defResult.errors) {
+          if (err.path === "id" && errors.some((e) => e.path === `${defPathPrefix}.id`)) {
+            continue;
+          }
+          errors.push({
+            path: err.path ? `${defPathPrefix}.${err.path}` : defPathPrefix,
+            message: err.message,
+            code: err.code,
+          });
+        }
+      }
+
+      // Check duplicate specification IDs across entire catalog
+      if (Array.isArray(def.specifications)) {
+        def.specifications.forEach((spec: unknown, sIdx: number) => {
+          if (isObject(spec) && isNonEmptyString(spec.id)) {
+            if (catalogSpecIdSet.has(spec.id)) {
+              errors.push({
+                path: `${defPathPrefix}.specifications[${sIdx}].id`,
+                message: `Duplicate FurnitureSpecification id '${spec.id}' across catalog in definition '${def.id || idx}'`,
+              });
+            } else {
+              catalogSpecIdSet.add(spec.id);
+            }
+          }
+        });
+      }
+    });
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return { ok: true, value: input as unknown as FurnitureCatalog };
+}
+
+/**
+ * Validate Legacy Furniture Catalog v1
+ */
+export function validateFurnitureCatalogV1(
+  input: unknown,
+): ValidationResult<FurnitureCatalogV1> {
   const errors: ValidationError[] = [];
 
   if (!isObject(input)) {
@@ -462,7 +743,7 @@ export function validateFurnitureCatalog(
     return { ok: false, errors };
   }
 
-  return { ok: true, value: input as unknown as FurnitureCatalog };
+  return { ok: true, value: input as unknown as FurnitureCatalogV1 };
 }
 
 /**

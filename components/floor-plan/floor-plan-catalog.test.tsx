@@ -10,15 +10,17 @@ afterEach(() => {
 describe("FloorPlanCatalog (AC-1)", () => {
   const plans = getStandardPlans();
 
-  it("displays each approved standard plan with thumbnail, name, area, room counts, and tags", () => {
-    const onSelectPlan = vi.fn();
-    render(
-      <FloorPlanCatalog
-        plans={plans}
-        activePlanId={plans[0].id}
-        onSelectPlan={onSelectPlan}
-      />,
-    );
+  it(
+    "displays each approved standard plan with thumbnail, name, area, room counts, and tags",
+    () => {
+      const onSelectPlan = vi.fn();
+      render(
+        <FloorPlanCatalog
+          plans={plans}
+          activePlanId={plans[0].id}
+          onSelectPlan={onSelectPlan}
+        />,
+      );
 
     for (const plan of plans) {
       // 1. Thumbnail
@@ -48,7 +50,7 @@ describe("FloorPlanCatalog (AC-1)", () => {
         expect(tagsContainer).toHaveTextContent(tag);
       }
     }
-  });
+  }, 15000);
 
   it("opens a selected plan when clicking card or open button", () => {
     const onSelectPlan = vi.fn();

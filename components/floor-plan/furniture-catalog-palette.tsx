@@ -194,8 +194,10 @@ export function FurnitureCatalogPalette({
           </div>
         ) : (
           filteredDefinitions.map((def) => {
-            const width = def.defaultSize.width;
-            const depth = def.defaultSize.depth;
+            const defaultSpec = def.specifications?.[0];
+            const width = def.defaultSize?.width ?? defaultSpec?.width ?? 0;
+            const depth = def.defaultSize?.depth ?? defaultSpec?.depth ?? 0;
+            const height = def.defaultSize?.height ?? defaultSpec?.height;
             const widthRange = def.allowedSizeRanges?.width;
             const depthRange = def.allowedSizeRanges?.depth;
 
@@ -223,8 +225,8 @@ export function FurnitureCatalogPalette({
                       <span>
                         {i18n.locale === "zh" ? "默认：" : "Default: "}<strong className="text-foreground">{width} × {depth} mm</strong>
                       </span>
-                      {def.defaultSize.height && (
-                        <span>({i18n.locale === "zh" ? `高：${def.defaultSize.height} mm` : `H: ${def.defaultSize.height} mm`})</span>
+                      {height && (
+                        <span>({i18n.locale === "zh" ? `高：${height} mm` : `H: ${height} mm`})</span>
                       )}
                     </div>
 
