@@ -12,7 +12,12 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { FloorPlan, SpaceRuleConfig, SpaceAssessment } from "@/lib/floor-plan/types";
+import type {
+  AssessmentStatus,
+  FloorPlan,
+  SpaceAssessment,
+  SpaceRuleConfig,
+} from "@/lib/floor-plan/types";
 import type { RuleResult } from "@/lib/floor-plan/rules";
 import {
   summarizeFurnitureDecision,
@@ -23,6 +28,15 @@ import {
 import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { cn } from "@/lib/utils";
 import type { EntitySelectHandler, SelectedEntity } from "./types";
+
+function normalizeAssessmentStatus(
+  status: FurnitureDecisionStatus | AssessmentStatus,
+): AssessmentStatus {
+  if (status === "not-recommended" || status === "must-adjust") return "must-adjust";
+  if (status === "caution" || status === "trade-off") return "trade-off";
+  if (status === "suitable") return "suitable";
+  return "unavailable";
+}
 
 export interface FurnitureDecisionPanelProps {
   plan: FloorPlan;
@@ -63,10 +77,14 @@ export function FurnitureDecisionPanel({
     });
   }, [plan, targetRoomId, targetFurnitureId, ruleResults, config, locale]);
 
-  const effectiveStatus = assessment ? assessment.status : decision.status;
+  const normalizedStatus = React.useMemo(
+    () => normalizeAssessmentStatus(assessment ? assessment.status : decision.status),
+    [assessment, decision.status],
+  );
+
   const effectiveStatusLabel = React.useMemo(() => {
     if (assessment) {
-      switch (assessment.status) {
+      switch (normalizedStatus) {
         case "must-adjust":
           return isZh ? "必须调整" : "Must Adjust";
         case "trade-off":
@@ -79,16 +97,48 @@ export function FurnitureDecisionPanel({
       }
     }
     return decision.statusLabel;
-  }, [assessment, decision.statusLabel, isZh]);
+  }, [assessment, decision.statusLabel, isZh, normalizedStatus]);
+
+  const effectiveSummary = React.useMemo(() => {
+    if (!assessment || !decision.hasTargetFurniture) {
+      return decision.summary;
+    }
+    const dimText = decision.dimensions ? `（${decision.dimensions.formatted}）` : "";
+    const dimTextEn = decision.dimensions ? ` (${decision.dimensions.formatted})` : "";
+    switch (normalizedStatus) {
+      case "unavailable":
+        return isZh
+          ? "当前户型尚未标定真实毫米比例（显示相对像素坐标），暂无法判断净距与活动空间是否通过。需要可靠真实尺寸后才能完成评估，请先标定真实尺寸。"
+          : "The floor plan is uncalibrated; millimeter clearances and passage space cannot be determined without reliable real-world dimensions. Please calibrate dimensions first.";
+      case "must-adjust":
+        return isZh
+          ? `在当前${decision.roomName}放入${decision.furnitureName}${dimText}存在严重空间冲突（如家具实体重叠、墙体穿插或超出房间边界），评估为必须调整，请移动位置或切换更小规格。`
+          : `Physical spatial conflicts (furniture overlap, wall collision, or outside-room boundary) were detected for ${decision.furnitureName}${dimTextEn} in ${decision.roomName}. This placement must be adjusted.`;
+      case "trade-off":
+        return isZh
+          ? `${decision.furnitureName}${dimText}可以放入当前${decision.roomName}，但存在部分空间净距需要权衡考虑。`
+          : `${decision.furnitureName}${dimTextEn} fits within ${decision.roomName}, but some clearances require trade-off consideration.`;
+      case "suitable":
+      default:
+        return decision.summary;
+    }
+  }, [
+    assessment,
+    decision.dimensions,
+    decision.furnitureName,
+    decision.hasTargetFurniture,
+    decision.roomName,
+    decision.summary,
+    isZh,
+    normalizedStatus,
+  ]);
 
   const displayedIssues = React.useMemo(() => {
-    if (decision.relevantIssues.length > 0) {
+    if (!assessment) {
       return decision.relevantIssues;
     }
-    if (!assessment || assessment.findings.length === 0) {
-      return [];
-    }
-    return assessment.findings.map((f) => {
+
+    const assessmentIssues = assessment.findings.map((f) => {
       const isOverlap = f.kind === "furniture-overlap";
       const isWall = f.kind === "wall-overlap";
       const isOutside = f.kind === "outside-room";
@@ -112,19 +162,34 @@ export function FurnitureDecisionPanel({
           : `Placement extends outside room boundaries (measured ${f.measuredMm ?? 0} mm)`;
       }
 
+      const relatedIds = [
+        f.placementId,
+        ...(f.relatedPlacementId ? [f.relatedPlacementId] : []),
+        ...(f.wallId ? [f.wallId] : []),
+      ];
+
       return {
         ruleId: f.kind,
         severity: "error" as const,
         title,
         message,
-        relatedEntityIds: [f.placementId, ...(f.relatedPlacementId ? [f.relatedPlacementId] : []), ...(f.wallId ? [f.wallId] : [])],
-        relatedObjectIds: [f.placementId, ...(f.relatedPlacementId ? [f.relatedPlacementId] : []), ...(f.wallId ? [f.wallId] : [])],
+        relatedEntityIds: relatedIds,
+        relatedObjectIds: relatedIds,
         measuredValue: f.measuredMm,
         measuredFormatted: f.measuredMm !== undefined ? `${f.measuredMm} mm` : undefined,
         recommendedValue: 0,
         recommendedFormatted: "0 mm",
       };
     });
+
+    const nonPhysicalLegacyIssues = decision.relevantIssues.filter(
+      (issue) =>
+        issue.ruleId !== "furniture-overlap" &&
+        issue.ruleId !== "furniture-wall-collision" &&
+        issue.ruleId !== "furniture-boundary",
+    );
+
+    return [...assessmentIssues, ...nonPhysicalLegacyIssues];
   }, [decision.relevantIssues, assessment, isZh]);
 
   const handleEntityClick = React.useCallback(
@@ -137,7 +202,7 @@ export function FurnitureDecisionPanel({
     [plan, onSelectEntity],
   );
 
-  const renderStatusBadge = (status: FurnitureDecisionStatus | "must-adjust" | "trade-off") => {
+  const renderStatusBadge = (status: AssessmentStatus) => {
     switch (status) {
       case "suitable":
         return (
@@ -152,7 +217,6 @@ export function FurnitureDecisionPanel({
             <span data-testid="decision-status-suitable">{effectiveStatusLabel}</span>
           </Badge>
         );
-      case "caution":
       case "trade-off":
         return (
           <Badge
@@ -164,10 +228,11 @@ export function FurnitureDecisionPanel({
           >
             <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
             <span data-testid="decision-status-caution">{effectiveStatusLabel}</span>
-            <span data-testid="decision-status-trade-off" className="sr-only">{effectiveStatusLabel}</span>
+            <span data-testid="decision-status-trade-off" className="sr-only">
+              {effectiveStatusLabel}
+            </span>
           </Badge>
         );
-      case "not-recommended":
       case "must-adjust":
         return (
           <Badge
@@ -218,7 +283,14 @@ export function FurnitureDecisionPanel({
       return `${decision.roomName} · ${decision.furnitureName}${dimStr} - ${effectiveStatusLabel}`;
     }
     return decision.title;
-  }, [assessment, decision.dimensions, decision.furnitureName, decision.roomName, decision.title, effectiveStatusLabel]);
+  }, [
+    assessment,
+    decision.dimensions,
+    decision.furnitureName,
+    decision.roomName,
+    decision.title,
+    effectiveStatusLabel,
+  ]);
 
   return (
     <div
@@ -229,11 +301,11 @@ export function FurnitureDecisionPanel({
       <div className="space-y-1.5">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
-            {effectiveStatus === "suitable" ? (
+            {normalizedStatus === "suitable" ? (
               <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
-            ) : effectiveStatus === "caution" || effectiveStatus === "trade-off" ? (
+            ) : normalizedStatus === "trade-off" ? (
               <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
-            ) : effectiveStatus === "not-recommended" || effectiveStatus === "must-adjust" ? (
+            ) : normalizedStatus === "must-adjust" ? (
               <ShieldAlert className="h-4 w-4 text-destructive shrink-0" />
             ) : (
               <Info className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -242,7 +314,7 @@ export function FurnitureDecisionPanel({
               {isZh ? "目标家具决策结论" : "Furniture Decision Verdict"}
             </span>
           </div>
-          {renderStatusBadge(effectiveStatus)}
+          {renderStatusBadge(normalizedStatus)}
         </div>
 
         <h3
@@ -282,16 +354,14 @@ export function FurnitureDecisionPanel({
         data-testid="decision-summary-card"
         className={cn(
           "rounded-lg border p-2.5 text-xs leading-relaxed transition-colors",
-          effectiveStatus === "suitable" && "border-emerald-500/30 bg-emerald-500/5 text-foreground",
-          (effectiveStatus === "caution" || effectiveStatus === "trade-off") &&
-            "border-amber-500/30 bg-amber-500/5 text-foreground",
-          (effectiveStatus === "not-recommended" || effectiveStatus === "must-adjust") &&
-            "border-destructive/30 bg-destructive/5 text-foreground",
-          effectiveStatus === "unavailable" && "border-border/80 bg-muted/20 text-muted-foreground",
+          normalizedStatus === "suitable" && "border-emerald-500/30 bg-emerald-500/5 text-foreground",
+          normalizedStatus === "trade-off" && "border-amber-500/30 bg-amber-500/5 text-foreground",
+          normalizedStatus === "must-adjust" && "border-destructive/30 bg-destructive/5 text-foreground",
+          normalizedStatus === "unavailable" && "border-border/80 bg-muted/20 text-muted-foreground",
         )}
       >
         <p data-testid="decision-summary" className="text-xs leading-relaxed">
-          {decision.summary}
+          {effectiveSummary}
         </p>
       </div>
 
@@ -422,7 +492,7 @@ export function FurnitureDecisionPanel({
       ) : (
         decision.hasTargetFurniture &&
         !decision.uncalibrated &&
-        effectiveStatus !== "unavailable" && (
+        normalizedStatus !== "unavailable" && (
           <div
             data-testid="decision-clean-notice"
             className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-2.5 text-xs text-emerald-700 dark:text-emerald-300"

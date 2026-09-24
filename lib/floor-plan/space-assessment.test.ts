@@ -141,6 +141,52 @@ describe("Space Assessment (US-7, US-12, US-20, AC-7, AC-14, AC-22)", () => {
       expect(outsideFinding?.measuredMm).toBeGreaterThan(0);
     });
 
+    it("reports 'outside-room' when furniture center is in Room 1 and corners protrude into adjacent Room 2", () => {
+      const plan = getPlan();
+
+      // Room 1 is x: 0..3000, Room 2 is x: 3000..6000.
+      // Bed centered at x: 2500 with width: 1800 spans x: 1600..3400, protruding 400mm past Room 1 into Room 2.
+      const straddlingBed: FurniturePlacement = {
+        id: "bed-straddle",
+        definitionId: "bed-double",
+        specificationId: "bed-double-1800x2000",
+        x: 2500,
+        y: 2500,
+        rotation: 0,
+      };
+
+      const scenario = createPlacementScenario(plan.meta.id!, [straddlingBed], "bed-straddle");
+      const assessment = assessPlacementScenario(plan, scenario);
+
+      expect(assessment.status).toBe("must-adjust");
+      const outsideFinding = assessment.findings.find((f) => f.kind === "outside-room");
+      expect(outsideFinding).toBeDefined();
+      expect(outsideFinding?.placementId).toBe("bed-straddle");
+      expect(outsideFinding?.measuredMm).toBe(400);
+    });
+
+    it("does not falsely report 'outside-room' when furniture fits cleanly in Room 2 even if focusRoomId is Room 1", () => {
+      const plan = getPlan();
+
+      // Bed centered at x: 4500, y: 2500 in Room 2 (x: 3600..5400, y: 1500..3500) fits cleanly inside Room 2.
+      const bedInR2: FurniturePlacement = {
+        id: "bed-r2",
+        definitionId: "bed-double",
+        specificationId: "bed-double-1800x2000",
+        x: 4500,
+        y: 2500,
+        rotation: 0,
+      };
+
+      const scenario = createPlacementScenario(plan.meta.id!, [bedInR2], "bed-r2");
+      const assessment = assessPlacementScenario(plan, scenario, undefined, {
+        focusRoomId: "r1",
+      });
+
+      expect(assessment.status).toBe("suitable");
+      expect(assessment.findings).toEqual([]);
+    });
+
     it("evaluates to 'suitable' with empty findings when target furniture fits cleanly without collision", () => {
       const plan = getPlan();
 

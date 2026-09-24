@@ -137,10 +137,12 @@ describe("FurnitureDecisionPanel Component (AC-14, AC-15, AC-16, AC-17)", () => 
       const badge = screen.getByTestId("decision-status-badge");
       expect(badge).toHaveTextContent("必须调整");
       expect(screen.getByTestId("decision-status-must-adjust")).toBeInTheDocument();
+      expect(screen.getByTestId("decision-summary")).toHaveTextContent("必须调整");
+      expect(screen.getByTestId("decision-summary")).not.toHaveTextContent("未发现问题");
       expect(screen.getByTestId("decision-issues-list")).toBeInTheDocument();
     });
 
-    it("renders 'unavailable' status badge when SpaceAssessment indicates unavailable (AC-14)", () => {
+    it("renders 'unavailable' status badge and withholds clearance pass conclusion when SpaceAssessment indicates unavailable (AC-14)", () => {
       const plan = getPlan();
       const assessment = {
         status: "unavailable" as const,
@@ -160,6 +162,9 @@ describe("FurnitureDecisionPanel Component (AC-14, AC-15, AC-16, AC-17)", () => 
       const badge = screen.getByTestId("decision-status-badge");
       expect(badge).toHaveTextContent("暂无法判断");
       expect(screen.getByTestId("decision-status-unavailable")).toBeInTheDocument();
+      expect(screen.getByTestId("decision-summary")).toHaveTextContent("需要可靠真实尺寸");
+      expect(screen.getByTestId("decision-summary")).not.toHaveTextContent("未发现问题");
+      expect(screen.queryByTestId("decision-clean-notice")).not.toBeInTheDocument();
     });
   });
 

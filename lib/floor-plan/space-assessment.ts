@@ -11,6 +11,7 @@ import {
 } from "./furniture-catalog";
 import { normalizeRotation } from "./placement-scenario";
 import {
+  computeFurniturePolygon,
   computeOverlapArea,
   computeMinDistanceToPolygon,
   isPointInPolygon,
@@ -113,34 +114,20 @@ export function computePlacementFootprint(
     ? resolveSpecificationDimensions(def, placement.specificationId)
     : { width: 1000, depth: 1000 };
 
-  const hw = (dims.width || 1000) / 2;
-  const hd = (dims.depth || 1000) / 2;
-  const { x, y, rotation } = placement;
+  const corners = computeFurniturePolygon({
+    id: placement.id,
+    definitionId: placement.definitionId,
+    specificationId: placement.specificationId,
+    x: placement.x,
+    y: placement.y,
+    width: dims.width || 1000,
+    depth: dims.depth || 1000,
+    rotation: normalizeRotation(placement.rotation),
+  });
 
-  const normRot = normalizeRotation(rotation);
-  let cos = 1;
-  let sin = 0;
-  if (normRot === 90) {
-    cos = 0;
-    sin = 1;
-  } else if (normRot === 180) {
-    cos = -1;
-    sin = 0;
-  } else if (normRot === 270) {
-    cos = 0;
-    sin = -1;
-  }
-
-  const localCorners: Point[] = [
-    { x: -hw, y: -hd },
-    { x: hw, y: -hd },
-    { x: hw, y: hd },
-    { x: -hw, y: hd },
-  ];
-
-  return localCorners.map((pt) => ({
-    x: Math.round(x + (pt.x * cos - pt.y * sin)),
-    y: Math.round(y + (pt.x * sin + pt.y * cos)),
+  return corners.map((pt) => ({
+    x: Math.round(pt.x),
+    y: Math.round(pt.y),
   }));
 }
 
@@ -331,68 +318,48 @@ export function assessPlacementScenario(
       });
     }
   } else {
-    for (const item of placementData) {
-      if (options.focusRoomId) {
-        const focusRp = roomPolygons.find((rp) => rp.room.id === options.focusRoomId);
-        if (!focusRp) {
-          addFinding({
-            kind: "outside-room",
-            placementId: item.placement.id,
-            measuredMm: 0,
-          });
-        } else {
-          const isCenterIn = isPointInPolygon(item.center, focusRp.points);
-          const cornersOutside = item.footprint.filter((c) => !isPointInPolygon(c, focusRp.points));
+    const focusRp = options.focusRoomId
+      ? roomPolygons.find((rp) => rp.room.id === options.focusRoomId)
+      : undefined;
 
-          if (!isCenterIn || cornersOutside.length > 0) {
-            let dist = 0;
-            if (!isCenterIn) {
-              dist = computeMinDistanceToPolygon(item.center, focusRp.points);
-            } else {
-              dist = Math.max(
-                ...cornersOutside.map((c) => computeMinDistanceToPolygon(c, focusRp.points)),
-              );
-            }
-            addFinding({
-              kind: "outside-room",
-              placementId: item.placement.id,
-              measuredMm: Math.max(1, Math.round(dist)),
-            });
-          }
-        }
+    for (const item of placementData) {
+      const containingRooms = roomPolygons.filter((rp) =>
+        isPointInPolygon(item.center, rp.points),
+      );
+
+      if (containingRooms.length === 0) {
+        // Center is completely outside all rooms
+        const referenceRooms = focusRp ? [focusRp] : roomPolygons;
+        const minDist = Math.min(
+          ...referenceRooms.map((rp) => computeMinDistanceToPolygon(item.center, rp.points)),
+        );
+        addFinding({
+          kind: "outside-room",
+          placementId: item.placement.id,
+          measuredMm: Math.max(1, Math.round(minDist)),
+        });
       } else {
-        // No focusRoomId specified: check against all rooms in plan
-        const containingRooms = roomPolygons.filter((rp) =>
-          isPointInPolygon(item.center, rp.points),
+        // Center is inside at least one room; verify all corners lie inside the same containing room
+        const isFullyContainedInSingleRoom = containingRooms.some((rp) =>
+          item.footprint.every((c) => isPointInPolygon(c, rp.points)),
         );
 
-        if (containingRooms.length === 0) {
-          // Center is completely outside all rooms
-          const minDist = Math.min(
-            ...roomPolygons.map((rp) => computeMinDistanceToPolygon(item.center, rp.points)),
+        if (!isFullyContainedInSingleRoom) {
+          const minProtrusionDist = Math.min(
+            ...containingRooms.map((rp) => {
+              const cornersOutside = item.footprint.filter(
+                (c) => !isPointInPolygon(c, rp.points),
+              );
+              return Math.max(
+                ...cornersOutside.map((c) => computeMinDistanceToPolygon(c, rp.points)),
+              );
+            }),
           );
           addFinding({
             kind: "outside-room",
             placementId: item.placement.id,
-            measuredMm: Math.max(1, Math.round(minDist)),
+            measuredMm: Math.max(1, Math.round(minProtrusionDist)),
           });
-        } else {
-          // Center is in at least one room, check if any corner is outside all rooms
-          const cornersOutsideAllRooms = item.footprint.filter((c) =>
-            !roomPolygons.some((rp) => isPointInPolygon(c, rp.points)),
-          );
-          if (cornersOutsideAllRooms.length > 0) {
-            const maxOutsideDist = Math.max(
-              ...cornersOutsideAllRooms.map((c) =>
-                Math.min(...roomPolygons.map((rp) => computeMinDistanceToPolygon(c, rp.points))),
-              ),
-            );
-            addFinding({
-              kind: "outside-room",
-              placementId: item.placement.id,
-              measuredMm: Math.max(1, Math.round(maxOutsideDist)),
-            });
-          }
         }
       }
     }
