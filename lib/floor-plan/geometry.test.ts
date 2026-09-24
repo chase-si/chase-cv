@@ -70,22 +70,31 @@ describe("FloorPlan geometry calculations", () => {
     expect(centroid.y).toBeCloseTo(2500, -1);
   });
 
-  it("computes complete closed polygon even when boundary wall IDs are shuffled / unordered", () => {
+  it("refuses to reorder shuffled boundary wall IDs or fabricate polygons for unclosed wall sets (AC-16)", () => {
     const vertexMap = getVertexMap(VALID_STANDARD_FLOOR_PLAN);
     const wallMap = getWallMap(VALID_STANDARD_FLOOR_PLAN);
     const room1 = VALID_STANDARD_FLOOR_PLAN.rooms[0];
 
-    // Artificially shuffle boundary walls: [w1, w3, w4, w2] or non-consecutive opposite walls
+    // Shuffled boundary walls: [w1, w5, w7, w6] (non-consecutive opposite walls)
     const shuffledRoom = {
       ...room1,
-      boundaryWallIds: [room1.boundaryWallIds[0], room1.boundaryWallIds[2], room1.boundaryWallIds[1], room1.boundaryWallIds[3]],
+      boundaryWallIds: [
+        room1.boundaryWallIds[0],
+        room1.boundaryWallIds[2],
+        room1.boundaryWallIds[1],
+        room1.boundaryWallIds[3],
+      ],
     };
 
-    const polygon = computeRoomPolygon(shuffledRoom, wallMap, vertexMap);
-    expect(polygon.length).toBe(4);
+    expect(computeRoomPolygon(shuffledRoom, wallMap, vertexMap)).toEqual([]);
 
-    const area = computePolygonArea(polygon);
-    expect(area.areaM2).toBeCloseTo(15.0, 1);
+    // Open chain of 3 walls (missing closing wall w6)
+    const unclosedRoom = {
+      ...room1,
+      boundaryWallIds: room1.boundaryWallIds.slice(0, 3),
+    };
+
+    expect(computeRoomPolygon(unclosedRoom, wallMap, vertexMap)).toEqual([]);
   });
 
   it("resolves all room polygons accurately in studio standard floor plan", () => {

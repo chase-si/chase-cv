@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { getStandardPlanById, getStandardPlans } from "./catalog";
-import { validateFloorPlan } from "./validators";
+import {
+  getStandardPlanById,
+  getStandardPlans,
+  validateStandardPlanCatalog,
+} from "./catalog";
+import { FLOOR_PLAN_CATALOG_DATA } from "./catalog-data";
+import { validateCandidateFloorPlan, validateFloorPlan } from "./validators";
 
-describe("Standard Floor Plan Catalog (AC-25)", () => {
-  it("contains 20–50 approved, scaled Standard plans covering common layouts", () => {
+describe("Standard Floor Plan Catalog (AC-1, AC-21)", () => {
+  it("contains 20–50 approved, scaled Standard plans covering common layouts and passing candidate validator (AC-1, AC-21)", () => {
+    const catalogValidation = validateStandardPlanCatalog(FLOOR_PLAN_CATALOG_DATA);
+    expect(catalogValidation.ok).toBe(true);
+
     const plans = getStandardPlans();
 
     // 50 source-derived Chinese residential floor plans
@@ -41,18 +49,54 @@ describe("Standard Floor Plan Catalog (AC-25)", () => {
       // Track layout variety
       coveredCategories.add(item.categoryKey);
 
-      // 7. Canonical FloorPlan v1 contract validation
-      const validation = validateFloorPlan(item.plan);
+      // 7. Canonical & Candidate FloorPlan v1 contract validation (AC-21)
+      const validation = validateCandidateFloorPlan(item.plan);
       expect(validation.ok).toBe(true);
-      expect((validation as any).errors).toBeUndefined();
+      expect(validateFloorPlan(item.plan).ok).toBe(true);
     }
 
-    // AC-25: Covers common 1/2/3-bedroom (and studio/4br+) layouts
+    // AC-1: Covers common 1/2/3-bedroom (and studio/4br+) layouts
     expect(coveredCategories.has("studio")).toBe(true);
     expect(coveredCategories.has("1b1l")).toBe(true);
     expect(coveredCategories.has("2b1l")).toBe(true);
     expect(coveredCategories.has("3b1l")).toBe(true);
     expect(coveredCategories.has("4b_plus")).toBe(true);
+  });
+
+  it("fails catalog validation and reports the specific failing standard plan asset ID and field path (AC-21)", () => {
+    const basePlan = FLOOR_PLAN_CATALOG_DATA[0];
+    const brokenAsset = {
+      ...basePlan,
+      meta: {
+        ...basePlan.meta,
+        id: "plan-cn-broken-asset-99",
+        name: "故障测试户型 99m²",
+      },
+      rooms: [
+        {
+          ...basePlan.rooms[0],
+          boundaryWallIds: basePlan.rooms[0].boundaryWallIds.slice(0, 2), // unclosed < 3 walls
+        },
+      ],
+    };
+
+    const result = validateStandardPlanCatalog([basePlan, brokenAsset]);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.failures).toHaveLength(1);
+      expect(result.failures?.[0].planId).toBe("plan-cn-broken-asset-99");
+      expect(
+        result.errors.some(
+          (e) =>
+            e.path === "plan-cn-broken-asset-99.rooms[0].boundaryWallIds" &&
+            e.message.includes("plan-cn-broken-asset-99"),
+        ),
+      ).toBe(true);
+    }
+
+    expect(() => getStandardPlans("zh", [brokenAsset])).toThrow(
+      /plan-cn-broken-asset-99/,
+    );
   });
 
   it("retrieves standard plan by ID", () => {
