@@ -409,4 +409,112 @@ describe("FurnitureDecisionPanel Component (AC-14, AC-15, AC-16, AC-17)", () => 
       expect(updatedBed.rotation).toBe(90);
     });
   });
+
+  describe("AC-12 & AC-13: Target-Only Findings, Related Object Resolution, Repair Guidance & Qualified Copy", () => {
+    it("AC-12: filters out findings belonging to non-target placements and resolves localized related object names, sides, measured/min/rec values, and deterministic repair guidance", () => {
+      const plan = getPlan();
+      // f2 is target (bed-double in r2), f1 is sofa-3seat in r1, w3 is wall
+      const assessment = {
+        status: "must-adjust" as const,
+        findings: [
+          // Finding for target f2 against wall w3 (front clearance)
+          {
+            kind: "below-minimum-clearance" as const,
+            placementId: "f2",
+            wallId: "w3",
+            side: "front" as const,
+            measuredMm: 420,
+            minimumMm: 600,
+            recommendedMm: 900,
+          },
+          // Finding for target f2 overlapping with f1
+          {
+            kind: "furniture-overlap" as const,
+            placementId: "f2",
+            relatedPlacementId: "f1",
+            measuredMm: 150,
+          },
+          // Finding for non-target f1 (must be excluded from f2's decision panel)
+          {
+            kind: "outside-room" as const,
+            placementId: "f1",
+            measuredMm: 300,
+          },
+        ],
+      };
+
+      render(
+        <FurnitureDecisionPanel
+          plan={plan}
+          targetRoomId="r2"
+          targetFurnitureId="f2"
+          assessment={assessment}
+          locale="zh"
+        />,
+      );
+
+      // Non-target f1's outside-room finding must not be rendered when f2 is the target
+      expect(screen.queryByTestId("decision-issue-outside-room")).not.toBeInTheDocument();
+
+      // Target f2's findings are rendered
+      const clearanceIssue = screen.getByTestId("decision-issue-below-minimum-clearance");
+      expect(clearanceIssue).toHaveTextContent("前侧");
+      expect(clearanceIssue).toHaveTextContent("w3");
+      expect(clearanceIssue).toHaveTextContent("420 mm");
+      expect(clearanceIssue).toHaveTextContent("600 mm");
+      expect(clearanceIssue).toHaveTextContent("900 mm");
+      // Deterministic repair guidance derived from deficit (600 - 420 = 180 mm toward opposite side 后侧)
+      expect(clearanceIssue).toHaveTextContent("180 mm");
+      expect(clearanceIssue).toHaveTextContent("后侧");
+
+      const overlapIssue = screen.getByTestId("decision-issue-furniture-overlap");
+      // Related furniture f1 resolved to localized name ("三人位沙发")
+      expect(overlapIssue).toHaveTextContent("三人位沙发");
+      expect(overlapIssue).toHaveTextContent("150 mm");
+    });
+
+    it("AC-13: derives all user-visible explanations from structured findings with qualified wording and explicitly disclaims construction, structural safety, and building code guarantees", () => {
+      const plan = getPlan();
+      const assessment = {
+        status: "trade-off" as const,
+        findings: [
+          {
+            kind: "below-recommended-clearance" as const,
+            placementId: "f2",
+            relatedPlacementId: "f3",
+            side: "right" as const,
+            measuredMm: 520,
+            minimumMm: 500,
+            recommendedMm: 650,
+          },
+        ],
+      };
+
+      render(
+        <FurnitureDecisionPanel
+          plan={plan}
+          targetRoomId="r2"
+          targetFurnitureId="f2"
+          assessment={assessment}
+          locale="zh"
+        />,
+      );
+
+      const summary = screen.getByTestId("decision-summary");
+      expect(summary).toHaveTextContent("需要权衡");
+      expect(summary).toHaveTextContent("520 mm");
+
+      const disclaimer = screen.getByTestId("decision-disclaimer");
+      expect(disclaimer).toHaveTextContent("不构成施工");
+      expect(disclaimer).toHaveTextContent("结构安全");
+      expect(disclaimer).toHaveTextContent("建筑规范");
+
+      const repairGuidances = screen.getAllByTestId("finding-repair-guidance");
+      expect(repairGuidances.length).toBeGreaterThan(0);
+      // Deficit to recommended: 650 - 520 = 130 mm toward opposite side (左侧)
+      expect(repairGuidances[0]).toHaveTextContent("130 mm");
+      expect(repairGuidances[0]).toHaveTextContent("左侧");
+    });
+  });
 });
+

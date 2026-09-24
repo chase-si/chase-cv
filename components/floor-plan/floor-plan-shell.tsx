@@ -209,17 +209,27 @@ export function FloorPlanShell({
   // Evaluate spatial rules deterministically
   const violations = React.useMemo(() => evaluatePlanRules(currentPlan), [currentPlan]);
 
-  // Derive placement scenario and assess physical space
+  const targetFurniture = React.useMemo(() => {
+    if (!targetFurnitureId) {
+      // Default to first furniture if none selected
+      return currentPlan.furniture[0] ?? null;
+    }
+    return currentPlan.furniture.find((f) => f.id === targetFurnitureId) ?? currentPlan.furniture[0] ?? null;
+  }, [currentPlan.furniture, targetFurnitureId]);
+
+  const effectiveTargetFurnitureId = targetFurniture?.id ?? null;
+
+  // Derive placement scenario and assess physical space for the active target placement while keeping all other furniture as obstacles (AC-3)
   const currentScenario = React.useMemo(() => {
-    return floorPlanToPlacementScenario(currentPlan, targetFurnitureId ?? undefined);
-  }, [currentPlan, targetFurnitureId]);
+    return floorPlanToPlacementScenario(currentPlan, effectiveTargetFurnitureId ?? undefined);
+  }, [currentPlan, effectiveTargetFurnitureId]);
 
   const spaceAssessment = React.useMemo(() => {
     return assessPlacementScenario(currentPlan, currentScenario, undefined, {
-      targetPlacementId: targetFurnitureId ?? undefined,
+      targetPlacementId: effectiveTargetFurnitureId ?? undefined,
       focusRoomId: targetRoomId ?? undefined,
     });
-  }, [currentPlan, currentScenario, targetFurnitureId, targetRoomId]);
+  }, [currentPlan, currentScenario, effectiveTargetFurnitureId, targetRoomId]);
 
   const targetRoom = React.useMemo(() => {
     if (!targetRoomId) return null;
@@ -242,29 +252,30 @@ export function FloorPlanShell({
     };
   }, [targetRoom, currentPlan, i18n]);
 
-  const targetFurniture = React.useMemo(() => {
-    if (!targetFurnitureId) {
-      // Default to first furniture if none selected
-      return currentPlan.furniture[0] ?? null;
-    }
-    return currentPlan.furniture.find((f) => f.id === targetFurnitureId) ?? currentPlan.furniture[0] ?? null;
-  }, [currentPlan.furniture, targetFurnitureId]);
-
   const handleSelectPlan = React.useCallback(
     (planId: string) => {
       setActivePlanId(planId);
       setSelectedEntity(null);
       setTargetRoomId(null);
-      setTargetFurnitureId(null);
       setMobileSheetType(null);
 
       const targetSummary = plans.find((p) => p.id === planId) ?? plans[0];
       if (targetSummary) {
+        const defaultTargetId = targetSummary.plan.furniture[0]?.id ?? null;
+        setTargetFurnitureId(defaultTargetId);
         setCurrentPlan(targetSummary.plan);
         onPlanChange?.(targetSummary.plan);
+        if (onScenarioChange) {
+          onScenarioChange(
+            floorPlanToPlacementScenario(
+              targetSummary.plan,
+              defaultTargetId ?? undefined,
+            ),
+          );
+        }
       }
     },
-    [plans, onPlanChange],
+    [plans, onPlanChange, onScenarioChange],
   );
 
   const handleSelectTargetRoom = React.useCallback(
@@ -639,20 +650,36 @@ export function FloorPlanShell({
             className="hidden lg:flex min-h-0 flex-col gap-3 lg:max-h-full"
           >
             <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <CardHeader className="shrink-0 border-b border-border/70 p-3">
+              <CardHeader
+                data-testid="active-plan-summary"
+                className="shrink-0 border-b border-border/70 p-3 space-y-1"
+              >
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-[11px] text-muted-foreground">
                       {isZh ? "当前户型" : "Active Plan"}
                     </p>
-                    <CardTitle className="truncate text-sm font-semibold text-foreground">
+                    <CardTitle
+                      data-testid="active-plan-name"
+                      className="truncate text-sm font-semibold text-foreground"
+                    >
                       {activePlanSummary.name}
                     </CardTitle>
                   </div>
-                  <Badge variant="secondary" className="shrink-0 font-mono text-[10px]">
+                  <Badge
+                    variant="secondary"
+                    data-testid="active-plan-area"
+                    className="shrink-0 font-mono text-[10px]"
+                  >
                     {activePlanSummary.formattedArea}
                   </Badge>
                 </div>
+                <p
+                  data-testid="active-plan-room-breakdown"
+                  className="text-[11px] text-muted-foreground truncate"
+                >
+                  {activePlanSummary.roomBreakdown}
+                </p>
               </CardHeader>
 
               <CardScrollArea className="min-h-0 flex-1 p-3 space-y-4">
@@ -718,6 +745,56 @@ export function FloorPlanShell({
                     locale={locale}
                   />
                 </div>
+
+                {/* 3.5 Placed Furniture & Active Assessment Target Switcher (AC-3) */}
+                {currentPlan.furniture.length > 0 && (
+                  <div
+                    data-testid="placed-furniture-list"
+                    className="space-y-1.5 pt-1 border-t border-border/60"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-medium text-foreground">
+                        {isZh ? "已摆放家具（点击切换主评估目标）" : "Placed Furniture (Select Target)"}
+                      </span>
+                      <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0">
+                        {currentPlan.furniture.length}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {currentPlan.furniture.map((item) => {
+                        const isTarget = targetFurniture?.id === item.id;
+                        const itemName = i18n.getFurnitureName(
+                          item.definitionId,
+                          item.definitionId,
+                        );
+                        return (
+                          <Button
+                            key={item.id}
+                            type="button"
+                            size="sm"
+                            variant={isTarget ? "default" : "outline"}
+                            data-testid={`select-target-furniture-${item.id}`}
+                            aria-pressed={isTarget}
+                            onClick={() =>
+                              handleSelectEntity({ type: "furniture", id: item.id })
+                            }
+                            className="h-7 px-2 text-[11px] gap-1.5"
+                          >
+                            <span className="truncate max-w-[8rem]">{itemName}</span>
+                            {isTarget && (
+                              <span
+                                data-testid={`active-target-badge-${item.id}`}
+                                className="text-[9px] font-mono opacity-90"
+                              >
+                                {isZh ? "当前目标" : "Target"}
+                              </span>
+                            )}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* 4. Target Furniture Decision & Spatial Assessment */}
                 {targetFurniture && (
