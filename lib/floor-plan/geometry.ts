@@ -263,78 +263,123 @@ export function computeOpeningGeometry(
 }
 
 /**
+ * Trace the ordered vertex IDs of a room boundary wall cycle without reordering walls.
+ * Returns null if the walls do not form a single consecutive closed loop.
+ */
+export function traceRoomBoundaryCycle(
+  boundaryWallIds: string[],
+  wallMap: Map<string, Wall>,
+): { ok: true; vertexIds: string[] } | { ok: false; reason: string; brokenIndex?: number } {
+  if (!Array.isArray(boundaryWallIds) || boundaryWallIds.length < 3) {
+    return {
+      ok: false,
+      reason: "Room boundary must contain at least 3 walls to form a closed polygon",
+    };
+  }
+
+  const walls: Wall[] = [];
+  const seenWallIds = new Set<string>();
+  for (let i = 0; i < boundaryWallIds.length; i++) {
+    const id = boundaryWallIds[i];
+    if (seenWallIds.has(id)) {
+      return {
+        ok: false,
+        reason: `Duplicate wall '${id}' in room boundaryWallIds`,
+        brokenIndex: i,
+      };
+    }
+    seenWallIds.add(id);
+    const w = wallMap.get(id);
+    if (!w || w.from === w.to) {
+      return {
+        ok: false,
+        reason: `Invalid or missing wall '${id}' in room boundaryWallIds`,
+        brokenIndex: i,
+      };
+    }
+    walls.push(w);
+  }
+
+  const firstWall = walls[0];
+  const candidateStarts: Array<[string, string]> = [
+    [firstWall.from, firstWall.to],
+    [firstWall.to, firstWall.from],
+  ];
+
+  let bestFailure: { reason: string; brokenIndex?: number } = {
+    reason: "Room boundary walls do not form a closed cycle",
+  };
+
+  for (const [startVertex, secondVertex] of candidateStarts) {
+    const vertexIds: string[] = [startVertex];
+    const visitedVertices = new Set<string>([startVertex]);
+    let currVertex = secondVertex;
+    let failed = false;
+
+    for (let i = 1; i < walls.length; i++) {
+      if (visitedVertices.has(currVertex)) {
+        bestFailure = {
+          reason: `Room boundary self-intersects at vertex '${currVertex}' before completing cycle`,
+          brokenIndex: i,
+        };
+        failed = true;
+        break;
+      }
+      vertexIds.push(currVertex);
+      visitedVertices.add(currVertex);
+
+      const wall = walls[i];
+      if (wall.from === currVertex) {
+        currVertex = wall.to;
+      } else if (wall.to === currVertex) {
+        currVertex = wall.from;
+      } else {
+        bestFailure = {
+          reason: `Wall '${wall.id}' at boundaryWallIds[${i}] is not connected to preceding wall '${walls[i - 1].id}' (expected vertex '${currVertex}')`,
+          brokenIndex: i,
+        };
+        failed = true;
+        break;
+      }
+    }
+
+    if (!failed) {
+      if (currVertex === startVertex) {
+        return { ok: true, vertexIds };
+      }
+      bestFailure = {
+        reason: `Room boundary is not closed: last wall '${walls[walls.length - 1].id}' ends at vertex '${currVertex}' instead of start vertex '${startVertex}'`,
+        brokenIndex: walls.length - 1,
+      };
+    }
+  }
+
+  return { ok: false, ...bestFailure };
+}
+
+/**
  * Compute ordered polygon vertex points of a room cycle.
+ * Never reorders broken boundaryWallIds or fabricates polygons for unclosed wall sets (AC-16).
  */
 export function computeRoomPolygon(
   room: Room,
   wallMap: Map<string, Wall>,
   vertexMap: Map<string, Vertex>,
 ): Point[] {
-  if (!room.boundaryWallIds || room.boundaryWallIds.length === 0) {
+  if (!room.boundaryWallIds || room.boundaryWallIds.length < 3) {
     return [];
   }
 
-  const walls: Wall[] = [];
-  const seenWallIds = new Set<string>();
-  for (const id of room.boundaryWallIds) {
-    if (seenWallIds.has(id)) continue;
-    seenWallIds.add(id);
-    const w = wallMap.get(id);
-    if (w && w.from !== w.to) {
-      walls.push(w);
-    }
-  }
-
-  if (walls.length === 0) return [];
-
-  if (walls.length === 1) {
-    const p1 = vertexMap.get(walls[0].from);
-    const p2 = vertexMap.get(walls[0].to);
-    const pts: Point[] = [];
-    if (p1) pts.push({ x: p1.x, y: p1.y });
-    if (p2) pts.push({ x: p2.x, y: p2.y });
-    return pts;
-  }
-
-  // Build adjacency graph: vertexId -> array of connected vertexIds
-  const adj = new Map<string, string[]>();
-  for (const w of walls) {
-    if (!adj.has(w.from)) adj.set(w.from, []);
-    if (!adj.has(w.to)) adj.set(w.to, []);
-    const fromList = adj.get(w.from)!;
-    const toList = adj.get(w.to)!;
-    if (!fromList.includes(w.to)) fromList.push(w.to);
-    if (!toList.includes(w.from)) toList.push(w.from);
-  }
-
-  // If there's an endpoint with degree 1 (open chain), start there; otherwise start at walls[0].from
-  let startVertex = walls[0].from;
-  for (const [vid, neighbors] of adj.entries()) {
-    if (neighbors.length === 1) {
-      startVertex = vid;
-      break;
-    }
-  }
-
-  const orderedVertexIds: string[] = [startVertex];
-  let curr = startVertex;
-  let prev: string | null = null;
-
-  while (orderedVertexIds.length < adj.size) {
-    const neighbors = adj.get(curr) || [];
-    const next = neighbors.find((n) => n !== prev && !orderedVertexIds.includes(n));
-    if (!next) {
-      break;
-    }
-    orderedVertexIds.push(next);
-    prev = curr;
-    curr = next;
+  const trace = traceRoomBoundaryCycle(room.boundaryWallIds, wallMap);
+  if (!trace.ok) {
+    return [];
   }
 
   const points: Point[] = [];
-  for (const vid of orderedVertexIds) {
+  for (const vid of trace.vertexIds) {
     const v = vertexMap.get(vid);
-    if (v) points.push({ x: v.x, y: v.y });
+    if (!v) return [];
+    points.push({ x: v.x, y: v.y });
   }
 
   return points;
