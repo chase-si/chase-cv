@@ -457,5 +457,111 @@ describe("FloorPlanShell Integration (Streamlined MVP Architecture)", () => {
     expect(afterDeleteScenario.placements).toHaveLength(0);
     expect(afterDeleteScenario.targetPlacementId).toBeUndefined();
   });
+
+  it("AC-1, AC-3, AC-12 & AC-13: synchronizes plan summary on selection, retains multi-furniture obstacles, switches target placement via list or canvas, and renders only target findings with qualified copy", () => {
+    const onScenarioChange = vi.fn();
+    render(
+      <FloorPlanShell
+        initialPlans={FIXTURE_PLANS}
+        onScenarioChange={onScenarioChange}
+        locale="zh"
+      />,
+    );
+
+    // 1. AC-1: Select standard plan from catalog and verify both canvas and plan summary synchronize
+    expect(screen.getByTestId("active-plan-summary")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("open-plan-selector-btn"));
+    fireEvent.click(screen.getByTestId("open-plan-btn-floor-plan-std-studio-01"));
+
+    expect(screen.getByTestId("active-plan-name")).toHaveTextContent("Modern Compact Studio");
+    expect(screen.getByTestId("active-plan-area")).toHaveTextContent(
+      FIXTURE_PLANS[1].formattedArea,
+    );
+    expect(screen.getByTestId("active-plan-room-breakdown")).toHaveTextContent(
+      FIXTURE_PLANS[1].roomBreakdown,
+    );
+    expect(screen.getByTestId("floor-plan-room-sr1")).toBeInTheDocument();
+
+    // 2. AC-3 & AC-12: Multi-furniture scenario where f-bed has a clearance encroachment from f-sofa,
+    // while f-sofa collides with wall sw1.
+    cleanup();
+    const studioPlan: StandardFloorPlan = JSON.parse(
+      JSON.stringify(STUDIO_STANDARD_FLOOR_PLAN),
+    );
+    const bedPlacement: FurniturePlacement = {
+      id: "f-bed",
+      definitionId: "bed-double",
+      specificationId: "bed-double-1800", // 1800 x 2000, right clearance min 500 / rec 600
+      x: 1800,
+      y: 2200,
+      rotation: 0,
+    };
+    // Place sofa at x = 3500 (right edge of bed is 1800 + 900 = 2700; sofa width=2100, depth=900, rotated 90 -> width along X is 900, left edge is 3500 - 450 = 3050.
+    // Clearance from bed right edge (2700) to sofa left edge (3050) is 350 mm < minimum 500 mm (and rec 600 mm)!
+    // Meanwhile sofa's right edge is 3500 + 450 = 3950, which collides with right wall sw2 (at x=4000, thickness 200 -> 3900..4100)!
+    const sofaPlacement: FurniturePlacement = {
+      id: "f-sofa",
+      definitionId: "sofa-3seat",
+      specificationId: "sofa-3seat-2100",
+      x: 3500,
+      y: 2200,
+      rotation: 90,
+    };
+
+    const multiScenario = createPlacementScenario(
+      studioPlan.meta.id!,
+      [bedPlacement, sofaPlacement],
+      "f-bed",
+    );
+
+    render(
+      <FloorPlanShell
+        initialActivePlan={studioPlan}
+        initialScenario={multiScenario}
+        onScenarioChange={onScenarioChange}
+        locale="zh"
+      />,
+    );
+
+    // Both furniture placements are rendered on canvas and in the placed furniture list
+    expect(screen.getByTestId("floor-plan-furniture-f-bed")).toBeInTheDocument();
+    expect(screen.getByTestId("floor-plan-furniture-f-sofa")).toBeInTheDocument();
+    expect(screen.getByTestId("placed-furniture-list")).toBeInTheDocument();
+    expect(screen.getByTestId("select-target-furniture-f-bed")).toBeInTheDocument();
+    expect(screen.getByTestId("select-target-furniture-f-sofa")).toBeInTheDocument();
+    expect(screen.getByTestId("active-target-badge-f-bed")).toBeInTheDocument();
+
+    // When f-bed is target:
+    // - f-sofa acts as a solid obstacle causing a right-side below-minimum-clearance finding on f-bed (measured 350 mm, min 500 mm, rec 600 mm)
+    // - f-sofa's own wall-overlap with sw2 is NOT shown in FurnitureDecisionPanel!
+    const panel = screen.getByTestId("furniture-decision-panel");
+    expect(within(panel).getByTestId("decision-title")).toHaveTextContent("双人床");
+    expect(within(panel).getByTestId("decision-issue-below-minimum-clearance")).toBeInTheDocument();
+    expect(within(panel).queryByTestId("decision-issue-wall-overlap")).not.toBeInTheDocument();
+
+    const bedClearanceIssue = within(panel).getByTestId("decision-issue-below-minimum-clearance");
+    expect(bedClearanceIssue).toHaveTextContent("三人位沙发 (f-sofa)");
+    expect(bedClearanceIssue).toHaveTextContent("右侧");
+    expect(bedClearanceIssue).toHaveTextContent("350 mm");
+    expect(bedClearanceIssue).toHaveTextContent("最低 600 mm / 推荐 750 mm");
+    expect(bedClearanceIssue).toHaveTextContent("250 mm");
+    expect(bedClearanceIssue).toHaveTextContent("左侧");
+
+    // 3. Switch target placement to f-sofa using the placed furniture switcher list in left rail
+    fireEvent.click(screen.getByTestId("select-target-furniture-f-sofa"));
+
+    expect(screen.getByTestId("active-target-badge-f-sofa")).toBeInTheDocument();
+    expect(within(panel).getByTestId("decision-title")).toHaveTextContent("三人位沙发");
+    // Now f-sofa's wall-overlap finding IS shown!
+    expect(within(panel).getByTestId("decision-issue-wall-overlap")).toBeInTheDocument();
+    // Both placements remain on canvas
+    expect(screen.getByTestId("floor-plan-furniture-f-bed")).toBeInTheDocument();
+    expect(screen.getByTestId("floor-plan-furniture-f-sofa")).toBeInTheDocument();
+
+    // 4. AC-13: Verify qualified non-guarantee disclaimer in panel
+    expect(within(panel).getByTestId("decision-disclaimer")).toHaveTextContent("不构成施工");
+    expect(within(panel).getByTestId("decision-disclaimer")).toHaveTextContent("建筑规范");
+  });
 });
+
 

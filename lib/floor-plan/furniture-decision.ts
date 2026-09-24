@@ -1,4 +1,11 @@
-import type { FloorPlan, SpaceRuleConfig, RuleSeverity } from "./types";
+import type {
+  AssessmentFinding,
+  AssessmentFindingKind,
+  FloorPlan,
+  FurnitureSide,
+  RuleSeverity,
+  SpaceRuleConfig,
+} from "./types";
 import {
   evaluatePlanRules,
   isPlanUnscaled,
@@ -14,16 +21,204 @@ export type FurnitureDecisionStatus =
   | "unavailable";
 
 export interface FurnitureDecisionIssue {
-  ruleId: SpatialRuleId;
+  ruleId: SpatialRuleId | AssessmentFindingKind;
   severity: RuleSeverity;
   title: string;
   message: string;
+  repairGuidance?: string;
+  relatedObjectName?: string;
+  side?: FurnitureSide;
+  sideLabel?: string;
   relatedEntityIds: string[];
   relatedObjectIds: string[];
   measuredValue?: number;
+  minimumValue?: number;
   recommendedValue?: number | string;
   measuredFormatted?: string | null;
+  minimumFormatted?: string | null;
   recommendedFormatted?: string | null;
+}
+
+export interface FormattedAssessmentFinding extends FurnitureDecisionIssue {
+  kind: AssessmentFindingKind;
+  repairGuidance: string;
+  relatedObjectName: string;
+}
+
+/**
+ * Pure domain formatter that derives localized user-facing explanation, related object name,
+ * direction label, measured/min/recommended millimeter strings, and deterministic repair guidance
+ * strictly from a structured AssessmentFinding and FloorPlan (AC-12, AC-13).
+ */
+export function formatAssessmentFinding(
+  finding: AssessmentFinding,
+  plan: FloorPlan,
+  locale?: string,
+): FormattedAssessmentFinding {
+  const i18n = getFloorPlanI18n(locale);
+  const isZh = i18n.locale === "zh";
+
+  // 1. Resolve human-readable related object name (colliding furniture, wall/room, or boundary)
+  let relatedObjectName: string;
+  if (finding.relatedPlacementId) {
+    const otherFurniture = plan.furniture.find((f) => f.id === finding.relatedPlacementId);
+    if (otherFurniture) {
+      const itemName = i18n.getFurnitureName(
+        otherFurniture.definitionId,
+        otherFurniture.definitionId,
+      );
+      relatedObjectName = `${itemName} (${finding.relatedPlacementId})`;
+    } else {
+      relatedObjectName = isZh
+        ? `家具 (${finding.relatedPlacementId})`
+        : `Furniture (${finding.relatedPlacementId})`;
+    }
+  } else if (finding.wallId) {
+    const boundingRooms = plan.rooms.filter((r) =>
+      r.boundaryWallIds.includes(finding.wallId!),
+    );
+    if (boundingRooms.length > 0) {
+      const roomNames = boundingRooms
+        .map((r) => r.name ?? i18n.getRoomTypeLabel(r.type))
+        .join("/");
+      relatedObjectName = isZh
+        ? `${roomNames}墙体 (${finding.wallId})`
+        : `${roomNames} Wall (${finding.wallId})`;
+    } else {
+      relatedObjectName = isZh
+        ? `墙体 (${finding.wallId})`
+        : `Wall (${finding.wallId})`;
+    }
+  } else if (finding.kind === "outside-room") {
+    relatedObjectName = isZh ? "房间边界" : "Room Boundary";
+  } else {
+    relatedObjectName = isZh ? "周边障碍物" : "Surrounding Obstacle";
+  }
+
+  // 2. Resolve semantic direction and opposite repair direction
+  let sideLabel: string | undefined;
+  let oppositeDir: string = isZh ? "反方向" : "opposite direction";
+  if (finding.side) {
+    switch (finding.side) {
+      case "front":
+        sideLabel = isZh ? "前侧 · 前方 (front)" : "Front (front)";
+        oppositeDir = isZh ? "后侧" : "back";
+        break;
+      case "back":
+        sideLabel = isZh ? "后侧 · 后方 (back)" : "Back (back)";
+        oppositeDir = isZh ? "前侧" : "front";
+        break;
+      case "left":
+        sideLabel = isZh ? "左侧 (left)" : "Left (left)";
+        oppositeDir = isZh ? "右侧" : "right";
+        break;
+      case "right":
+        sideLabel = isZh ? "右侧 (right)" : "Right (right)";
+        oppositeDir = isZh ? "左侧" : "left";
+        break;
+    }
+  }
+
+  const measuredMm = finding.measuredMm ?? 0;
+  const minimumMm = finding.minimumMm ?? 0;
+  const recommendedMm = finding.recommendedMm ?? minimumMm;
+
+  const measuredFormatted =
+    finding.measuredMm !== undefined ? `${finding.measuredMm} mm` : undefined;
+  const minimumFormatted =
+    finding.minimumMm !== undefined ? `${finding.minimumMm} mm` : undefined;
+  const clearanceRangeFormatted = isZh
+    ? `最低 ${minimumMm} mm / 推荐 ${recommendedMm} mm`
+    : `Min ${minimumMm} mm / Rec ${recommendedMm} mm`;
+
+  let title = isZh ? "空间冲突" : "Spatial Conflict";
+  let message = "";
+  let repairGuidance = "";
+  let severity: "error" | "warning" = "error";
+  let recommendedVal: number = recommendedMm;
+  let recommendedFormatted = "0 mm";
+
+  if (finding.kind === "furniture-overlap") {
+    title = isZh ? "家具重叠冲突" : "Furniture Overlap";
+    const shiftMm = Math.max(1, measuredMm);
+    message = isZh
+      ? `目标家具与${relatedObjectName}重叠 (实测穿插 ${measuredMm} mm)`
+      : `Overlaps with ${relatedObjectName} (measured ${measuredMm} mm)`;
+    repairGuidance = isZh
+      ? `建议向远离${relatedObjectName}方向移动至少 ${shiftMm} mm，或旋转 90° / 切换更小预设规格。`
+      : `Move at least ${shiftMm} mm away from ${relatedObjectName}, rotate 90°, or switch to a smaller preset specification.`;
+  } else if (finding.kind === "wall-overlap") {
+    title = isZh ? "家具穿墙冲突" : "Wall Collision";
+    const shiftMm = Math.max(1, measuredMm);
+    message = isZh
+      ? `目标家具穿插${relatedObjectName} (实测穿插 ${measuredMm} mm)`
+      : `Collides with ${relatedObjectName} (measured ${measuredMm} mm)`;
+    repairGuidance = isZh
+      ? `建议向房间内侧移开至少 ${shiftMm} mm 以脱离${relatedObjectName}，或切换更小预设规格。`
+      : `Move at least ${shiftMm} mm inward away from ${relatedObjectName}, or switch to a smaller preset specification.`;
+  } else if (finding.kind === "outside-room") {
+    title = isZh ? "超出房间边界" : "Outside Room Boundary";
+    const shiftMm = Math.max(1, measuredMm);
+    message = isZh
+      ? `目标家具超出${relatedObjectName} (距边界 ${measuredMm} mm)`
+      : `Placement extends outside ${relatedObjectName} (measured ${measuredMm} mm)`;
+    repairGuidance = isZh
+      ? `建议向房间内部移动至少 ${shiftMm} mm 使其完全处于${relatedObjectName}内，或切换更小预设规格。`
+      : `Move at least ${shiftMm} mm inward to stay within ${relatedObjectName}, or switch to a smaller preset specification.`;
+  } else if (finding.kind === "below-minimum-clearance") {
+    title = isZh ? "方向净距低于最低要求" : "Below Minimum Clearance";
+    severity = "error";
+    recommendedVal = recommendedMm;
+    recommendedFormatted = clearanceRangeFormatted;
+    const deficitMin = Math.max(1, minimumMm - measuredMm);
+    const deficitRec = Math.max(deficitMin, recommendedMm - measuredMm);
+    const dirText = sideLabel ?? (isZh ? "方向" : "Side");
+    message = isZh
+      ? `${dirText}距${relatedObjectName}实测净距 ${measuredMm} mm，低于最低要求 ${minimumMm} mm（推荐 ${recommendedMm} mm）`
+      : `${dirText} clearance to ${relatedObjectName} is ${measuredMm} mm, below minimum ${minimumMm} mm (recommended ${recommendedMm} mm)`;
+    repairGuidance = isZh
+      ? `建议向${oppositeDir}移动至少 ${deficitMin} mm 以满足最低净距（移动 ${deficitRec} mm 可达推荐净距），或切换更小预设规格。`
+      : `Move at least ${deficitMin} mm toward the ${oppositeDir} to meet minimum clearance (${deficitRec} mm for recommended clearance), or switch to a smaller preset specification.`;
+  } else if (finding.kind === "below-recommended-clearance") {
+    title = isZh ? "方向净距低于推荐值" : "Below Recommended Clearance";
+    severity = "warning";
+    recommendedVal = recommendedMm;
+    recommendedFormatted = clearanceRangeFormatted;
+    const deficitRec = Math.max(1, recommendedMm - measuredMm);
+    const dirText = sideLabel ?? (isZh ? "方向" : "Side");
+    message = isZh
+      ? `${dirText}距${relatedObjectName}实测净距 ${measuredMm} mm，已达最低要求 ${minimumMm} mm，但低于推荐值 ${recommendedMm} mm`
+      : `${dirText} clearance to ${relatedObjectName} is ${measuredMm} mm (meets minimum ${minimumMm} mm, below recommended ${recommendedMm} mm)`;
+    repairGuidance = isZh
+      ? `当前已达最低通行净距；建议向${oppositeDir}移动至少 ${deficitRec} mm 以达推荐净距，或切换更小预设规格。`
+      : `Minimum clearance is met; move at least ${deficitRec} mm toward the ${oppositeDir} to reach recommended clearance, or switch to a smaller preset specification.`;
+  }
+
+  const relatedIds = [
+    finding.placementId,
+    ...(finding.relatedPlacementId ? [finding.relatedPlacementId] : []),
+    ...(finding.wallId ? [finding.wallId] : []),
+  ];
+
+  return {
+    kind: finding.kind,
+    ruleId: finding.kind,
+    severity,
+    title,
+    message,
+    repairGuidance,
+    relatedObjectName,
+    side: finding.side,
+    sideLabel,
+    relatedEntityIds: relatedIds,
+    relatedObjectIds: relatedIds,
+    measuredValue: finding.measuredMm,
+    minimumValue: finding.minimumMm,
+    recommendedValue: recommendedVal,
+    measuredFormatted,
+    minimumFormatted,
+    recommendedFormatted,
+  };
 }
 
 export interface FurnitureDecisionDimensions {
@@ -207,8 +402,9 @@ export function summarizeFurnitureDecision({
   });
 
   const disclaimer = isZh
-    ? "本结论基于当前空间规则计算，不构成施工、结构安全保证或绝对使用承诺。"
-    : "This conclusion is computed based on current spatial rules and does not constitute a construction, structural safety, or absolute usability guarantee.";
+    ? "本结论基于当前空间规则计算，不构成施工、结构安全保证或绝对使用承诺。仅供家具摆放参考，不构成建筑规范合规保证。"
+    : "This conclusion is computed based on current spatial rules and does not constitute a construction, structural safety, building code compliance, or absolute usability guarantee (for furniture placement reference only).";
+
 
   // If no target furniture exists
   if (!targetFurniture) {
