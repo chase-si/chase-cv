@@ -41,6 +41,9 @@ export function SvgFurniture({
       data-testid={`floor-plan-furniture-${furniture.id}`}
       data-entity-type="furniture"
       data-entity-id={furniture.id}
+      data-specification-id={furniture.specificationId ?? ""}
+      data-width={width}
+      data-depth={depth}
       data-selected={isSelected ? "true" : "false"}
       data-has-violation={hasViolation ? "true" : "false"}
       transform={`translate(${x}, ${y}) rotate(${rotation})`}
@@ -63,6 +66,7 @@ export function SvgFurniture({
     >
       {/* Outer base box */}
       <rect
+        data-testid={`furniture-footprint-${furniture.id}`}
         x={-halfW}
         y={-halfD}
         width={width}

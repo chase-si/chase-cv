@@ -103,7 +103,16 @@ export function computeFurnitureClearanceZones(
   let leftClearance = 0;
   let rightClearance = 0;
 
-  if (category === "bed" || furniture.definitionId.includes("bed")) {
+  const matchedSpec = furniture.specificationId
+    ? def?.specifications?.find((s) => s.id === furniture.specificationId)
+    : undefined;
+
+  if (matchedSpec && !config?.rules?.furnitureClearance) {
+    frontClearance = matchedSpec.clearance.front.minimum;
+    backClearance = matchedSpec.clearance.back.minimum;
+    leftClearance = matchedSpec.clearance.left.minimum;
+    rightClearance = matchedSpec.clearance.right.minimum;
+  } else if (category === "bed" || furniture.definitionId.includes("bed")) {
     frontClearance = bedFoot;
     // For beds, left and right side clearance
     if (def?.clearanceRules?.left !== undefined) {

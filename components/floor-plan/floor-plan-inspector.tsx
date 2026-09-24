@@ -27,10 +27,12 @@ import {
   getWallMap,
 } from "@/lib/floor-plan/geometry";
 import {
+  changeFurnitureSpecification,
   deleteFurnitureInstance,
   moveFurnitureInstance,
   rotateFurnitureInstance,
 } from "@/lib/floor-plan/furniture-operations";
+import { getDefaultFurnitureCatalog } from "@/lib/floor-plan/furniture-catalog";
 import { FurnitureCatalogPalette } from "./furniture-catalog-palette";
 import { RuleFeedbackPanel } from "./rule-feedback-panel";
 import type { RuleResult } from "@/lib/floor-plan/rules";
@@ -40,6 +42,7 @@ import type { EntitySelectHandler, SelectedEntity } from "./types";
 interface FloorPlanInspectorProps {
   plan: FloorPlan;
   onUpdatePlan?: (updated: FloorPlan, description?: string) => void;
+  onChangeSpecification?: (furnitureId: string, specificationId: string) => void;
   selectedEntity: SelectedEntity | null;
   onSelect: EntitySelectHandler;
   violations?: RuleResult[];
@@ -51,6 +54,7 @@ interface FloorPlanInspectorProps {
 export function FloorPlanInspector({
   plan,
   onUpdatePlan,
+  onChangeSpecification,
   selectedEntity,
   onSelect,
   violations,
@@ -60,6 +64,7 @@ export function FloorPlanInspector({
 }: FloorPlanInspectorProps) {
   const i18n = useFloorPlanI18n(locale);
   const t = i18n.t;
+  const catalog = React.useMemo(() => getDefaultFurnitureCatalog(), []);
   const vertexMap = React.useMemo(() => getVertexMap(plan), [plan]);
   const wallMap = React.useMemo(() => getWallMap(plan), [plan]);
   const totalArea = React.useMemo(() => computePlanTotalArea(plan), [plan]);
@@ -105,6 +110,11 @@ export function FloorPlanInspector({
     return plan.furniture.find((f) => f.id === selectedEntity.id) ?? null;
   }, [selectedEntity, plan.furniture]);
 
+  const selectedFurnitureDefinition = React.useMemo(() => {
+    if (!selectedFurniture) return null;
+    return catalog.definitions.find((d) => d.id === selectedFurniture.definitionId) ?? null;
+  }, [catalog.definitions, selectedFurniture]);
+
   // Selected Dimension details
   const selectedDimension = React.useMemo(() => {
     if (selectedEntity?.type !== "dimension") return null;
@@ -117,6 +127,26 @@ export function FloorPlanInspector({
     if (!selectedWall) return [];
     return plan.rooms.filter((r) => r.boundaryWallIds.includes(selectedWall.wall.id));
   }, [selectedWall, plan.rooms]);
+
+  const handleSelectSpecification = React.useCallback(
+    (specificationId: string) => {
+      if (!selectedFurniture) return;
+      if (onChangeSpecification) {
+        onChangeSpecification(selectedFurniture.id, specificationId);
+        return;
+      }
+      const res = changeFurnitureSpecification(
+        plan,
+        catalog,
+        selectedFurniture.id,
+        specificationId,
+      );
+      if (res.success) {
+        onUpdatePlan?.(res.plan, "Change furniture specification");
+      }
+    },
+    [selectedFurniture, onChangeSpecification, plan, catalog, onUpdatePlan],
+  );
 
   const handleRotateFurniture = React.useCallback(() => {
     if (!selectedFurniture) return;
@@ -384,6 +414,41 @@ export function FloorPlanInspector({
               </span>
             </div>
           </div>
+
+          {/* Predefined Specifications Selector (AC-4, AC-5) */}
+          {selectedFurnitureDefinition && selectedFurnitureDefinition.specifications.length > 0 && (
+            <div
+              data-testid="inspector-furniture-specifications"
+              className="space-y-1.5 pt-1 border-t border-border/60"
+            >
+              <span className="text-[10px] text-muted-foreground block">
+                {locale === "zh" ? "预设规格" : "Predefined Specifications"}
+              </span>
+              <div className="grid grid-cols-2 gap-1.5">
+                {selectedFurnitureDefinition.specifications.map((spec) => {
+                  const isActive =
+                    selectedFurniture.specificationId === spec.id ||
+                    (!selectedFurniture.specificationId &&
+                      selectedFurniture.width === spec.width &&
+                      selectedFurniture.depth === spec.depth);
+                  return (
+                    <Button
+                      key={spec.id}
+                      type="button"
+                      size="sm"
+                      variant={isActive ? "default" : "outline"}
+                      data-testid={`inspector-spec-option-${spec.id}`}
+                      aria-pressed={isActive}
+                      onClick={() => handleSelectSpecification(spec.id)}
+                      className="h-8 px-2 text-[11px] font-mono"
+                    >
+                      {spec.name}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Action buttons: Rotate, Delete, Nudge (NO arbitrary size input) */}
           <div className="space-y-2 pt-1 border-t border-border/60">

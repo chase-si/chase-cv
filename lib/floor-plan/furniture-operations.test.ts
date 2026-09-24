@@ -6,6 +6,7 @@ import {
 } from "./furniture-catalog";
 import {
   addFurnitureInstance,
+  changeFurnitureSpecification,
   computeRoomInitialDropPosition,
   deleteFurnitureInstance,
   moveFurnitureInstance,
@@ -362,6 +363,58 @@ describe("Furniture Operations (US-10, US-11, AC-10, AC-11)", () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error).toContain("unknown-id-xyz");
+      }
+    });
+  });
+
+  describe("Predefined specification addition and switching (AC-4, AC-5)", () => {
+    it("adds furniture with an explicit predefined specificationId", () => {
+      const plan = createTestPlan();
+      const res = addFurnitureInstance(plan, catalog, "bed-double", {
+        specificationId: "bed-double-1500",
+        x: 1600,
+        y: 1900,
+        rotation: 90,
+      });
+
+      expect(res.success).toBe(true);
+      if (res.success) {
+        expect(res.instance.definitionId).toBe("bed-double");
+        expect(res.instance.specificationId).toBe("bed-double-1500");
+        expect(res.instance.width).toBe(1500);
+        expect(res.instance.depth).toBe(2000);
+        expect(res.instance.x).toBe(1600);
+        expect(res.instance.y).toBe(1900);
+        expect(res.instance.rotation).toBe(90);
+      }
+    });
+
+    it("AC-5: switches specificationId via changeFurnitureSpecification while preserving center (x, y) and rotation", () => {
+      const plan = createTestPlan();
+      const addRes = addFurnitureInstance(plan, catalog, "bed-double", {
+        specificationId: "bed-double-1800",
+        x: 2450,
+        y: 1820,
+        rotation: 270,
+      });
+      expect(addRes.success).toBe(true);
+      if (!addRes.success) return;
+
+      const switchRes = changeFurnitureSpecification(
+        addRes.plan,
+        catalog,
+        addRes.instance.id,
+        "bed-double-1500",
+      );
+      expect(switchRes.success).toBe(true);
+      if (switchRes.success) {
+        expect(switchRes.instance.specificationId).toBe("bed-double-1500");
+        expect(switchRes.instance.width).toBe(1500);
+        expect(switchRes.instance.depth).toBe(2000);
+        // Center point and rotation must remain unchanged
+        expect(switchRes.instance.x).toBe(2450);
+        expect(switchRes.instance.y).toBe(1820);
+        expect(switchRes.instance.rotation).toBe(270);
       }
     });
   });
