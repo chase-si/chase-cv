@@ -163,14 +163,14 @@ export function FurnitureDecisionPanel({
         const detailEn = primaryFinding ? ` (${primaryFinding.message})` : "";
         return isZh
           ? `基于当前空间规则检测，在${decision.roomName}摆放${decision.furnitureName}${dimText}存在空间冲突或方向净距低于最低要求${detailZh}，评估为必须调整。${primaryFinding?.repairGuidance ?? "请移动位置、旋转方向或切换更小规格。"}`
-          : `Based on current spatial rules, spatial conflicts or clearances below minimum requirements were detected for ${decision.furnitureName}${dimTextEn} in ${decision.roomName}${detailEn}. This placement must be adjusted.`;
+          : `Based on current spatial rules, spatial conflicts or clearances below minimum requirements were detected for ${decision.furnitureName}${dimTextEn} in ${decision.roomName}${detailEn}. This placement must be adjusted.${primaryFinding?.repairGuidance ? ` ${primaryFinding.repairGuidance}` : ""}`;
       }
       case "trade-off": {
         const detailZh = primaryFinding ? `（${primaryFinding.message}）` : "";
         const detailEn = primaryFinding ? ` (${primaryFinding.message})` : "";
         return isZh
           ? `基于当前空间规则检测，${decision.furnitureName}${dimText}可放入${decision.roomName}，但存在部分方向净距低于推荐值${detailZh}，评估为需要权衡考虑。${primaryFinding?.repairGuidance ?? ""}`
-          : `Based on current spatial rules, ${decision.furnitureName}${dimTextEn} fits within ${decision.roomName}, but some directional clearances are below recommended thresholds${detailEn} and require trade-off consideration.`;
+          : `Based on current spatial rules, ${decision.furnitureName}${dimTextEn} fits within ${decision.roomName}, but some directional clearances are below recommended thresholds${detailEn} and require trade-off consideration.${primaryFinding?.repairGuidance ? ` ${primaryFinding.repairGuidance}` : ""}`;
       }
       case "suitable":
       default:
