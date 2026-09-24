@@ -112,12 +112,12 @@ export function FurnitureDecisionPanel({
           : "The floor plan is uncalibrated; millimeter clearances and passage space cannot be determined without reliable real-world dimensions. Please calibrate dimensions first.";
       case "must-adjust":
         return isZh
-          ? `在当前${decision.roomName}放入${decision.furnitureName}${dimText}存在严重空间冲突（如家具实体重叠、墙体穿插或超出房间边界），评估为必须调整，请移动位置或切换更小规格。`
-          : `Physical spatial conflicts (furniture overlap, wall collision, or outside-room boundary) were detected for ${decision.furnitureName}${dimTextEn} in ${decision.roomName}. This placement must be adjusted.`;
+          ? `在当前${decision.roomName}放入${decision.furnitureName}${dimText}存在空间冲突或方向净距低于最低要求，评估为必须调整，请移动位置、旋转方向或切换更小规格。`
+          : `Spatial conflicts or clearances below minimum requirements were detected for ${decision.furnitureName}${dimTextEn} in ${decision.roomName}. This placement must be adjusted.`;
       case "trade-off":
         return isZh
-          ? `${decision.furnitureName}${dimText}可以放入当前${decision.roomName}，但存在部分空间净距需要权衡考虑。`
-          : `${decision.furnitureName}${dimTextEn} fits within ${decision.roomName}, but some clearances require trade-off consideration.`;
+          ? `${decision.furnitureName}${dimText}可以放入当前${decision.roomName}，但存在部分方向净距低于推荐值，需要权衡考虑。`
+          : `${decision.furnitureName}${dimTextEn} fits within ${decision.roomName}, but some directional clearances are below recommended thresholds and require trade-off consideration.`;
       case "suitable":
       default:
         return decision.summary;
@@ -138,13 +138,50 @@ export function FurnitureDecisionPanel({
       return decision.relevantIssues;
     }
 
+    const getSideLabel = (side?: string) => {
+      switch (side) {
+        case "front":
+          return isZh ? "前方 (front)" : "Front (front)";
+        case "back":
+          return isZh ? "后方 (back)" : "Back (back)";
+        case "left":
+          return isZh ? "左侧 (left)" : "Left (left)";
+        case "right":
+          return isZh ? "右侧 (right)" : "Right (right)";
+        default:
+          return isZh ? "方向" : "Side";
+      }
+    };
+
     const assessmentIssues = assessment.findings.map((f) => {
       const isOverlap = f.kind === "furniture-overlap";
       const isWall = f.kind === "wall-overlap";
       const isOutside = f.kind === "outside-room";
+      const isBelowMin = f.kind === "below-minimum-clearance";
+      const isBelowRec = f.kind === "below-recommended-clearance";
+
+      const sideLabel = getSideLabel(f.side);
+      const obstacleLabel = f.relatedPlacementId
+        ? isZh
+          ? `家具 ${f.relatedPlacementId}`
+          : `furniture ${f.relatedPlacementId}`
+        : f.wallId
+          ? isZh
+            ? `墙体 ${f.wallId}`
+            : `wall ${f.wallId}`
+          : isZh
+            ? "障碍物"
+            : "obstacle";
 
       let title = isZh ? "空间冲突" : "Spatial Conflict";
       let message = "";
+      let severity: "error" | "warning" = "error";
+      let recommendedVal: number = f.recommendedMm ?? f.minimumMm ?? 0;
+      let recommendedFormatted = "0 mm";
+      const clearanceRangeFormatted = isZh
+        ? `最低 ${f.minimumMm ?? 0} mm / 推荐 ${f.recommendedMm ?? 0} mm`
+        : `Min ${f.minimumMm ?? 0} mm / Rec ${f.recommendedMm ?? 0} mm`;
+
       if (isOverlap) {
         title = isZh ? "家具重叠冲突" : "Furniture Overlap";
         message = isZh
@@ -160,6 +197,22 @@ export function FurnitureDecisionPanel({
         message = isZh
           ? `目标家具超出房间边界 (距边界 ${f.measuredMm ?? 0} mm)`
           : `Placement extends outside room boundaries (measured ${f.measuredMm ?? 0} mm)`;
+      } else if (isBelowMin) {
+        title = isZh ? "方向净距低于最低要求" : "Below Minimum Clearance";
+        severity = "error";
+        recommendedVal = f.recommendedMm ?? f.minimumMm ?? 0;
+        recommendedFormatted = clearanceRangeFormatted;
+        message = isZh
+          ? `${sideLabel}距${obstacleLabel}实测净距 ${f.measuredMm ?? 0} mm，低于最低要求 ${f.minimumMm ?? 0} mm（推荐 ${f.recommendedMm ?? 0} mm）`
+          : `${sideLabel} clearance to ${obstacleLabel} is ${f.measuredMm ?? 0} mm, below minimum ${f.minimumMm ?? 0} mm (recommended ${f.recommendedMm ?? 0} mm)`;
+      } else if (isBelowRec) {
+        title = isZh ? "方向净距低于推荐值" : "Below Recommended Clearance";
+        severity = "warning";
+        recommendedVal = f.recommendedMm ?? 0;
+        recommendedFormatted = clearanceRangeFormatted;
+        message = isZh
+          ? `${sideLabel}距${obstacleLabel}实测净距 ${f.measuredMm ?? 0} mm，已达最低要求 ${f.minimumMm ?? 0} mm，但低于推荐值 ${f.recommendedMm ?? 0} mm`
+          : `${sideLabel} clearance to ${obstacleLabel} is ${f.measuredMm ?? 0} mm (meets minimum ${f.minimumMm ?? 0} mm, below recommended ${f.recommendedMm ?? 0} mm)`;
       }
 
       const relatedIds = [
@@ -170,15 +223,15 @@ export function FurnitureDecisionPanel({
 
       return {
         ruleId: f.kind,
-        severity: "error" as const,
+        severity,
         title,
         message,
         relatedEntityIds: relatedIds,
         relatedObjectIds: relatedIds,
         measuredValue: f.measuredMm,
         measuredFormatted: f.measuredMm !== undefined ? `${f.measuredMm} mm` : undefined,
-        recommendedValue: 0,
-        recommendedFormatted: "0 mm",
+        recommendedValue: recommendedVal,
+        recommendedFormatted,
       };
     });
 
@@ -186,7 +239,8 @@ export function FurnitureDecisionPanel({
       (issue) =>
         issue.ruleId !== "furniture-overlap" &&
         issue.ruleId !== "furniture-wall-collision" &&
-        issue.ruleId !== "furniture-boundary",
+        issue.ruleId !== "furniture-boundary" &&
+        issue.ruleId !== "furniture-clearance",
     );
 
     return [...assessmentIssues, ...nonPhysicalLegacyIssues];

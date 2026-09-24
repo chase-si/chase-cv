@@ -311,5 +311,54 @@ describe("FurnitureDecisionPanel Component (AC-14, AC-15, AC-16, AC-17)", () => 
       fireEvent.click(f2Btn);
       expect(handleSelect).toHaveBeenCalledWith({ type: "furniture", id: "f2" });
     });
+
+    it("renders below-minimum-clearance and below-recommended-clearance findings with side, measuredMm, minimumMm, and recommendedMm (AC-12)", () => {
+      const plan = getPlan();
+      const assessment = {
+        status: "must-adjust" as const,
+        findings: [
+          {
+            kind: "below-minimum-clearance" as const,
+            placementId: "f2",
+            wallId: "w3",
+            side: "front" as const,
+            measuredMm: 450,
+            minimumMm: 600,
+            recommendedMm: 900,
+          },
+          {
+            kind: "below-recommended-clearance" as const,
+            placementId: "f2",
+            relatedPlacementId: "f1",
+            side: "left" as const,
+            measuredMm: 650,
+            minimumMm: 600,
+            recommendedMm: 750,
+          },
+        ],
+      };
+
+      render(
+        <FurnitureDecisionPanel
+          plan={plan}
+          targetRoomId="r2"
+          targetFurnitureId="f2"
+          assessment={assessment}
+          locale="zh"
+        />,
+      );
+
+      const minIssue = screen.getByTestId("decision-issue-below-minimum-clearance");
+      expect(minIssue).toBeInTheDocument();
+      expect(minIssue).toHaveTextContent("前方 (front)");
+      expect(minIssue).toHaveTextContent("450 mm");
+      expect(minIssue).toHaveTextContent("最低 600 mm / 推荐 900 mm");
+
+      const recIssue = screen.getByTestId("decision-issue-below-recommended-clearance");
+      expect(recIssue).toBeInTheDocument();
+      expect(recIssue).toHaveTextContent("左侧 (left)");
+      expect(recIssue).toHaveTextContent("650 mm");
+      expect(recIssue).toHaveTextContent("最低 600 mm / 推荐 750 mm");
+    });
   });
 });
