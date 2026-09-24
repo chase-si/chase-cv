@@ -363,4 +363,47 @@ describe("Furniture Decision Summary (US-13, US-14, US-17, US-20, AC-14, AC-15, 
       expect(summary.relevantIssues).toBeDefined();
     });
   });
+
+  describe("AC-12 & AC-13: formatAssessmentFinding Pure Formatter", () => {
+    it("formats all AssessmentFinding kinds with resolved related object names, sides, mm values, and deterministic repair guidance", async () => {
+      const { formatAssessmentFinding } = await import("./furniture-decision");
+      const plan = getTestPlan();
+
+      const clearanceMin = formatAssessmentFinding(
+        {
+          kind: "below-minimum-clearance",
+          placementId: "f2",
+          relatedPlacementId: "f1",
+          side: "front",
+          measuredMm: 380,
+          minimumMm: 600,
+          recommendedMm: 900,
+        },
+        plan,
+        "zh",
+      );
+      expect(clearanceMin.relatedObjectName).toContain("三人位沙发 (f1)");
+      expect(clearanceMin.sideLabel).toContain("前侧");
+      expect(clearanceMin.measuredFormatted).toBe("380 mm");
+      expect(clearanceMin.minimumFormatted).toBe("600 mm");
+      expect(clearanceMin.recommendedFormatted).toBe("最低 600 mm / 推荐 900 mm");
+      expect(clearanceMin.repairGuidance).toContain("220 mm");
+      expect(clearanceMin.repairGuidance).toContain("后侧");
+
+      const wallCollisionEn = formatAssessmentFinding(
+        {
+          kind: "wall-overlap",
+          placementId: "f2",
+          wallId: "w3",
+          measuredMm: 95,
+        },
+        plan,
+        "en",
+      );
+      expect(wallCollisionEn.relatedObjectName).toContain("w3");
+      expect(wallCollisionEn.measuredFormatted).toBe("95 mm");
+      expect(wallCollisionEn.repairGuidance).toContain("95 mm");
+    });
+  });
 });
+
