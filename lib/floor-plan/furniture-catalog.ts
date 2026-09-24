@@ -8,6 +8,7 @@ import type {
   FurnitureSide,
   FurnitureSpecification,
 } from "./types";
+import { cloneFurnitureDefinition, validateFurnitureCatalog } from "./validators";
 
 export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Object.freeze([
   {
@@ -573,32 +574,26 @@ export const ALL_FURNITURE_CATEGORIES: readonly FurnitureCategory[] = [
   "tv_stand",
 ] as const;
 
-export function getDefaultFurnitureCatalog(): FurnitureCatalog {
+export function getFurnitureCatalog(
+  catalogInput: unknown = STANDARD_FURNITURE_CATALOG,
+): FurnitureCatalog {
+  const validation = validateFurnitureCatalog(catalogInput);
+  if (!validation.ok) {
+    const details = validation.errors
+      .map((err) => `${err.path || "$"}: ${err.message}`)
+      .join("; ");
+    throw new Error(`Invalid FurnitureCatalog: ${details}`);
+  }
+
   return {
     version: 2,
     unit: "mm",
-    definitions: STANDARD_FURNITURE_DEFINITIONS.map((def) => ({
-      ...def,
-      specifications: def.specifications.map((s) => ({
-        ...s,
-        clearance: {
-          front: { ...s.clearance.front },
-          back: { ...s.clearance.back },
-          left: { ...s.clearance.left },
-          right: { ...s.clearance.right },
-        },
-      })),
-      defaultSize: def.defaultSize ? { ...def.defaultSize } : undefined,
-      allowedSizeRanges: def.allowedSizeRanges
-        ? {
-            width: def.allowedSizeRanges.width ? { ...def.allowedSizeRanges.width } : undefined,
-            depth: def.allowedSizeRanges.depth ? { ...def.allowedSizeRanges.depth } : undefined,
-            height: def.allowedSizeRanges.height ? { ...def.allowedSizeRanges.height } : undefined,
-          }
-        : undefined,
-      clearanceRules: def.clearanceRules ? { ...def.clearanceRules } : undefined,
-    })),
+    definitions: validation.value.definitions.map(cloneFurnitureDefinition),
   };
+}
+
+export function getDefaultFurnitureCatalog(): FurnitureCatalog {
+  return getFurnitureCatalog(STANDARD_FURNITURE_CATALOG);
 }
 
 export function getFurnitureDefinitionById(

@@ -48,6 +48,7 @@ export interface CandidatePlanPreviewProps {
   initialPlans?: StandardPlanSummary[];
   initialCandidateJson?: string;
   locale?: string;
+  headerExtra?: React.ReactNode;
 }
 
 interface SemanticChecklistItem {
@@ -93,6 +94,7 @@ export function CandidatePlanPreview({
   initialPlans,
   initialCandidateJson,
   locale = "zh",
+  headerExtra,
 }: CandidatePlanPreviewProps) {
   const isZh = locale === "zh";
   const plans = React.useMemo(
@@ -206,7 +208,8 @@ export function CandidatePlanPreview({
           : "Paste or import candidate floor plan JSON, run deterministic topology validation, preview valid geometry, and complete human semantic review."
       }
       actions={
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {headerExtra}
           <input
             ref={fileInputRef}
             type="file"
