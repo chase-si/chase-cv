@@ -15,4 +15,5 @@ export * from "./internal-boundary";
 export * from "./furniture-decision";
 export * from "./i18n";
 export * from "./placement-scenario";
+export * from "./space-assessment";
 
