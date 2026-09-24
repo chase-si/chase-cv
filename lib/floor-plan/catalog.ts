@@ -185,11 +185,94 @@ export function buildStandardPlanSummary(plan: StandardFloorPlan, locale?: strin
   };
 }
 
-export function getStandardPlans(locale?: string): StandardPlanSummary[] {
-  return FLOOR_PLAN_CATALOG_DATA.map((p) => buildStandardPlanSummary(p, locale));
+import { validateCandidateFloorPlan } from "./validators";
+import type { ValidationError, ValidationResult } from "./types";
+
+export interface CatalogAssetValidationFailure {
+  planId: string;
+  planName: string;
+  errors: ValidationError[];
 }
 
-export function getStandardPlanById(id: string, locale?: string): StandardPlanSummary | undefined {
-  const all = getStandardPlans(locale);
+export function validateStandardPlanCatalog(
+  plans: readonly StandardFloorPlan[] = FLOOR_PLAN_CATALOG_DATA,
+): ValidationResult<readonly StandardFloorPlan[]> & {
+  failures?: CatalogAssetValidationFailure[];
+} {
+  const allErrors: ValidationError[] = [];
+  const failures: CatalogAssetValidationFailure[] = [];
+
+  plans.forEach((plan, index) => {
+    const planId = plan?.meta?.id || plan?.meta?.name || `plan[${index}]`;
+    const planName = plan?.meta?.name || planId;
+    const res = validateCandidateFloorPlan(plan);
+    if (!res.ok) {
+      failures.push({
+        planId,
+        planName,
+        errors: res.errors,
+      });
+      for (const err of res.errors) {
+        allErrors.push({
+          path: err.path ? `${planId}.${err.path}` : planId,
+          message: `[${planId}] ${err.message}`,
+          code: err.code,
+        });
+      }
+    }
+  });
+
+  if (allErrors.length > 0) {
+    return {
+      ok: false,
+      errors: allErrors,
+      failures,
+    };
+  }
+
+  return {
+    ok: true,
+    value: plans,
+  };
+}
+
+let defaultCatalogValidated = false;
+
+export function assertValidStandardPlanCatalog(
+  plans: readonly StandardFloorPlan[] = FLOOR_PLAN_CATALOG_DATA,
+): void {
+  if (plans === FLOOR_PLAN_CATALOG_DATA && defaultCatalogValidated) {
+    return;
+  }
+
+  const result = validateStandardPlanCatalog(plans);
+  if (!result.ok) {
+    const details = result.errors
+      .map((e) => `${e.path}: ${e.message}`)
+      .join("; ");
+    throw new Error(
+      `Standard floor plan catalog validation failed: ${details}`,
+    );
+  }
+
+  if (plans === FLOOR_PLAN_CATALOG_DATA) {
+    defaultCatalogValidated = true;
+  }
+}
+
+export function getStandardPlans(
+  locale?: string,
+  plansData: readonly StandardFloorPlan[] = FLOOR_PLAN_CATALOG_DATA,
+): StandardPlanSummary[] {
+  assertValidStandardPlanCatalog(plansData);
+  return plansData.map((p) => buildStandardPlanSummary(p, locale));
+}
+
+export function getStandardPlanById(
+  id: string,
+  locale?: string,
+  plansData: readonly StandardFloorPlan[] = FLOOR_PLAN_CATALOG_DATA,
+): StandardPlanSummary | undefined {
+  const all = getStandardPlans(locale, plansData);
   return all.find((p) => p.id === id);
 }

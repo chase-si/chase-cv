@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  validateCandidateFloorPlan,
   validateFloorPlan,
   validateFurnitureCatalog,
   validateFurnitureDefinition,
@@ -12,7 +13,7 @@ import {
   VALID_STANDARD_FLOOR_PLAN,
 } from "./fixtures";
 
-describe("AC-17: FloorPlan v1 Contract Formats & Validators", () => {
+describe("AC-15 & AC-19: FloorPlan v1 & Furniture Contract Validators", () => {
 
   describe("Normalized Standard FloorPlan v1", () => {
     it("validates a valid canonical FloorPlan with real-world dimensions in mm", () => {
@@ -125,7 +126,7 @@ describe("AC-17: FloorPlan v1 Contract Formats & Validators", () => {
             id: "r1",
             type: "living_room",
             name: "Living Room",
-            boundaryWallIds: ["w-missing-1", "w-missing-2"],
+            boundaryWallIds: ["w-missing-1", "w-missing-2", "w-missing-3"],
           },
         ],
       };
@@ -133,6 +134,163 @@ describe("AC-17: FloorPlan v1 Contract Formats & Validators", () => {
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.errors.some((e) => e.message.includes("boundary"))).toBe(true);
+      }
+    });
+  });
+
+  describe("AC-15 & AC-16: Candidate FloorPlan Topology & Closure Validator", () => {
+    it("accepts a candidate plan without furniture array and normalizes furniture to []", () => {
+      const { furniture: _omitted, ...candidateWithoutFurniture } = VALID_STANDARD_FLOOR_PLAN;
+      const result = validateCandidateFloorPlan(candidateWithoutFurniture);
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.furniture).toEqual([]);
+      }
+    });
+
+    it("rejects non-finite vertex coordinates (NaN / Infinity) for both x and y and invalid RoomType (AC-15)", () => {
+      const candidate = {
+        ...VALID_STANDARD_FLOOR_PLAN,
+        vertices: VALID_STANDARD_FLOOR_PLAN.vertices.map((v, i) =>
+          i === 1 ? { ...v, x: Number.NaN, y: Number.POSITIVE_INFINITY } : v,
+        ),
+        rooms: VALID_STANDARD_FLOOR_PLAN.rooms.map((r, i) =>
+          i === 0 ? { ...r, type: "invalid_room_type" as any } : r,
+        ),
+      };
+      const result = validateCandidateFloorPlan(candidate);
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.errors.some((e) => e.path === "vertices[1].x" && e.message.includes("v2"))).toBe(true);
+        expect(result.errors.some((e) => e.path === "vertices[1].y" && e.message.includes("v2"))).toBe(true);
+        expect(result.errors.some((e) => e.path === "rooms[0].type" && e.message.includes("r1"))).toBe(true);
+      }
+    });
+
+    it("rejects duplicate IDs for vertices, walls, openings, and rooms (AC-15)", () => {
+      const dupWallPlan = {
+        ...VALID_STANDARD_FLOOR_PLAN,
+        walls: [
+          ...VALID_STANDARD_FLOOR_PLAN.walls,
+          { ...VALID_STANDARD_FLOOR_PLAN.walls[0] },
+        ],
+      };
+      const res = validateCandidateFloorPlan(dupWallPlan);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.errors.some((e) => e.path === "walls[7].id" && e.message.includes("w1"))).toBe(true);
+      }
+    });
+
+    it("rejects zero-length walls where distinct vertices share identical coordinates (AC-15)", () => {
+      const zeroLenWallPlan = {
+        ...VALID_STANDARD_FLOOR_PLAN,
+        vertices: VALID_STANDARD_FLOOR_PLAN.vertices.map((v) =>
+          v.id === "v2" ? { ...v, x: 0, y: 0 } : v,
+        ),
+      };
+      const res = validateCandidateFloorPlan(zeroLenWallPlan);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(
+          res.errors.some(
+            (e) => e.path === "walls[0]" && e.message.includes("w1") && e.message.includes("length must be greater than 0"),
+          ),
+        ).toBe(true);
+      }
+    });
+
+    it("rejects openings wider than host wall or extending beyond host wall span (AC-15)", () => {
+      const widerThanWall = {
+        ...VALID_STANDARD_FLOOR_PLAN,
+        openings: [
+          {
+            ...VALID_STANDARD_FLOOR_PLAN.openings[0], // on w1 (length 3000)
+            width: 3500,
+          },
+        ],
+      };
+      const resWider = validateCandidateFloorPlan(widerThanWall);
+      expect(resWider.ok).toBe(false);
+      if (!resWider.ok) {
+        expect(
+          resWider.errors.some(
+            (e) =>
+              e.path === "openings[0].width" &&
+              e.message.includes("win1") &&
+              e.message.includes("w1"),
+          ),
+        ).toBe(true);
+      }
+
+      const spanOutOfBounds = {
+        ...VALID_STANDARD_FLOOR_PLAN,
+        openings: [
+          {
+            ...VALID_STANDARD_FLOOR_PLAN.openings[0], // on w1 (length 3000), width 1500
+            position: 0.9, // center at 2700, end at 3450 > 3000
+          },
+        ],
+      };
+      const resSpan = validateCandidateFloorPlan(spanOutOfBounds);
+      expect(resSpan.ok).toBe(false);
+      if (!resSpan.ok) {
+        expect(
+          resSpan.errors.some(
+            (e) =>
+              e.path === "openings[0].position" &&
+              e.message.includes("win1") &&
+              e.message.includes("w1"),
+          ),
+        ).toBe(true);
+      }
+    });
+
+    it("rejects unclosed room boundaries and shuffled boundaryWallIds without auto-reordering (AC-15, AC-16)", () => {
+      const unclosedRoomPlan = {
+        ...VALID_STANDARD_FLOOR_PLAN,
+        rooms: [
+          {
+            ...VALID_STANDARD_FLOOR_PLAN.rooms[0],
+            boundaryWallIds: ["w1", "w7", "w5"], // missing closing wall w6
+          },
+          VALID_STANDARD_FLOOR_PLAN.rooms[1],
+        ],
+      };
+      const resUnclosed = validateCandidateFloorPlan(unclosedRoomPlan);
+      expect(resUnclosed.ok).toBe(false);
+      if (!resUnclosed.ok) {
+        expect(
+          resUnclosed.errors.some(
+            (e) =>
+              e.path.startsWith("rooms[0].boundaryWallIds") &&
+              e.message.includes("r1") &&
+              e.message.includes("not closed"),
+          ),
+        ).toBe(true);
+      }
+
+      const shuffledRoomPlan = {
+        ...VALID_STANDARD_FLOOR_PLAN,
+        rooms: [
+          {
+            ...VALID_STANDARD_FLOOR_PLAN.rooms[0],
+            boundaryWallIds: ["w1", "w5", "w7", "w6"], // w1 and w5 are opposite walls, not connected
+          },
+          VALID_STANDARD_FLOOR_PLAN.rooms[1],
+        ],
+      };
+      const resShuffled = validateCandidateFloorPlan(shuffledRoomPlan);
+      expect(resShuffled.ok).toBe(false);
+      if (!resShuffled.ok) {
+        expect(
+          resShuffled.errors.some(
+            (e) =>
+              e.path === "rooms[0].boundaryWallIds[1]" &&
+              e.message.includes("r1") &&
+              e.message.includes("w5"),
+          ),
+        ).toBe(true);
       }
     });
   });
