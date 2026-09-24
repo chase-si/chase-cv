@@ -33,8 +33,21 @@ function isNonNegativeNumber(val: unknown): val is number {
   return typeof val === "number" && Number.isFinite(val) && val >= 0;
 }
 
+import {
+  computePolygonArea,
+  traceRoomBoundaryCycle,
+} from "./geometry";
+import type { Vertex, Wall } from "./types";
+
+const VALID_OPENING_TYPES = [
+  "door",
+  "window",
+  "sliding_door",
+  "opening",
+] as const;
+
 /**
- * Validate Normalized Canonical FloorPlan v1
+ * Validate Normalized Canonical FloorPlan v1 and Candidate FloorPlan (AC-15, AC-21)
  */
 export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
   const errors: ValidationError[] = [];
@@ -69,8 +82,12 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
 
   // Vertices validation
   const vertexIdSet = new Set<string>();
-  if (!Array.isArray(input.vertices)) {
-    errors.push({ path: "vertices", message: "vertices must be an array" });
+  const vertexMap = new Map<string, Vertex>();
+  if (!Array.isArray(input.vertices) || input.vertices.length === 0) {
+    errors.push({
+      path: "vertices",
+      message: "vertices must be a non-empty array",
+    });
   } else {
     input.vertices.forEach((v: unknown, idx: number) => {
       if (!isObject(v)) {
@@ -80,6 +97,7 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
         });
         return;
       }
+      let validId = false;
       if (!isNonEmptyString(v.id)) {
         errors.push({
           path: `vertices[${idx}].id`,
@@ -92,21 +110,31 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
         });
       } else {
         vertexIdSet.add(v.id);
+        validId = true;
       }
 
-      if (!isFiniteNumber(v.x) || !isFiniteNumber(v.y)) {
+      const validX = isFiniteNumber(v.x);
+      const validY = isFiniteNumber(v.y);
+      if (!validX || !validY) {
         errors.push({
-          path: `vertices[${idx}]`,
-          message: `Vertex '${v.id}' x and y must be finite numbers in mm`,
+          path: !validX ? `vertices[${idx}].x` : `vertices[${idx}].y`,
+          message: `Vertex '${v.id ?? idx}' x and y must be finite numbers in mm`,
         });
+      } else if (validId && isNonEmptyString(v.id)) {
+        vertexMap.set(v.id, { id: v.id, x: v.x as number, y: v.y as number });
       }
     });
   }
 
   // Walls validation
   const wallIdSet = new Set<string>();
-  if (!Array.isArray(input.walls)) {
-    errors.push({ path: "walls", message: "walls must be an array" });
+  const wallMap = new Map<string, Wall>();
+  const wallLengthMap = new Map<string, number>();
+  if (!Array.isArray(input.walls) || input.walls.length === 0) {
+    errors.push({
+      path: "walls",
+      message: "walls must be a non-empty array",
+    });
   } else {
     input.walls.forEach((w: unknown, idx: number) => {
       if (!isObject(w)) {
@@ -117,6 +145,7 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
         return;
       }
 
+      let validId = false;
       if (!isNonEmptyString(w.id)) {
         errors.push({
           path: `walls[${idx}].id`,
@@ -129,33 +158,50 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
         });
       } else {
         wallIdSet.add(w.id);
+        validId = true;
       }
 
-      if (!isNonEmptyString(w.from) || !vertexIdSet.has(w.from)) {
+      const fromExists = isNonEmptyString(w.from) && vertexIdSet.has(w.from);
+      if (!fromExists) {
         errors.push({
           path: `walls[${idx}].from`,
-          message: `Wall '${w.id}' references non-existent Vertex '${w.from}'`,
+          message: `Wall '${w.id ?? idx}' references non-existent Vertex '${w.from}'`,
         });
       }
 
-      if (!isNonEmptyString(w.to) || !vertexIdSet.has(w.to)) {
+      const toExists = isNonEmptyString(w.to) && vertexIdSet.has(w.to);
+      if (!toExists) {
         errors.push({
           path: `walls[${idx}].to`,
-          message: `Wall '${w.id}' references non-existent Vertex '${w.to}'`,
+          message: `Wall '${w.id ?? idx}' references non-existent Vertex '${w.to}'`,
         });
       }
 
       if (w.from === w.to && isNonEmptyString(w.from)) {
         errors.push({
           path: `walls[${idx}]`,
-          message: `Wall '${w.id}' start and end vertices cannot be identical`,
+          message: `Wall '${w.id ?? idx}' start and end vertices cannot be identical`,
         });
+      } else if (fromExists && toExists && isNonEmptyString(w.from) && isNonEmptyString(w.to)) {
+        const vFrom = vertexMap.get(w.from);
+        const vTo = vertexMap.get(w.to);
+        if (vFrom && vTo) {
+          const length = Math.hypot(vTo.x - vFrom.x, vTo.y - vFrom.y);
+          if (!Number.isFinite(length) || length <= 0) {
+            errors.push({
+              path: `walls[${idx}]`,
+              message: `Wall '${w.id ?? idx}' length must be greater than 0 mm (vertices '${w.from}' and '${w.to}' have zero distance)`,
+            });
+          } else if (validId && isNonEmptyString(w.id)) {
+            wallLengthMap.set(w.id, length);
+          }
+        }
       }
 
       if (!isPositiveNumber(w.thickness)) {
         errors.push({
           path: `walls[${idx}].thickness`,
-          message: `Wall '${w.id}' thickness must be positive millimetres`,
+          message: `Wall '${w.id ?? idx}' thickness must be positive millimetres`,
         });
       }
 
@@ -163,7 +209,24 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
       if (!isNonEmptyString(w.lockAxis) || !validLockAxes.includes(w.lockAxis)) {
         errors.push({
           path: `walls[${idx}].lockAxis`,
-          message: `Wall '${w.id}' lockAxis must be one of: ${validLockAxes.join(", ")}`,
+          message: `Wall '${w.id ?? idx}' lockAxis must be one of: ${validLockAxes.join(", ")}`,
+        });
+      }
+
+      if (
+        validId &&
+        isNonEmptyString(w.id) &&
+        fromExists &&
+        toExists &&
+        w.from !== w.to &&
+        isPositiveNumber(w.thickness)
+      ) {
+        wallMap.set(w.id, {
+          id: w.id,
+          from: w.from as string,
+          to: w.to as string,
+          thickness: w.thickness as number,
+          lockAxis: (isNonEmptyString(w.lockAxis) ? w.lockAxis : "none") as Wall["lockAxis"],
         });
       }
     });
@@ -197,35 +260,68 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
         openingIdSet.add(op.id);
       }
 
-      if (!isNonEmptyString(op.wallId) || !wallIdSet.has(op.wallId)) {
-        errors.push({
-          path: `openings[${idx}].wallId`,
-          message: `Opening '${op.id}' references non-existent Wall '${op.wallId}'`,
-        });
-      }
-
       if (
-        !isFiniteNumber(op.position) ||
-        op.position < 0 ||
-        op.position > 1
+        !isNonEmptyString(op.type) ||
+        !VALID_OPENING_TYPES.includes(op.type as (typeof VALID_OPENING_TYPES)[number])
       ) {
         errors.push({
-          path: `openings[${idx}].position`,
-          message: `Opening '${op.id}' position must be between 0.0 and 1.0 (received ${op.position})`,
+          path: `openings[${idx}].type`,
+          message: `Opening '${op.id ?? idx}' type must be one of: ${VALID_OPENING_TYPES.join(", ")}`,
         });
       }
 
-      if (!isPositiveNumber(op.width)) {
+      const wallExists = isNonEmptyString(op.wallId) && wallIdSet.has(op.wallId);
+      if (!wallExists) {
+        errors.push({
+          path: `openings[${idx}].wallId`,
+          message: `Opening '${op.id ?? idx}' references non-existent Wall '${op.wallId}'`,
+        });
+      }
+
+      const validPosition =
+        isFiniteNumber(op.position) && op.position >= 0 && op.position <= 1;
+      if (!validPosition) {
+        errors.push({
+          path: `openings[${idx}].position`,
+          message: `Opening '${op.id ?? idx}' position must be between 0.0 and 1.0 (received ${op.position})`,
+        });
+      }
+
+      const validWidth = isPositiveNumber(op.width);
+      if (!validWidth) {
         errors.push({
           path: `openings[${idx}].width`,
-          message: `Opening '${op.id}' width must be positive millimetres`,
+          message: `Opening '${op.id ?? idx}' width must be positive millimetres`,
         });
+      }
+
+      if (wallExists && validWidth && isNonEmptyString(op.wallId)) {
+        const wallLength = wallLengthMap.get(op.wallId);
+        if (wallLength !== undefined) {
+          const width = op.width as number;
+          if (width > wallLength + 1e-3) {
+            errors.push({
+              path: `openings[${idx}].width`,
+              message: `Opening '${op.id ?? idx}' width (${width}mm) exceeds host Wall '${op.wallId}' length (${Math.round(wallLength)}mm)`,
+            });
+          } else if (validPosition) {
+            const centerOffset = wallLength * (op.position as number);
+            const startOffset = centerOffset - width / 2;
+            const endOffset = centerOffset + width / 2;
+            if (startOffset < -1e-3 || endOffset > wallLength + 1e-3) {
+              errors.push({
+                path: `openings[${idx}].position`,
+                message: `Opening '${op.id ?? idx}' span [${Math.round(startOffset)}mm, ${Math.round(endOffset)}mm] extends beyond host Wall '${op.wallId}' bounds [0, ${Math.round(wallLength)}mm]`,
+              });
+            }
+          }
+        }
       }
 
       if (op.height !== undefined && !isPositiveNumber(op.height)) {
         errors.push({
           path: `openings[${idx}].height`,
-          message: `Opening '${op.id}' height must be positive millimetres if specified`,
+          message: `Opening '${op.id ?? idx}' height must be positive millimetres if specified`,
         });
       }
     });
@@ -233,8 +329,11 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
 
   // Rooms validation
   const roomIdSet = new Set<string>();
-  if (!Array.isArray(input.rooms)) {
-    errors.push({ path: "rooms", message: "rooms must be an array" });
+  if (!Array.isArray(input.rooms) || input.rooms.length === 0) {
+    errors.push({
+      path: "rooms",
+      message: "rooms must be a non-empty array",
+    });
   } else {
     input.rooms.forEach((r: unknown, idx: number) => {
       if (!isObject(r)) {
@@ -262,34 +361,66 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
       if (!isNonEmptyString(r.type)) {
         errors.push({
           path: `rooms[${idx}].type`,
-          message: `Room '${r.id}' type must be a non-empty string`,
+          message: `Room '${r.id ?? idx}' type must be a non-empty string`,
         });
       }
 
-      if (!Array.isArray(r.boundaryWallIds) || r.boundaryWallIds.length === 0) {
+      if (!Array.isArray(r.boundaryWallIds) || r.boundaryWallIds.length < 3) {
         errors.push({
           path: `rooms[${idx}].boundaryWallIds`,
-          message: `Room '${r.id}' boundaryWallIds must be a non-empty array of wall IDs`,
+          message: `Room '${r.id ?? idx}' boundaryWallIds must contain at least 3 wall IDs to form a closed boundary`,
         });
       } else {
+        let allBoundaryWallsExist = true;
+        const boundaryIds: string[] = [];
         r.boundaryWallIds.forEach((wallId: unknown, wIdx: number) => {
           if (!isNonEmptyString(wallId) || !wallIdSet.has(wallId)) {
+            allBoundaryWallsExist = false;
             errors.push({
               path: `rooms[${idx}].boundaryWallIds[${wIdx}]`,
-              message: `Room '${r.id}' boundary references non-existent Wall '${wallId}'`,
+              message: `Room '${r.id ?? idx}' boundary references non-existent Wall '${wallId}'`,
             });
+          } else {
+            boundaryIds.push(wallId);
           }
         });
+
+        if (allBoundaryWallsExist && boundaryIds.every((id) => wallMap.has(id))) {
+          const cycle = traceRoomBoundaryCycle(boundaryIds, wallMap);
+          if (!cycle.ok) {
+            const targetPath =
+              cycle.brokenIndex !== undefined
+                ? `rooms[${idx}].boundaryWallIds[${cycle.brokenIndex}]`
+                : `rooms[${idx}].boundaryWallIds`;
+            errors.push({
+              path: targetPath,
+              message: `Room '${r.id ?? idx}' boundary is not closed: ${cycle.reason}`,
+            });
+          } else {
+            const polyPoints = cycle.vertexIds
+              .map((vid) => vertexMap.get(vid))
+              .filter((v): v is Vertex => v !== undefined)
+              .map((v) => ({ x: v.x, y: v.y }));
+            const area = computePolygonArea(polyPoints);
+            if (area.areaMm2 <= 0) {
+              errors.push({
+                path: `rooms[${idx}].boundaryWallIds`,
+                message: `Room '${r.id ?? idx}' boundary polygon has zero area (degenerate collinear walls)`,
+              });
+            }
+          }
+        }
       }
     });
   }
 
-  // Furniture validation
+  // Furniture validation (optional in candidate JSON; defaults to [] when omitted)
   const furnitureIdSet = new Set<string>();
-  if (!Array.isArray(input.furniture)) {
+  const rawFurniture = input.furniture === undefined ? [] : input.furniture;
+  if (!Array.isArray(rawFurniture)) {
     errors.push({ path: "furniture", message: "furniture must be an array" });
   } else {
-    input.furniture.forEach((f: unknown, idx: number) => {
+    rawFurniture.forEach((f: unknown, idx: number) => {
       if (!isObject(f)) {
         errors.push({
           path: `furniture[${idx}]`,
@@ -346,7 +477,21 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
     return { ok: false, errors };
   }
 
-  return { ok: true, value: input as unknown as FloorPlan };
+  const normalizedValue: FloorPlan = {
+    ...(input as unknown as FloorPlan),
+    furniture: Array.isArray(input.furniture) ? (input.furniture as FloorPlan["furniture"]) : [],
+  };
+
+  return { ok: true, value: normalizedValue };
+}
+
+/**
+ * Validate Candidate FloorPlan (AC-15, AC-16, AC-21)
+ */
+export function validateCandidateFloorPlan(
+  candidate: unknown,
+): ValidationResult<FloorPlan> {
+  return validateFloorPlan(candidate);
 }
 
 const VALID_FURNITURE_CATEGORIES = [
