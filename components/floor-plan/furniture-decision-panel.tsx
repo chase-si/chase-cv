@@ -21,6 +21,7 @@ import type {
 import type { RuleResult } from "@/lib/floor-plan/rules";
 import {
   summarizeFurnitureDecision,
+  formatAssessmentFinding,
   resolvePlanEntityType,
   getPlanEntityLabel,
   type FurnitureDecisionStatus,
@@ -91,10 +92,41 @@ export function FurnitureDecisionPanel({
     });
   }, [plan, targetRoomId, targetFurnitureId, ruleResults, config, locale]);
 
-  const normalizedStatus = React.useMemo(
-    () => normalizeAssessmentStatus(assessment ? assessment.status : decision.status),
-    [assessment, decision.status],
-  );
+  // Filter structured findings strictly to the active target furniture item (AC-3, AC-12)
+  const targetFindings = React.useMemo(() => {
+    if (!assessment) return [];
+    if (!targetFurnitureId) return [];
+    return assessment.findings.filter((f) => f.placementId === targetFurnitureId);
+  }, [assessment, targetFurnitureId]);
+
+  const formattedFindings = React.useMemo(() => {
+    return targetFindings.map((f) => formatAssessmentFinding(f, plan, locale));
+  }, [targetFindings, plan, locale]);
+
+  const normalizedStatus = React.useMemo<AssessmentStatus>(() => {
+    if (!assessment) {
+      return normalizeAssessmentStatus(decision.status);
+    }
+    if (assessment.status === "unavailable" || decision.uncalibrated || !targetFurnitureId) {
+      return "unavailable";
+    }
+    // If assessment contained findings from multiple placements, derive status specifically for targetFindings
+    if (assessment.findings.length > 0 && targetFindings.length !== assessment.findings.length) {
+      const hasMustAdjust = targetFindings.some(
+        (f) =>
+          f.kind === "furniture-overlap" ||
+          f.kind === "wall-overlap" ||
+          f.kind === "outside-room" ||
+          f.kind === "below-minimum-clearance",
+      );
+      if (hasMustAdjust) return "must-adjust";
+      if (targetFindings.some((f) => f.kind === "below-recommended-clearance")) {
+        return "trade-off";
+      }
+      return "suitable";
+    }
+    return normalizeAssessmentStatus(assessment.status);
+  }, [assessment, decision.status, decision.uncalibrated, targetFindings, targetFurnitureId]);
 
   const effectiveStatusLabel = React.useMemo(() => {
     if (assessment) {
@@ -119,19 +151,27 @@ export function FurnitureDecisionPanel({
     }
     const dimText = decision.dimensions ? `（${decision.dimensions.formatted}）` : "";
     const dimTextEn = decision.dimensions ? ` (${decision.dimensions.formatted})` : "";
+    const primaryFinding = formattedFindings[0];
+
     switch (normalizedStatus) {
       case "unavailable":
         return isZh
           ? "当前户型尚未标定真实毫米比例（显示相对像素坐标），暂无法判断净距与活动空间是否通过。需要可靠真实尺寸后才能完成评估，请先标定真实尺寸。"
           : "The floor plan is uncalibrated; millimeter clearances and passage space cannot be determined without reliable real-world dimensions. Please calibrate dimensions first.";
-      case "must-adjust":
+      case "must-adjust": {
+        const detailZh = primaryFinding ? `（${primaryFinding.message}）` : "";
+        const detailEn = primaryFinding ? ` (${primaryFinding.message})` : "";
         return isZh
-          ? `在当前${decision.roomName}放入${decision.furnitureName}${dimText}存在空间冲突或方向净距低于最低要求，评估为必须调整，请移动位置、旋转方向或切换更小规格。`
-          : `Spatial conflicts or clearances below minimum requirements were detected for ${decision.furnitureName}${dimTextEn} in ${decision.roomName}. This placement must be adjusted.`;
-      case "trade-off":
+          ? `基于当前空间规则检测，在${decision.roomName}摆放${decision.furnitureName}${dimText}存在空间冲突或方向净距低于最低要求${detailZh}，评估为必须调整。${primaryFinding?.repairGuidance ?? "请移动位置、旋转方向或切换更小规格。"}`
+          : `Based on current spatial rules, spatial conflicts or clearances below minimum requirements were detected for ${decision.furnitureName}${dimTextEn} in ${decision.roomName}${detailEn}. This placement must be adjusted.`;
+      }
+      case "trade-off": {
+        const detailZh = primaryFinding ? `（${primaryFinding.message}）` : "";
+        const detailEn = primaryFinding ? ` (${primaryFinding.message})` : "";
         return isZh
-          ? `${decision.furnitureName}${dimText}可以放入当前${decision.roomName}，但存在部分方向净距低于推荐值，需要权衡考虑。`
-          : `${decision.furnitureName}${dimTextEn} fits within ${decision.roomName}, but some directional clearances are below recommended thresholds and require trade-off consideration.`;
+          ? `基于当前空间规则检测，${decision.furnitureName}${dimText}可放入${decision.roomName}，但存在部分方向净距低于推荐值${detailZh}，评估为需要权衡考虑。${primaryFinding?.repairGuidance ?? ""}`
+          : `Based on current spatial rules, ${decision.furnitureName}${dimTextEn} fits within ${decision.roomName}, but some directional clearances are below recommended thresholds${detailEn} and require trade-off consideration.`;
+      }
       case "suitable":
       default:
         return decision.summary;
@@ -143,6 +183,7 @@ export function FurnitureDecisionPanel({
     decision.hasTargetFurniture,
     decision.roomName,
     decision.summary,
+    formattedFindings,
     isZh,
     normalizedStatus,
   ]);
@@ -152,103 +193,6 @@ export function FurnitureDecisionPanel({
       return decision.relevantIssues;
     }
 
-    const getSideLabel = (side?: string) => {
-      switch (side) {
-        case "front":
-          return isZh ? "前方 (front)" : "Front (front)";
-        case "back":
-          return isZh ? "后方 (back)" : "Back (back)";
-        case "left":
-          return isZh ? "左侧 (left)" : "Left (left)";
-        case "right":
-          return isZh ? "右侧 (right)" : "Right (right)";
-        default:
-          return isZh ? "方向" : "Side";
-      }
-    };
-
-    const assessmentIssues = assessment.findings.map((f) => {
-      const isOverlap = f.kind === "furniture-overlap";
-      const isWall = f.kind === "wall-overlap";
-      const isOutside = f.kind === "outside-room";
-      const isBelowMin = f.kind === "below-minimum-clearance";
-      const isBelowRec = f.kind === "below-recommended-clearance";
-
-      const sideLabel = getSideLabel(f.side);
-      const obstacleLabel = f.relatedPlacementId
-        ? isZh
-          ? `家具 ${f.relatedPlacementId}`
-          : `furniture ${f.relatedPlacementId}`
-        : f.wallId
-          ? isZh
-            ? `墙体 ${f.wallId}`
-            : `wall ${f.wallId}`
-          : isZh
-            ? "障碍物"
-            : "obstacle";
-
-      let title = isZh ? "空间冲突" : "Spatial Conflict";
-      let message = "";
-      let severity: "error" | "warning" = "error";
-      let recommendedVal: number = f.recommendedMm ?? f.minimumMm ?? 0;
-      let recommendedFormatted = "0 mm";
-      const clearanceRangeFormatted = isZh
-        ? `最低 ${f.minimumMm ?? 0} mm / 推荐 ${f.recommendedMm ?? 0} mm`
-        : `Min ${f.minimumMm ?? 0} mm / Rec ${f.recommendedMm ?? 0} mm`;
-
-      if (isOverlap) {
-        title = isZh ? "家具重叠冲突" : "Furniture Overlap";
-        message = isZh
-          ? `目标家具与 ${f.relatedPlacementId ?? "其他家具"} 重叠 (实测穿插 ${f.measuredMm ?? 0} mm)`
-          : `Overlaps with furniture ${f.relatedPlacementId ?? "other furniture"} (measured ${f.measuredMm ?? 0} mm)`;
-      } else if (isWall) {
-        title = isZh ? "家具穿墙冲突" : "Wall Collision";
-        message = isZh
-          ? `目标家具穿插墙体 ${f.wallId ?? ""} (实测穿插 ${f.measuredMm ?? 0} mm)`
-          : `Collides with wall ${f.wallId ?? ""} (measured ${f.measuredMm ?? 0} mm)`;
-      } else if (isOutside) {
-        title = isZh ? "超出房间边界" : "Outside Room Boundary";
-        message = isZh
-          ? `目标家具超出房间边界 (距边界 ${f.measuredMm ?? 0} mm)`
-          : `Placement extends outside room boundaries (measured ${f.measuredMm ?? 0} mm)`;
-      } else if (isBelowMin) {
-        title = isZh ? "方向净距低于最低要求" : "Below Minimum Clearance";
-        severity = "error";
-        recommendedVal = f.recommendedMm ?? f.minimumMm ?? 0;
-        recommendedFormatted = clearanceRangeFormatted;
-        message = isZh
-          ? `${sideLabel}距${obstacleLabel}实测净距 ${f.measuredMm ?? 0} mm，低于最低要求 ${f.minimumMm ?? 0} mm（推荐 ${f.recommendedMm ?? 0} mm）`
-          : `${sideLabel} clearance to ${obstacleLabel} is ${f.measuredMm ?? 0} mm, below minimum ${f.minimumMm ?? 0} mm (recommended ${f.recommendedMm ?? 0} mm)`;
-      } else if (isBelowRec) {
-        title = isZh ? "方向净距低于推荐值" : "Below Recommended Clearance";
-        severity = "warning";
-        recommendedVal = f.recommendedMm ?? 0;
-        recommendedFormatted = clearanceRangeFormatted;
-        message = isZh
-          ? `${sideLabel}距${obstacleLabel}实测净距 ${f.measuredMm ?? 0} mm，已达最低要求 ${f.minimumMm ?? 0} mm，但低于推荐值 ${f.recommendedMm ?? 0} mm`
-          : `${sideLabel} clearance to ${obstacleLabel} is ${f.measuredMm ?? 0} mm (meets minimum ${f.minimumMm ?? 0} mm, below recommended ${f.recommendedMm ?? 0} mm)`;
-      }
-
-      const relatedIds = [
-        f.placementId,
-        ...(f.relatedPlacementId ? [f.relatedPlacementId] : []),
-        ...(f.wallId ? [f.wallId] : []),
-      ];
-
-      return {
-        ruleId: f.kind,
-        severity,
-        title,
-        message,
-        relatedEntityIds: relatedIds,
-        relatedObjectIds: relatedIds,
-        measuredValue: f.measuredMm,
-        measuredFormatted: f.measuredMm !== undefined ? `${f.measuredMm} mm` : undefined,
-        recommendedValue: recommendedVal,
-        recommendedFormatted,
-      };
-    });
-
     const nonPhysicalLegacyIssues = decision.relevantIssues.filter(
       (issue) =>
         issue.ruleId !== "furniture-overlap" &&
@@ -257,8 +201,8 @@ export function FurnitureDecisionPanel({
         issue.ruleId !== "furniture-clearance",
     );
 
-    return [...assessmentIssues, ...nonPhysicalLegacyIssues];
-  }, [decision.relevantIssues, assessment, isZh]);
+    return [...formattedFindings, ...nonPhysicalLegacyIssues];
+  }, [decision.relevantIssues, assessment, formattedFindings]);
 
   const handleEntityClick = React.useCallback(
     (entityId: string) => {
@@ -524,8 +468,32 @@ export function FurnitureDecisionPanel({
                     {issue.message}
                   </p>
 
-                  {/* Measured vs Recommended Values (AC-16) */}
-                  {(issue.measuredFormatted || issue.recommendedFormatted) && (
+                  {/* Structured Finding Context: Related Object & Side (AC-12) */}
+                  {(issue.relatedObjectName || issue.sideLabel) && (
+                    <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+                      {issue.relatedObjectName && (
+                        <Badge
+                          variant="secondary"
+                          data-testid="finding-related-object"
+                          className="font-normal text-[10px] px-1.5 py-0"
+                        >
+                          {isZh ? `相关对象：${issue.relatedObjectName}` : `Object: ${issue.relatedObjectName}`}
+                        </Badge>
+                      )}
+                      {issue.sideLabel && (
+                        <Badge
+                          variant="outline"
+                          data-testid="finding-side"
+                          className="font-mono text-[10px] px-1.5 py-0"
+                        >
+                          {isZh ? `方向：${issue.sideLabel}` : `Side: ${issue.sideLabel}`}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Measured vs Minimum / Recommended Values (AC-12, AC-16) */}
+                  {(issue.measuredFormatted || issue.minimumFormatted || issue.recommendedFormatted) && (
                     <div className="grid grid-cols-2 gap-1.5 pt-1 text-[10px]">
                       {issue.measuredFormatted && (
                         <div
@@ -546,14 +514,32 @@ export function FurnitureDecisionPanel({
                           className="rounded border border-border/60 bg-background/80 p-1"
                         >
                           <span className="text-muted-foreground block">
-                            {isZh ? "建议值" : "Recommended"}
+                            {isZh ? "最低 / 推荐标准" : "Min / Recommended"}
                           </span>
                           <span className="font-mono font-semibold text-foreground">
                             {issue.recommendedFormatted}
                           </span>
+                          {issue.minimumFormatted && (
+                            <span
+                              data-testid={`finding-minimum-${issue.ruleId}`}
+                              className="sr-only"
+                            >
+                              {issue.minimumFormatted}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
+                  )}
+
+                  {/* Deterministic Repair Guidance Derived from Finding (AC-12, AC-13) */}
+                  {issue.repairGuidance && (
+                    <p
+                      data-testid="finding-repair-guidance"
+                      className="rounded border border-border/50 bg-background/60 p-1.5 text-[11px] font-medium text-foreground leading-snug"
+                    >
+                      {issue.repairGuidance}
+                    </p>
                   )}
 
                   {/* Affected Entities Focus Buttons (AC-17) */}
