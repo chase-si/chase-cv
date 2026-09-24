@@ -125,13 +125,35 @@ export function resolvePlacementSpecification(
     STANDARD_FURNITURE_CATALOG.definitions.find((d) => d.id === placement.definitionId);
 
   if (def) {
+    const dimMatch = placement.specificationId?.match(/(\d+)x(\d+)/i);
+    const matchedByDims = dimMatch
+      ? def.specifications.find(
+          (s) => s.width === parseInt(dimMatch[1], 10) && s.depth === parseInt(dimMatch[2], 10),
+        )
+      : undefined;
+
     const matchedSpec =
       def.specifications.find((s) => s.id === placement.specificationId) ??
+      matchedByDims ??
       def.specifications[0];
 
     if (matchedSpec) {
+      const overrideW =
+        !def.specifications.some((s) => s.id === placement.specificationId) &&
+        !matchedByDims &&
+        dimMatch
+          ? parseInt(dimMatch[1], 10)
+          : matchedSpec.width;
+      const overrideD =
+        !def.specifications.some((s) => s.id === placement.specificationId) &&
+        !matchedByDims &&
+        dimMatch
+          ? parseInt(dimMatch[2], 10)
+          : matchedSpec.depth;
       return {
         ...matchedSpec,
+        width: overrideW,
+        depth: overrideD,
         clearance: {
           front: normalizeThreshold(matchedSpec.clearance.front),
           back: normalizeThreshold(matchedSpec.clearance.back),

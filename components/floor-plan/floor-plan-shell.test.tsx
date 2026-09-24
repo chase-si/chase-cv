@@ -316,5 +316,146 @@ describe("FloorPlanShell Integration (Streamlined MVP Architecture)", () => {
     // Prove topology of original StandardFloorPlan is 100% unmutated
     expect(JSON.stringify(originalPlan)).toBe(planSnapshot);
   });
+
+  it("AC-5: switches specificationId on placed furniture in FloorPlanShell, keeping center (x, y) and rotation unchanged while immediately updating SVG footprint and spatial assessment", () => {
+    const originalPlan: StandardFloorPlan = JSON.parse(
+      JSON.stringify(STUDIO_STANDARD_FLOOR_PLAN),
+    );
+    const bedPlacement: FurniturePlacement = {
+      id: "placement-bed",
+      definitionId: "bed-double",
+      specificationId: "bed-double-1800",
+      x: 1500,
+      y: 1600,
+      rotation: 90,
+    };
+    const initialScenario = createPlacementScenario(
+      originalPlan.meta.id!,
+      [bedPlacement],
+      "placement-bed",
+    );
+    const onScenarioChange = vi.fn();
+
+    render(
+      <FloorPlanShell
+        initialActivePlan={originalPlan}
+        initialScenario={initialScenario}
+        onScenarioChange={onScenarioChange}
+      />,
+    );
+
+    // Select bed on canvas
+    const svgBed = screen.getByTestId("floor-plan-furniture-placement-bed");
+    fireEvent.click(svgBed);
+
+    // Initial state: center (1500, 1600), rotation 90, dimensions 1800 × 2000
+    expect(svgBed).toHaveAttribute("transform", "translate(1500, 1600) rotate(90)");
+    const footprintBefore = screen.getByTestId("furniture-footprint-placement-bed");
+    expect(footprintBefore).toHaveAttribute("width", "1800");
+    expect(footprintBefore).toHaveAttribute("height", "2000");
+    expect(screen.getByTestId("inspector-furniture-dimensions")).toHaveTextContent("1800 × 2000 mm");
+
+    // Switch specification to bed-double-1500 (1500 × 2000 mm)
+    const spec1500Btn = screen.getByTestId("inspector-spec-option-bed-double-1500");
+    fireEvent.click(spec1500Btn);
+
+    // Assert center (x, y) and rotation are strictly unchanged on SVG canvas and inspector
+    const svgBedAfter = screen.getByTestId("floor-plan-furniture-placement-bed");
+    expect(svgBedAfter).toHaveAttribute("transform", "translate(1500, 1600) rotate(90)");
+    expect(screen.getByText("X: 1500 mm, Y: 1600 mm")).toBeInTheDocument();
+    expect(screen.getByText("90°")).toBeInTheDocument();
+
+    // Assert SVG footprint and inspector/decision panel dimensions immediately updated to 1500 × 2000 mm
+    const footprintAfter = screen.getByTestId("furniture-footprint-placement-bed");
+    expect(footprintAfter).toHaveAttribute("width", "1500");
+    expect(footprintAfter).toHaveAttribute("height", "2000");
+    expect(screen.getByTestId("inspector-furniture-dimensions")).toHaveTextContent("1500 × 2000 mm");
+    expect(screen.getByTestId("decision-dimensions")).toHaveTextContent("1500 × 2000 mm");
+
+    // Assert PlacementScenario callback received updated specificationId with preserved x, y, rotation
+    const latestScenario: PlacementScenario =
+      onScenarioChange.mock.calls[onScenarioChange.mock.calls.length - 1][0];
+    const updatedPlacement = latestScenario.placements.find((p) => p.id === "placement-bed");
+    expect(updatedPlacement).toEqual({
+      id: "placement-bed",
+      definitionId: "bed-double",
+      specificationId: "bed-double-1500",
+      x: 1500,
+      y: 1600,
+      rotation: 90,
+    });
+  });
+
+  it("AC-6: moves furniture (drag and nudge), rotates in 90° steps (0 -> 90 -> 180 -> 270 -> 0), and deletes furniture with immediate canvas redraw and assessment sync", () => {
+    const originalPlan: StandardFloorPlan = JSON.parse(
+      JSON.stringify(STUDIO_STANDARD_FLOOR_PLAN),
+    );
+    const bedPlacement: FurniturePlacement = {
+      id: "placement-bed",
+      definitionId: "bed-double",
+      specificationId: "bed-double-1500",
+      x: 500, // Initially colliding with wall (must-adjust)
+      y: 1500,
+      rotation: 0,
+    };
+    const initialScenario = createPlacementScenario(
+      originalPlan.meta.id!,
+      [bedPlacement],
+      "placement-bed",
+    );
+    const onScenarioChange = vi.fn();
+
+    render(
+      <FloorPlanShell
+        initialActivePlan={originalPlan}
+        initialScenario={initialScenario}
+        onScenarioChange={onScenarioChange}
+      />,
+    );
+
+    const svgBed = screen.getByTestId("floor-plan-furniture-placement-bed");
+    fireEvent.click(svgBed);
+
+    // Initially colliding at x=500 -> status is must-adjust
+    expect(screen.getByTestId("decision-status-must-adjust")).toBeInTheDocument();
+
+    // 1. Move furniture via pointer drag on SVG canvas to valid center (x: 1500, y: 1500)
+    fireEvent.pointerDown(svgBed, { button: 0, clientX: 100, clientY: 100 });
+    const svgCanvas = screen.getByTestId("floor-plan-svg-canvas");
+    fireEvent.pointerMove(svgCanvas, { clientX: 250, clientY: 100 });
+    fireEvent.pointerUp(svgCanvas, { button: 0 });
+
+    // Also nudge right to verify immediate coordinate & canvas transform update
+    fireEvent.click(screen.getByTestId("nudge-furniture-right"));
+    const movedScenario: PlacementScenario =
+      onScenarioChange.mock.calls[onScenarioChange.mock.calls.length - 1][0];
+    const movedBed = movedScenario.placements[0];
+    expect(movedBed.x).toBeGreaterThan(500);
+    expect(screen.getByTestId("floor-plan-furniture-placement-bed")).toHaveAttribute(
+      "transform",
+      `translate(${movedBed.x}, ${movedBed.y}) rotate(0)`,
+    );
+
+    // 2. Rotate in 90° steps: 0 -> 90 -> 180 -> 270 -> 0
+    const rotateBtn = screen.getByTestId("rotate-furniture-btn");
+    for (const expectedAngle of [90, 180, 270, 0]) {
+      fireEvent.click(rotateBtn);
+      expect(screen.getByTestId("floor-plan-furniture-placement-bed")).toHaveAttribute(
+        "transform",
+        `translate(${movedBed.x}, ${movedBed.y}) rotate(${expectedAngle})`,
+      );
+      const rotScenario: PlacementScenario =
+        onScenarioChange.mock.calls[onScenarioChange.mock.calls.length - 1][0];
+      expect(rotScenario.placements[0].rotation).toBe(expectedAngle);
+    }
+
+    // 3. Delete furniture: removed from canvas and scenario immediately
+    fireEvent.click(screen.getByTestId("delete-furniture-btn"));
+    expect(screen.queryByTestId("floor-plan-furniture-placement-bed")).not.toBeInTheDocument();
+    const afterDeleteScenario: PlacementScenario =
+      onScenarioChange.mock.calls[onScenarioChange.mock.calls.length - 1][0];
+    expect(afterDeleteScenario.placements).toHaveLength(0);
+    expect(afterDeleteScenario.targetPlacementId).toBeUndefined();
+  });
 });
 

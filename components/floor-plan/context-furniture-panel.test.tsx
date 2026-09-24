@@ -119,4 +119,29 @@ describe("ContextFurniturePanel", () => {
     fireEvent.click(browseBtn);
     expect(onOpenCatalog).toHaveBeenCalledTimes(1);
   });
+
+  it("AC-4: lists predefined specifications for recommended furniture and allows adding a selected specification", () => {
+    const plan = createTestPlan();
+    const onAdd = vi.fn();
+
+    render(
+      <ContextFurniturePanel
+        plan={plan}
+        targetRoomId="r2"
+        catalog={catalog}
+        onAddFurniture={onAdd}
+        onOpenFullCatalog={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("context-spec-list-bed-double")).toBeInTheDocument();
+    const spec1500 = screen.getByTestId("context-spec-option-bed-double-1500");
+    expect(spec1500).toHaveTextContent("1500 × 2000 mm");
+
+    fireEvent.click(spec1500);
+    expect(screen.getByTestId("furniture-default-size-bed-double")).toHaveTextContent("1500 × 2000 mm");
+
+    fireEvent.click(screen.getByTestId("add-context-furniture-bed-double"));
+    expect(onAdd).toHaveBeenCalledWith("bed-double", "bed-double-1500");
+  });
 });

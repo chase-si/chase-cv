@@ -13,7 +13,7 @@ export interface FurnitureCatalogDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   plan: FloorPlan;
-  onSelectDefinition: (definitionId: string) => void;
+  onSelectDefinition: (definitionId: string, specificationId?: string) => void;
   locale?: string;
   t?: FloorPlanDictionary;
   className?: string;
@@ -48,8 +48,12 @@ export function FurnitureCatalogDialog({
     return null;
   }
 
-  const handleSelect = (defId: string) => {
-    onSelectDefinition(defId);
+  const handleSelect = (defId: string, specId?: string) => {
+    if (specId) {
+      onSelectDefinition(defId, specId);
+    } else {
+      onSelectDefinition(defId);
+    }
     onOpenChange(false);
   };
 

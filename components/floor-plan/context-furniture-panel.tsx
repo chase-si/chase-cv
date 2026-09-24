@@ -28,7 +28,7 @@ export interface ContextFurniturePanelProps {
   plan: FloorPlan;
   targetRoomId: string | null;
   catalog?: FurnitureCatalog;
-  onAddFurniture: (definitionId: string) => void;
+  onAddFurniture: (definitionId: string, specificationId?: string) => void;
   onOpenFullCatalog: () => void;
   locale?: string;
   className?: string;
@@ -51,6 +51,8 @@ export function ContextFurniturePanel({
     () => propCatalog ?? getDefaultFurnitureCatalog(),
     [propCatalog],
   );
+
+  const [selectedSpecs, setSelectedSpecs] = React.useState<Record<string, string>>({});
 
   const targetRoom = React.useMemo<Room | null>(() => {
     if (!targetRoomId) return null;
@@ -146,11 +148,15 @@ export function ContextFurniturePanel({
         </p>
       </div>
 
-      {/* Recommended Furniture Items (AC-10, AC-11) */}
+      {/* Recommended Furniture Items (AC-4, AC-10, AC-11) */}
       <div className="space-y-2">
         {recommendedDefinitions.map((def) => {
-          const width = def.defaultSize?.width ?? def.specifications?.[0]?.width ?? 0;
-          const depth = def.defaultSize?.depth ?? def.specifications?.[0]?.depth ?? 0;
+          const defaultSpec = def.specifications?.[0];
+          const activeSpecId = selectedSpecs[def.id] ?? defaultSpec?.id;
+          const activeSpec =
+            def.specifications?.find((s) => s.id === activeSpecId) ?? defaultSpec;
+          const width = activeSpec?.width ?? def.defaultSize?.width ?? 0;
+          const depth = activeSpec?.depth ?? def.defaultSize?.depth ?? 0;
           const localizedName = i18n.getFurnitureName(def.id, def.name);
 
           return (
@@ -159,8 +165,8 @@ export function ContextFurniturePanel({
               data-testid={`recommended-furniture-${def.id}`}
               className="overflow-hidden border-border bg-card p-3 transition-colors hover:border-primary/50"
             >
-              <div className="flex items-center justify-between gap-2">
-                <div className="space-y-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-1.5 min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <span className="font-semibold text-foreground text-xs truncate">
                       {localizedName}
@@ -179,6 +185,35 @@ export function ContextFurniturePanel({
                     <span>{cfT.defaultDimensions}: </span>
                     <strong className="text-foreground">{width} × {depth} mm</strong>
                   </div>
+                  {def.specifications && def.specifications.length > 0 && (
+                    <div
+                      data-testid={`context-spec-list-${def.id}`}
+                      className="flex flex-wrap items-center gap-1 pt-0.5"
+                    >
+                      {def.specifications.map((spec) => {
+                        const isSelected = activeSpec?.id === spec.id;
+                        return (
+                          <Button
+                            key={spec.id}
+                            type="button"
+                            size="sm"
+                            variant={isSelected ? "default" : "outline"}
+                            data-testid={`context-spec-option-${spec.id}`}
+                            aria-pressed={isSelected}
+                            onClick={() =>
+                              setSelectedSpecs((prev) => ({
+                                ...prev,
+                                [def.id]: spec.id,
+                              }))
+                            }
+                            className="h-6 px-2 text-[10px] font-mono"
+                          >
+                            {spec.name}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 <Button
@@ -187,7 +222,13 @@ export function ContextFurniturePanel({
                   variant="default"
                   data-testid={`add-context-furniture-${def.id}`}
                   aria-label={`${cfT.addBtn} ${localizedName}`}
-                  onClick={() => onAddFurniture(def.id)}
+                  onClick={() => {
+                    if (activeSpecId && activeSpecId !== defaultSpec?.id) {
+                      onAddFurniture(def.id, activeSpecId);
+                    } else {
+                      onAddFurniture(def.id);
+                    }
+                  }}
                   className="h-11 min-h-[44px] sm:h-8 sm:min-h-0 px-3 text-xs font-medium gap-1 shrink-0 touch-manipulation shadow-xs focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                 >
                   <Plus className="h-3.5 w-3.5" />
