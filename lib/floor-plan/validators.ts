@@ -687,6 +687,8 @@ export function validateFurnitureDefinition(
     };
   }
 
+  const defIdLabel = isNonEmptyString(input.id) ? ` in definition '${input.id}'` : "";
+
   if (!isNonEmptyString(input.id)) {
     errors.push({
       path: "id",
@@ -697,7 +699,7 @@ export function validateFurnitureDefinition(
   if (!isNonEmptyString(input.name)) {
     errors.push({
       path: "name",
-      message: "FurnitureDefinition name must be a non-empty string",
+      message: `FurnitureDefinition name must be a non-empty string${defIdLabel}`,
     });
   }
 
@@ -707,14 +709,14 @@ export function validateFurnitureDefinition(
   ) {
     errors.push({
       path: "category",
-      message: `FurnitureDefinition category must be one of: ${VALID_FURNITURE_CATEGORIES.join(", ")}`,
+      message: `FurnitureDefinition category must be one of: ${VALID_FURNITURE_CATEGORIES.join(", ")}${defIdLabel}`,
     });
   }
 
   if (!Array.isArray(input.specifications)) {
     errors.push({
       path: "specifications",
-      message: "FurnitureDefinition specifications must be an array",
+      message: `FurnitureDefinition specifications must be an array${defIdLabel}`,
     });
   } else if (input.specifications.length === 0) {
     errors.push({
@@ -728,7 +730,7 @@ export function validateFurnitureDefinition(
       if (!isObject(spec)) {
         errors.push({
           path: specPath,
-          message: "FurnitureSpecification must be an object",
+          message: `FurnitureSpecification must be an object${defIdLabel}`,
         });
         return;
       }
@@ -736,7 +738,7 @@ export function validateFurnitureDefinition(
       if (!isNonEmptyString(spec.id)) {
         errors.push({
           path: `${specPath}.id`,
-          message: "FurnitureSpecification id must be a non-empty string",
+          message: `FurnitureSpecification id must be a non-empty string${defIdLabel}`,
         });
       } else if (specIdSet.has(spec.id)) {
         errors.push({
@@ -750,35 +752,35 @@ export function validateFurnitureDefinition(
       if (!isNonEmptyString(spec.name)) {
         errors.push({
           path: `${specPath}.name`,
-          message: `FurnitureSpecification '${spec.id || sIdx}' name must be a non-empty string`,
+          message: `FurnitureSpecification '${spec.id || sIdx}' name must be a non-empty string${defIdLabel}`,
         });
       }
 
       if (!isPositiveNumber(spec.width)) {
         errors.push({
           path: `${specPath}.width`,
-          message: `Specification '${spec.id || sIdx}' width must be a positive finite number in mm`,
+          message: `Specification '${spec.id || sIdx}' width must be a positive finite number in mm${defIdLabel}`,
         });
       }
 
       if (!isPositiveNumber(spec.depth)) {
         errors.push({
           path: `${specPath}.depth`,
-          message: `Specification '${spec.id || sIdx}' depth must be a positive finite number in mm`,
+          message: `Specification '${spec.id || sIdx}' depth must be a positive finite number in mm${defIdLabel}`,
         });
       }
 
       if (spec.height !== undefined && !isPositiveNumber(spec.height)) {
         errors.push({
           path: `${specPath}.height`,
-          message: `Specification '${spec.id || sIdx}' height must be a positive finite number in mm if specified`,
+          message: `Specification '${spec.id || sIdx}' height must be a positive finite number in mm if specified${defIdLabel}`,
         });
       }
 
       if (!isObject(spec.clearance)) {
         errors.push({
           path: `${specPath}.clearance`,
-          message: `Specification '${spec.id || sIdx}' clearance must be an object containing front, back, left, and right thresholds`,
+          message: `Specification '${spec.id || sIdx}' clearance must be an object containing front, back, left, and right thresholds${defIdLabel}`,
         });
       } else {
         for (const side of VALID_FURNITURE_SIDES) {
@@ -787,7 +789,7 @@ export function validateFurnitureDefinition(
           if (!isObject(sideThreshold)) {
             errors.push({
               path: sidePath,
-              message: `Clearance threshold for side '${side}' in specification '${spec.id || sIdx}' must be an object with minimum and recommended`,
+              message: `Clearance threshold for side '${side}' in specification '${spec.id || sIdx}' must be an object with minimum and recommended${defIdLabel}`,
             });
             continue;
           }
@@ -799,7 +801,7 @@ export function validateFurnitureDefinition(
           if (!isNonNegativeNumber(minimum)) {
             errors.push({
               path: `${sidePath}.minimum`,
-              message: `Clearance minimum for side '${side}' in specification '${spec.id || sIdx}' must be a non-negative finite number in mm`,
+              message: `Clearance minimum for side '${side}' in specification '${spec.id || sIdx}' must be a non-negative finite number in mm${defIdLabel}`,
             });
             minValid = false;
           }
@@ -807,7 +809,7 @@ export function validateFurnitureDefinition(
           if (!isNonNegativeNumber(recommended)) {
             errors.push({
               path: `${sidePath}.recommended`,
-              message: `Clearance recommended for side '${side}' in specification '${spec.id || sIdx}' must be a non-negative finite number in mm`,
+              message: `Clearance recommended for side '${side}' in specification '${spec.id || sIdx}' must be a non-negative finite number in mm${defIdLabel}`,
             });
             recValid = false;
           }
@@ -815,7 +817,7 @@ export function validateFurnitureDefinition(
           if (minValid && recValid && (minimum as number) > (recommended as number)) {
             errors.push({
               path: sidePath,
-              message: `Clearance minimum (${minimum}) must be <= recommended (${recommended}) for side '${side}' in specification '${spec.id || sIdx}'`,
+              message: `Clearance minimum (${minimum}) must be <= recommended (${recommended}) for side '${side}' in specification '${spec.id || sIdx}'${defIdLabel}`,
             });
           }
         }
@@ -828,6 +830,134 @@ export function validateFurnitureDefinition(
   }
 
   return { ok: true, value: input as unknown as FurnitureDefinition };
+}
+
+/**
+ * Deep-clone and normalize a validated FurnitureDefinition.
+ */
+export function cloneFurnitureDefinition(
+  def: FurnitureDefinition,
+): FurnitureDefinition {
+  return {
+    id: def.id,
+    name: def.name,
+    category: def.category,
+    specifications: def.specifications.map((spec) => ({
+      id: spec.id,
+      name: spec.name,
+      width: spec.width,
+      depth: spec.depth,
+      ...(spec.height !== undefined ? { height: spec.height } : {}),
+      clearance: {
+        front: {
+          minimum: spec.clearance.front.minimum,
+          recommended: spec.clearance.front.recommended,
+        },
+        back: {
+          minimum: spec.clearance.back.minimum,
+          recommended: spec.clearance.back.recommended,
+        },
+        left: {
+          minimum: spec.clearance.left.minimum,
+          recommended: spec.clearance.left.recommended,
+        },
+        right: {
+          minimum: spec.clearance.right.minimum,
+          recommended: spec.clearance.right.recommended,
+        },
+      },
+    })),
+    ...(def.defaultSize ? { defaultSize: { ...def.defaultSize } } : {}),
+    ...(def.allowedSizeRanges
+      ? {
+          allowedSizeRanges: {
+            ...(def.allowedSizeRanges.width
+              ? { width: { ...def.allowedSizeRanges.width } }
+              : {}),
+            ...(def.allowedSizeRanges.depth
+              ? { depth: { ...def.allowedSizeRanges.depth } }
+              : {}),
+            ...(def.allowedSizeRanges.height
+              ? { height: { ...def.allowedSizeRanges.height } }
+              : {}),
+          },
+        }
+      : {}),
+    ...(def.clearanceRules ? { clearanceRules: { ...def.clearanceRules } } : {}),
+  };
+}
+
+/**
+ * Strict FurnitureDefinition Render Adapter (AC-19, AC-20, AC-21).
+ * Uses `validateFurnitureDefinition` so the preview and the catalog gate share the exact same validator.
+ * Never repairs invalid furniture dimensions or clearances.
+ */
+export function prepareFurnitureDefinitionForRender(
+  input: string | unknown,
+): ValidationResult<FurnitureDefinition> {
+  let parsed: unknown = input;
+  if (typeof input === "string") {
+    const trimmed = input.trim();
+    if (!trimmed) {
+      return {
+        ok: false,
+        errors: [
+          {
+            path: "$",
+            message: "FurnitureDefinition JSON input is empty",
+          },
+        ],
+      };
+    }
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Invalid JSON syntax";
+      return {
+        ok: false,
+        errors: [
+          {
+            path: "$",
+            message: `JSON Parse Error: ${msg}`,
+          },
+        ],
+      };
+    }
+  }
+
+  const validation = validateFurnitureDefinition(parsed);
+  if (!validation.ok) {
+    return validation;
+  }
+
+  return {
+    ok: true,
+    value: cloneFurnitureDefinition(validation.value),
+  };
+}
+
+/**
+ * Format a validated FurnitureDefinition into canonical JSON for catalog export (AC-20).
+ */
+export function serializeFurnitureDefinitionFinalJson(
+  definition: FurnitureDefinition,
+): string {
+  const cloned = cloneFurnitureDefinition(definition);
+  const primarySpec = cloned.specifications[0];
+  const defaultSize = cloned.defaultSize ?? {
+    width: primarySpec?.width ?? 1000,
+    depth: primarySpec?.depth ?? 1000,
+    ...(primarySpec?.height !== undefined ? { height: primarySpec.height } : {}),
+  };
+
+  return JSON.stringify(
+    {
+      ...cloned,
+      defaultSize,
+    },
+    null,
+    2,
+  );
 }
 
 /**

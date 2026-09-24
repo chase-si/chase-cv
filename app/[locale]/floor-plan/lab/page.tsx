@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
-import { CandidatePlanPreview } from "@/components/floor-plan/candidate-plan-preview";
+import { FloorPlanLabWorkspace } from "@/components/floor-plan/floor-plan-lab-workspace";
 import type { AppLocale } from "@/i18n/routing";
 import {
   FLOOR_PLAN_ROBOTS_METADATA,
@@ -22,8 +22,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         : "Floor Plan Lab | Chase's CV",
     description:
       locale === "zh"
-        ? "候选户型资产预览与空间验证实验室"
-        : "Candidate floor plan asset preview and spatial validation lab",
+        ? "候选户型资产预览与家具规格验证实验室"
+        : "Candidate floor plan and furniture specification validation lab",
     robots: FLOOR_PLAN_ROBOTS_METADATA,
   };
 }
@@ -36,5 +36,5 @@ export default async function FloorPlanLabPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <CandidatePlanPreview locale={locale} />;
+  return <FloorPlanLabWorkspace locale={locale} />;
 }
