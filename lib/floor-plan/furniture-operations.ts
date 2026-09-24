@@ -11,6 +11,7 @@ import type {
   FurnitureCatalog,
   FurnitureDefinition,
   FurnitureInstance,
+  FurnitureSpecification,
 } from "./types";
 
 import { cloneFloorPlan } from "./user-plan";
@@ -22,12 +23,25 @@ export interface PlacementOptions {
   rotation?: number;
   id?: string;
   roomId?: string;
+  specificationId?: string;
 }
 
 export interface ResizeOptions {
   clamp?: boolean;
   locale?: string;
 }
+
+export type ChangeSpecificationResult =
+  | {
+      success: true;
+      plan: FloorPlan;
+      instance: FurnitureInstance;
+      specification: FurnitureSpecification;
+    }
+  | {
+      success: false;
+      error: string;
+    };
 
 export type AddFurnitureResult =
   | {
@@ -197,16 +211,19 @@ export function addFurnitureInstance(
   const id =
     placement?.id ?? `f-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
-  const defaultSpec = def.specifications?.[0];
-  const width = def.defaultSize?.width ?? defaultSpec?.width ?? 1000;
-  const depth = def.defaultSize?.depth ?? defaultSpec?.depth ?? 1000;
-  const height = def.defaultSize?.height ?? defaultSpec?.height;
+  const selectedSpec =
+    (placement?.specificationId
+      ? def.specifications?.find((s) => s.id === placement.specificationId)
+      : undefined) ?? def.specifications?.[0];
+  const width = selectedSpec?.width ?? def.defaultSize?.width ?? 1000;
+  const depth = selectedSpec?.depth ?? def.defaultSize?.depth ?? 1000;
+  const height = selectedSpec?.height ?? def.defaultSize?.height;
 
-  // Default dimensions from definition or primary specification
+  // Dimensions resolved from predefined specification or definition default
   const instance: FurnitureInstance = {
     id,
     definitionId: def.id,
-    specificationId: defaultSpec?.id,
+    specificationId: selectedSpec?.id ?? placement?.specificationId,
     x: Math.round(posX),
     y: Math.round(posY),
     width,
@@ -222,6 +239,55 @@ export function addFurnitureInstance(
     success: true,
     plan: nextPlan,
     instance: { ...instance },
+  };
+}
+
+/**
+ * Switches a placed furniture instance to another predefined FurnitureSpecification
+ * while keeping center (x, y) and rotation strictly unchanged (AC-5).
+ */
+export function changeFurnitureSpecification(
+  plan: FloorPlan,
+  catalog: FurnitureCatalog,
+  furnitureId: string,
+  specificationId: string,
+): ChangeSpecificationResult {
+  const existing = plan.furniture.find((f) => f.id === furnitureId);
+  if (!existing) {
+    return {
+      success: false,
+      error: `Furniture instance "${furnitureId}" not found.`,
+    };
+  }
+
+  const def = catalog.definitions.find((d) => d.id === existing.definitionId);
+  if (!def) {
+    return {
+      success: false,
+      error: `Furniture definition "${existing.definitionId}" not found in catalog.`,
+    };
+  }
+
+  const spec = def.specifications.find((s) => s.id === specificationId);
+  if (!spec) {
+    return {
+      success: false,
+      error: `Furniture specification "${specificationId}" not found for definition "${def.id}".`,
+    };
+  }
+
+  const nextPlan = cloneFloorPlan(plan);
+  const target = nextPlan.furniture.find((f) => f.id === furnitureId)!;
+  target.specificationId = spec.id;
+  target.width = spec.width;
+  target.depth = spec.depth;
+  // Center (x, y) and rotation remain unchanged (AC-5)
+
+  return {
+    success: true,
+    plan: nextPlan,
+    instance: { ...target },
+    specification: { ...spec },
   };
 }
 

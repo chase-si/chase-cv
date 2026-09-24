@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { FloorPlan } from "@/lib/floor-plan";
 import { VALID_STANDARD_FLOOR_PLAN } from "@/lib/floor-plan/fixtures";
 import type { RuleResult } from "@/lib/floor-plan/rules";
+import { FurnitureDecisionControls } from "./furniture-decision-controls";
 import { FurnitureDecisionPanel } from "./furniture-decision-panel";
 
 afterEach(() => {
@@ -359,6 +360,53 @@ describe("FurnitureDecisionPanel Component (AC-14, AC-15, AC-16, AC-17)", () => 
       expect(recIssue).toHaveTextContent("左侧 (left)");
       expect(recIssue).toHaveTextContent("650 mm");
       expect(recIssue).toHaveTextContent("最低 600 mm / 推荐 750 mm");
+    });
+  });
+
+  describe("AC-4 & AC-5: Predefined Specification Controls in FurnitureDecisionControls & FurnitureDecisionPanel", () => {
+    it("renders predefined specifications in FurnitureDecisionControls without arbitrary size controls, and switches specification while keeping center and rotation unchanged", () => {
+      const plan = getPlan();
+      // f2 is bed-double at (4300, 1200)
+      plan.furniture = plan.furniture.map((f) =>
+        f.id === "f2"
+          ? { ...f, specificationId: "bed-double-1800", x: 4300, y: 1200, rotation: 90 }
+          : f,
+      );
+      const handleUpdatePlan = vi.fn();
+
+      render(
+        <FurnitureDecisionControls
+          plan={plan}
+          targetRoomId="r2"
+          targetFurnitureId="f2"
+          ruleResults={[]}
+          locale="zh"
+          onUpdatePlan={handleUpdatePlan}
+        />,
+      );
+
+      expect(screen.getByTestId("decision-controls-specifications")).toBeInTheDocument();
+      const spec1800 = screen.getByTestId("decision-spec-option-bed-double-1800");
+      const spec1500 = screen.getByTestId("decision-spec-option-bed-double-1500");
+      expect(spec1800).toHaveTextContent("1800 × 2000 mm");
+      expect(spec1500).toHaveTextContent("1500 × 2000 mm");
+
+      // No arbitrary width/depth inputs or arbitrary width steppers like 1.6m
+      expect(screen.queryByTestId("furniture-width-input")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("furniture-depth-input")).not.toBeInTheDocument();
+      expect(screen.queryByText("1.6m")).not.toBeInTheDocument();
+
+      // Switch to bed-double-1500
+      fireEvent.click(spec1500);
+      expect(handleUpdatePlan).toHaveBeenCalledTimes(1);
+      const updatedPlan = handleUpdatePlan.mock.calls[0][0];
+      const updatedBed = updatedPlan.furniture.find((f: any) => f.id === "f2");
+      expect(updatedBed.specificationId).toBe("bed-double-1500");
+      expect(updatedBed.width).toBe(1500);
+      expect(updatedBed.depth).toBe(2000);
+      expect(updatedBed.x).toBe(4300);
+      expect(updatedBed.y).toBe(1200);
+      expect(updatedBed.rotation).toBe(90);
     });
   });
 });

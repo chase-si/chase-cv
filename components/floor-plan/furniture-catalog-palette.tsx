@@ -38,7 +38,7 @@ interface FurnitureCatalogPaletteProps {
   catalog?: FurnitureCatalog;
   onUpdatePlan?: (updatedPlan: FloorPlan) => void;
   onSelect?: (entity: SelectedEntity | null) => void;
-  onSelectDefinition?: (definitionId: string) => void;
+  onSelectDefinition?: (definitionId: string, specificationId?: string) => void;
   onClose?: () => void;
   className?: string;
 }
@@ -75,7 +75,7 @@ export function FurnitureCatalogPalette({
     FurnitureCategory | "all"
   >("all");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
-  const [recentlyAddedId, setRecentlyAddedId] = React.useState<string | null>(null);
+  const [selectedSpecs, setSelectedSpecs] = React.useState<Record<string, string>>({});
 
   // Filter definitions based on category and search query (AC-10)
   const filteredDefinitions = React.useMemo(() => {
@@ -99,24 +99,29 @@ export function FurnitureCatalogPalette({
     });
   }, [catalog.definitions, selectedCategory, searchQuery, i18n]);
 
-  // Add furniture item using default dimensions (AC-10, AC-12)
+  // Add furniture item using selected predefined specification (AC-4, AC-10, AC-12)
   const handleAddFurniture = (def: FurnitureDefinition) => {
+    const defaultSpec = def.specifications?.[0];
+    const chosenSpecId = selectedSpecs[def.id] ?? defaultSpec?.id;
+
     if (onSelectDefinition) {
-      onSelectDefinition(def.id);
+      if (chosenSpecId && chosenSpecId !== defaultSpec?.id) {
+        onSelectDefinition(def.id, chosenSpecId);
+      } else {
+        onSelectDefinition(def.id);
+      }
       if (onClose) {
         onClose();
       }
       return;
     }
 
-    const res = addFurnitureInstance(plan, catalog, def.id);
+    const res = addFurnitureInstance(plan, catalog, def.id, {
+      specificationId: chosenSpecId,
+    });
     if (res.success) {
-      setRecentlyAddedId(res.instance.id);
       onUpdatePlan?.(res.plan);
       onSelect?.({ type: "furniture", id: res.instance.id });
-      setTimeout(() => {
-        setRecentlyAddedId(null);
-      }, 1500);
       if (onClose) {
         onClose();
       }
@@ -195,11 +200,12 @@ export function FurnitureCatalogPalette({
         ) : (
           filteredDefinitions.map((def) => {
             const defaultSpec = def.specifications?.[0];
-            const width = def.defaultSize?.width ?? defaultSpec?.width ?? 0;
-            const depth = def.defaultSize?.depth ?? defaultSpec?.depth ?? 0;
-            const height = def.defaultSize?.height ?? defaultSpec?.height;
-            const widthRange = def.allowedSizeRanges?.width;
-            const depthRange = def.allowedSizeRanges?.depth;
+            const activeSpecId = selectedSpecs[def.id] ?? defaultSpec?.id;
+            const activeSpec =
+              def.specifications?.find((s) => s.id === activeSpecId) ?? defaultSpec;
+            const width = activeSpec?.width ?? def.defaultSize?.width ?? 0;
+            const depth = activeSpec?.depth ?? def.defaultSize?.depth ?? 0;
+            const height = activeSpec?.height ?? def.defaultSize?.height;
 
             return (
               <Card
@@ -208,7 +214,7 @@ export function FurnitureCatalogPalette({
                 className="overflow-hidden border-border/80 hover:border-primary/50 transition-colors bg-card/60 p-2.5"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="space-y-1 min-w-0">
+                  <div className="space-y-1.5 min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <span className="font-semibold text-foreground text-xs truncate">
                         {i18n.getFurnitureName(def.id, def.name)}
@@ -223,19 +229,46 @@ export function FurnitureCatalogPalette({
 
                     <div className="flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
                       <span>
-                        {i18n.locale === "zh" ? "默认：" : "Default: "}<strong className="text-foreground">{width} × {depth} mm</strong>
+                        {i18n.locale === "zh" ? "当前规格：" : "Selected: "}
+                        <strong className="text-foreground">{width} × {depth} mm</strong>
                       </span>
                       {height && (
                         <span>({i18n.locale === "zh" ? `高：${height} mm` : `H: ${height} mm`})</span>
                       )}
                     </div>
 
-                    {(widthRange || depthRange) && (
-                      <p className="text-[10px] text-muted-foreground/80 leading-tight">
-                        {i18n.locale === "zh"
-                          ? `可调范围：宽 ${widthRange?.min}–${widthRange?.max}mm，深 ${depthRange?.min}–${depthRange?.max}mm`
-                          : `Range: W ${widthRange?.min}–${widthRange?.max}mm, D ${depthRange?.min}–${depthRange?.max}mm`}
-                      </p>
+                    {/* Predefined Specifications List (AC-4) */}
+                    {def.specifications && def.specifications.length > 0 && (
+                      <div
+                        data-testid={`furniture-spec-list-${def.id}`}
+                        className="flex flex-wrap items-center gap-1 pt-0.5"
+                      >
+                        <span className="text-[10px] text-muted-foreground mr-0.5">
+                          {i18n.locale === "zh" ? "预设规格：" : "Specs:"}
+                        </span>
+                        {def.specifications.map((spec) => {
+                          const isSelected = activeSpec?.id === spec.id;
+                          return (
+                            <Button
+                              key={spec.id}
+                              type="button"
+                              size="sm"
+                              variant={isSelected ? "default" : "outline"}
+                              data-testid={`catalog-spec-option-${spec.id}`}
+                              aria-pressed={isSelected}
+                              onClick={() =>
+                                setSelectedSpecs((prev) => ({
+                                  ...prev,
+                                  [def.id]: spec.id,
+                                }))
+                              }
+                              className="h-6 px-2 text-[10px] font-mono"
+                            >
+                              {spec.name}
+                            </Button>
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
 
