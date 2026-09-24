@@ -219,6 +219,38 @@ export interface FurnitureCatalogV1 {
 }
 
 /**
+ * Space Assessment Types (Contract Section 4)
+ */
+export type AssessmentStatus =
+  | "suitable"
+  | "trade-off"
+  | "must-adjust"
+  | "unavailable";
+
+export type AssessmentFindingKind =
+  | "furniture-overlap"
+  | "wall-overlap"
+  | "outside-room"
+  | "below-minimum-clearance"
+  | "below-recommended-clearance";
+
+export interface AssessmentFinding {
+  kind: AssessmentFindingKind;
+  placementId: string;
+  relatedPlacementId?: string;
+  wallId?: string;
+  side?: FurnitureSide;
+  measuredMm?: number;
+  minimumMm?: number;
+  recommendedMm?: number;
+}
+
+export interface SpaceAssessment {
+  status: AssessmentStatus;
+  findings: AssessmentFinding[];
+}
+
+/**
  * Space-Rule Configuration
  */
 export interface CollisionRuleConfig {

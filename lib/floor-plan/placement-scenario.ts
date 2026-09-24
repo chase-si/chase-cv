@@ -8,10 +8,12 @@ import type {
   PlacementScenario,
   SpaceRuleConfig,
   StandardFloorPlan,
+  SpaceAssessment,
 } from "./types";
 import { STANDARD_FURNITURE_CATALOG } from "./furniture-catalog";
 import { cloneFloorPlan } from "./user-plan";
 import { evaluatePlanRules, type RuleResult } from "./rules";
+import { assessPlacementScenario } from "./space-assessment";
 import {
   summarizeFurnitureDecision,
   type FurnitureDecisionSummary,
@@ -286,6 +288,7 @@ export interface PlacementScenarioEvaluationResult {
   targetPlacement: FurniturePlacement | null;
   ruleResults: RuleResult[];
   summary: FurnitureDecisionSummary;
+  assessment: SpaceAssessment;
 }
 
 /**
@@ -315,6 +318,12 @@ export function evaluatePlacementScenario(
     ? scenario.placements.find((p) => p.id === scenario.targetPlacementId) ?? null
     : null;
 
+  // Perform structured space assessment (Contract Section 4, Issue #219)
+  const assessment = assessPlacementScenario(plan, scenario, catalog, {
+    targetPlacementId: targetPlacement?.id,
+    focusRoomId: targetRoomId ?? undefined,
+  });
+
   // Summarize decision focused on target furniture (if selected)
   const summary = summarizeFurnitureDecision({
     plan: combinedPlan,
@@ -330,5 +339,6 @@ export function evaluatePlacementScenario(
     targetPlacement,
     ruleResults,
     summary,
+    assessment,
   };
 }

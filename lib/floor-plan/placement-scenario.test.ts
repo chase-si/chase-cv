@@ -313,11 +313,16 @@ describe("AC-3: Multi-furniture Coexistence & Target Placement Evaluation Contra
     expect(overlapIssueA?.relatedEntityIds).toContain("item-a");
     expect(overlapIssueA?.relatedObjectIds).toContain("item-b");
     expect(evalA.summary.status).toBe("not-recommended");
+    expect(evalA.assessment).toBeDefined();
+    expect(evalA.assessment.status).toBe("must-adjust");
+    expect(evalA.assessment.findings.some((f) => f.kind === "furniture-overlap")).toBe(true);
 
     // Target = undefined
     scenario = setTargetPlacement(scenario, undefined);
     const evalNone = evaluatePlacementScenario(plan, scenario);
     expect(evalNone.summary.hasTargetFurniture).toBe(false);
+    expect(evalNone.assessment).toBeDefined();
+    expect(evalNone.assessment.status).toBe("must-adjust");
     // Overlap is still detected and counted in total violations
     expect(
       evalNone.ruleResults.some((r) => r.ruleId === "furniture-overlap"),

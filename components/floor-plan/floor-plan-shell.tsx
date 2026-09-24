@@ -21,6 +21,7 @@ import {
   applyPlacementScenarioToFloorPlan,
   floorPlanToPlacementScenario,
 } from "@/lib/floor-plan/placement-scenario";
+import { assessPlacementScenario } from "@/lib/floor-plan/space-assessment";
 import { evaluatePlanRules } from "@/lib/floor-plan/rules";
 import {
   computePolygonArea,
@@ -206,6 +207,18 @@ export function FloorPlanShell({
 
   // Evaluate spatial rules deterministically
   const violations = React.useMemo(() => evaluatePlanRules(currentPlan), [currentPlan]);
+
+  // Derive placement scenario and assess physical space
+  const currentScenario = React.useMemo(() => {
+    return floorPlanToPlacementScenario(currentPlan, targetFurnitureId ?? undefined);
+  }, [currentPlan, targetFurnitureId]);
+
+  const spaceAssessment = React.useMemo(() => {
+    return assessPlacementScenario(currentPlan, currentScenario, undefined, {
+      targetPlacementId: targetFurnitureId ?? undefined,
+      focusRoomId: targetRoomId ?? undefined,
+    });
+  }, [currentPlan, currentScenario, targetFurnitureId, targetRoomId]);
 
   const targetRoom = React.useMemo(() => {
     if (!targetRoomId) return null;
@@ -491,6 +504,7 @@ export function FloorPlanShell({
           targetRoomId={targetRoomId}
           targetFurnitureId={targetFurnitureId}
           ruleResults={violations}
+          assessment={spaceAssessment}
           selectedEntity={selectedEntity}
           onSelectEntity={handleSelectEntity}
           locale={locale}
@@ -688,6 +702,7 @@ export function FloorPlanShell({
                       targetRoomId={targetRoomId}
                       targetFurnitureId={targetFurniture.id}
                       ruleResults={violations}
+                      assessment={spaceAssessment}
                       selectedEntity={selectedEntity}
                       onSelectEntity={handleSelectEntity}
                       locale={locale}
