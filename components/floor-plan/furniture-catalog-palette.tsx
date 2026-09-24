@@ -248,6 +248,7 @@ export function FurnitureCatalogPalette({
                         </span>
                         {def.specifications.map((spec) => {
                           const isSelected = activeSpec?.id === spec.id;
+                          const localizedDefName = i18n.getFurnitureName(def.id, def.name);
                           return (
                             <Button
                               key={spec.id}
@@ -255,14 +256,20 @@ export function FurnitureCatalogPalette({
                               size="sm"
                               variant={isSelected ? "default" : "outline"}
                               data-testid={`catalog-spec-option-${spec.id}`}
+                              data-selected={isSelected ? "true" : "false"}
                               aria-pressed={isSelected}
+                              aria-label={
+                                i18n.locale === "zh"
+                                  ? `选择 ${localizedDefName} 规格 ${spec.name}`
+                                  : `Select ${localizedDefName} specification ${spec.name}`
+                              }
                               onClick={() =>
                                 setSelectedSpecs((prev) => ({
                                   ...prev,
                                   [def.id]: spec.id,
                                 }))
                               }
-                              className="h-6 px-2 text-[10px] font-mono"
+                              className="min-h-11 min-w-11 lg:h-6 lg:min-h-0 lg:min-w-0 px-2 text-[10px] font-mono touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                             >
                               {spec.name}
                             </Button>
@@ -277,8 +284,13 @@ export function FurnitureCatalogPalette({
                     size="sm"
                     variant="outline"
                     data-testid={`add-furniture-item-${def.id}`}
+                    aria-label={
+                      i18n.locale === "zh"
+                        ? `添加 ${i18n.getFurnitureName(def.id, def.name)}`
+                        : `Add ${i18n.getFurnitureName(def.id, def.name)}`
+                    }
                     onClick={() => handleAddFurniture(def)}
-                    className="h-7 px-2 text-xs shrink-0 flex items-center gap-1 hover:bg-primary hover:text-primary-foreground transition-colors"
+                    className="min-h-11 min-w-11 lg:h-7 lg:min-h-0 lg:min-w-0 px-2 text-xs shrink-0 flex items-center gap-1 hover:bg-primary hover:text-primary-foreground transition-colors touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     <span>{i18n.locale === "zh" ? "添加" : "Add"}</span>

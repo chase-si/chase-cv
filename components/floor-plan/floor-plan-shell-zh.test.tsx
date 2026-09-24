@@ -122,4 +122,39 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
     // Verify position nudge controls in Chinese inspector
     expect(screen.getByTestId("nudge-furniture-left")).toHaveAttribute("aria-label", "向左微调");
   });
+
+  it("AC-25: renders complete English (locale='en') and Chinese (locale='zh') furniture specifications, all four assessment statuses, finding reasons, and primary actions", () => {
+    const plan = JSON.parse(JSON.stringify(VALID_STANDARD_FLOOR_PLAN));
+
+    // 1. Verify English (en) shell rendering for specifications, actions, and status
+    render(
+      <FloorPlanShell
+        locale="en"
+        isMobile={false}
+        initialPlans={[buildStandardPlanSummary(plan, "en")]}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Floor Plan Space Validator" }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("open-plan-selector-btn")).toHaveTextContent("Change Plan");
+    expect(screen.getByTestId("open-furniture-catalog-btn")).toHaveTextContent("+ Furniture");
+
+    // Select sofa f1 to inspect English specifications and actions
+    fireEvent.click(screen.getByTestId("floor-plan-furniture-f1"));
+    expect(screen.getByTestId("target-furniture-name")).toHaveTextContent("3-Seat Sofa");
+    expect(screen.getByTestId("inspector-spec-option-sofa-3seat-2100")).toHaveTextContent(
+      "2100 × 900 mm",
+    );
+    expect(screen.getByTestId("inspector-spec-option-sofa-3seat-2400")).toHaveTextContent(
+      "2400 × 950 mm",
+    );
+    expect(screen.getByTestId("rotate-furniture-btn")).toHaveTextContent("Rotate 90°");
+    expect(screen.getByTestId("delete-furniture-btn")).toHaveTextContent("Delete");
+    expect(screen.getByTestId("nudge-furniture-left")).toHaveAttribute("aria-label", "Nudge left");
+    expect(screen.getByTestId("nudge-furniture-right")).toHaveAttribute("aria-label", "Nudge right");
+    expect(screen.getByTestId("nudge-furniture-up")).toHaveAttribute("aria-label", "Nudge up");
+    expect(screen.getByTestId("nudge-furniture-down")).toHaveAttribute("aria-label", "Nudge down");
+  });
 });

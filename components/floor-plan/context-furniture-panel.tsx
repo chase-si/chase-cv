@@ -199,14 +199,20 @@ export function ContextFurniturePanel({
                             size="sm"
                             variant={isSelected ? "default" : "outline"}
                             data-testid={`context-spec-option-${spec.id}`}
+                            data-selected={isSelected ? "true" : "false"}
                             aria-pressed={isSelected}
+                            aria-label={
+                              locale === "zh"
+                                ? `选择 ${localizedName} 规格 ${spec.name}`
+                                : `Select ${localizedName} specification ${spec.name}`
+                            }
                             onClick={() =>
                               setSelectedSpecs((prev) => ({
                                 ...prev,
                                 [def.id]: spec.id,
                               }))
                             }
-                            className="h-6 px-2 text-[10px] font-mono"
+                            className="min-h-11 min-w-11 lg:h-6 lg:min-h-0 lg:min-w-0 px-2 text-[10px] font-mono touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                           >
                             {spec.name}
                           </Button>
@@ -229,7 +235,7 @@ export function ContextFurniturePanel({
                       onAddFurniture(def.id);
                     }
                   }}
-                  className="h-11 min-h-[44px] sm:h-8 sm:min-h-0 px-3 text-xs font-medium gap-1 shrink-0 touch-manipulation shadow-xs focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                  className="h-11 min-h-11 min-w-11 sm:h-8 sm:min-h-0 px-3 text-xs font-medium gap-1 shrink-0 touch-manipulation shadow-xs focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>{cfT.addBtn}</span>

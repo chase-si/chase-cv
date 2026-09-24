@@ -515,6 +515,90 @@ describe("FurnitureDecisionPanel Component (AC-14, AC-15, AC-16, AC-17)", () => 
       expect(repairGuidances[0]).toHaveTextContent("130 mm");
       expect(repairGuidances[0]).toHaveTextContent("左侧");
     });
+
+    it("AC-25: renders all 4 assessment statuses (suitable, trade-off, must-adjust, unavailable), specifications, finding reasons, sides, and controls in both Chinese (zh) and English (en)", () => {
+      const plan = getPlan();
+      const statuses = [
+        { status: "suitable" as const, zh: "适合", en: "Suitable" },
+        { status: "trade-off" as const, zh: "需要权衡", en: "Trade-off" },
+        { status: "must-adjust" as const, zh: "必须调整", en: "Must Adjust" },
+        { status: "unavailable" as const, zh: "暂无法判断", en: "Unavailable" },
+      ];
+
+      for (const item of statuses) {
+        const assessment = {
+          status: item.status,
+          findings:
+            item.status === "must-adjust"
+              ? [
+                  {
+                    kind: "below-minimum-clearance" as const,
+                    placementId: "f2",
+                    wallId: "w3",
+                    side: "front" as const,
+                    measuredMm: 400,
+                    minimumMm: 600,
+                    recommendedMm: 900,
+                  },
+                ]
+              : item.status === "trade-off"
+                ? [
+                    {
+                      kind: "below-recommended-clearance" as const,
+                      placementId: "f2",
+                      relatedPlacementId: "f1",
+                      side: "right" as const,
+                      measuredMm: 650,
+                      minimumMm: 600,
+                      recommendedMm: 750,
+                    },
+                  ]
+                : [],
+        };
+
+        const { unmount: unmountZh } = render(
+          <FurnitureDecisionPanel
+            plan={plan}
+            targetRoomId="r2"
+            targetFurnitureId="f2"
+            assessment={assessment}
+            onChangeSpecification={vi.fn()}
+            locale="zh"
+          />,
+        );
+        expect(screen.getByTestId("decision-status-badge")).toHaveTextContent(item.zh);
+        expect(screen.getByTestId("switch-specification-bed-double-1800")).toBeInTheDocument();
+        unmountZh();
+
+        const { unmount: unmountEn } = render(
+          <FurnitureDecisionPanel
+            plan={plan}
+            targetRoomId="r2"
+            targetFurnitureId="f2"
+            assessment={assessment}
+            onChangeSpecification={vi.fn()}
+            locale="en"
+          />,
+        );
+        expect(screen.getByTestId("decision-status-badge")).toHaveTextContent(item.en);
+        expect(screen.getByTestId("switch-specification-bed-double-1800")).toBeInTheDocument();
+        if (item.status === "must-adjust") {
+          expect(screen.getByTestId("decision-issue-below-minimum-clearance")).toHaveTextContent(
+            "Front (front)",
+          );
+          expect(screen.getByTestId("finding-repair-guidance")).toHaveTextContent("Move at least");
+        }
+        if (item.status === "trade-off") {
+          expect(
+            screen.getByTestId("decision-issue-below-recommended-clearance"),
+          ).toHaveTextContent("Right (right)");
+          expect(screen.getByTestId("finding-repair-guidance")).toHaveTextContent(
+            /move at least/i,
+          );
+        }
+        unmountEn();
+      }
+    });
   });
 });
 

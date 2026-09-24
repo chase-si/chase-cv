@@ -221,6 +221,7 @@ export function FurnitureDecisionPanel({
           <Badge
             data-testid="decision-status-badge"
             role="status"
+            aria-live="polite"
             aria-label={effectiveStatusLabel}
             variant="outline"
             className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 gap-1 px-2 py-0.5 text-xs font-semibold"
@@ -234,6 +235,7 @@ export function FurnitureDecisionPanel({
           <Badge
             data-testid="decision-status-badge"
             role="status"
+            aria-live="polite"
             aria-label={effectiveStatusLabel}
             variant="outline"
             className="border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10 gap-1 px-2 py-0.5 text-xs font-semibold"
@@ -250,6 +252,7 @@ export function FurnitureDecisionPanel({
           <Badge
             data-testid="decision-status-badge"
             role="status"
+            aria-live="polite"
             aria-label={effectiveStatusLabel}
             variant="outline"
             className="border-destructive/40 text-destructive bg-destructive/10 gap-1 px-2 py-0.5 text-xs font-semibold"
@@ -278,6 +281,7 @@ export function FurnitureDecisionPanel({
           <Badge
             data-testid="decision-status-badge"
             role="status"
+            aria-live="polite"
             aria-label={effectiveStatusLabel}
             variant="outline"
             className="border-muted-foreground/40 text-muted-foreground bg-muted/20 gap-1 px-2 py-0.5 text-xs font-semibold"
@@ -383,9 +387,15 @@ export function FurnitureDecisionPanel({
                         size="sm"
                         variant={isActive ? "default" : "outline"}
                         data-testid={`switch-specification-${spec.id}`}
+                        data-selected={isActive ? "true" : "false"}
                         aria-pressed={isActive}
+                        aria-label={
+                          isZh
+                            ? `切换预设规格为 ${spec.name}`
+                            : `Switch specification to ${spec.name}`
+                        }
                         onClick={() => onChangeSpecification(targetFurniture.id, spec.id)}
-                        className="h-6 px-2 text-[10px] font-mono"
+                        className="min-h-11 min-w-11 lg:h-6 lg:min-h-0 lg:min-w-0 px-2 text-[10px] font-mono touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                       >
                         {spec.name}
                       </Button>
