@@ -176,11 +176,13 @@ export function FloorPlanSvgViewer({
     return () => container.removeEventListener("wheel", onWheel);
   }, []);
 
+  const isInteractiveEdit = isDraftMode || (Boolean(onUpdatePlan) && canvasMode !== "pan");
+
   const handleFurnitureDragStart = (
     e: React.PointerEvent,
     furniture: FloorPlan["furniture"][number],
   ) => {
-    if (!isDraftMode || canvasMode === "pan") return;
+    if (!isInteractiveEdit || canvasMode === "pan") return;
     setDraggingFurniture({
       id: furniture.id,
       startX: e.clientX,
@@ -193,7 +195,7 @@ export function FloorPlanSvgViewer({
   };
 
   const handleRotateFurniture = (furnitureId: string, stepDeg: number = 90) => {
-    if (!isDraftMode || !onUpdatePlan) return;
+    if (!isInteractiveEdit || !onUpdatePlan) return;
     const res = rotateFurnitureInstance(plan, furnitureId, stepDeg);
     if (res.success) {
       onUpdatePlan(res.plan, "Rotate furniture");
@@ -535,7 +537,7 @@ export function FloorPlanSvgViewer({
                   furniture={renderedFurniture}
                   selectedEntity={selectedEntity}
                   onSelect={handleSelect}
-                  isDraftMode={isDraftMode}
+                  isDraftMode={isInteractiveEdit}
                   onRotate={handleRotateFurniture}
                   onDragStart={handleFurnitureDragStart}
                   hasViolation={violationFurnitureIds.has(f.id)}

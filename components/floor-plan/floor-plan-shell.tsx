@@ -42,6 +42,7 @@ import { ContextFurniturePanel } from "./context-furniture-panel";
 import { FurnitureDecisionPanel } from "./furniture-decision-panel";
 import {
   addFurnitureInstance,
+  changeFurnitureSpecification,
   computeRoomInitialDropPosition,
   deleteFurnitureInstance,
   moveFurnitureInstance,
@@ -316,9 +317,9 @@ export function FloorPlanShell({
     [onPlanChange, onScenarioChange, targetFurnitureId],
   );
 
-  // Add furniture to active plan
+  // Add furniture to active plan with predefined specification
   const handleAddContextFurniture = React.useCallback(
-    (definitionId: string) => {
+    (definitionId: string, specificationId?: string) => {
       const catalog = getDefaultFurnitureCatalog();
       const effectiveRoomId = targetRoomId ?? currentPlan.rooms[0]?.id ?? null;
       const dropPos = effectiveRoomId
@@ -329,7 +330,10 @@ export function FloorPlanShell({
         currentPlan,
         catalog,
         definitionId,
-        dropPos ? { x: dropPos.x, y: dropPos.y } : undefined,
+        {
+          ...(dropPos ? { x: dropPos.x, y: dropPos.y } : {}),
+          ...(specificationId ? { specificationId } : {}),
+        },
       );
 
       if (res.success) {
@@ -344,6 +348,23 @@ export function FloorPlanShell({
       }
     },
     [currentPlan, targetRoomId, handleUpdatePlan],
+  );
+
+  // Switch specificationId on an existing furniture placement while preserving center (x, y) and rotation (AC-5)
+  const handleChangeSpecification = React.useCallback(
+    (furnitureId: string, specificationId: string) => {
+      const catalog = getDefaultFurnitureCatalog();
+      const res = changeFurnitureSpecification(
+        currentPlan,
+        catalog,
+        furnitureId,
+        specificationId,
+      );
+      if (res.success) {
+        handleUpdatePlan(res.plan, "Change furniture specification", furnitureId);
+      }
+    },
+    [currentPlan, handleUpdatePlan],
   );
 
   const handleRotateTargetFurniture = React.useCallback(() => {
@@ -489,6 +510,7 @@ export function FloorPlanShell({
         <FloorPlanInspector
           plan={currentPlan}
           onUpdatePlan={handleUpdatePlan}
+          onChangeSpecification={handleChangeSpecification}
           selectedEntity={selectedEntity}
           onSelect={handleSelectEntity}
           violations={violations}
@@ -507,6 +529,7 @@ export function FloorPlanShell({
           assessment={spaceAssessment}
           selectedEntity={selectedEntity}
           onSelectEntity={handleSelectEntity}
+          onChangeSpecification={handleChangeSpecification}
           locale={locale}
         />
       );
@@ -555,8 +578,10 @@ export function FloorPlanShell({
     mobileSheetType,
     currentPlan,
     handleUpdatePlan,
+    handleChangeSpecification,
     handleSelectEntity,
     violations,
+    spaceAssessment,
     plans,
     activePlanId,
     handleSelectPlan,
@@ -705,6 +730,7 @@ export function FloorPlanShell({
                       assessment={spaceAssessment}
                       selectedEntity={selectedEntity}
                       onSelectEntity={handleSelectEntity}
+                      onChangeSpecification={handleChangeSpecification}
                       locale={locale}
                     />
                   </div>
@@ -716,6 +742,7 @@ export function FloorPlanShell({
                     <FloorPlanInspector
                       plan={currentPlan}
                       onUpdatePlan={handleUpdatePlan}
+                      onChangeSpecification={handleChangeSpecification}
                       selectedEntity={selectedEntity}
                       onSelect={handleSelectEntity}
                       violations={violations}

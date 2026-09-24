@@ -193,7 +193,12 @@ export function floorPlanToPlacementScenario(
 ): PlacementScenario {
   const planId = plan.meta.id ?? "anonymous-plan";
   const placements: FurniturePlacement[] = (plan.furniture ?? []).map((f) => {
-    const specId = (f as any).specificationId ?? `${f.definitionId}-default`;
+    const def = STANDARD_FURNITURE_CATALOG.definitions.find((d) => d.id === f.definitionId);
+    const matchedSpec =
+      def?.specifications?.find((s) => s.id === f.specificationId) ??
+      def?.specifications?.find((s) => s.width === f.width && s.depth === f.depth) ??
+      def?.specifications?.[0];
+    const specId = f.specificationId ?? matchedSpec?.id ?? `${f.definitionId}-default`;
     return {
       id: f.id,
       definitionId: f.definitionId,
@@ -229,11 +234,12 @@ export function placementScenarioToFurnitureInstances(
   catalog: FurnitureCatalog = STANDARD_FURNITURE_CATALOG,
 ): FurnitureInstance[] {
   return scenario.placements.map((p) => {
-    const def = catalog.definitions.find((d) => d.id === p.definitionId);
-    const spec = def?.specifications?.find((s) => s.id === p.specificationId);
+    const def =
+      catalog.definitions.find((d) => d.id === p.definitionId) ??
+      STANDARD_FURNITURE_CATALOG.definitions.find((d) => d.id === p.definitionId);
+    let spec = def?.specifications?.find((s) => s.id === p.specificationId);
     let width = spec?.width ?? def?.defaultSize?.width ?? 1000;
     let depth = spec?.depth ?? def?.defaultSize?.depth ?? 1000;
-    const height = spec?.height ?? def?.defaultSize?.height;
 
     // If specification was not directly found by id, check for dimension pattern in specificationId
     if (!spec) {
@@ -242,11 +248,14 @@ export function placementScenarioToFurnitureInstances(
         const parsedW = parseInt(dimMatch[1], 10);
         const parsedD = parseInt(dimMatch[2], 10);
         if (parsedW > 0 && parsedD > 0) {
-          width = parsedW;
-          depth = parsedD;
+          spec = def?.specifications?.find((s) => s.width === parsedW && s.depth === parsedD);
+          width = spec?.width ?? parsedW;
+          depth = spec?.depth ?? parsedD;
         }
       }
     }
+
+    const height = spec?.height ?? def?.defaultSize?.height;
 
     return {
       id: p.id,

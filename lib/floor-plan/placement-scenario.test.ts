@@ -360,4 +360,93 @@ describe("PlacementScenario Compatibility Converters", () => {
     expect(originalPlan.vertices).toEqual(combinedPlan.vertices);
     expect(originalPlan.walls).toEqual(combinedPlan.walls);
   });
+
+  it("AC-5: switching specificationId immediately updates resolved entity dimensions and directional clearances while keeping center (x, y) and rotation unchanged", () => {
+    const plan = STUDIO_STANDARD_FLOOR_PLAN;
+    // Custom catalog with two specs having different dimensions AND different directional clearances
+    const customCatalog = {
+      version: 2 as const,
+      unit: "mm" as const,
+      definitions: [
+        {
+          id: "bed-double",
+          name: "Double Bed",
+          category: "bed" as const,
+          specifications: [
+            {
+              id: "bed-double-1800",
+              name: "1800 × 2000 mm",
+              width: 1800,
+              depth: 2000,
+              clearance: {
+                front: { minimum: 800, recommended: 1200 },
+                back: { minimum: 0, recommended: 0 },
+                left: { minimum: 700, recommended: 900 },
+                right: { minimum: 700, recommended: 900 },
+              },
+            },
+            {
+              id: "bed-double-1500",
+              name: "1500 × 2000 mm",
+              width: 1500,
+              depth: 2000,
+              clearance: {
+                front: { minimum: 500, recommended: 650 },
+                back: { minimum: 0, recommended: 0 },
+                left: { minimum: 450, recommended: 550 },
+                right: { minimum: 450, recommended: 550 },
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    let scenario = createPlacementScenario(
+      plan.meta.id!,
+      [
+        {
+          id: "target-bed",
+          definitionId: "bed-double",
+          specificationId: "bed-double-1800",
+          x: 1500,
+          y: 1600,
+          rotation: 90,
+        },
+      ],
+      "target-bed",
+    );
+
+    const evalBefore = evaluatePlacementScenario(plan, scenario, { catalog: customCatalog });
+    expect(evalBefore.targetPlacement?.x).toBe(1500);
+    expect(evalBefore.targetPlacement?.y).toBe(1600);
+    expect(evalBefore.targetPlacement?.rotation).toBe(90);
+    expect(evalBefore.summary.dimensions?.widthMm).toBe(1800);
+    expect(evalBefore.summary.dimensions?.depthMm).toBe(2000);
+
+    // Switch specificationId to bed-double-1500
+    scenario = changePlacementSpecification(scenario, plan, "target-bed", "bed-double-1500");
+    const evalAfter = evaluatePlacementScenario(plan, scenario, { catalog: customCatalog });
+
+    // Center (x, y) and rotation are strictly unchanged
+    expect(evalAfter.targetPlacement?.x).toBe(1500);
+    expect(evalAfter.targetPlacement?.y).toBe(1600);
+    expect(evalAfter.targetPlacement?.rotation).toBe(90);
+
+    // Dimensions immediately reflect new specification
+    expect(evalAfter.summary.dimensions?.widthMm).toBe(1500);
+    expect(evalAfter.summary.dimensions?.depthMm).toBe(2000);
+
+    // Directional clearances in SpaceAssessment immediately reflect new specification thresholds
+    for (const f of evalAfter.assessment.findings) {
+      if (f.side === "left" || f.side === "right") {
+        expect(f.minimumMm).toBe(450);
+        expect(f.recommendedMm).toBe(550);
+      }
+      if (f.side === "front") {
+        expect(f.minimumMm).toBe(500);
+        expect(f.recommendedMm).toBe(650);
+      }
+    }
+  });
 });

@@ -25,6 +25,7 @@ import {
   getPlanEntityLabel,
   type FurnitureDecisionStatus,
 } from "@/lib/floor-plan/furniture-decision";
+import { getDefaultFurnitureCatalog } from "@/lib/floor-plan/furniture-catalog";
 import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { cn } from "@/lib/utils";
 import type { EntitySelectHandler, SelectedEntity } from "./types";
@@ -47,6 +48,7 @@ export interface FurnitureDecisionPanelProps {
   assessment?: SpaceAssessment;
   selectedEntity?: SelectedEntity | null;
   onSelectEntity?: EntitySelectHandler;
+  onChangeSpecification?: (furnitureId: string, specificationId: string) => void;
   locale?: string;
   className?: string;
 }
@@ -60,11 +62,23 @@ export function FurnitureDecisionPanel({
   assessment,
   selectedEntity,
   onSelectEntity,
+  onChangeSpecification,
   locale,
   className = "",
 }: FurnitureDecisionPanelProps) {
   const i18n = useFloorPlanI18n(locale);
   const isZh = i18n.locale === "zh";
+  const catalog = React.useMemo(() => getDefaultFurnitureCatalog(), []);
+
+  const targetFurniture = React.useMemo(() => {
+    if (!targetFurnitureId) return null;
+    return plan.furniture.find((f) => f.id === targetFurnitureId) ?? null;
+  }, [plan.furniture, targetFurnitureId]);
+
+  const targetDefinition = React.useMemo(() => {
+    if (!targetFurniture) return null;
+    return catalog.definitions.find((d) => d.id === targetFurniture.definitionId) ?? null;
+  }, [catalog.definitions, targetFurniture]);
 
   const decision = React.useMemo(() => {
     return summarizeFurnitureDecision({
@@ -400,6 +414,42 @@ export function FurnitureDecisionPanel({
             <span className="text-foreground">{decision.roomName}</span>
             <span className="text-foreground">{decision.furnitureName}</span>
           </div>
+          {onChangeSpecification &&
+            targetFurniture &&
+            targetDefinition &&
+            targetDefinition.specifications.length > 0 && (
+              <div
+                data-testid="decision-panel-specifications"
+                className="pt-1.5 border-t border-border/60 space-y-1"
+              >
+                <span className="text-[10px] text-muted-foreground block">
+                  {isZh ? "切换预设规格" : "Switch Specification"}
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {targetDefinition.specifications.map((spec) => {
+                    const isActive =
+                      targetFurniture.specificationId === spec.id ||
+                      (!targetFurniture.specificationId &&
+                        targetFurniture.width === spec.width &&
+                        targetFurniture.depth === spec.depth);
+                    return (
+                      <Button
+                        key={spec.id}
+                        type="button"
+                        size="sm"
+                        variant={isActive ? "default" : "outline"}
+                        data-testid={`switch-specification-${spec.id}`}
+                        aria-pressed={isActive}
+                        onClick={() => onChangeSpecification(targetFurniture.id, spec.id)}
+                        className="h-6 px-2 text-[10px] font-mono"
+                      >
+                        {spec.name}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
         </div>
       )}
 

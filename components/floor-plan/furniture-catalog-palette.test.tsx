@@ -92,4 +92,39 @@ describe("FurnitureCatalogPalette Component (US-10, AC-10)", () => {
       expect.objectContaining({ type: "furniture", id: addedInstance.id }),
     );
   });
+
+  it("AC-4: displays predefined specifications under each furniture definition and allows adding a selected specification without arbitrary size inputs", () => {
+    const handleUpdatePlan = vi.fn();
+
+    render(
+      <FurnitureCatalogPalette
+        plan={VALID_STANDARD_FLOOR_PLAN}
+        onUpdatePlan={handleUpdatePlan}
+      />,
+    );
+
+    // Predefined specifications for bed-double (1800x2000 and 1500x2000) must be visible
+    expect(screen.getByTestId("furniture-spec-list-bed-double")).toBeInTheDocument();
+    const spec1800 = screen.getByTestId("catalog-spec-option-bed-double-1800");
+    const spec1500 = screen.getByTestId("catalog-spec-option-bed-double-1500");
+    expect(spec1800).toHaveTextContent("1800 × 2000 mm");
+    expect(spec1500).toHaveTextContent("1500 × 2000 mm");
+
+    // No arbitrary width/depth inputs or range text in MVP catalog
+    expect(screen.queryByTestId("furniture-width-input")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("furniture-depth-input")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Range: W/i)).not.toBeInTheDocument();
+
+    // Select 1500 × 2000 mm specification and click Add
+    fireEvent.click(spec1500);
+    fireEvent.click(screen.getByTestId("add-furniture-item-bed-double"));
+
+    expect(handleUpdatePlan).toHaveBeenCalledTimes(1);
+    const updatedPlan = handleUpdatePlan.mock.calls[0][0];
+    const addedInstance = updatedPlan.furniture[updatedPlan.furniture.length - 1];
+    expect(addedInstance.definitionId).toBe("bed-double");
+    expect(addedInstance.specificationId).toBe("bed-double-1500");
+    expect(addedInstance.width).toBe(1500);
+    expect(addedInstance.depth).toBe(2000);
+  });
 });
