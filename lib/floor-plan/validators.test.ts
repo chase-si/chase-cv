@@ -13,7 +13,7 @@ import {
   VALID_STANDARD_FLOOR_PLAN,
 } from "./fixtures";
 
-describe("AC-17: FloorPlan v1 Contract Formats & Validators", () => {
+describe("AC-15 & AC-19: FloorPlan v1 & Furniture Contract Validators", () => {
 
   describe("Normalized Standard FloorPlan v1", () => {
     it("validates a valid canonical FloorPlan with real-world dimensions in mm", () => {
@@ -148,17 +148,22 @@ describe("AC-17: FloorPlan v1 Contract Formats & Validators", () => {
       }
     });
 
-    it("rejects non-finite vertex coordinates (NaN / Infinity) and locates vertex ID and field path (AC-15)", () => {
+    it("rejects non-finite vertex coordinates (NaN / Infinity) for both x and y and invalid RoomType (AC-15)", () => {
       const candidate = {
         ...VALID_STANDARD_FLOOR_PLAN,
         vertices: VALID_STANDARD_FLOOR_PLAN.vertices.map((v, i) =>
-          i === 1 ? { ...v, x: Number.NaN } : v,
+          i === 1 ? { ...v, x: Number.NaN, y: Number.POSITIVE_INFINITY } : v,
+        ),
+        rooms: VALID_STANDARD_FLOOR_PLAN.rooms.map((r, i) =>
+          i === 0 ? { ...r, type: "invalid_room_type" as any } : r,
         ),
       };
       const result = validateCandidateFloorPlan(candidate);
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.errors.some((e) => e.path === "vertices[1].x" && e.message.includes("v2"))).toBe(true);
+        expect(result.errors.some((e) => e.path === "vertices[1].y" && e.message.includes("v2"))).toBe(true);
+        expect(result.errors.some((e) => e.path === "rooms[0].type" && e.message.includes("r1"))).toBe(true);
       }
     });
 

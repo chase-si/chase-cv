@@ -20,99 +20,34 @@ import {
   CardScrollArea,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   getStandardPlans,
   type StandardPlanSummary,
 } from "@/lib/floor-plan/catalog";
 import { computePlanTotalArea } from "@/lib/floor-plan/geometry";
-import type {
-  StandardFloorPlan,
-  ValidationError,
-  ValidationResult,
-} from "@/lib/floor-plan/types";
-import { validateCandidateFloorPlan } from "@/lib/floor-plan/validators";
+import type { ValidationError } from "@/lib/floor-plan/types";
+import {
+  prepareCandidatePlanForRender,
+  serializeCandidatePlanFinalJson,
+} from "@/lib/floor-plan/validators";
 import { FloorPlanSvgViewer } from "./floor-plan-svg-viewer";
 import type { SelectedEntity } from "./types";
+
+export { prepareCandidatePlanForRender, serializeCandidatePlanFinalJson };
 
 export interface CandidatePlanPreviewProps {
   initialPlans?: StandardPlanSummary[];
   initialCandidateJson?: string;
   locale?: string;
-}
-
-/**
- * Strict Candidate Plan Render Adapter (AC-16).
- * Only accepts candidate input that passes `validateCandidateFloorPlan`.
- * Never reorders room boundaries (`boundaryWallIds`) or repairs invalid input topology.
- */
-export function prepareCandidatePlanForRender(
-  input: string | unknown,
-): ValidationResult<StandardFloorPlan> {
-  let parsed: unknown = input;
-  if (typeof input === "string") {
-    const trimmed = input.trim();
-    if (!trimmed) {
-      return {
-        ok: false,
-        errors: [
-          {
-            path: "$",
-            message: "Candidate JSON input is empty",
-          },
-        ],
-      };
-    }
-    try {
-      parsed = JSON.parse(trimmed);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Invalid JSON syntax";
-      return {
-        ok: false,
-        errors: [
-          {
-            path: "$",
-            message: `JSON Parse Error: ${msg}`,
-          },
-        ],
-      };
-    }
-  }
-
-  const validation = validateCandidateFloorPlan(parsed);
-  if (!validation.ok) {
-    return validation;
-  }
-
-  const validPlan = validation.value;
-  const nowIso = "2026-09-24T00:00:00.000Z";
-
-  // Normalize to StandardFloorPlan class-like structure while strictly preserving input topology
-  const standardPlan: StandardFloorPlan = {
-    version: 1,
-    unit: "mm",
-    meta: {
-      ...validPlan.meta,
-      id: validPlan.meta.id || "plan-cn-candidate-preview",
-      name: validPlan.meta.name,
-      source: "template",
-      isStandard: true,
-      createdAt: validPlan.meta.createdAt || nowIso,
-      updatedAt: validPlan.meta.updatedAt || nowIso,
-    },
-    vertices: validPlan.vertices.map((v) => ({ ...v })),
-    walls: validPlan.walls.map((w) => ({ ...w })),
-    openings: validPlan.openings.map((op) => ({ ...op })),
-    rooms: validPlan.rooms.map((r) => ({
-      ...r,
-      boundaryWallIds: [...r.boundaryWallIds],
-    })),
-    furniture: (validPlan.furniture ?? []).map((f) => ({ ...f })),
-  };
-
-  return {
-    ok: true,
-    value: standardPlan,
-  };
 }
 
 interface SemanticChecklistItem {
@@ -189,7 +124,7 @@ export function CandidatePlanPreview({
 
   const finalFormattedJson = React.useMemo(() => {
     if (!renderResult.ok) return "";
-    return JSON.stringify(renderResult.value, null, 2);
+    return serializeCandidatePlanFinalJson(renderResult.value);
   }, [renderResult]);
 
   const areaSummary = React.useMemo(() => {
@@ -197,29 +132,31 @@ export function CandidatePlanPreview({
     return computePlanTotalArea(renderResult.value);
   }, [renderResult]);
 
-  const handleSelectPreset = React.useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const nextId = e.target.value;
+  const loadCandidateJson = React.useCallback((nextJson: string) => {
+    setCandidateJsonText(nextJson);
+    setSelectedEntity(null);
+    setCopiedStatus(false);
+  }, []);
+
+  const handleSelectPresetId = React.useCallback(
+    (nextId: string | null) => {
+      if (!nextId) return;
       setSelectedPresetId(nextId);
       const found = plans.find((p) => p.id === nextId);
       if (found) {
-        setCandidateJsonText(JSON.stringify(found.plan, null, 2));
-        setSelectedEntity(null);
-        setCopiedStatus(false);
+        loadCandidateJson(JSON.stringify(found.plan, null, 2));
       }
     },
-    [plans],
+    [plans, loadCandidateJson],
   );
 
   const handleResetPreset = React.useCallback(() => {
     const found =
       plans.find((p) => p.id === selectedPresetId) ?? plans[0];
     if (found) {
-      setCandidateJsonText(JSON.stringify(found.plan, null, 2));
-      setSelectedEntity(null);
-      setCopiedStatus(false);
+      loadCandidateJson(JSON.stringify(found.plan, null, 2));
     }
-  }, [plans, selectedPresetId]);
+  }, [plans, selectedPresetId, loadCandidateJson]);
 
   const handleImportJsonFile = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -228,14 +165,12 @@ export function CandidatePlanPreview({
       const reader = new FileReader();
       reader.onload = () => {
         if (typeof reader.result === "string") {
-          setCandidateJsonText(reader.result);
-          setSelectedEntity(null);
-          setCopiedStatus(false);
+          loadCandidateJson(reader.result);
         }
       };
       reader.readAsText(file);
     },
-    [],
+    [loadCandidateJson],
   );
 
   const handleCopyFinalJson = React.useCallback(async () => {
@@ -252,6 +187,11 @@ export function CandidatePlanPreview({
       [id]: !prev[id],
     }));
   }, []);
+
+  const activePresetOption = React.useMemo(
+    () => plans.find((p) => p.id === selectedPresetId) ?? plans[0],
+    [plans, selectedPresetId],
+  );
 
   return (
     <ToolPageChrome
@@ -363,27 +303,39 @@ export function CandidatePlanPreview({
             </div>
 
             <div className="space-y-1">
-              <label
-                htmlFor="candidate-preset-select"
-                className="block text-[11px] font-medium text-muted-foreground"
-              >
+              <Label className="block text-[11px] font-medium text-muted-foreground">
                 {isZh
                   ? "从正式标准户型加载起始模板"
                   : "Load Starting Template from Standard Catalog"}
-              </label>
-              <select
-                id="candidate-preset-select"
-                data-testid="candidate-preset-select"
+              </Label>
+              <Select
                 value={selectedPresetId}
-                onChange={handleSelectPreset}
-                className="h-8 w-full rounded-md border border-border bg-background px-2.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                onValueChange={handleSelectPresetId}
               >
-                {plans.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name} ({item.id})
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  size="sm"
+                  data-testid="candidate-preset-select"
+                  className="w-full rounded-md border-border bg-background text-xs"
+                >
+                  <SelectValue>
+                    {activePresetOption
+                      ? `${activePresetOption.name} (${activePresetOption.id})`
+                      : selectedPresetId}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {plans.map((item) => (
+                    <SelectItem
+                      key={item.id}
+                      value={item.id}
+                      data-testid={`candidate-preset-option-${item.id}`}
+                      className="text-xs"
+                    >
+                      {item.name} ({item.id})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
 
@@ -391,14 +343,14 @@ export function CandidatePlanPreview({
             {/* Candidate JSON Textarea Editor */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label
+                <Label
                   htmlFor="candidate-json-editor"
                   className="text-xs font-medium text-foreground"
                 >
                   {isZh
                     ? "候选户型 JSON 编辑器 (StandardFloorPlan v1)"
                     : "Candidate Plan JSON Editor (StandardFloorPlan v1)"}
-                </label>
+                </Label>
                 <span className="text-[10px] font-mono text-muted-foreground">
                   unit: &quot;mm&quot;
                 </span>
@@ -407,10 +359,7 @@ export function CandidatePlanPreview({
                 id="candidate-json-editor"
                 data-testid="candidate-json-editor"
                 value={candidateJsonText}
-                onChange={(e) => {
-                  setCandidateJsonText(e.target.value);
-                  setCopiedStatus(false);
-                }}
+                onChange={(e) => loadCandidateJson(e.target.value)}
                 rows={12}
                 spellCheck={false}
                 className="w-full rounded-lg border border-border bg-background p-2.5 font-mono text-xs leading-relaxed text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
@@ -440,16 +389,17 @@ export function CandidatePlanPreview({
                 {HUMAN_SEMANTIC_CHECKLIST_ITEMS.map((item) => {
                   const checked = Boolean(checkedItems[item.id]);
                   return (
-                    <label
+                    <div
                       key={item.id}
-                      className="flex items-start gap-2 rounded-lg border border-border/70 bg-card p-2 text-xs cursor-pointer"
+                      className="flex items-start gap-2 rounded-lg border border-border/70 bg-card p-2 text-xs"
                     >
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         data-testid={item.testId}
                         checked={checked}
-                        onChange={() => handleToggleChecklistItem(item.id)}
-                        className="mt-0.5 h-3.5 w-3.5 rounded border-border"
+                        onCheckedChange={() =>
+                          handleToggleChecklistItem(item.id)
+                        }
+                        className="mt-0.5 rounded"
                       />
                       <div className="space-y-0.5">
                         <span className="block font-medium text-foreground">
@@ -459,7 +409,7 @@ export function CandidatePlanPreview({
                           {isZh ? item.descZh : item.descEn}
                         </span>
                       </div>
-                    </label>
+                    </div>
                   );
                 })}
               </div>
@@ -470,7 +420,7 @@ export function CandidatePlanPreview({
               >
                 {isZh
                   ? "系统仅验证基础几何与拓扑闭合，不自动批准、拒绝或修复上述空间语义问题，由维护者根据渲染结果人工复核。"
-                  : "系统仅验证基础几何与拓扑闭合，不自动批准、拒绝或修复上述空间语义问题，由维护者根据渲染结果人工复核。 The system only validates basic geometry and topological closure; it never auto-approves, rejects, or repairs these semantic items."}
+                  : "The system only validates basic geometry and topological closure. It never automatically approves, rejects, or repairs the spatial semantic items above; maintainers must review them manually against the rendered preview."}
               </p>
             </div>
           </CardScrollArea>

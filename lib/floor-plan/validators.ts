@@ -46,6 +46,88 @@ const VALID_OPENING_TYPES = [
   "opening",
 ] as const;
 
+const VALID_ROOM_TYPES = [
+  "living_room",
+  "bedroom",
+  "master_bedroom",
+  "kitchen",
+  "bathroom",
+  "balcony",
+  "dining_room",
+  "study",
+  "hallway",
+  "storage",
+  "other",
+] as const;
+
+function validateOpeningSpanOnWall(
+  op: Record<string, unknown>,
+  idx: number,
+  wallLength: number | undefined,
+  validPosition: boolean,
+  validWidth: boolean,
+  errors: ValidationError[],
+): void {
+  if (!validWidth || !isNonEmptyString(op.wallId) || wallLength === undefined) {
+    return;
+  }
+
+  const width = op.width as number;
+  if (width > wallLength + 1e-3) {
+    errors.push({
+      path: `openings[${idx}].width`,
+      message: `Opening '${op.id ?? idx}' width (${width}mm) exceeds host Wall '${op.wallId}' length (${Math.round(wallLength)}mm)`,
+    });
+    return;
+  }
+
+  if (validPosition) {
+    const centerOffset = wallLength * (op.position as number);
+    const startOffset = centerOffset - width / 2;
+    const endOffset = centerOffset + width / 2;
+    if (startOffset < -1e-3 || endOffset > wallLength + 1e-3) {
+      errors.push({
+        path: `openings[${idx}].position`,
+        message: `Opening '${op.id ?? idx}' span [${Math.round(startOffset)}mm, ${Math.round(endOffset)}mm] extends beyond host Wall '${op.wallId}' bounds [0, ${Math.round(wallLength)}mm]`,
+      });
+    }
+  }
+}
+
+function validateRoomBoundaryClosure(
+  roomId: string | number,
+  idx: number,
+  boundaryIds: string[],
+  wallMap: Map<string, Wall>,
+  vertexMap: Map<string, Vertex>,
+  errors: ValidationError[],
+): void {
+  const cycle = traceRoomBoundaryCycle(boundaryIds, wallMap);
+  if (!cycle.ok) {
+    const targetPath =
+      cycle.brokenIndex !== undefined
+        ? `rooms[${idx}].boundaryWallIds[${cycle.brokenIndex}]`
+        : `rooms[${idx}].boundaryWallIds`;
+    errors.push({
+      path: targetPath,
+      message: `Room '${roomId}' boundary is not closed: ${cycle.reason}`,
+    });
+    return;
+  }
+
+  const polyPoints = cycle.vertexIds
+    .map((vid) => vertexMap.get(vid))
+    .filter((v): v is Vertex => v !== undefined)
+    .map((v) => ({ x: v.x, y: v.y }));
+  const area = computePolygonArea(polyPoints);
+  if (area.areaMm2 <= 0) {
+    errors.push({
+      path: `rooms[${idx}].boundaryWallIds`,
+      message: `Room '${roomId}' boundary polygon has zero area (degenerate collinear walls)`,
+    });
+  }
+}
+
 /**
  * Validate Normalized Canonical FloorPlan v1 and Candidate FloorPlan (AC-15, AC-21)
  */
@@ -115,12 +197,19 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
 
       const validX = isFiniteNumber(v.x);
       const validY = isFiniteNumber(v.y);
-      if (!validX || !validY) {
+      if (!validX) {
         errors.push({
-          path: !validX ? `vertices[${idx}].x` : `vertices[${idx}].y`,
-          message: `Vertex '${v.id ?? idx}' x and y must be finite numbers in mm`,
+          path: `vertices[${idx}].x`,
+          message: `Vertex '${v.id ?? idx}' x coordinate must be a finite number in mm`,
         });
-      } else if (validId && isNonEmptyString(v.id)) {
+      }
+      if (!validY) {
+        errors.push({
+          path: `vertices[${idx}].y`,
+          message: `Vertex '${v.id ?? idx}' y coordinate must be a finite number in mm`,
+        });
+      }
+      if (validX && validY && validId && isNonEmptyString(v.id)) {
         vertexMap.set(v.id, { id: v.id, x: v.x as number, y: v.y as number });
       }
     });
@@ -295,27 +384,15 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
         });
       }
 
-      if (wallExists && validWidth && isNonEmptyString(op.wallId)) {
-        const wallLength = wallLengthMap.get(op.wallId);
-        if (wallLength !== undefined) {
-          const width = op.width as number;
-          if (width > wallLength + 1e-3) {
-            errors.push({
-              path: `openings[${idx}].width`,
-              message: `Opening '${op.id ?? idx}' width (${width}mm) exceeds host Wall '${op.wallId}' length (${Math.round(wallLength)}mm)`,
-            });
-          } else if (validPosition) {
-            const centerOffset = wallLength * (op.position as number);
-            const startOffset = centerOffset - width / 2;
-            const endOffset = centerOffset + width / 2;
-            if (startOffset < -1e-3 || endOffset > wallLength + 1e-3) {
-              errors.push({
-                path: `openings[${idx}].position`,
-                message: `Opening '${op.id ?? idx}' span [${Math.round(startOffset)}mm, ${Math.round(endOffset)}mm] extends beyond host Wall '${op.wallId}' bounds [0, ${Math.round(wallLength)}mm]`,
-              });
-            }
-          }
-        }
+      if (wallExists && isNonEmptyString(op.wallId)) {
+        validateOpeningSpanOnWall(
+          op,
+          idx,
+          wallLengthMap.get(op.wallId),
+          validPosition,
+          validWidth,
+          errors,
+        );
       }
 
       if (op.height !== undefined && !isPositiveNumber(op.height)) {
@@ -358,10 +435,13 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
         roomIdSet.add(r.id);
       }
 
-      if (!isNonEmptyString(r.type)) {
+      if (
+        !isNonEmptyString(r.type) ||
+        !VALID_ROOM_TYPES.includes(r.type as (typeof VALID_ROOM_TYPES)[number])
+      ) {
         errors.push({
           path: `rooms[${idx}].type`,
-          message: `Room '${r.id ?? idx}' type must be a non-empty string`,
+          message: `Room '${r.id ?? idx}' type must be one of: ${VALID_ROOM_TYPES.join(", ")}`,
         });
       }
 
@@ -386,29 +466,14 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
         });
 
         if (allBoundaryWallsExist && boundaryIds.every((id) => wallMap.has(id))) {
-          const cycle = traceRoomBoundaryCycle(boundaryIds, wallMap);
-          if (!cycle.ok) {
-            const targetPath =
-              cycle.brokenIndex !== undefined
-                ? `rooms[${idx}].boundaryWallIds[${cycle.brokenIndex}]`
-                : `rooms[${idx}].boundaryWallIds`;
-            errors.push({
-              path: targetPath,
-              message: `Room '${r.id ?? idx}' boundary is not closed: ${cycle.reason}`,
-            });
-          } else {
-            const polyPoints = cycle.vertexIds
-              .map((vid) => vertexMap.get(vid))
-              .filter((v): v is Vertex => v !== undefined)
-              .map((v) => ({ x: v.x, y: v.y }));
-            const area = computePolygonArea(polyPoints);
-            if (area.areaMm2 <= 0) {
-              errors.push({
-                path: `rooms[${idx}].boundaryWallIds`,
-                message: `Room '${r.id ?? idx}' boundary polygon has zero area (degenerate collinear walls)`,
-              });
-            }
-          }
+          validateRoomBoundaryClosure(
+            (r.id as string) ?? idx,
+            idx,
+            boundaryIds,
+            wallMap,
+            vertexMap,
+            errors,
+          );
         }
       }
     });
@@ -485,13 +550,108 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
   return { ok: true, value: normalizedValue };
 }
 
+export const validateCandidateFloorPlan = validateFloorPlan;
+
 /**
- * Validate Candidate FloorPlan (AC-15, AC-16, AC-21)
+ * Strict Candidate Plan Render Adapter (AC-16).
+ * Only accepts candidate input that passes `validateCandidateFloorPlan`.
+ * Never reorders room boundaries (`boundaryWallIds`) or repairs invalid input topology.
  */
-export function validateCandidateFloorPlan(
-  candidate: unknown,
+export function prepareCandidatePlanForRender(
+  input: string | unknown,
 ): ValidationResult<FloorPlan> {
-  return validateFloorPlan(candidate);
+  let parsed: unknown = input;
+  if (typeof input === "string") {
+    const trimmed = input.trim();
+    if (!trimmed) {
+      return {
+        ok: false,
+        errors: [
+          {
+            path: "$",
+            message: "Candidate JSON input is empty",
+          },
+        ],
+      };
+    }
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Invalid JSON syntax";
+      return {
+        ok: false,
+        errors: [
+          {
+            path: "$",
+            message: `JSON Parse Error: ${msg}`,
+          },
+        ],
+      };
+    }
+  }
+
+  const validation = validateCandidateFloorPlan(parsed);
+  if (!validation.ok) {
+    return validation;
+  }
+
+  const validPlan = validation.value;
+  const nowIso = "2026-09-24T00:00:00.000Z";
+
+  const candidatePlan: FloorPlan = {
+    version: 1,
+    unit: "mm",
+    meta: {
+      ...validPlan.meta,
+      id: validPlan.meta.id || "plan-cn-candidate-preview",
+      name: validPlan.meta.name,
+      source: validPlan.meta.source || "template",
+      createdAt: validPlan.meta.createdAt || nowIso,
+      updatedAt: validPlan.meta.updatedAt || nowIso,
+    },
+    vertices: validPlan.vertices.map((v) => ({ ...v })),
+    walls: validPlan.walls.map((w) => ({ ...w })),
+    openings: validPlan.openings.map((op) => ({ ...op })),
+    rooms: validPlan.rooms.map((r) => ({
+      ...r,
+      boundaryWallIds: [...r.boundaryWallIds],
+    })),
+    furniture: (validPlan.furniture ?? []).map((f) => ({ ...f })),
+  };
+
+  return {
+    ok: true,
+    value: candidatePlan,
+  };
+}
+
+/**
+ * Format a validated candidate FloorPlan into class-like StandardFloorPlan JSON for catalog export (AC-17).
+ */
+export function serializeCandidatePlanFinalJson(plan: FloorPlan): string {
+  const nowIso = "2026-09-24T00:00:00.000Z";
+  return JSON.stringify(
+    {
+      version: 1,
+      unit: "mm",
+      meta: {
+        ...plan.meta,
+        id: plan.meta.id || "plan-cn-candidate-preview",
+        name: plan.meta.name,
+        source: "template",
+        isStandard: true,
+        createdAt: plan.meta.createdAt || nowIso,
+        updatedAt: plan.meta.updatedAt || nowIso,
+      },
+      vertices: plan.vertices,
+      walls: plan.walls,
+      openings: plan.openings,
+      rooms: plan.rooms,
+      furniture: plan.furniture ?? [],
+    },
+    null,
+    2,
+  );
 }
 
 const VALID_FURNITURE_CATEGORIES = [

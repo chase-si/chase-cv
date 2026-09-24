@@ -7,8 +7,8 @@ import {
 import { FLOOR_PLAN_CATALOG_DATA } from "./catalog-data";
 import { validateCandidateFloorPlan, validateFloorPlan } from "./validators";
 
-describe("Standard Floor Plan Catalog (AC-21, AC-25)", () => {
-  it("contains 20–50 approved, scaled Standard plans covering common layouts and passing candidate validator (AC-21, AC-25)", () => {
+describe("Standard Floor Plan Catalog (AC-1, AC-21)", () => {
+  it("contains 20–50 approved, scaled Standard plans covering common layouts and passing candidate validator (AC-1, AC-21)", () => {
     const catalogValidation = validateStandardPlanCatalog(FLOOR_PLAN_CATALOG_DATA);
     expect(catalogValidation.ok).toBe(true);
 
@@ -55,7 +55,7 @@ describe("Standard Floor Plan Catalog (AC-21, AC-25)", () => {
       expect(validateFloorPlan(item.plan).ok).toBe(true);
     }
 
-    // AC-25: Covers common 1/2/3-bedroom (and studio/4br+) layouts
+    // AC-1: Covers common 1/2/3-bedroom (and studio/4br+) layouts
     expect(coveredCategories.has("studio")).toBe(true);
     expect(coveredCategories.has("1b1l")).toBe(true);
     expect(coveredCategories.has("2b1l")).toBe(true);

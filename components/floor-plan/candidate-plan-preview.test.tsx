@@ -7,6 +7,7 @@ import FloorPlanLabPage from "@/app/[locale]/floor-plan/lab/page";
 import {
   CandidatePlanPreview,
   prepareCandidatePlanForRender,
+  serializeCandidatePlanFinalJson,
 } from "./candidate-plan-preview";
 
 vi.mock("next-intl/server", () => ({
@@ -50,7 +51,7 @@ describe("CandidatePlanPreview & Render Adapter (AC-15, AC-16, AC-17, AC-18)", (
     });
   });
 
-  it("render adapter accepts valid candidate plan and normalizes StandardFloorPlan structure without mutating topology (AC-16)", () => {
+  it("render adapter accepts valid candidate plan and preserves input topology without auto-reordering (AC-16)", () => {
     const rawJson = JSON.stringify(VALID_STANDARD_FLOOR_PLAN, null, 2);
     const result = prepareCandidatePlanForRender(rawJson);
 
@@ -58,11 +59,13 @@ describe("CandidatePlanPreview & Render Adapter (AC-15, AC-16, AC-17, AC-18)", (
     if (result.ok) {
       expect(result.value.version).toBe(1);
       expect(result.value.unit).toBe("mm");
-      expect(result.value.meta.isStandard).toBe(true);
-      expect(result.value.meta.source).toBe("template");
       expect(result.value.rooms[0].boundaryWallIds).toEqual(
         VALID_STANDARD_FLOOR_PLAN.rooms[0].boundaryWallIds,
       );
+
+      const finalJson = JSON.parse(serializeCandidatePlanFinalJson(result.value));
+      expect(finalJson.meta.isStandard).toBe(true);
+      expect(finalJson.meta.source).toBe("template");
     }
   });
 
@@ -93,7 +96,7 @@ describe("CandidatePlanPreview & Render Adapter (AC-15, AC-16, AC-17, AC-18)", (
     }
   });
 
-  it("renders valid candidate floor plan on SVG canvas and copies final formatted JSON (AC-16, AC-17)", async () => {
+  it("renders valid candidate floor plan on SVG canvas, switches presets, imports JSON file, and copies final formatted JSON (AC-16, AC-17)", async () => {
     render(<CandidatePlanPreview initialPlans={FIXTURE_PLANS} locale="zh" />);
 
     // Valid status and SVG preview rendered
@@ -104,13 +107,19 @@ describe("CandidatePlanPreview & Render Adapter (AC-15, AC-16, AC-17, AC-18)", (
     expect(screen.getByTestId("floor-plan-room-r1")).toBeInTheDocument();
     expect(screen.queryByTestId("candidate-validation-errors")).not.toBeInTheDocument();
 
-    // Switch preset template to Studio plan
-    const presetSelect = screen.getByTestId("candidate-preset-select");
-    fireEvent.change(presetSelect, {
-      target: { value: "floor-plan-std-studio-01" },
+    // Import JSON file via file input (AC-17)
+    const fileInput = screen.getByTestId("candidate-json-file-input");
+    const studioJson = JSON.stringify(STUDIO_STANDARD_FLOOR_PLAN, null, 2);
+    const jsonFile = new File([studioJson], "studio-candidate.json", {
+      type: "application/json",
+    });
+    fireEvent.change(fileInput, {
+      target: { files: [jsonFile] },
     });
 
-    expect(screen.getByTestId("floor-plan-room-sr1")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId("floor-plan-room-sr1")).toBeInTheDocument();
+    });
 
     // Copy final JSON
     const copyBtn = screen.getByTestId("copy-final-json-btn");
@@ -174,8 +183,10 @@ describe("CandidatePlanPreview & Render Adapter (AC-15, AC-16, AC-17, AC-18)", (
     expect(screen.getByTestId("copy-final-json-btn")).toBeDisabled();
   });
 
-  it("displays the visible Human Semantic Review Checklist and explicit non-automation disclaimer (AC-18)", () => {
-    render(<CandidatePlanPreview initialPlans={FIXTURE_PLANS} locale="zh" />);
+  it("displays the visible Human Semantic Review Checklist and explicit non-automation disclaimer in zh and en (AC-18)", () => {
+    const { unmount } = render(
+      <CandidatePlanPreview initialPlans={FIXTURE_PLANS} locale="zh" />,
+    );
 
     const checklist = screen.getByTestId("human-semantic-checklist");
     expect(checklist).toBeInTheDocument();
@@ -194,7 +205,7 @@ describe("CandidatePlanPreview & Render Adapter (AC-15, AC-16, AC-17, AC-18)", (
       "确认从入户门到各房间存在合理可通行门洞，无死角房间。",
     );
 
-    // Explicit disclaimer
+    // Explicit disclaimer in Chinese
     const disclaimer = screen.getByTestId("human-semantic-disclaimer");
     expect(disclaimer).toHaveTextContent(
       "系统仅验证基础几何与拓扑闭合，不自动批准、拒绝或修复上述空间语义问题，由维护者根据渲染结果人工复核。",
@@ -206,6 +217,16 @@ describe("CandidatePlanPreview & Render Adapter (AC-15, AC-16, AC-17, AC-18)", (
     const check1 = screen.getByTestId("semantic-check-item-1");
     fireEvent.click(check1);
     expect(editor.value).toBe(beforeValue);
+
+    unmount();
+
+    // Verify clean English disclaimer when locale="en"
+    render(<CandidatePlanPreview initialPlans={FIXTURE_PLANS} locale="en" />);
+    const enDisclaimer = screen.getByTestId("human-semantic-disclaimer");
+    expect(enDisclaimer).toHaveTextContent(
+      "The system only validates basic geometry and topological closure. It never automatically approves, rejects, or repairs the spatial semantic items above; maintainers must review them manually against the rendered preview.",
+    );
+    expect(enDisclaimer.textContent).not.toContain("系统仅验证");
   });
 
   it("mounts CandidatePlanPreview at /floor-plan/lab route (AC-17, AC-18)", async () => {
