@@ -13,6 +13,7 @@ import { normalizeRotation } from "./placement-scenario";
 import {
   computeFurniturePolygon,
   computeOverlapArea,
+  computePolygonIntersection,
   computeMinDistanceToPolygon,
   isPointInPolygon,
 } from "./rules/geometry";
@@ -20,10 +21,12 @@ import type {
   AssessmentFinding,
   AssessmentFindingKind,
   AssessmentStatus,
+  ClearanceThreshold,
   FloorPlan,
   FurnitureCatalog,
   FurniturePlacement,
   FurnitureSide,
+  FurnitureSpecification,
   PlacementScenario,
   SpaceAssessment,
   StandardFloorPlan,
@@ -34,6 +37,8 @@ import type {
  * 10 mm² is 0.00001 m², well below meaningful furniture placement tolerances.
  */
 const OVERLAP_AREA_THRESHOLD_MM2 = 10;
+
+const ALL_SIDES: readonly FurnitureSide[] = ["front", "back", "left", "right"];
 
 const KIND_ORDER: Record<AssessmentFindingKind, number> = {
   "furniture-overlap": 0,
@@ -102,6 +107,206 @@ function isPlanUnscaled(plan: FloorPlan | StandardFloorPlan): boolean {
   return plan.meta?.unscaled === true || (plan.meta as { scaled?: boolean })?.scaled === false;
 }
 
+function normalizeThreshold(threshold?: ClearanceThreshold): ClearanceThreshold {
+  const min = Math.max(0, Math.round(threshold?.minimum ?? 0));
+  const rec = Math.max(min, Math.round(threshold?.recommended ?? min));
+  return { minimum: min, recommended: rec };
+}
+
+/**
+ * Resolves the FurnitureSpecification (dimensions + directional clearance profile) for a placement.
+ */
+export function resolvePlacementSpecification(
+  placement: FurniturePlacement,
+  catalog: FurnitureCatalog = STANDARD_FURNITURE_CATALOG,
+): FurnitureSpecification {
+  const def =
+    catalog.definitions.find((d) => d.id === placement.definitionId) ??
+    STANDARD_FURNITURE_CATALOG.definitions.find((d) => d.id === placement.definitionId);
+
+  if (def) {
+    const matchedSpec =
+      def.specifications.find((s) => s.id === placement.specificationId) ??
+      def.specifications[0];
+
+    if (matchedSpec) {
+      return {
+        ...matchedSpec,
+        clearance: {
+          front: normalizeThreshold(matchedSpec.clearance.front),
+          back: normalizeThreshold(matchedSpec.clearance.back),
+          left: normalizeThreshold(matchedSpec.clearance.left),
+          right: normalizeThreshold(matchedSpec.clearance.right),
+        },
+      };
+    }
+
+    const dims = resolveSpecificationDimensions(def, placement.specificationId);
+    const frontMin = def.clearanceRules?.front ?? def.clearanceRules?.all ?? 0;
+    const backMin = def.clearanceRules?.back ?? def.clearanceRules?.all ?? 0;
+    const leftMin = def.clearanceRules?.left ?? def.clearanceRules?.all ?? 0;
+    const rightMin = def.clearanceRules?.right ?? def.clearanceRules?.all ?? 0;
+
+    return {
+      id: placement.specificationId || `${def.id}-default`,
+      name: `${dims.width} × ${dims.depth} mm`,
+      width: dims.width,
+      depth: dims.depth,
+      height: dims.height,
+      clearance: {
+        front: normalizeThreshold({ minimum: frontMin, recommended: frontMin }),
+        back: normalizeThreshold({ minimum: backMin, recommended: backMin }),
+        left: normalizeThreshold({ minimum: leftMin, recommended: leftMin }),
+        right: normalizeThreshold({ minimum: rightMin, recommended: rightMin }),
+      },
+    };
+  }
+
+  return {
+    id: placement.specificationId || `${placement.definitionId}-default`,
+    name: "1000 × 1000 mm",
+    width: 1000,
+    depth: 1000,
+    clearance: {
+      front: { minimum: 0, recommended: 0 },
+      back: { minimum: 0, recommended: 0 },
+      left: { minimum: 0, recommended: 0 },
+      right: { minimum: 0, recommended: 0 },
+    },
+  };
+}
+
+export interface DirectionalClearanceZone {
+  placementId: string;
+  side: FurnitureSide;
+  minimumMm: number;
+  recommendedMm: number;
+  edgeSegment: [Point, Point];
+  normal: Point;
+  minimumZonePolygon: Point[];
+  recommendedZonePolygon: Point[];
+}
+
+function getExactTrig(rotationDeg: number): { cos: number; sin: number } {
+  const rot = normalizeRotation(rotationDeg);
+  if (rot === 0) return { cos: 1, sin: 0 };
+  if (rot === 90) return { cos: 0, sin: 1 };
+  if (rot === 180) return { cos: -1, sin: 0 };
+  if (rot === 270) return { cos: 0, sin: -1 };
+  const rad = (rot * Math.PI) / 180;
+  return { cos: Math.cos(rad), sin: Math.sin(rad) };
+}
+
+/**
+ * Computes the 4 directional clearance zones (front, back, left, right) in world coordinates,
+ * rotating with the placement across 0°, 90°, 180°, and 270° (AC-8).
+ */
+export function computePlacementClearanceZones(
+  placement: FurniturePlacement,
+  catalog: FurnitureCatalog = STANDARD_FURNITURE_CATALOG,
+): Record<FurnitureSide, DirectionalClearanceZone> {
+  const spec = resolvePlacementSpecification(placement, catalog);
+  const width = spec.width || 1000;
+  const depth = spec.depth || 1000;
+  const hw = width / 2;
+  const hd = depth / 2;
+
+  const { cos, sin } = getExactTrig(placement.rotation);
+
+  const toWorld = (pt: Point): Point => ({
+    x: Math.round(placement.x + (pt.x * cos - pt.y * sin)),
+    y: Math.round(placement.y + (pt.x * sin + pt.y * cos)),
+  });
+
+  const rotateVec = (vec: Point): Point => ({
+    x: Math.round((vec.x * cos - vec.y * sin) * 1e6) / 1e6,
+    y: Math.round((vec.x * sin + vec.y * cos) * 1e6) / 1e6,
+  });
+
+  const buildSideZone = (side: FurnitureSide): DirectionalClearanceZone => {
+    const threshold = normalizeThreshold(spec.clearance[side]);
+    const minD = threshold.minimum;
+    const recD = threshold.recommended;
+
+    let localEdge: [Point, Point];
+    let localNormal: Point;
+    let buildLocalRect: (d: number) => Point[];
+
+    switch (side) {
+      case "front":
+        localEdge = [
+          { x: -hw, y: hd },
+          { x: hw, y: hd },
+        ];
+        localNormal = { x: 0, y: 1 };
+        buildLocalRect = (d: number) => [
+          { x: -hw, y: hd },
+          { x: hw, y: hd },
+          { x: hw, y: hd + d },
+          { x: -hw, y: hd + d },
+        ];
+        break;
+      case "back":
+        localEdge = [
+          { x: -hw, y: -hd },
+          { x: hw, y: -hd },
+        ];
+        localNormal = { x: 0, y: -1 };
+        buildLocalRect = (d: number) => [
+          { x: -hw, y: -hd - d },
+          { x: hw, y: -hd - d },
+          { x: hw, y: -hd },
+          { x: -hw, y: -hd },
+        ];
+        break;
+      case "left":
+        localEdge = [
+          { x: -hw, y: -hd },
+          { x: -hw, y: hd },
+        ];
+        localNormal = { x: -1, y: 0 };
+        buildLocalRect = (d: number) => [
+          { x: -hw - d, y: -hd },
+          { x: -hw, y: -hd },
+          { x: -hw, y: hd },
+          { x: -hw - d, y: hd },
+        ];
+        break;
+      case "right":
+        localEdge = [
+          { x: hw, y: -hd },
+          { x: hw, y: hd },
+        ];
+        localNormal = { x: 1, y: 0 };
+        buildLocalRect = (d: number) => [
+          { x: hw, y: -hd },
+          { x: hw + d, y: -hd },
+          { x: hw + d, y: hd },
+          { x: hw, y: hd },
+        ];
+        break;
+    }
+
+    return {
+      placementId: placement.id,
+      side,
+      minimumMm: minD,
+      recommendedMm: recD,
+      edgeSegment: [toWorld(localEdge[0]), toWorld(localEdge[1])],
+      normal: rotateVec(localNormal),
+      minimumZonePolygon: minD > 0 ? buildLocalRect(minD).map(toWorld) : [],
+      recommendedZonePolygon: recD > 0 ? buildLocalRect(recD).map(toWorld) : [],
+    };
+  };
+
+  return {
+    front: buildSideZone("front"),
+    back: buildSideZone("back"),
+    left: buildSideZone("left"),
+    right: buildSideZone("right"),
+  };
+}
+
 /**
  * Computes the 4-corner polygon footprint of a placement in plan coordinates (mm).
  */
@@ -109,10 +314,7 @@ export function computePlacementFootprint(
   placement: FurniturePlacement,
   catalog: FurnitureCatalog = STANDARD_FURNITURE_CATALOG,
 ): Point[] {
-  const def = catalog.definitions.find((d) => d.id === placement.definitionId);
-  const dims = def
-    ? resolveSpecificationDimensions(def, placement.specificationId)
-    : { width: 1000, depth: 1000 };
+  const spec = resolvePlacementSpecification(placement, catalog);
 
   const corners = computeFurniturePolygon({
     id: placement.id,
@@ -120,8 +322,8 @@ export function computePlacementFootprint(
     specificationId: placement.specificationId,
     x: placement.x,
     y: placement.y,
-    width: dims.width || 1000,
-    depth: dims.depth || 1000,
+    width: spec.width || 1000,
+    depth: spec.depth || 1000,
     rotation: normalizeRotation(placement.rotation),
   });
 
@@ -226,16 +428,6 @@ export function assessPlacementScenario(
     };
   }
 
-  // Pre-calculate footprints and bounding data for all placements
-  const placementData = scenario.placements.map((p) => {
-    const footprint = computePlacementFootprint(p, catalog);
-    return {
-      placement: p,
-      footprint,
-      center: { x: p.x, y: p.y },
-    };
-  });
-
   const vertexMap = getVertexMap(plan);
   const wallMap = getWallMap(plan);
 
@@ -249,6 +441,41 @@ export function assessPlacementScenario(
       points: computeRoomPolygon(r, wallMap, vertexMap),
     }))
     .filter((rp) => rp.points.length >= 3);
+
+  const allRoomBoundaryWallIds = new Set(
+    plan.rooms.flatMap((r) => r.boundaryWallIds),
+  );
+
+  // Pre-calculate footprints, clearance zones, and room containment for all placements
+  const placementData = scenario.placements.map((p) => {
+    const footprint = computePlacementFootprint(p, catalog);
+    const clearanceZones = computePlacementClearanceZones(p, catalog);
+    const center = { x: p.x, y: p.y };
+    const containingRooms = roomPolygons.filter(
+      (rp) =>
+        isPointInPolygon(center, rp.points) ||
+        footprint.some((pt) => isPointInPolygon(pt, rp.points)),
+    );
+    const containingRoomIds = new Set(containingRooms.map((rp) => rp.room.id));
+    const candidateWallIds =
+      containingRooms.length > 0
+        ? new Set([
+            ...containingRooms.flatMap((rp) => rp.room.boundaryWallIds),
+            ...plan.walls
+              .filter((w) => !allRoomBoundaryWallIds.has(w.id))
+              .map((w) => w.id),
+          ])
+        : null;
+
+    return {
+      placement: p,
+      footprint,
+      clearanceZones,
+      center,
+      containingRoomIds,
+      candidateWallIds,
+    };
+  });
 
   const rawFindings: AssessmentFinding[] = [];
   const findingKeys = new Set<string>();
@@ -361,6 +588,104 @@ export function assessPlacementScenario(
             measuredMm: Math.max(1, Math.round(minProtrusionDist)),
           });
         }
+      }
+    }
+  }
+
+  // 4. Directional Clearance Zones vs Solid Obstacles ONLY (AC-8, AC-9, AC-10, AC-12)
+  // Note: Clearance zones of different furniture items are NEVER compared against each other (AC-10).
+  const evaluateObstacleInClearanceZone = (
+    item: (typeof placementData)[number],
+    zone: DirectionalClearanceZone,
+    obstaclePolygon: Point[],
+    obstacleRef: { relatedPlacementId?: string; wallId?: string },
+  ) => {
+    if (zone.recommendedMm <= 0 || zone.recommendedZonePolygon.length < 3) {
+      return;
+    }
+
+    // If solid footprint already physically collides with obstacle, collision finding takes precedence
+    if (computeOverlapArea(item.footprint, obstaclePolygon) > OVERLAP_AREA_THRESHOLD_MM2) {
+      return;
+    }
+
+    const encroachmentArea = computeOverlapArea(
+      zone.recommendedZonePolygon,
+      obstaclePolygon,
+    );
+    if (encroachmentArea <= OVERLAP_AREA_THRESHOLD_MM2) {
+      return;
+    }
+
+    const intersection = computePolygonIntersection(
+      zone.recommendedZonePolygon,
+      obstaclePolygon,
+    );
+    if (intersection.length < 3) {
+      return;
+    }
+
+    const edgeOrigin = zone.edgeSegment[0];
+    const minDist = Math.min(
+      ...intersection.map(
+        (pt) =>
+          (pt.x - edgeOrigin.x) * zone.normal.x +
+          (pt.y - edgeOrigin.y) * zone.normal.y,
+      ),
+    );
+    const measuredMm = Math.max(0, Math.round(minDist));
+
+    const kind: AssessmentFindingKind | null =
+      measuredMm < zone.minimumMm
+        ? "below-minimum-clearance"
+        : measuredMm < zone.recommendedMm
+          ? "below-recommended-clearance"
+          : null;
+
+    if (kind) {
+      addFinding({
+        kind,
+        placementId: item.placement.id,
+        ...obstacleRef,
+        side: zone.side,
+        measuredMm,
+        minimumMm: zone.minimumMm,
+        recommendedMm: zone.recommendedMm,
+      });
+    }
+  };
+
+  for (const item of placementData) {
+    for (const side of ALL_SIDES) {
+      const zone = item.clearanceZones[side];
+      if (zone.recommendedMm <= 0) continue;
+
+      // 4a. Compare directional clearance zone against solid footprints of other furniture
+      for (const other of placementData) {
+        if (other.placement.id === item.placement.id) continue;
+
+        if (
+          item.containingRoomIds.size > 0 &&
+          other.containingRoomIds.size > 0 &&
+          ![...item.containingRoomIds].some((rid) => other.containingRoomIds.has(rid))
+        ) {
+          continue;
+        }
+
+        evaluateObstacleInClearanceZone(item, zone, other.footprint, {
+          relatedPlacementId: other.placement.id,
+        });
+      }
+
+      // 4b. Compare directional clearance zone against solid walls / room boundary walls
+      for (const wg of wallGeometries) {
+        if (item.candidateWallIds && !item.candidateWallIds.has(wg.wall.id)) {
+          continue;
+        }
+
+        evaluateObstacleInClearanceZone(item, zone, wg.polygonPoints, {
+          wallId: wg.wall.id,
+        });
       }
     }
   }
