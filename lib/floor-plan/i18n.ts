@@ -989,10 +989,13 @@ export const FURNITURE_NAMES_ZH: Record<string, string> = {
   "armchair": "单人扶手椅",
   "dining-table-4": "四人餐桌",
   "dining-table-round": "圆形餐桌",
+  "dining-chair": "餐椅",
   "desk": "书桌工作台",
   "office-chair": "人体工学办公椅",
+  "wardrobe-large": "大衣柜",
   "wardrobe-3door": "三门大衣柜",
   "wardrobe-2door": "双门衣柜",
+  "bookcase": "书架书柜",
   "tv-stand": "电视低柜",
   "coffee-table": "客厅茶几",
   "nightstand": "床头边几柜",
@@ -1003,6 +1006,33 @@ export const FURNITURE_NAMES_ZH: Record<string, string> = {
   "toilet": "座便器马桶",
   "shower-enclosure": "干湿分离淋浴房",
   "bathtub": "独立浴缸",
+};
+
+export const FURNITURE_NAMES_EN: Record<string, string> = {
+  "bed-double": "Double Bed (1.8m)",
+  "bed-single": "Single Bed (1.2m)",
+  "sofa-3seat": "3-Seat Sofa",
+  "sofa-2seat": "2-Seat Loveseat",
+  "armchair": "Armchair",
+  "dining-table-4": "Dining Table (4-Seat)",
+  "dining-table-round": "Round Dining Table",
+  "dining-chair": "Dining Chair",
+  "desk": "Work Desk",
+  "office-chair": "Office Chair",
+  "wardrobe-large": "Large Wardrobe",
+  "wardrobe-3door": "3-Door Wardrobe",
+  "wardrobe-2door": "2-Door Wardrobe",
+  "bookcase": "Bookcase",
+  "tv-stand": "TV Stand Console",
+  "coffee-table": "Coffee Table",
+  "nightstand": "Nightstand",
+  "kitchen-island": "Kitchen Island",
+  "refrigerator": "Refrigerator",
+  "washing-machine": "Washing Machine",
+  "bathroom-vanity": "Bathroom Vanity",
+  "toilet": "Toilet",
+  "shower-enclosure": "Shower Enclosure",
+  "bathtub": "Bathtub",
 };
 
 export const PLAN_NAMES_ZH: Record<string, { name: string; description: string }> = {
@@ -1070,11 +1100,14 @@ export function getFloorPlanI18n(locale?: string) {
       }
       return FURNITURE_CATEGORY_LABELS_EN[category] ?? category;
     },
-    getFurnitureName(definitionId: string, fallbackName: string) {
+    getFurnitureName(definitionId: string, fallbackName?: string) {
       if (currentLocale === "zh" && FURNITURE_NAMES_ZH[definitionId]) {
         return FURNITURE_NAMES_ZH[definitionId];
       }
-      return fallbackName;
+      if (fallbackName === undefined && FURNITURE_NAMES_EN[definitionId]) {
+        return FURNITURE_NAMES_EN[definitionId];
+      }
+      return fallbackName ?? definitionId;
     },
     getRuleTitle(ruleId: string, fallbackTitle: string) {
       if (currentLocale !== "zh") return fallbackTitle;

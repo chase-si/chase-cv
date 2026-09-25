@@ -30,7 +30,12 @@ import {
   rotateFurnitureInstance,
 } from "@/lib/floor-plan/furniture-operations";
 import type { RuleResult } from "@/lib/floor-plan/rules";
-import type { FloorPlan, FurnitureCatalog } from "@/lib/floor-plan/types";
+import type {
+  AssessmentStatus,
+  FloorPlan,
+  FurnitureCatalog,
+  SpaceAssessment,
+} from "@/lib/floor-plan/types";
 import { cn } from "@/lib/utils";
 
 type FurnitureDecisionControlsProps = {
@@ -39,6 +44,7 @@ type FurnitureDecisionControlsProps = {
   targetRoomId: string | null;
   targetFurnitureId: string | null;
   ruleResults: RuleResult[];
+  assessment?: SpaceAssessment;
   locale?: string;
   onUpdatePlan: (plan: FloorPlan, description?: string) => void | Promise<void>;
   onChangeSpecification?: (furnitureId: string, specificationId: string) => void;
@@ -50,6 +56,13 @@ const statusStyles: Record<FurnitureDecisionStatus, string> = {
   "not-recommended": "border-destructive/35 bg-destructive/10 text-destructive",
   unavailable: "border-border bg-muted/50 text-muted-foreground",
 };
+
+function mapAssessmentToDecisionStatus(status: AssessmentStatus): FurnitureDecisionStatus {
+  if (status === "must-adjust") return "not-recommended";
+  if (status === "trade-off") return "caution";
+  if (status === "suitable") return "suitable";
+  return "unavailable";
+}
 
 function StatusIcon({ status }: { status: FurnitureDecisionStatus }) {
   if (status === "suitable") return <CheckCircle2 className="h-4 w-4" />;
@@ -64,6 +77,7 @@ export function FurnitureDecisionControls({
   targetRoomId,
   targetFurnitureId,
   ruleResults,
+  assessment,
   locale,
   onUpdatePlan,
   onChangeSpecification,
@@ -92,6 +106,27 @@ export function FurnitureDecisionControls({
     [plan, targetRoomId, targetFurnitureId, ruleResults, locale],
   );
 
+  const effectiveDecisionStatus: FurnitureDecisionStatus = assessment
+    ? mapAssessmentToDecisionStatus(assessment.status)
+    : decision.status;
+
+  const effectiveStatusLabel = React.useMemo(() => {
+    if (assessment) {
+      switch (assessment.status) {
+        case "must-adjust":
+          return isZh ? "必须调整" : "Must Adjust";
+        case "trade-off":
+          return isZh ? "需要权衡" : "Trade-off";
+        case "suitable":
+          return isZh ? "适合" : "Suitable";
+        case "unavailable":
+        default:
+          return isZh ? "暂无法判断" : "Unavailable";
+      }
+    }
+    return decision.statusLabel;
+  }, [assessment, decision.statusLabel, isZh]);
+
   const specifications = React.useMemo(() => {
     return definition?.specifications ?? [];
   }, [definition]);
@@ -111,17 +146,17 @@ export function FurnitureDecisionControls({
   }, [definition, furniture]);
 
   const conciseSummary = React.useMemo(() => {
-    if (decision.status === "suitable") {
+    if (effectiveDecisionStatus === "suitable") {
       return isZh
         ? "当前规格通过已配置的边界、碰撞与方向净距规则，可以优先考虑。"
         : "This specification passes the configured boundary, collision, and directional clearance checks.";
     }
-    if (decision.status === "caution") {
+    if (effectiveDecisionStatus === "caution") {
       return isZh
         ? "家具可以放入，但局部净距偏紧。试着切换预设规格或轻微移动，观察下方实测变化。"
         : "It fits, but some clearances are tight. Try another preset specification or nudge the placement.";
     }
-    if (decision.status === "not-recommended") {
+    if (effectiveDecisionStatus === "not-recommended") {
       return isZh
         ? "当前规格或位置存在明显冲突，建议切换更小的预设规格或调整摆放。"
         : "The current specification or position has a clear conflict. Switch to a smaller specification or reposition it.";
@@ -129,7 +164,7 @@ export function FurnitureDecisionControls({
     return isZh
       ? "当前户型尚未标定真实尺寸，先调整房间尺寸后才能给出可靠建议。"
       : "Calibrate the room dimensions before relying on the recommendation.";
-  }, [decision.status, isZh]);
+  }, [effectiveDecisionStatus, isZh]);
 
   const keyIssues = React.useMemo(() => {
     const unique = new Map<string, (typeof decision.relevantIssues)[number]>();
@@ -195,11 +230,18 @@ export function FurnitureDecisionControls({
             </h3>
           </div>
           <Badge
+            data-testid="decision-controls-status-badge"
+            role="status"
+            aria-live="polite"
+            aria-label={effectiveStatusLabel}
             variant="outline"
-            className={cn("gap-1.5 px-2.5 py-1 text-xs font-semibold", statusStyles[decision.status])}
+            className={cn(
+              "gap-1.5 px-2.5 py-1 text-xs font-semibold",
+              statusStyles[effectiveDecisionStatus],
+            )}
           >
-            <StatusIcon status={decision.status} />
-            {decision.statusLabel}
+            <StatusIcon status={effectiveDecisionStatus} />
+            {effectiveStatusLabel}
           </Badge>
         </div>
         <p className="text-xs leading-relaxed text-muted-foreground">{conciseSummary}</p>
@@ -261,9 +303,15 @@ export function FurnitureDecisionControls({
                   size="sm"
                   variant={isSelected ? "default" : "outline"}
                   data-testid={`decision-spec-option-${spec.id}`}
+                  data-selected={isSelected ? "true" : "false"}
                   aria-pressed={isSelected}
+                  aria-label={
+                    isZh
+                      ? `切换预设规格为 ${spec.name}`
+                      : `Switch specification to ${spec.name}`
+                  }
                   onClick={() => handleSelectSpecification(spec.id)}
-                  className="h-9 font-mono text-xs"
+                  className="min-h-11 min-w-11 lg:h-9 lg:min-h-0 lg:min-w-0 font-mono text-xs touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                 >
                   {spec.name}
                 </Button>
@@ -285,8 +333,9 @@ export function FurnitureDecisionControls({
               size="sm"
               variant="outline"
               data-testid="rotate-decision-furniture-btn"
+              aria-label={isZh ? "旋转 90°" : "Rotate 90°"}
               onClick={handleRotate}
-              className="h-8 text-xs gap-1.5"
+              className="min-h-11 min-w-11 lg:h-8 lg:min-h-0 lg:min-w-0 text-xs gap-1.5 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             >
               <RotateCw className="h-3.5 w-3.5" />
               <span>{isZh ? "旋转 90°" : "Rotate 90°"}</span>
@@ -296,26 +345,59 @@ export function FurnitureDecisionControls({
               size="sm"
               variant="outline"
               data-testid="delete-decision-furniture-btn"
+              aria-label={isZh ? "删除" : "Delete"}
               onClick={handleDelete}
-              className="h-8 text-xs gap-1.5 text-destructive hover:text-destructive"
+              className="min-h-11 min-w-11 lg:h-8 lg:min-h-0 lg:min-w-0 text-xs gap-1.5 text-destructive hover:text-destructive touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             >
               <Trash2 className="h-3.5 w-3.5" />
               <span>{isZh ? "删除" : "Delete"}</span>
             </Button>
           </div>
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-            <Button type="button" variant="outline" size="icon-sm" onClick={() => handleNudge(-100, 0)} aria-label={isZh ? "向左移动" : "Move left"}>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              data-testid="nudge-decision-left"
+              onClick={() => handleNudge(-100, 0)}
+              aria-label={isZh ? "向左移动" : "Move left"}
+              className="min-h-11 min-w-11 lg:h-8 lg:min-h-0 lg:min-w-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            >
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="grid grid-cols-2 gap-2">
-              <Button type="button" variant="outline" size="icon-sm" onClick={() => handleNudge(0, -100)} aria-label={isZh ? "向上移动" : "Move up"}>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                data-testid="nudge-decision-up"
+                onClick={() => handleNudge(0, -100)}
+                aria-label={isZh ? "向上移动" : "Move up"}
+                className="min-h-11 min-w-11 lg:h-8 lg:min-h-0 lg:min-w-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              >
                 <ArrowUp className="h-4 w-4" />
               </Button>
-              <Button type="button" variant="outline" size="icon-sm" onClick={() => handleNudge(0, 100)} aria-label={isZh ? "向下移动" : "Move down"}>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                data-testid="nudge-decision-down"
+                onClick={() => handleNudge(0, 100)}
+                aria-label={isZh ? "向下移动" : "Move down"}
+                className="min-h-11 min-w-11 lg:h-8 lg:min-h-0 lg:min-w-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              >
                 <ArrowDown className="h-4 w-4" />
               </Button>
             </div>
-            <Button type="button" variant="outline" size="icon-sm" onClick={() => handleNudge(100, 0)} aria-label={isZh ? "向右移动" : "Move right"}>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              data-testid="nudge-decision-right"
+              onClick={() => handleNudge(100, 0)}
+              aria-label={isZh ? "向右移动" : "Move right"}
+              className="min-h-11 min-w-11 lg:h-8 lg:min-h-0 lg:min-w-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            >
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
