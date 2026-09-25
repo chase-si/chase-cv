@@ -399,8 +399,9 @@ export function FloorPlanShell({
   }, [currentPlan, targetFurniture, selectedEntity, handleUpdatePlan]);
 
   // Global keyboard shortcuts:
-  // Arrow keys to nudge selected furniture (50mm / Shift 500mm)
-  // Delete / Backspace to remove selected furniture
+  // Arrow keys to nudge selected/target furniture (100mm / Shift 500mm)
+  // R / r to rotate selected/target furniture by 90°
+  // Delete / Backspace to remove selected/target furniture
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeEl = document.activeElement;
@@ -413,17 +414,17 @@ export function FloorPlanShell({
         return;
       }
 
+      const furnitureId =
+        selectedEntity?.type === "furniture"
+          ? selectedEntity.id
+          : effectiveTargetFurnitureId;
+
       if (
         e.key === "ArrowLeft" ||
         e.key === "ArrowRight" ||
         e.key === "ArrowUp" ||
         e.key === "ArrowDown"
       ) {
-        const furnitureId =
-          selectedEntity?.type === "furniture"
-            ? selectedEntity.id
-            : targetFurnitureId;
-
         if (furnitureId) {
           const furniture = currentPlan.furniture.find((f) => f.id === furnitureId);
           if (furniture) {
@@ -444,13 +445,28 @@ export function FloorPlanShell({
             }
           }
         }
-      } else if (e.key === "Delete" || e.key === "Backspace") {
-        if (selectedEntity?.type === "furniture") {
+      } else if (
+        (e.key === "r" || e.key === "R") &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey
+      ) {
+        if (furnitureId) {
           e.preventDefault();
-          const res = deleteFurnitureInstance(currentPlan, selectedEntity.id);
+          const rotRes = rotateFurnitureInstance(currentPlan, furnitureId, 90);
+          if (rotRes.success) {
+            handleUpdatePlan(rotRes.plan, "Rotate furniture");
+          }
+        }
+      } else if (e.key === "Delete" || e.key === "Backspace") {
+        if (furnitureId) {
+          e.preventDefault();
+          const res = deleteFurnitureInstance(currentPlan, furnitureId);
           if (res.success) {
-            setSelectedEntity(null);
-            if (targetFurnitureId === selectedEntity.id) {
+            if (selectedEntity?.id === furnitureId) {
+              setSelectedEntity(null);
+            }
+            if (targetFurnitureId === furnitureId || effectiveTargetFurnitureId === furnitureId) {
               setTargetFurnitureId(null);
             }
             handleUpdatePlan(res.plan, "Delete furniture", null);
@@ -461,7 +477,13 @@ export function FloorPlanShell({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentPlan, selectedEntity, targetFurnitureId, handleUpdatePlan]);
+  }, [
+    currentPlan,
+    selectedEntity,
+    targetFurnitureId,
+    effectiveTargetFurnitureId,
+    handleUpdatePlan,
+  ]);
 
   const isMobileSheetOpen = isMobile && mobileSheetType !== null;
 
@@ -615,14 +637,15 @@ export function FloorPlanShell({
           : "Choose a standard plan, place furniture, and evaluate physical collisions and directional clearances."
       }
       actions={
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
             data-testid="open-plan-selector-btn"
+            aria-label={isZh ? "切换户型" : "Change Plan"}
             onClick={() => setIsPlanSelectorOpen(true)}
-            className="gap-1.5 text-xs font-medium"
+            className="min-h-11 min-w-11 lg:min-h-8 lg:min-w-0 gap-1.5 text-xs font-medium touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           >
             <Compass className="h-3.5 w-3.5 text-primary" />
             <span>{isZh ? "切换户型" : "Change Plan"}</span>
@@ -632,8 +655,9 @@ export function FloorPlanShell({
             variant="default"
             size="sm"
             data-testid="open-furniture-catalog-btn"
+            aria-label={t.actions.addFurniture}
             onClick={() => setIsFurnitureCatalogOpen(true)}
-            className="gap-1.5 text-xs font-medium"
+            className="min-h-11 min-w-11 lg:min-h-8 lg:min-w-0 gap-1.5 text-xs font-medium touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>{t.actions.addFurniture}</span>
@@ -641,13 +665,47 @@ export function FloorPlanShell({
         </div>
       }
     >
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
-        {/* Streamlined Workspace: Desktop 2-Pane, Mobile Stack */}
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden">
+        {/* Streamlined Workspace: Mobile Canvas-Primary Stack, Desktop 2-Pane */}
         <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start">
-          {/* Left Context Rail: Plan summary, Room picker, Furniture recommendations, Decision & Inspector */}
+          {/* Primary Floor-Plan Canvas Section (Order 1 on Mobile, Right Pane on Desktop) */}
+          <section
+            data-testid="floor-plan-canvas-section"
+            className="order-1 flex min-h-0 flex-1 flex-col gap-2.5 lg:order-2 lg:max-h-full"
+          >
+            <FloorPlanToolbar
+              currentPlan={currentPlan}
+              activePlanSummary={activePlanSummary}
+              violations={violations}
+              canvasMode={canvasMode}
+              t={t}
+              onCanvasModeChange={setCanvasMode}
+              onOpenMobileSheet={setMobileSheetType}
+              onOpenPlanSelector={() => setIsPlanSelectorOpen(true)}
+              onOpenFurnitureCatalog={() => setIsFurnitureCatalogOpen(true)}
+              onClearSelection={() => setSelectedEntity(null)}
+            />
+
+            <Card
+              className="relative flex min-h-[340px] flex-1 flex-col overflow-hidden p-0 sm:min-h-[520px]"
+            >
+              <FloorPlanSvgViewer
+                plan={currentPlan}
+                selectedEntity={selectedEntity}
+                onSelect={handleSelectEntity}
+                canvasMode={canvasMode}
+                violations={violations}
+                targetRoomId={targetRoomId}
+                onUpdatePlan={handleUpdatePlan}
+                locale={locale}
+              />
+            </Card>
+          </section>
+
+          {/* Context & Assessment Controls Rail (Order 2 Stacked Below Canvas on Mobile, Left Pane on Desktop) */}
           <aside
             data-testid="desktop-context-pane"
-            className="hidden lg:flex min-h-0 flex-col gap-3 lg:max-h-full"
+            className="order-2 flex min-h-0 flex-col gap-3 lg:order-1 lg:max-h-full"
           >
             <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <CardHeader
@@ -731,8 +789,9 @@ export function FloorPlanShell({
                       type="button"
                       variant="ghost"
                       size="sm"
+                      aria-label={isZh ? "查看全部家具" : "Browse All Furniture"}
                       onClick={() => setIsFurnitureCatalogOpen(true)}
-                      className="h-6 px-2 text-[10px] text-primary"
+                      className="min-h-11 min-w-11 lg:h-6 lg:min-h-0 lg:min-w-0 px-2 text-[10px] text-primary touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                     >
                       {isZh ? "查看全部" : "Browse All"}
                     </Button>
@@ -763,10 +822,7 @@ export function FloorPlanShell({
                     <div className="flex flex-wrap gap-1.5">
                       {currentPlan.furniture.map((item) => {
                         const isTarget = targetFurniture?.id === item.id;
-                        const itemName = i18n.getFurnitureName(
-                          item.definitionId,
-                          item.definitionId,
-                        );
+                        const itemName = i18n.getFurnitureName(item.definitionId);
                         return (
                           <Button
                             key={item.id}
@@ -774,11 +830,17 @@ export function FloorPlanShell({
                             size="sm"
                             variant={isTarget ? "default" : "outline"}
                             data-testid={`select-target-furniture-${item.id}`}
+                            data-selected={isTarget ? "true" : "false"}
                             aria-pressed={isTarget}
+                            aria-label={
+                              isZh
+                                ? `选择评估目标：${itemName} (${item.width} × ${item.depth} mm)`
+                                : `Select assessment target: ${itemName} (${item.width} × ${item.depth} mm)`
+                            }
                             onClick={() =>
                               handleSelectEntity({ type: "furniture", id: item.id })
                             }
-                            className="h-7 px-2 text-[11px] gap-1.5"
+                            className="min-h-11 min-w-11 lg:h-7 lg:min-h-0 lg:min-w-0 px-2.5 text-[11px] gap-1.5 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                           >
                             <span className="truncate max-w-[8rem]">{itemName}</span>
                             {isTarget && (
@@ -797,7 +859,7 @@ export function FloorPlanShell({
                 )}
 
                 {/* 4. Target Furniture Decision & Spatial Assessment */}
-                {targetFurniture && (
+                {targetFurniture && !(isMobile && mobileSheetType === "decision") && (
                   <div data-testid="decision-target-furniture" className="space-y-3 pt-1 border-t border-border/60">
                     <FurnitureDecisionPanel
                       plan={currentPlan}
@@ -813,14 +875,19 @@ export function FloorPlanShell({
                   </div>
                 )}
 
-                {/* 5. Entity Inspector (when wall, room, or furniture is selected) */}
-                {selectedEntity && (
+                {/* 5. Entity Inspector (when wall, room, or furniture is selected or target furniture is active) */}
+                {!isMobileSheetOpen && (selectedEntity || targetFurniture) && (
                   <div className="pt-2 border-t border-border/60">
                     <FloorPlanInspector
                       plan={currentPlan}
                       onUpdatePlan={handleUpdatePlan}
                       onChangeSpecification={handleChangeSpecification}
-                      selectedEntity={selectedEntity}
+                      selectedEntity={
+                        selectedEntity ??
+                        (targetFurniture
+                          ? { type: "furniture", id: targetFurniture.id }
+                          : null)
+                      }
                       onSelect={handleSelectEntity}
                       violations={violations}
                       locale={locale}
@@ -844,37 +911,6 @@ export function FloorPlanShell({
               </CardScrollArea>
             </Card>
           </aside>
-
-          {/* Right Main Section: Toolbar + SVG Viewer */}
-          <section className="flex min-h-0 flex-1 flex-col gap-2.5 lg:max-h-full">
-            <FloorPlanToolbar
-              currentPlan={currentPlan}
-              activePlanSummary={activePlanSummary}
-              violations={violations}
-              canvasMode={canvasMode}
-              t={t}
-              onCanvasModeChange={setCanvasMode}
-              onOpenMobileSheet={setMobileSheetType}
-              onOpenPlanSelector={() => setIsPlanSelectorOpen(true)}
-              onOpenFurnitureCatalog={() => setIsFurnitureCatalogOpen(true)}
-              onClearSelection={() => setSelectedEntity(null)}
-            />
-
-            <Card
-              className="relative flex min-h-[460px] flex-1 flex-col overflow-hidden p-0 sm:min-h-[560px]"
-            >
-              <FloorPlanSvgViewer
-                plan={currentPlan}
-                selectedEntity={selectedEntity}
-                onSelect={handleSelectEntity}
-                canvasMode={canvasMode}
-                violations={violations}
-                targetRoomId={targetRoomId}
-                onUpdatePlan={handleUpdatePlan}
-                locale={locale}
-              />
-            </Card>
-          </section>
         </div>
       </div>
 

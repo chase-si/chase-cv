@@ -77,4 +77,46 @@ describe("Floor Plan i18n module", () => {
     const breakdown = en.formatRoomBreakdown(STUDIO_STANDARD_FLOOR_PLAN);
     expect(breakdown).toContain("rooms");
   });
+
+  it("AC-25: guarantees complete zh and en dictionary keys and localized names for all standard furniture definitions", async () => {
+    const { STANDARD_FURNITURE_DEFINITIONS } = await import("./furniture-catalog");
+    const { FLOOR_PLAN_ZH, FLOOR_PLAN_EN, FURNITURE_NAMES_ZH, FURNITURE_NAMES_EN } = await import(
+      "./i18n"
+    );
+
+    // Every standard furniture definition has non-empty Chinese and English localized names
+    for (const def of STANDARD_FURNITURE_DEFINITIONS) {
+      expect(FURNITURE_NAMES_ZH[def.id]).toBeTruthy();
+      expect(FURNITURE_NAMES_EN[def.id]).toBeTruthy();
+      expect(def.specifications.length).toBeGreaterThan(0);
+      for (const spec of def.specifications) {
+        expect(spec.name).toMatch(/\d+\s*×\s*\d+\s*mm/);
+      }
+    }
+
+    // Recursively verify FLOOR_PLAN_ZH and FLOOR_PLAN_EN have identical keys and non-empty string values
+    const collectEntries = (obj: Record<string, any>, prefix = ""): Array<[string, string]> => {
+      const entries: Array<[string, string]> = [];
+      for (const [k, v] of Object.entries(obj)) {
+        const path = prefix ? `${prefix}.${k}` : k;
+        if (typeof v === "string") {
+          entries.push([path, v]);
+        } else if (v && typeof v === "object") {
+          entries.push(...collectEntries(v, path));
+        }
+      }
+      return entries;
+    };
+
+    const zhEntries = collectEntries(FLOOR_PLAN_ZH);
+    const enEntries = collectEntries(FLOOR_PLAN_EN);
+
+    expect(zhEntries.map(([k]) => k)).toEqual(enEntries.map(([k]) => k));
+    for (const [, val] of zhEntries) {
+      expect(val.trim().length).toBeGreaterThan(0);
+    }
+    for (const [, val] of enEntries) {
+      expect(val.trim().length).toBeGreaterThan(0);
+    }
+  });
 });

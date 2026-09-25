@@ -1,5 +1,6 @@
 import * as React from "react";
 import type { FurnitureInstance } from "@/lib/floor-plan";
+import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import type { EntitySelectHandler, SelectedEntity } from "../types";
 
 interface SvgFurnitureProps {
@@ -10,6 +11,7 @@ interface SvgFurnitureProps {
   onRotate?: (id: string, stepDeg?: number) => void;
   onDragStart?: (e: React.PointerEvent, furniture: FurnitureInstance) => void;
   hasViolation?: boolean;
+  locale?: string;
 }
 
 export function SvgFurniture({
@@ -20,11 +22,14 @@ export function SvgFurniture({
   onRotate,
   onDragStart,
   hasViolation = false,
+  locale,
 }: SvgFurnitureProps) {
+  const i18n = useFloorPlanI18n(locale);
   const isSelected =
     selectedEntity?.type === "furniture" && selectedEntity?.id === furniture.id;
 
   const { x, y, width, depth, rotation, definitionId } = furniture;
+  const localizedName = i18n.getFurnitureName(definitionId);
   const halfW = width / 2;
   const halfD = depth / 2;
 
@@ -49,9 +54,14 @@ export function SvgFurniture({
       transform={`translate(${x}, ${y}) rotate(${rotation})`}
       tabIndex={0}
       role="button"
-      aria-label={`${definitionId} ${furniture.id}`}
+      aria-label={`${localizedName} (${width} × ${depth} mm) ${furniture.id}`}
+      aria-pressed={isSelected}
       aria-selected={isSelected}
-      className={isDraftMode ? "cursor-move focus-visible:outline-hidden" : "cursor-pointer focus-visible:outline-hidden"}
+      className={
+        isDraftMode
+          ? "cursor-move focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+          : "cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+      }
       onPointerDown={(e) => {
         if (e.button !== 0) return;
         onSelect({ type: "furniture", id: furniture.id });
@@ -62,6 +72,18 @@ export function SvgFurniture({
       onClick={(e) => {
         e.stopPropagation();
         onSelect({ type: "furniture", id: furniture.id });
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          e.stopPropagation();
+          onSelect({ type: "furniture", id: furniture.id });
+        } else if ((e.key === "r" || e.key === "R") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          onSelect({ type: "furniture", id: furniture.id });
+          onRotate?.(furniture.id, 90);
+        }
       }}
     >
       {/* Outer base box */}
@@ -308,7 +330,7 @@ export function SvgFurniture({
         fill={isSelected ? "#1d4ed8" : "#475569"}
         className="pointer-events-none select-none font-sans"
       >
-        {definitionId}
+        {localizedName}
       </text>
 
       {/* Violation Alert Badge on canvas (AC-12) */}

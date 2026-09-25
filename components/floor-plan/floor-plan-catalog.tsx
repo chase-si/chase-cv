@@ -113,10 +113,21 @@ export function FloorPlanCatalog({
             return (
               <Card
                 key={item.id}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isActive}
+                aria-label={`${item.name} (${item.formattedArea})`}
                 data-testid={`catalog-plan-card-${item.id}`}
                 data-active-plan={isActive ? "true" : "false"}
+                data-selected={isActive ? "true" : "false"}
                 onClick={() => onSelectPlan(item.id)}
-                className={`group cursor-pointer p-3 transition-all duration-150 ${
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onSelectPlan(item.id);
+                  }
+                }}
+                className={`group cursor-pointer p-3 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none ${
                   isActive
                     ? "border-primary bg-primary/5 ring-1 ring-primary/40 shadow-sm"
                     : "border-border hover:border-primary/50 hover:bg-muted/40"
@@ -194,7 +205,9 @@ export function FloorPlanCatalog({
                     type="button"
                     size="sm"
                     variant={isActive ? "default" : "outline"}
-                    className="h-7 px-2.5 text-xs font-medium"
+                    aria-pressed={isActive}
+                    aria-label={`${isActive ? t.catalog.currentPlanBadge : t.catalog.openPlan}: ${item.name}`}
+                    className="min-h-11 min-w-11 lg:h-7 lg:min-h-0 lg:min-w-0 px-2.5 text-xs font-medium touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                     onClick={(e) => {
                       e.stopPropagation();
                       onSelectPlan(item.id);
