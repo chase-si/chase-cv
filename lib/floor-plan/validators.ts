@@ -2,7 +2,6 @@ import {
   CANONICAL_UNIT,
   type FloorPlan,
   type FurnitureCatalog,
-  type FurnitureCatalogV1,
   type FurnitureDefinition,
   type FurniturePlacement,
   type FurnitureSide,
@@ -129,7 +128,7 @@ function validateRoomBoundaryClosure(
 }
 
 /**
- * Validate Normalized Canonical FloorPlan v1 and Candidate FloorPlan (AC-15, AC-21)
+ * Validate Normalized Canonical FloorPlan v2 and Candidate FloorPlan (AC-15, AC-21)
  */
 export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
   const errors: ValidationError[] = [];
@@ -141,10 +140,10 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
     };
   }
 
-  if (input.version !== 1) {
+  if (input.version !== 2) {
     errors.push({
       path: "version",
-      message: `FloorPlan version must be 1 (received ${input.version})`,
+      message: `FloorPlan version must be 2 (received ${input.version})`,
     });
   }
 
@@ -551,6 +550,7 @@ export function validateFloorPlan(input: unknown): ValidationResult<FloorPlan> {
 }
 
 export const validateCandidateFloorPlan = validateFloorPlan;
+export const validateStandardFloorPlan = validateFloorPlan;
 
 /**
  * Strict Candidate Plan Render Adapter (AC-16).
@@ -599,7 +599,7 @@ export function prepareCandidatePlanForRender(
   const nowIso = "2026-09-24T00:00:00.000Z";
 
   const candidatePlan: FloorPlan = {
-    version: 1,
+    version: 2,
     unit: "mm",
     meta: {
       ...validPlan.meta,
@@ -632,7 +632,7 @@ export function serializeCandidatePlanFinalJson(plan: FloorPlan): string {
   const nowIso = "2026-09-24T00:00:00.000Z";
   return JSON.stringify(
     {
-      version: 1,
+      version: 2,
       unit: "mm",
       meta: {
         ...plan.meta,
@@ -710,6 +710,27 @@ export function validateFurnitureDefinition(
     errors.push({
       path: "category",
       message: `FurnitureDefinition category must be one of: ${VALID_FURNITURE_CATEGORIES.join(", ")}${defIdLabel}`,
+    });
+  }
+
+  if ("defaultSize" in input && input.defaultSize !== undefined) {
+    errors.push({
+      path: "defaultSize",
+      message: `Legacy v1 field 'defaultSize' is not allowed in v2 FurnitureDefinition${defIdLabel}; use 'specifications' instead`,
+    });
+  }
+
+  if ("allowedSizeRanges" in input && input.allowedSizeRanges !== undefined) {
+    errors.push({
+      path: "allowedSizeRanges",
+      message: `Legacy v1 field 'allowedSizeRanges' is not allowed in v2 FurnitureDefinition${defIdLabel}; use predefined 'specifications' instead`,
+    });
+  }
+
+  if ("clearanceRules" in input && input.clearanceRules !== undefined) {
+    errors.push({
+      path: "clearanceRules",
+      message: `Legacy v1 field 'clearanceRules' is not allowed in v2 FurnitureDefinition${defIdLabel}; use directional 'clearance' per specification instead`,
     });
   }
 
@@ -867,23 +888,6 @@ export function cloneFurnitureDefinition(
         },
       },
     })),
-    ...(def.defaultSize ? { defaultSize: { ...def.defaultSize } } : {}),
-    ...(def.allowedSizeRanges
-      ? {
-          allowedSizeRanges: {
-            ...(def.allowedSizeRanges.width
-              ? { width: { ...def.allowedSizeRanges.width } }
-              : {}),
-            ...(def.allowedSizeRanges.depth
-              ? { depth: { ...def.allowedSizeRanges.depth } }
-              : {}),
-            ...(def.allowedSizeRanges.height
-              ? { height: { ...def.allowedSizeRanges.height } }
-              : {}),
-          },
-        }
-      : {}),
-    ...(def.clearanceRules ? { clearanceRules: { ...def.clearanceRules } } : {}),
   };
 }
 
@@ -943,21 +947,7 @@ export function serializeFurnitureDefinitionFinalJson(
   definition: FurnitureDefinition,
 ): string {
   const cloned = cloneFurnitureDefinition(definition);
-  const primarySpec = cloned.specifications[0];
-  const defaultSize = cloned.defaultSize ?? {
-    width: primarySpec?.width ?? 1000,
-    depth: primarySpec?.depth ?? 1000,
-    ...(primarySpec?.height !== undefined ? { height: primarySpec.height } : {}),
-  };
-
-  return JSON.stringify(
-    {
-      ...cloned,
-      defaultSize,
-    },
-    null,
-    2,
-  );
+  return JSON.stringify(cloned, null, 2);
 }
 
 /**
@@ -1059,126 +1049,6 @@ export function validateFurnitureCatalog(
   }
 
   return { ok: true, value: input as unknown as FurnitureCatalog };
-}
-
-/**
- * Validate Legacy Furniture Catalog v1
- */
-export function validateFurnitureCatalogV1(
-  input: unknown,
-): ValidationResult<FurnitureCatalogV1> {
-  const errors: ValidationError[] = [];
-
-  if (!isObject(input)) {
-    return {
-      ok: false,
-      errors: [{ path: "", message: "FurnitureCatalog must be a JSON object" }],
-    };
-  }
-
-  if (input.version !== 1) {
-    errors.push({
-      path: "version",
-      message: `FurnitureCatalog version must be 1 (received ${input.version})`,
-    });
-  }
-
-  if (input.unit !== CANONICAL_UNIT) {
-    errors.push({
-      path: "unit",
-      message: `FurnitureCatalog unit must be '${CANONICAL_UNIT}' (millimetres), received '${input.unit}'`,
-    });
-  }
-
-  const defIdSet = new Set<string>();
-  if (!Array.isArray(input.definitions)) {
-    errors.push({
-      path: "definitions",
-      message: "FurnitureCatalog definitions must be an array",
-    });
-  } else {
-    input.definitions.forEach((def: unknown, idx: number) => {
-      if (!isObject(def)) {
-        errors.push({
-          path: `definitions[${idx}]`,
-          message: "FurnitureDefinition must be an object",
-        });
-        return;
-      }
-
-      if (!isNonEmptyString(def.id)) {
-        errors.push({
-          path: `definitions[${idx}].id`,
-          message: "FurnitureDefinition id must be a non-empty string",
-        });
-      } else if (defIdSet.has(def.id)) {
-        errors.push({
-          path: `definitions[${idx}].id`,
-          message: `Duplicate FurnitureDefinition id '${def.id}'`,
-        });
-      } else {
-        defIdSet.add(def.id);
-      }
-
-      if (!isNonEmptyString(def.name)) {
-        errors.push({
-          path: `definitions[${idx}].name`,
-          message: "FurnitureDefinition name must be a non-empty string",
-        });
-      }
-
-      if (!isNonEmptyString(def.category)) {
-        errors.push({
-          path: `definitions[${idx}].category`,
-          message: "FurnitureDefinition category must be a non-empty string",
-        });
-      }
-
-      if (!isObject(def.defaultSize)) {
-        errors.push({
-          path: `definitions[${idx}].defaultSize`,
-          message: "defaultSize must be an object with width and depth in mm",
-        });
-      } else {
-        if (!isPositiveNumber(def.defaultSize.width)) {
-          errors.push({
-            path: `definitions[${idx}].defaultSize.width`,
-            message: "defaultSize.width must be positive millimetres",
-          });
-        }
-        if (!isPositiveNumber(def.defaultSize.depth)) {
-          errors.push({
-            path: `definitions[${idx}].defaultSize.depth`,
-            message: "defaultSize.depth must be positive millimetres",
-          });
-        }
-      }
-
-      if (def.clearanceRules !== undefined) {
-        if (!isObject(def.clearanceRules)) {
-          errors.push({
-            path: `definitions[${idx}].clearanceRules`,
-            message: "clearanceRules must be an object",
-          });
-        } else {
-          for (const [side, clearance] of Object.entries(def.clearanceRules)) {
-            if (clearance !== undefined && !isNonNegativeNumber(clearance)) {
-              errors.push({
-                path: `definitions[${idx}].clearanceRules.${side}`,
-                message: `clearanceRules.${side} must be non-negative millimetres`,
-              });
-            }
-          }
-        }
-      }
-    });
-  }
-
-  if (errors.length > 0) {
-    return { ok: false, errors };
-  }
-
-  return { ok: true, value: input as unknown as FurnitureCatalogV1 };
 }
 
 /**
