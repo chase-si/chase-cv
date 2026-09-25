@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { FLOOR_PLAN_CATALOG_DATA } from "./catalog-data";
+import { validateStandardPlanCatalog } from "./catalog";
+import * as floorPlanIndex from "./index";
+import * as validatorsModule from "./validators";
 import {
   validateCandidateFloorPlan,
   validateFloorPlan,
@@ -6,6 +10,7 @@ import {
   validateFurnitureDefinition,
   validatePlacementScenario,
   validateSpaceRuleConfig,
+  validateStandardFloorPlan,
 } from "./validators";
 import {
   VALID_FURNITURE_CATALOG,
@@ -13,19 +18,42 @@ import {
   VALID_STANDARD_FLOOR_PLAN,
 } from "./fixtures";
 
-describe("AC-15 & AC-19: FloorPlan v1 & Furniture Contract Validators", () => {
+describe("AC-15, AC-19 & AC-21: FloorPlan v2 & Furniture Contract Validators", () => {
 
-  describe("Normalized Standard FloorPlan v1", () => {
-    it("validates a valid canonical FloorPlan with real-world dimensions in mm", () => {
+  describe("Normalized Standard FloorPlan v2", () => {
+    it("validates a valid canonical FloorPlan v2 with real-world dimensions in mm", () => {
       const result = validateFloorPlan(VALID_STANDARD_FLOOR_PLAN);
       expect(result.ok).toBe(true);
       if (result.ok) {
-        expect(result.value.version).toBe(1);
+        expect(result.value.version).toBe(2);
         expect(result.value.unit).toBe("mm");
         expect(result.value.vertices.length).toBeGreaterThan(0);
         expect(result.value.walls.length).toBeGreaterThan(0);
         expect(result.value.rooms.length).toBeGreaterThan(0);
       }
+      expect(validateStandardFloorPlan(VALID_STANDARD_FLOOR_PLAN).ok).toBe(true);
+    });
+
+    it("rejects legacy v0 and v1 floor plan versions", () => {
+      const v1Plan = { ...VALID_STANDARD_FLOOR_PLAN, version: 1 };
+      const resV1 = validateFloorPlan(v1Plan);
+      expect(resV1.ok).toBe(false);
+      if (!resV1.ok) {
+        expect(resV1.errors.some((e) => e.path === "version" && e.message.includes("must be 2"))).toBe(true);
+      }
+
+      const v0Plan = { ...VALID_STANDARD_FLOOR_PLAN, version: 0 };
+      expect(validateCandidateFloorPlan(v0Plan).ok).toBe(false);
+      expect(validateStandardFloorPlan(v0Plan).ok).toBe(false);
+    });
+
+    it("validates all 50 standard floor plans in FLOOR_PLAN_CATALOG_DATA under strict v2 contract (AC-21)", () => {
+      expect(FLOOR_PLAN_CATALOG_DATA.length).toBe(50);
+      for (const plan of FLOOR_PLAN_CATALOG_DATA) {
+        expect(plan.version).toBe(2);
+      }
+      const catalogRes = validateStandardPlanCatalog(FLOOR_PLAN_CATALOG_DATA);
+      expect(catalogRes.ok, !catalogRes.ok ? JSON.stringify(catalogRes.errors) : undefined).toBe(true);
     });
 
     it("rejects plans with missing or non-mm unit", () => {
@@ -339,6 +367,45 @@ describe("AC-15 & AC-19: FloorPlan v1 & Furniture Contract Validators", () => {
       expect(resUnit.ok).toBe(false);
       if (!resUnit.ok) {
         expect(resUnit.errors.some((e) => e.path === "unit")).toBe(true);
+      }
+    });
+
+    it("removes validateFurnitureCatalogV1 and rejects definitions using legacy defaultSize, allowedSizeRanges, or clearanceRules (AC-4, Issue #225)", () => {
+      expect("validateFurnitureCatalogV1" in validatorsModule).toBe(false);
+      expect("validateFurnitureCatalogV1" in floorPlanIndex).toBe(false);
+
+      // V1 definition without specifications
+      const v1DefOnly = {
+        id: "legacy-bed-v1",
+        name: "Legacy Bed",
+        category: "bed",
+        defaultSize: { width: 1800, depth: 2000, height: 900 },
+        allowedSizeRanges: {
+          width: { min: 1500, max: 2000, step: 100 },
+          depth: { min: 1900, max: 2200, step: 50 },
+        },
+        clearanceRules: { front: 600, left: 600, right: 600 },
+      };
+      const resV1Only = validateFurnitureDefinition(v1DefOnly);
+      expect(resV1Only.ok).toBe(false);
+      if (!resV1Only.ok) {
+        expect(resV1Only.errors.some((e) => e.path === "defaultSize")).toBe(true);
+        expect(resV1Only.errors.some((e) => e.path === "allowedSizeRanges")).toBe(true);
+        expect(resV1Only.errors.some((e) => e.path === "clearanceRules")).toBe(true);
+        expect(resV1Only.errors.some((e) => e.path === "specifications")).toBe(true);
+      }
+
+      // Definition carrying legacy fields alongside specifications is also rejected
+      const hybridDef = {
+        ...VALID_FURNITURE_CATALOG.definitions[0],
+        defaultSize: { width: 1800, depth: 2000 },
+        allowedSizeRanges: { width: { min: 1500, max: 2000 } },
+      };
+      const resHybrid = validateFurnitureDefinition(hybridDef);
+      expect(resHybrid.ok).toBe(false);
+      if (!resHybrid.ok) {
+        expect(resHybrid.errors.some((e) => e.path === "defaultSize")).toBe(true);
+        expect(resHybrid.errors.some((e) => e.path === "allowedSizeRanges")).toBe(true);
       }
     });
 

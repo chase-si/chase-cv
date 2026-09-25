@@ -1,6 +1,6 @@
 # Floor-plan MVP target contract
 
-> This is the target domain contract for the converged MVP. The current `FloorPlan v1` implementation may temporarily retain embedded furniture and legacy resize fields while migration issues are completed.
+> This is the enforced domain contract (`version: 2`) for the converged MVP. Legacy `v0`/`v1` schema compatibility, arbitrary resize ranges, and temporary adapters have been removed (#225).
 
 All real-world dimensions use millimetres (`mm`). IDs are stable, unique within their collection, and compared as opaque strings.
 
@@ -219,12 +219,11 @@ The development-only asset preview accepts candidate data, displays deterministi
 
 It has no database, approval workflow, automatic semantic review, or automatic repair. Machine-generated repair suggestions are limited to deterministic validation failures.
 
-## 7. Migration constraints
+## 7. Contract enforcement & removed legacy compatibility
 
-Until the implementation migration is complete:
+Now that the v2 migration is complete (#225):
 
-- the changed standard-plan and furniture-catalog shapes require a version bump instead of silently redefining version 1;
-- existing `FloorPlan.furniture` may temporarily carry placements;
-- existing `allowedSizeRanges` and arbitrary resize logic are legacy and must not define new MVP behaviour;
-- existing recognition metadata and recognition adapters are outside the target contract;
-- migrations must preserve existing valid catalog data long enough to convert it into furniture specifications and placement scenarios.
+- `StandardFloorPlan` / `FloorPlan` and `FurnitureCatalog` strictly require `version: 2` and reject legacy `v0` / `v1` schemas;
+- `FurnitureDefinition` strictly requires predefined `specifications` and rejects legacy `defaultSize`, `allowedSizeRanges`, and `clearanceRules` fields;
+- arbitrary furniture resize operations (`resizeFurnitureInstance`) and v1 catalog/definition compatibility adapters have been removed;
+- recognition metadata and recognition adapters remain outside the target contract.

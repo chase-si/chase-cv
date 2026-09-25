@@ -18,7 +18,7 @@ describe("Spatial Rule Evaluator (US-12, US-14, AC-12, AC-14)", () => {
   // - Bottom: y=4000 (y: 3900..4100)
   // - Left: x=0 (x: -100..100)
   const createBasePlan = (): FloorPlan => ({
-    version: 1,
+    version: 2,
     unit: "mm",
     meta: {
       name: "Test Enclosed Plan",

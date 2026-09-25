@@ -155,8 +155,8 @@ export function ContextFurniturePanel({
           const activeSpecId = selectedSpecs[def.id] ?? defaultSpec?.id;
           const activeSpec =
             def.specifications?.find((s) => s.id === activeSpecId) ?? defaultSpec;
-          const width = activeSpec?.width ?? def.defaultSize?.width ?? 0;
-          const depth = activeSpec?.depth ?? def.defaultSize?.depth ?? 0;
+          const width = activeSpec?.width ?? 0;
+          const depth = activeSpec?.depth ?? 0;
           const localizedName = i18n.getFurnitureName(def.id, def.name);
 
           return (
