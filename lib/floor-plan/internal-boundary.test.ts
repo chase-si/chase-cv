@@ -90,7 +90,7 @@ describe("Floor Plan Internal Release Boundary (AC-19)", () => {
     it("defaults to enabled in development and test environments", () => {
       expect(isFloorPlanInternalEnabled({ NODE_ENV: "development" })).toBe(true);
       expect(isFloorPlanInternalEnabled({ NODE_ENV: "test" })).toBe(true);
-      expect(isFloorPlanInternalEnabled({})).toBe(true);
+      expect(isFloorPlanInternalEnabled({} as unknown as NodeJS.ProcessEnv)).toBe(true);
     });
 
     it("enables access when FEATURE_FLOOR_PLAN_INTERNAL is explicitly set to true", () => {

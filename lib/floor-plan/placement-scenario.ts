@@ -237,30 +237,17 @@ export function placementScenarioToFurnitureInstances(
     const def =
       catalog.definitions.find((d) => d.id === p.definitionId) ??
       STANDARD_FURNITURE_CATALOG.definitions.find((d) => d.id === p.definitionId);
-    let spec = def?.specifications?.find((s) => s.id === p.specificationId);
-    let width = spec?.width ?? def?.defaultSize?.width ?? 1000;
-    let depth = spec?.depth ?? def?.defaultSize?.depth ?? 1000;
-
-    // If specification was not directly found by id, check for dimension pattern in specificationId
-    if (!spec) {
-      const dimMatch = p.specificationId.match(/(\d+)x(\d+)/i);
-      if (dimMatch) {
-        const parsedW = parseInt(dimMatch[1], 10);
-        const parsedD = parseInt(dimMatch[2], 10);
-        if (parsedW > 0 && parsedD > 0) {
-          spec = def?.specifications?.find((s) => s.width === parsedW && s.depth === parsedD);
-          width = spec?.width ?? parsedW;
-          depth = spec?.depth ?? parsedD;
-        }
-      }
-    }
-
-    const height = spec?.height ?? def?.defaultSize?.height;
+    const spec =
+      def?.specifications?.find((s) => s.id === p.specificationId) ??
+      def?.specifications?.[0];
+    const width = spec?.width ?? 1000;
+    const depth = spec?.depth ?? 1000;
+    const height = spec?.height;
 
     return {
       id: p.id,
       definitionId: p.definitionId,
-      specificationId: p.specificationId,
+      specificationId: spec?.id ?? p.specificationId,
       x: p.x,
       y: p.y,
       width,

@@ -17,7 +17,7 @@ import type { StandardFloorPlan } from "@/lib/floor-plan/types";
 // Coordinate convention: x increases rightward; y increases downward. boundaryWallIds follow visual clockwise order.
 
 export const PLAN_CN_SH_RUIDONG_67: StandardFloorPlan = {
-  version: 1,
+  version: 2,
   unit: "mm",
   meta: {
     id: "plan-cn-sh-ruidong-2br-67",
@@ -100,7 +100,7 @@ export const PLAN_CN_SH_RUIDONG_67: StandardFloorPlan = {
 };
 
 export const PLAN_CN_SZ_SHANYUEWAN_70B: StandardFloorPlan = {
-  version: 1,
+  version: 2,
   unit: "mm",
   meta: {
     id: "plan-cn-sz-shanyuewan-70b-70",
@@ -180,7 +180,7 @@ export const PLAN_CN_SZ_SHANYUEWAN_70B: StandardFloorPlan = {
 };
 
 export const PLAN_CN_BJ_ZHONGHAIHUIDELI_77: StandardFloorPlan = {
-  version: 1,
+  version: 2,
   unit: "mm",
   meta: {
     id: "plan-cn-bj-zhonghaihuideli-2br-77-mid",
@@ -254,7 +254,7 @@ export const PLAN_CN_BJ_ZHONGHAIHUIDELI_77: StandardFloorPlan = {
 };
 
 export const PLAN_CN_SZ_XINHEZIYOU_50: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sz-xinheziyou-1br-50",
@@ -713,7 +713,7 @@ export const PLAN_CN_SZ_XINHEZIYOU_50: StandardFloorPlan = {
 
 
 export const PLAN_CN_SH_JUNHAOGUOJI_40: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sh-junhaoguoji-1br-40",
@@ -1204,7 +1204,7 @@ export const PLAN_CN_SH_JUNHAOGUOJI_40: StandardFloorPlan = {
 
 
 export const PLAN_CN_BJ_GERUIYAJU_50: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-geruiyaju-1br-50",
@@ -1737,7 +1737,7 @@ export const PLAN_CN_BJ_GERUIYAJU_50: StandardFloorPlan = {
 
 
 export const PLAN_CN_CD_JINDU_50: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-cd-jindu-1br-50",
@@ -2276,7 +2276,7 @@ export const PLAN_CN_CD_JINDU_50: StandardFloorPlan = {
 
 
 export const PLAN_CN_GZ_ZHONGTAITIANJING_50: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-gz-zhongtaitianjing-1br-50",
@@ -2815,7 +2815,7 @@ export const PLAN_CN_GZ_ZHONGTAITIANJING_50: StandardFloorPlan = {
 
 
 export const PLAN_CN_BJ_BEIXINJIAYUAN_60: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-beixinjiayuan-2br-60",
@@ -3446,7 +3446,7 @@ export const PLAN_CN_BJ_BEIXINJIAYUAN_60: StandardFloorPlan = {
 
 
 export const PLAN_CN_NJ_MAQUNGONGYU_60: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-nj-maqungongyu-2br-60",
@@ -4071,7 +4071,7 @@ export const PLAN_CN_NJ_MAQUNGONGYU_60: StandardFloorPlan = {
 
 
 export const PLAN_CN_GZ_GUIXIANSHANGPIN_60: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-gz-guixianshangpin-2br-60",
@@ -4724,7 +4724,7 @@ export const PLAN_CN_GZ_GUIXIANSHANGPIN_60: StandardFloorPlan = {
 
 
 export const PLAN_CN_SH_DUSHIFUYUAN_61: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sh-dushifuyuan-2br-61",
@@ -5355,7 +5355,7 @@ export const PLAN_CN_SH_DUSHIFUYUAN_61: StandardFloorPlan = {
 
 
 export const PLAN_CN_TJ_ZHONGYUANLI_70: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-tj-zhongyuanli-2br-70",
@@ -6000,7 +6000,7 @@ export const PLAN_CN_TJ_ZHONGYUANLI_70: StandardFloorPlan = {
 
 
 export const PLAN_CN_BJ_HEJINGTIANHUI_70: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-hejingtianhui-2br-70",
@@ -6639,7 +6639,7 @@ export const PLAN_CN_BJ_HEJINGTIANHUI_70: StandardFloorPlan = {
 
 
 export const PLAN_CN_SH_DANGDAIWANGUOFU_70: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sh-dangdaiwanguofu-2br-70",
@@ -7264,7 +7264,7 @@ export const PLAN_CN_SH_DANGDAIWANGUOFU_70: StandardFloorPlan = {
 
 
 export const PLAN_CN_GZ_SHENYEJIANGYUEWAN_80: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-gz-shenyejiangyuewan-2br-80",
@@ -7903,7 +7903,7 @@ export const PLAN_CN_GZ_SHENYEJIANGYUEWAN_80: StandardFloorPlan = {
 
 
 export const PLAN_CN_CD_LANGUANGSHENGFEI_80: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-cd-languangshengfei-2br-80",
@@ -8552,7 +8552,7 @@ export const PLAN_CN_CD_LANGUANGSHENGFEI_80: StandardFloorPlan = {
 
 
 export const PLAN_CN_HZ_CHUNBONANYUAN_81: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-hz-chunbonanyuan-2br-81",
@@ -9205,7 +9205,7 @@ export const PLAN_CN_HZ_CHUNBONANYUAN_81: StandardFloorPlan = {
 
 
 export const PLAN_CN_GZ_HUAHUIMINGYUAN_80: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-gz-huahuimingyuan-2br-80",
@@ -9880,7 +9880,7 @@ export const PLAN_CN_GZ_HUAHUIMINGYUAN_80: StandardFloorPlan = {
 
 
 export const PLAN_CN_NJ_LANYUAN_70: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-nj-lanyuan-3br-70",
@@ -10603,7 +10603,7 @@ export const PLAN_CN_NJ_LANYUAN_70: StandardFloorPlan = {
 
 
 export const PLAN_CN_BJ_ANHUIBEILI_80: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-anhueibeili-3br-80",
@@ -11334,7 +11334,7 @@ export const PLAN_CN_BJ_ANHUIBEILI_80: StandardFloorPlan = {
 
 
 export const PLAN_CN_BJ_JINGANDONGLI_81: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-jingandongli-3br-81",
@@ -12103,7 +12103,7 @@ export const PLAN_CN_BJ_JINGANDONGLI_81: StandardFloorPlan = {
 
 
 export const PLAN_CN_WH_DONGTINGHUAYUAN_93: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-wh-dongtinghuayuan-3br-93",
@@ -12808,7 +12808,7 @@ export const PLAN_CN_WH_DONGTINGHUAYUAN_93: StandardFloorPlan = {
 
 
 export const PLAN_CN_CD_BEIHUIGUIXIAN_91: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-cd-beihuiguixian-3br-91",
@@ -13547,7 +13547,7 @@ export const PLAN_CN_CD_BEIHUIGUIXIAN_91: StandardFloorPlan = {
 
 
 export const PLAN_CN_CD_GUIHUZHENGRONGFU_100: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-cd-guihuzhengrongfu-3br-100",
@@ -14278,7 +14278,7 @@ export const PLAN_CN_CD_GUIHUZHENGRONGFU_100: StandardFloorPlan = {
 
 
 export const PLAN_CN_CD_HUAHUITIANDI_100: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-cd-huahuitiandi-3br-100",
@@ -15063,7 +15063,7 @@ export const PLAN_CN_CD_HUAHUITIANDI_100: StandardFloorPlan = {
 
 
 export const PLAN_CN_WH_YIDAYUNSHANHU_110: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-wh-yidayunshanhu-3br-110",
@@ -15824,7 +15824,7 @@ export const PLAN_CN_WH_YIDAYUNSHANHU_110: StandardFloorPlan = {
 
 
 export const PLAN_CN_WH_BAOLIHUAYUAN_116: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-wh-baolihuayuan-3br-116",
@@ -16619,7 +16619,7 @@ export const PLAN_CN_WH_BAOLIHUAYUAN_116: StandardFloorPlan = {
 
 
 export const PLAN_CN_HZ_QINGLONGYUAN_110: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-hz-qinglongyuan-3br-110",
@@ -17382,7 +17382,7 @@ export const PLAN_CN_HZ_QINGLONGYUAN_110: StandardFloorPlan = {
 
 
 export const PLAN_CN_HZ_JUESHIFENGQING_110: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-hz-jueshifengqing-3br-110",
@@ -18141,7 +18141,7 @@ export const PLAN_CN_HZ_JUESHIFENGQING_110: StandardFloorPlan = {
 
 
 export const PLAN_CN_NJ_CHANGJIANGYUEFU_110: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-nj-changjiangyuefu-3br-110",
@@ -18904,7 +18904,7 @@ export const PLAN_CN_NJ_CHANGJIANGYUEFU_110: StandardFloorPlan = {
 
 
 export const PLAN_CN_NJ_ZIYUEFU_110: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-nj-ziyuefu-3br-110",
@@ -19689,7 +19689,7 @@ export const PLAN_CN_NJ_ZIYUEFU_110: StandardFloorPlan = {
 
 
 export const PLAN_CN_GZ_ZHUJIANGJINMAOFU_109: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-gz-zhujiangjinmaofu-3br-109",
@@ -20432,7 +20432,7 @@ export const PLAN_CN_GZ_ZHUJIANGJINMAOFU_109: StandardFloorPlan = {
 
 
 export const PLAN_CN_GZ_ZIZAICHENGSHI_113: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-gz-zizaichengshi-3br-113",
@@ -21243,7 +21243,7 @@ export const PLAN_CN_GZ_ZIZAICHENGSHI_113: StandardFloorPlan = {
 
 
 export const PLAN_CN_BJ_TIANTONGYUANBEI_155: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-tiantongyuanbei-3br-155",
@@ -21972,7 +21972,7 @@ export const PLAN_CN_BJ_TIANTONGYUANBEI_155: StandardFloorPlan = {
 
 
 export const PLAN_CN_BJ_HUIGUYANGGUANG_154: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-huiguyangguang-3br-154",
@@ -22811,7 +22811,7 @@ export const PLAN_CN_BJ_HUIGUYANGGUANG_154: StandardFloorPlan = {
 
 
 export const PLAN_CN_SH_HUIHAOTIANXIA_149: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sh-huihaotianxia-3br-149",
@@ -23566,7 +23566,7 @@ export const PLAN_CN_SH_HUIHAOTIANXIA_149: StandardFloorPlan = {
 
 
 export const PLAN_CN_BJ_JINGXI_120: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-jingxi-4br-120",
@@ -24535,7 +24535,7 @@ export const PLAN_CN_BJ_JINGXI_120: StandardFloorPlan = {
 
 
 export const PLAN_CN_BJ_SHOUKAIJINMAO_120: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-shoukaijinmao-4br-120",
@@ -25466,7 +25466,7 @@ export const PLAN_CN_BJ_SHOUKAIJINMAO_120: StandardFloorPlan = {
 
 
 export const PLAN_CN_SH_YUJINGHUATING_163: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sh-yujinghuating-4br-163",
@@ -26441,7 +26441,7 @@ export const PLAN_CN_SH_YUJINGHUATING_163: StandardFloorPlan = {
 
 
 export const PLAN_CN_GZ_BINJIANGTIANDI_132: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-gz-binjiangtiandi-4br-132",
@@ -27430,7 +27430,7 @@ export const PLAN_CN_GZ_BINJIANGTIANDI_132: StandardFloorPlan = {
 
 
 export const PLAN_CN_SZ_SHENTIEJINGCHENG_151: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sz-shentiejingcheng-4br-151",
@@ -28399,7 +28399,7 @@ export const PLAN_CN_SZ_SHENTIEJINGCHENG_151: StandardFloorPlan = {
 
 
 export const PLAN_CN_CD_TIANFUHEMING_130: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-cd-tianfuhm-4br-130",
@@ -29336,7 +29336,7 @@ export const PLAN_CN_CD_TIANFUHEMING_130: StandardFloorPlan = {
 
 
 export const PLAN_CN_HZ_WEIKECHENMINGFU_132: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-hz-weikechenmingfu-4br-132",
@@ -30297,7 +30297,7 @@ export const PLAN_CN_HZ_WEIKECHENMINGFU_132: StandardFloorPlan = {
 
 
 export const PLAN_CN_NJ_JINYUZIJINGFU_130: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-nj-jinyuzijingfu-4br-130",
@@ -31240,7 +31240,7 @@ export const PLAN_CN_NJ_JINYUZIJINGFU_130: StandardFloorPlan = {
 
 
 export const PLAN_CN_WH_ZHAOSHANGTIANQINGFU_130: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-wh-zhaoshangtianqingfu-4br-130",
@@ -32199,7 +32199,7 @@ export const PLAN_CN_WH_ZHAOSHANGTIANQINGFU_130: StandardFloorPlan = {
 
 
 export const PLAN_CN_WH_JINRONGJIEJINYUEFU_130: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-wh-jinrongjiejinyuefu-4br-130",
@@ -33130,7 +33130,7 @@ export const PLAN_CN_WH_JINRONGJIEJINYUEFU_130: StandardFloorPlan = {
 
 
 export const PLAN_CN_SH_WEIFANGER_1BR0_36: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sh-weifanger-1br0-36",
@@ -33589,7 +33589,7 @@ export const PLAN_CN_SH_WEIFANGER_1BR0_36: StandardFloorPlan = {
 
 
 export const PLAN_CN_SH_WEIFANGER_2BR0_44: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sh-weifanger-2br0-44",
@@ -34154,7 +34154,7 @@ export const PLAN_CN_SH_WEIFANGER_2BR0_44: StandardFloorPlan = {
 
 
 export const PLAN_CN_GZ_BAOLITIANYUE_251: StandardFloorPlan = {
-  "version": 1,
+  "version": 2,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-gz-baolitianyue-5br-251",

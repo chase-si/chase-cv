@@ -1,12 +1,10 @@
 import { describe, expect, it } from "vitest";
+import * as furnitureCatalogModule from "./furniture-catalog";
 import {
-  adaptLegacyFurnitureCatalog,
-  adaptLegacyFurnitureDefinition,
   ALL_FURNITURE_CATEGORIES,
-  furnitureCatalogToLegacy,
-  furnitureDefinitionToLegacy,
   getDefaultFurnitureCatalog,
   getDefaultSpecification,
+  getFurnitureCatalog,
   getFurnitureCategories,
   getFurnitureDefinitionById,
   getFurnitureDefinitionsByCategory,
@@ -17,14 +15,14 @@ import {
   STANDARD_FURNITURE_CATALOG_V2,
   STANDARD_FURNITURE_DEFINITIONS,
 } from "./furniture-catalog";
-import type { FurnitureDefinitionV1 } from "./types";
+import * as floorPlanIndex from "./index";
 import {
   validateFurnitureCatalog,
   validateFurnitureDefinition,
 } from "./validators";
 
-describe("Furniture Catalog (AC-4, AC-19, AC-21)", () => {
-  it("STANDARD_FURNITURE_CATALOG passes strict contract validation (AC-21)", () => {
+describe("Furniture Catalog v2 Contract (AC-4, AC-19, AC-21)", () => {
+  it("STANDARD_FURNITURE_CATALOG passes strict v2 contract validation (AC-21)", () => {
     const res = validateFurnitureCatalog(STANDARD_FURNITURE_CATALOG);
     expect(res.ok, !res.ok ? JSON.stringify(res.errors) : undefined).toBe(true);
     if (res.ok) {
@@ -38,13 +36,16 @@ describe("Furniture Catalog (AC-4, AC-19, AC-21)", () => {
     expect(STANDARD_FURNITURE_CATALOG_V2).toBe(STANDARD_FURNITURE_CATALOG);
   });
 
-  it("all definitions in STANDARD_FURNITURE_DEFINITIONS pass validateFurnitureDefinition individually (AC-21)", () => {
+  it("all definitions in STANDARD_FURNITURE_DEFINITIONS pass validateFurnitureDefinition individually and contain no legacy v1 fields (AC-4, AC-21)", () => {
     for (const def of STANDARD_FURNITURE_DEFINITIONS) {
       const res = validateFurnitureDefinition(def);
       expect(
         res.ok,
         `Definition '${def.id}' failed validation: ${!res.ok ? JSON.stringify(res.errors) : ""}`,
       ).toBe(true);
+      expect("defaultSize" in def).toBe(false);
+      expect("allowedSizeRanges" in def).toBe(false);
+      expect("clearanceRules" in def).toBe(false);
     }
   });
 
@@ -172,62 +173,39 @@ describe("Furniture Catalog (AC-4, AC-19, AC-21)", () => {
     expect(resolvedDefault.width).toBe(bed.specifications[0].width);
   });
 
-  describe("Compatibility Adapters (AC-4, Contract Sec 7)", () => {
-    const legacyDefinition: FurnitureDefinitionV1 = {
-      id: "legacy-sofa",
-      name: "Legacy Custom Sofa",
-      category: "sofa",
-      defaultSize: { width: 1900, depth: 850, height: 800 },
-      allowedSizeRanges: {
-        width: { min: 1600, max: 2200, step: 100 },
-      },
-      clearanceRules: {
-        front: 500,
-        back: 50,
-      },
-    };
+  describe("V1 Compatibility Removal Contract Verification (AC-4, Issue #225)", () => {
+    it("removes legacy v1 adapter functions from furniture-catalog and floor-plan barrel exports", () => {
+      const removedExports = [
+        "adaptLegacyFurnitureDefinition",
+        "adaptLegacyFurnitureCatalog",
+        "furnitureDefinitionToLegacy",
+        "furnitureCatalogToLegacy",
+      ];
 
-    it("adaptLegacyFurnitureDefinition creates valid FurnitureDefinition with specifications", () => {
-      const adapted = adaptLegacyFurnitureDefinition(legacyDefinition);
-      expect(adapted.id).toBe("legacy-sofa");
-      expect(adapted.specifications.length).toBe(1);
-      expect(adapted.specifications[0].width).toBe(1900);
-      expect(adapted.specifications[0].depth).toBe(850);
-      expect(adapted.specifications[0].clearance.front.minimum).toBe(500);
-      expect(adapted.specifications[0].clearance.front.recommended).toBeGreaterThanOrEqual(500);
-
-      // Validate through the official validator
-      const res = validateFurnitureDefinition(adapted);
-      expect(res.ok).toBe(true);
+      for (const name of removedExports) {
+        expect(name in furnitureCatalogModule, `${name} must be removed from furniture-catalog`).toBe(false);
+        expect(name in floorPlanIndex, `${name} must be removed from floor-plan index`).toBe(false);
+      }
     });
 
-    it("adaptLegacyFurnitureCatalog converts legacy v1 catalog into valid v2 catalog", () => {
-      const legacyCatalog = {
-        version: 1 as const,
-        unit: "mm" as const,
-        definitions: [legacyDefinition],
+    it("getFurnitureCatalog rejects legacy v1 catalog and definitions with defaultSize or allowedSizeRanges", () => {
+      const v1Catalog = {
+        version: 1,
+        unit: "mm",
+        definitions: [
+          {
+            id: "legacy-bed",
+            name: "Legacy Bed",
+            category: "bed",
+            defaultSize: { width: 1800, depth: 2000 },
+            allowedSizeRanges: {
+              width: { min: 1500, max: 2000, step: 100 },
+            },
+          },
+        ],
       };
 
-      const adaptedCatalog = adaptLegacyFurnitureCatalog(legacyCatalog);
-      expect(adaptedCatalog.version).toBe(2);
-      expect(adaptedCatalog.unit).toBe("mm");
-      expect(adaptedCatalog.definitions.length).toBe(1);
-
-      const res = validateFurnitureCatalog(adaptedCatalog);
-      expect(res.ok).toBe(true);
-    });
-
-    it("furnitureDefinitionToLegacy and furnitureCatalogToLegacy convert v2 back to v1", () => {
-      const def = STANDARD_FURNITURE_DEFINITIONS[0];
-      const legacy = furnitureDefinitionToLegacy(def);
-      expect(legacy.id).toBe(def.id);
-      expect(legacy.defaultSize.width).toBe(def.specifications[0].width);
-      expect(legacy.defaultSize.depth).toBe(def.specifications[0].depth);
-
-      const catalog = getDefaultFurnitureCatalog();
-      const legacyCatalog = furnitureCatalogToLegacy(catalog);
-      expect(legacyCatalog.version).toBe(1);
-      expect(legacyCatalog.definitions.length).toBe(catalog.definitions.length);
+      expect(() => getFurnitureCatalog(v1Catalog)).toThrow(/Invalid FurnitureCatalog/);
     });
   });
 });

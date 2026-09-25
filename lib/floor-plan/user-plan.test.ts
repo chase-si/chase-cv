@@ -20,7 +20,7 @@ describe("User Plan Lifecycle & Immutability (AC-2, AC-16)", () => {
       expect(userPlan.meta.isStandard).toBe(false);
       expect(userPlan.meta.templateId).toBe(standardTemplate.meta.id);
       expect(userPlan.meta.id).toBe(`user-plan-${standardTemplate.meta.id}`);
-      expect(userPlan.version).toBe(1);
+      expect(userPlan.version).toBe(2);
       expect(userPlan.unit).toBe("mm");
       expect(userPlan.walls.length).toBe(standardTemplate.walls.length);
       expect(userPlan.furniture.length).toBe(standardTemplate.furniture.length);
@@ -84,7 +84,7 @@ describe("User Plan Lifecycle & Immutability (AC-2, AC-16)", () => {
         version: 999, // invalid version
       } as unknown as FloorPlan;
 
-      expect(() => exportFloorPlanAsJson(invalidPlan)).toThrow(/FloorPlan version must be 1/i);
+      expect(() => exportFloorPlanAsJson(invalidPlan)).toThrow(/FloorPlan version must be 2/i);
     });
   });
 });

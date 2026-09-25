@@ -5,7 +5,7 @@ import type { StandardFloorPlan } from "../types";
  * Single large living/sleeping studio + modern bathroom
  */
 export const STUDIO_STANDARD_FLOOR_PLAN: StandardFloorPlan = {
-  version: 1,
+  version: 2,
   unit: "mm",
   meta: {
     id: "floor-plan-std-studio-01",
@@ -109,7 +109,7 @@ export const STUDIO_STANDARD_FLOOR_PLAN: StandardFloorPlan = {
  * Living room + Master bedroom + Guest room/Study
  */
 export const THREE_BED_STANDARD_FLOOR_PLAN: StandardFloorPlan = {
-  version: 1,
+  version: 2,
   unit: "mm",
   meta: {
     id: "floor-plan-std-3b1l-01",

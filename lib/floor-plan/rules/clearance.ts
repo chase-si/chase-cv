@@ -103,9 +103,10 @@ export function computeFurnitureClearanceZones(
   let leftClearance = 0;
   let rightClearance = 0;
 
-  const matchedSpec = furniture.specificationId
-    ? def?.specifications?.find((s) => s.id === furniture.specificationId)
-    : undefined;
+  const matchedSpec =
+    (furniture.specificationId
+      ? def?.specifications?.find((s) => s.id === furniture.specificationId)
+      : undefined) ?? def?.specifications?.[0];
 
   if (matchedSpec && !config?.rules?.furnitureClearance) {
     frontClearance = matchedSpec.clearance.front.minimum;
@@ -114,20 +115,8 @@ export function computeFurnitureClearanceZones(
     rightClearance = matchedSpec.clearance.right.minimum;
   } else if (category === "bed" || furniture.definitionId.includes("bed")) {
     frontClearance = bedFoot;
-    // For beds, left and right side clearance
-    if (def?.clearanceRules?.left !== undefined) {
-      leftClearance = bedSide;
-    } else {
-      leftClearance = bedSide;
-    }
-    if (def?.clearanceRules?.right !== undefined) {
-      rightClearance = bedSide;
-    } else if (def?.clearanceRules?.left !== undefined) {
-      // Single bed with only left clearance defined
-      rightClearance = 0;
-    } else {
-      rightClearance = bedSide;
-    }
+    leftClearance = matchedSpec ? (matchedSpec.clearance.left.minimum > 0 ? bedSide : 0) : bedSide;
+    rightClearance = matchedSpec ? (matchedSpec.clearance.right.minimum > 0 ? bedSide : 0) : bedSide;
   } else if (category === "storage" || furniture.definitionId.includes("wardrobe")) {
     frontClearance = wardrobeFront;
   } else if (category === "table" || furniture.definitionId.includes("dining")) {
@@ -135,11 +124,11 @@ export function computeFurnitureClearanceZones(
     backClearance = diningChairPullout;
     leftClearance = diningChairPullout;
     rightClearance = diningChairPullout;
-  } else if (def?.clearanceRules) {
-    frontClearance = def.clearanceRules.front ?? def.clearanceRules.all ?? 0;
-    backClearance = def.clearanceRules.back ?? def.clearanceRules.all ?? 0;
-    leftClearance = def.clearanceRules.left ?? def.clearanceRules.all ?? 0;
-    rightClearance = def.clearanceRules.right ?? def.clearanceRules.all ?? 0;
+  } else if (matchedSpec) {
+    frontClearance = matchedSpec.clearance.front.minimum;
+    backClearance = matchedSpec.clearance.back.minimum;
+    leftClearance = matchedSpec.clearance.left.minimum;
+    rightClearance = matchedSpec.clearance.right.minimum;
   }
 
   const { x, y, width, depth, rotation } = furniture;

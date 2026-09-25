@@ -1,11 +1,7 @@
 import type {
-  ClearanceThreshold,
   FurnitureCatalog,
-  FurnitureCatalogV1,
   FurnitureCategory,
   FurnitureDefinition,
-  FurnitureDefinitionV1,
-  FurnitureSide,
   FurnitureSpecification,
 } from "./types";
 import { cloneFurnitureDefinition, validateFurnitureCatalog } from "./validators";
@@ -43,20 +39,6 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
         },
       },
     ],
-    defaultSize: {
-      width: 1800,
-      depth: 2000,
-      height: 900,
-    },
-    allowedSizeRanges: {
-      width: { min: 1500, max: 2000, step: 100 },
-      depth: { min: 1900, max: 2200, step: 50 },
-    },
-    clearanceRules: {
-      left: 600,
-      right: 600,
-      front: 600,
-    },
   },
   {
     id: "bed-single",
@@ -90,19 +72,6 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
         },
       },
     ],
-    defaultSize: {
-      width: 1200,
-      depth: 2000,
-      height: 800,
-    },
-    allowedSizeRanges: {
-      width: { min: 900, max: 1350, step: 50 },
-      depth: { min: 1900, max: 2100, step: 50 },
-    },
-    clearanceRules: {
-      left: 500,
-      front: 600,
-    },
   },
   {
     id: "sofa-3seat",
@@ -136,18 +105,6 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
         },
       },
     ],
-    defaultSize: {
-      width: 2100,
-      depth: 900,
-      height: 850,
-    },
-    allowedSizeRanges: {
-      width: { min: 1800, max: 2600, step: 100 },
-      depth: { min: 800, max: 1050, step: 50 },
-    },
-    clearanceRules: {
-      front: 450,
-    },
   },
   {
     id: "sofa-2seat",
@@ -181,18 +138,6 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
         },
       },
     ],
-    defaultSize: {
-      width: 1500,
-      depth: 850,
-      height: 850,
-    },
-    allowedSizeRanges: {
-      width: { min: 1300, max: 1700, step: 100 },
-      depth: { min: 800, max: 1000, step: 50 },
-    },
-    clearanceRules: {
-      front: 450,
-    },
   },
   {
     id: "dining-table-4",
@@ -226,18 +171,6 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
         },
       },
     ],
-    defaultSize: {
-      width: 1400,
-      depth: 800,
-      height: 750,
-    },
-    allowedSizeRanges: {
-      width: { min: 1200, max: 1600, step: 100 },
-      depth: { min: 700, max: 900, step: 50 },
-    },
-    clearanceRules: {
-      all: 750,
-    },
   },
   {
     id: "coffee-table",
@@ -271,18 +204,6 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
         },
       },
     ],
-    defaultSize: {
-      width: 1100,
-      depth: 600,
-      height: 450,
-    },
-    allowedSizeRanges: {
-      width: { min: 900, max: 1300, step: 100 },
-      depth: { min: 500, max: 700, step: 50 },
-    },
-    clearanceRules: {
-      all: 400,
-    },
   },
   {
     id: "dining-chair",
@@ -316,18 +237,6 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
         },
       },
     ],
-    defaultSize: {
-      width: 500,
-      depth: 500,
-      height: 850,
-    },
-    allowedSizeRanges: {
-      width: { min: 450, max: 600, step: 50 },
-      depth: { min: 450, max: 600, step: 50 },
-    },
-    clearanceRules: {
-      front: 500,
-    },
   },
   {
     id: "armchair",
@@ -361,18 +270,6 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
         },
       },
     ],
-    defaultSize: {
-      width: 850,
-      depth: 850,
-      height: 800,
-    },
-    allowedSizeRanges: {
-      width: { min: 750, max: 1000, step: 50 },
-      depth: { min: 750, max: 1000, step: 50 },
-    },
-    clearanceRules: {
-      front: 450,
-    },
   },
   {
     id: "wardrobe-large",
@@ -406,18 +303,6 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
         },
       },
     ],
-    defaultSize: {
-      width: 1800,
-      depth: 600,
-      height: 2200,
-    },
-    allowedSizeRanges: {
-      width: { min: 1200, max: 2400, step: 200 },
-      depth: { min: 550, max: 650, step: 50 },
-    },
-    clearanceRules: {
-      front: 800,
-    },
   },
   {
     id: "bookcase",
@@ -451,18 +336,6 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
         },
       },
     ],
-    defaultSize: {
-      width: 900,
-      depth: 350,
-      height: 1800,
-    },
-    allowedSizeRanges: {
-      width: { min: 600, max: 1200, step: 100 },
-      depth: { min: 300, max: 450, step: 50 },
-    },
-    clearanceRules: {
-      front: 600,
-    },
   },
   {
     id: "desk",
@@ -496,18 +369,6 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
         },
       },
     ],
-    defaultSize: {
-      width: 1200,
-      depth: 600,
-      height: 750,
-    },
-    allowedSizeRanges: {
-      width: { min: 1000, max: 1600, step: 100 },
-      depth: { min: 500, max: 750, step: 50 },
-    },
-    clearanceRules: {
-      front: 750,
-    },
   },
   {
     id: "tv-stand",
@@ -541,18 +402,6 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
         },
       },
     ],
-    defaultSize: {
-      width: 1600,
-      depth: 400,
-      height: 500,
-    },
-    allowedSizeRanges: {
-      width: { min: 1200, max: 2200, step: 100 },
-      depth: { min: 350, max: 500, step: 50 },
-    },
-    clearanceRules: {
-      front: 800,
-    },
   },
 ]);
 
@@ -652,118 +501,10 @@ export function resolveSpecificationDimensions(
     }
   }
 
-  if (definition.specifications.length > 0) {
-    const defaultSpec = getDefaultSpecification(definition);
-    return {
-      width: defaultSpec.width,
-      depth: defaultSpec.depth,
-      height: defaultSpec.height,
-    };
-  }
-
-  if (definition.defaultSize) {
-    return {
-      width: definition.defaultSize.width,
-      depth: definition.defaultSize.depth,
-      height: definition.defaultSize.height,
-    };
-  }
-
-  return { width: 1000, depth: 1000 };
-}
-
-/**
- * Adapter: converts legacy FurnitureDefinitionV1 into target FurnitureDefinition v2 (AC-4, Contract Sec 7).
- */
-export function adaptLegacyFurnitureDefinition(
-  legacy: FurnitureDefinitionV1,
-): FurnitureDefinition {
-  const frontMin = legacy.clearanceRules?.front ?? legacy.clearanceRules?.all ?? 0;
-  const backMin = legacy.clearanceRules?.back ?? legacy.clearanceRules?.all ?? 0;
-  const leftMin = legacy.clearanceRules?.left ?? legacy.clearanceRules?.all ?? 0;
-  const rightMin = legacy.clearanceRules?.right ?? legacy.clearanceRules?.all ?? 0;
-
-  const defaultSpec: FurnitureSpecification = {
-    id: `${legacy.id}-default`,
-    name: `${legacy.defaultSize.width} × ${legacy.defaultSize.depth} mm`,
-    width: legacy.defaultSize.width,
-    depth: legacy.defaultSize.depth,
-    height: legacy.defaultSize.height,
-    clearance: {
-      front: { minimum: frontMin, recommended: Math.max(frontMin, frontMin + 200) },
-      back: { minimum: backMin, recommended: Math.max(backMin, backMin + 100) },
-      left: { minimum: leftMin, recommended: Math.max(leftMin, leftMin + 150) },
-      right: { minimum: rightMin, recommended: Math.max(rightMin, rightMin + 150) },
-    },
-  };
-
+  const defaultSpec = getDefaultSpecification(definition);
   return {
-    id: legacy.id,
-    name: legacy.name,
-    category: legacy.category,
-    specifications: [defaultSpec],
-    defaultSize: { ...legacy.defaultSize },
-    allowedSizeRanges: legacy.allowedSizeRanges ? { ...legacy.allowedSizeRanges } : undefined,
-    clearanceRules: legacy.clearanceRules ? { ...legacy.clearanceRules } : undefined,
-  };
-}
-
-/**
- * Adapter: converts legacy FurnitureCatalogV1 into target FurnitureCatalog v2.
- */
-export function adaptLegacyFurnitureCatalog(
-  legacy: FurnitureCatalogV1,
-): FurnitureCatalog {
-  return {
-    version: 2,
-    unit: "mm",
-    definitions: legacy.definitions.map((def) => adaptLegacyFurnitureDefinition(def)),
-  };
-}
-
-/**
- * Adapter: converts target FurnitureDefinition v2 into legacy FurnitureDefinitionV1.
- */
-export function furnitureDefinitionToLegacy(
-  def: FurnitureDefinition,
-): FurnitureDefinitionV1 {
-  const primarySpec = def.specifications[0];
-  const defaultWidth = def.defaultSize?.width ?? primarySpec?.width ?? 1000;
-  const defaultDepth = def.defaultSize?.depth ?? primarySpec?.depth ?? 1000;
-  const defaultHeight = def.defaultSize?.height ?? primarySpec?.height;
-
-  const clearanceRules = def.clearanceRules ?? (primarySpec
-    ? {
-        front: primarySpec.clearance.front.minimum,
-        back: primarySpec.clearance.back.minimum,
-        left: primarySpec.clearance.left.minimum,
-        right: primarySpec.clearance.right.minimum,
-      }
-    : undefined);
-
-  return {
-    id: def.id,
-    name: def.name,
-    category: def.category,
-    defaultSize: {
-      width: defaultWidth,
-      depth: defaultDepth,
-      ...(defaultHeight !== undefined ? { height: defaultHeight } : {}),
-    },
-    allowedSizeRanges: def.allowedSizeRanges ? { ...def.allowedSizeRanges } : undefined,
-    clearanceRules,
-  };
-}
-
-/**
- * Adapter: converts target FurnitureCatalog v2 into legacy FurnitureCatalogV1.
- */
-export function furnitureCatalogToLegacy(
-  catalog: FurnitureCatalog,
-): FurnitureCatalogV1 {
-  return {
-    version: 1,
-    unit: "mm",
-    definitions: catalog.definitions.map(furnitureDefinitionToLegacy),
+    width: defaultSpec.width,
+    depth: defaultSpec.depth,
+    height: defaultSpec.height,
   };
 }

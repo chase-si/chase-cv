@@ -351,8 +351,8 @@ export function CandidatePlanPreview({
                   className="text-xs font-medium text-foreground"
                 >
                   {isZh
-                    ? "候选户型 JSON 编辑器 (StandardFloorPlan v1)"
-                    : "Candidate Plan JSON Editor (StandardFloorPlan v1)"}
+                    ? "候选户型 JSON 编辑器 (StandardFloorPlan v2)"
+                    : "Candidate Plan JSON Editor (StandardFloorPlan v2)"}
                 </Label>
                 <span className="text-[10px] font-mono text-muted-foreground">
                   unit: &quot;mm&quot;

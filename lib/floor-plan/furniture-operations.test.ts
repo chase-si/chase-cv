@@ -1,29 +1,28 @@
 import { describe, expect, it } from "vitest";
 import { VALID_STANDARD_FLOOR_PLAN } from "./fixtures/valid-standard-plan";
-import {
-  getDefaultFurnitureCatalog,
-  STANDARD_FURNITURE_CATALOG,
-} from "./furniture-catalog";
+import { getDefaultFurnitureCatalog } from "./furniture-catalog";
+import * as furnitureOperationsModule from "./furniture-operations";
 import {
   addFurnitureInstance,
   changeFurnitureSpecification,
   computeRoomInitialDropPosition,
   deleteFurnitureInstance,
+  getFurnitureInstanceDetails,
   moveFurnitureInstance,
-  resizeFurnitureInstance,
   rotateFurnitureInstance,
 } from "./furniture-operations";
+import * as floorPlanIndex from "./index";
 import type { FloorPlan } from "./types";
 
 function createTestPlan(): FloorPlan {
   return JSON.parse(JSON.stringify(VALID_STANDARD_FLOOR_PLAN));
 }
 
-describe("Furniture Operations (US-10, US-11, AC-10, AC-11)", () => {
+describe("Furniture Operations (AC-4, AC-5, AC-10, AC-11)", () => {
   const catalog = getDefaultFurnitureCatalog();
 
   describe("addFurnitureInstance (AC-10)", () => {
-    it("adds an item using its default dimensions from definition", () => {
+    it("adds an item strictly using its default specification dimensions from definition", () => {
       const plan = createTestPlan();
       const initialCount = plan.furniture.length;
 
@@ -33,6 +32,7 @@ describe("Furniture Operations (US-10, US-11, AC-10, AC-11)", () => {
       if (result.success) {
         expect(result.plan.furniture.length).toBe(initialCount + 1);
         expect(result.instance.definitionId).toBe("bed-double");
+        expect(result.instance.specificationId).toBe("bed-double-1800");
         expect(result.instance.width).toBe(1800);
         expect(result.instance.depth).toBe(2000);
         expect(result.instance.rotation).toBe(0);
@@ -63,19 +63,16 @@ describe("Furniture Operations (US-10, US-11, AC-10, AC-11)", () => {
 
     it("AC-13: computes deterministic initial drop position in selected room", () => {
       const plan = createTestPlan();
-      // Room r1 (Living Room): vertices v1(0,0), v2(3000,0), v3(3000,5000), v4(0,5000) -> centroid (1500, 2500)
       const dropPosR1 = computeRoomInitialDropPosition(plan, "r1");
       expect(dropPosR1).not.toBeNull();
       expect(dropPosR1?.x).toBe(1500);
       expect(dropPosR1?.y).toBe(2500);
 
-      // Room r2 (Master Bedroom): vertices v2(3000,0), v5(6000,0), v6(6000,5000), v3(3000,5000) -> centroid (4500, 2500)
       const dropPosR2 = computeRoomInitialDropPosition(plan, "r2");
       expect(dropPosR2).not.toBeNull();
       expect(dropPosR2?.x).toBe(4500);
       expect(dropPosR2?.y).toBe(2500);
 
-      // Placing with roomId places item at deterministic room drop position
       const result = addFurnitureInstance(plan, catalog, "bed-double", {
         roomId: "r2",
       });
@@ -97,19 +94,26 @@ describe("Furniture Operations (US-10, US-11, AC-10, AC-11)", () => {
       const defAfter = catalog.definitions.find((d) => d.id === "desk")!;
       expect(JSON.stringify(defAfter)).toBe(beforeSnapshot);
 
-      // Verify that modifying the instance does not affect the catalog definition
       if (result.success) {
         result.instance.width = 9999;
-        expect(defAfter.defaultSize.width).toBe(1200);
+        expect(defAfter.specifications[0].width).toBe(1200);
       }
     });
 
-    it("fails when definitionId is not found in catalog", () => {
+    it("fails when definitionId or specificationId is not found in catalog", () => {
       const plan = createTestPlan();
       const result = addFurnitureInstance(plan, catalog, "non-existent-furniture");
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error).toContain("non-existent-furniture");
+      }
+
+      const badSpecResult = addFurnitureInstance(plan, catalog, "bed-double", {
+        specificationId: "bed-double-unknown-spec",
+      });
+      expect(badSpecResult.success).toBe(false);
+      if (!badSpecResult.success) {
+        expect(badSpecResult.error).toContain("bed-double-unknown-spec");
       }
     });
 
@@ -161,12 +165,10 @@ describe("Furniture Operations (US-10, US-11, AC-10, AC-11)", () => {
     it("rotates furniture in 90-degree steps and cycles back to 0", () => {
       const plan = createTestPlan();
       const targetId = plan.furniture[0].id;
-      // Force initial rotation to 0
       plan.furniture[0].rotation = 0;
 
       let currentPlan = plan;
 
-      // 0 -> 90
       let res = rotateFurnitureInstance(currentPlan, targetId, 90);
       expect(res.success).toBe(true);
       if (res.success) {
@@ -174,7 +176,6 @@ describe("Furniture Operations (US-10, US-11, AC-10, AC-11)", () => {
         currentPlan = res.plan;
       }
 
-      // 90 -> 180
       res = rotateFurnitureInstance(currentPlan, targetId, 90);
       expect(res.success).toBe(true);
       if (res.success) {
@@ -182,7 +183,6 @@ describe("Furniture Operations (US-10, US-11, AC-10, AC-11)", () => {
         currentPlan = res.plan;
       }
 
-      // 180 -> 270
       res = rotateFurnitureInstance(currentPlan, targetId, 90);
       expect(res.success).toBe(true);
       if (res.success) {
@@ -190,7 +190,6 @@ describe("Furniture Operations (US-10, US-11, AC-10, AC-11)", () => {
         currentPlan = res.plan;
       }
 
-      // 270 -> 0
       res = rotateFurnitureInstance(currentPlan, targetId, 90);
       expect(res.success).toBe(true);
       if (res.success) {
@@ -217,129 +216,30 @@ describe("Furniture Operations (US-10, US-11, AC-10, AC-11)", () => {
     });
   });
 
-  describe("resizeFurnitureInstance (AC-11)", () => {
-    it("resizes furniture within configured min/max limits", () => {
+  describe("Arbitrary Resize Removal & Predefined Specifications Only (AC-4, Issue #225)", () => {
+    it("removes resizeFurnitureInstance from furniture-operations and floor-plan barrel exports", () => {
+      expect("resizeFurnitureInstance" in furnitureOperationsModule).toBe(false);
+      expect("resizeFurnitureInstance" in floorPlanIndex).toBe(false);
+    });
+
+    it("getFurnitureInstanceDetails resolves active specification without legacy widthRange/depthRange", () => {
       const plan = createTestPlan();
-      const addRes = addFurnitureInstance(plan, catalog, "bed-double");
+      const addRes = addFurnitureInstance(plan, catalog, "bed-double", {
+        specificationId: "bed-double-1500",
+      });
       expect(addRes.success).toBe(true);
       if (!addRes.success) return;
 
-      const furnitureId = addRes.instance.id;
-      // bed-double: width [1500, 2000], depth [1900, 2200]
-      const resizeRes = resizeFurnitureInstance(
+      const details = getFurnitureInstanceDetails(
         addRes.plan,
         catalog,
-        furnitureId,
-        1600,
-        2100,
+        addRes.instance.id,
       );
-
-      expect(resizeRes.success).toBe(true);
-      if (resizeRes.success) {
-        expect(resizeRes.instance.width).toBe(1600);
-        expect(resizeRes.instance.depth).toBe(2100);
-      }
-    });
-
-    it("rejects width below minimum with clear reason and does not mutate plan", () => {
-      const plan = createTestPlan();
-      const addRes = addFurnitureInstance(plan, catalog, "bed-double");
-      expect(addRes.success).toBe(true);
-      if (!addRes.success) return;
-
-      const furnitureId = addRes.instance.id;
-      const resizeRes = resizeFurnitureInstance(
-        addRes.plan,
-        catalog,
-        furnitureId,
-        1400, // min is 1500
-        2000,
-      );
-
-      expect(resizeRes.success).toBe(false);
-      if (!resizeRes.success) {
-        expect(resizeRes.error).toMatch(/1400.*below.*1500|outside.*range/i);
-      }
-
-      // Non-mutation check
-      const unchanged = addRes.plan.furniture.find((f) => f.id === furnitureId);
-      expect(unchanged?.width).toBe(1800);
-    });
-
-    it("rejects depth above maximum with clear reason and does not mutate plan", () => {
-      const plan = createTestPlan();
-      const addRes = addFurnitureInstance(plan, catalog, "bed-double");
-      expect(addRes.success).toBe(true);
-      if (!addRes.success) return;
-
-      const furnitureId = addRes.instance.id;
-      const resizeRes = resizeFurnitureInstance(
-        addRes.plan,
-        catalog,
-        furnitureId,
-        1800,
-        2400, // max is 2200
-      );
-
-      expect(resizeRes.success).toBe(false);
-      if (!resizeRes.success) {
-        expect(resizeRes.error).toMatch(/2400.*exceeds.*2200|outside.*range/i);
-      }
-
-      const unchanged = addRes.plan.furniture.find((f) => f.id === furnitureId);
-      expect(unchanged?.depth).toBe(2000);
-    });
-
-    it("returns readable localized Chinese error message when locale is zh (AC-19)", () => {
-      const plan = createTestPlan();
-      const addRes = addFurnitureInstance(plan, catalog, "bed-double");
-      expect(addRes.success).toBe(true);
-      if (!addRes.success) return;
-
-      const furnitureId = addRes.instance.id;
-      const resizeRes = resizeFurnitureInstance(
-        addRes.plan,
-        catalog,
-        furnitureId,
-        1400, // min is 1500
-        2000,
-        { locale: "zh" },
-      );
-
-      expect(resizeRes.success).toBe(false);
-      if (!resizeRes.success) {
-        expect(resizeRes.error).toContain("宽度 1400 mm 低于双人床 (1.8m)允许的最小尺寸 1500 mm");
-      }
-    });
-
-    it("supports clamp option to bound dimensions to min and max", () => {
-      const plan = createTestPlan();
-      const addRes = addFurnitureInstance(plan, catalog, "bed-double");
-      expect(addRes.success).toBe(true);
-      if (!addRes.success) return;
-
-      const furnitureId = addRes.instance.id;
-      const clampRes = resizeFurnitureInstance(
-        addRes.plan,
-        catalog,
-        furnitureId,
-        3000, // exceeds max 2000
-        1000, // below min 1900
-        { clamp: true },
-      );
-
-      expect(clampRes.success).toBe(true);
-      if (clampRes.success) {
-        expect(clampRes.instance.width).toBe(2000);
-        expect(clampRes.instance.depth).toBe(1900);
-      }
-    });
-
-    it("rejects non-positive numbers", () => {
-      const plan = createTestPlan();
-      const targetId = plan.furniture[0].id;
-      const res = resizeFurnitureInstance(plan, catalog, targetId, -500, 800);
-      expect(res.success).toBe(false);
+      expect(details).toBeDefined();
+      expect(details?.specification?.id).toBe("bed-double-1500");
+      expect(details?.specification?.width).toBe(1500);
+      expect("widthRange" in (details ?? {})).toBe(false);
+      expect("depthRange" in (details ?? {})).toBe(false);
     });
   });
 
@@ -411,7 +311,6 @@ describe("Furniture Operations (US-10, US-11, AC-10, AC-11)", () => {
         expect(switchRes.instance.specificationId).toBe("bed-double-1500");
         expect(switchRes.instance.width).toBe(1500);
         expect(switchRes.instance.depth).toBe(2000);
-        // Center point and rotation must remain unchanged
         expect(switchRes.instance.x).toBe(2450);
         expect(switchRes.instance.y).toBe(1820);
         expect(switchRes.instance.rotation).toBe(270);
