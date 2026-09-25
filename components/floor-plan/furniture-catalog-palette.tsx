@@ -203,9 +203,9 @@ export function FurnitureCatalogPalette({
             const activeSpecId = selectedSpecs[def.id] ?? defaultSpec?.id;
             const activeSpec =
               def.specifications?.find((s) => s.id === activeSpecId) ?? defaultSpec;
-            const width = activeSpec?.width ?? def.defaultSize?.width ?? 0;
-            const depth = activeSpec?.depth ?? def.defaultSize?.depth ?? 0;
-            const height = activeSpec?.height ?? def.defaultSize?.height;
+            const width = activeSpec?.width ?? 0;
+            const depth = activeSpec?.depth ?? 0;
+            const height = activeSpec?.height;
 
             return (
               <Card

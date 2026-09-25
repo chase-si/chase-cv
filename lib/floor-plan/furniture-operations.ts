@@ -6,7 +6,6 @@ import {
   getWallMap,
 } from "./geometry";
 import type {
-  DimensionRange,
   FloorPlan,
   FurnitureCatalog,
   FurnitureDefinition,
@@ -15,7 +14,6 @@ import type {
 } from "./types";
 
 import { cloneFloorPlan } from "./user-plan";
-import { getFloorPlanI18n } from "./i18n";
 
 export interface PlacementOptions {
   x?: number;
@@ -24,11 +22,6 @@ export interface PlacementOptions {
   id?: string;
   roomId?: string;
   specificationId?: string;
-}
-
-export interface ResizeOptions {
-  clamp?: boolean;
-  locale?: string;
 }
 
 export type ChangeSpecificationResult =
@@ -76,17 +69,6 @@ export type RotateFurnitureResult =
       error: string;
     };
 
-export type ResizeFurnitureResult =
-  | {
-      success: true;
-      plan: FloorPlan;
-      instance: FurnitureInstance;
-    }
-  | {
-      success: false;
-      error: string;
-    };
-
 export type DeleteFurnitureResult =
   | {
       success: true;
@@ -101,10 +83,8 @@ export type DeleteFurnitureResult =
 export interface FurnitureInstanceDetails {
   instance: FurnitureInstance;
   definition?: FurnitureDefinition;
-  widthRange?: DimensionRange;
-  depthRange?: DimensionRange;
+  specification?: FurnitureSpecification;
 }
-
 
 /**
  * Computes deterministic initial drop position in selected room (AC-13).
@@ -172,7 +152,7 @@ export function computeRoomInitialDropPosition(
 }
 
 /**
- * Adds an item using its default dimensions from definition (US-10, AC-10, AC-13).
+ * Adds an item strictly deriving its dimensions from a predefined specification in definition (AC-4, AC-10, AC-13).
  * Guarantees FurnitureDefinition remains immutable.
  */
 export function addFurnitureInstance(
@@ -186,6 +166,19 @@ export function addFurnitureInstance(
     return {
       success: false,
       error: `Furniture definition "${definitionId}" not found in catalog.`,
+    };
+  }
+
+  const selectedSpec = placement?.specificationId
+    ? def.specifications.find((s) => s.id === placement.specificationId)
+    : def.specifications[0];
+
+  if (!selectedSpec) {
+    return {
+      success: false,
+      error: placement?.specificationId
+        ? `Furniture specification "${placement.specificationId}" not found for definition "${def.id}".`
+        : `Furniture definition "${def.id}" has no predefined specifications.`,
     };
   }
 
@@ -211,25 +204,17 @@ export function addFurnitureInstance(
   const id =
     placement?.id ?? `f-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
-  const selectedSpec =
-    (placement?.specificationId
-      ? def.specifications?.find((s) => s.id === placement.specificationId)
-      : undefined) ?? def.specifications?.[0];
-  const width = selectedSpec?.width ?? def.defaultSize?.width ?? 1000;
-  const depth = selectedSpec?.depth ?? def.defaultSize?.depth ?? 1000;
-  const height = selectedSpec?.height ?? def.defaultSize?.height;
-
-  // Dimensions resolved from predefined specification or definition default
+  // Dimensions strictly resolved from predefined specification
   const instance: FurnitureInstance = {
     id,
     definitionId: def.id,
-    specificationId: selectedSpec?.id ?? placement?.specificationId,
+    specificationId: selectedSpec.id,
     x: Math.round(posX),
     y: Math.round(posY),
-    width,
-    depth,
+    width: selectedSpec.width,
+    depth: selectedSpec.depth,
     rotation,
-    ...(height !== undefined ? { elevation: 0 } : {}),
+    ...(selectedSpec.height !== undefined ? { elevation: 0 } : {}),
   };
 
   const nextPlan = cloneFloorPlan(plan);
@@ -364,119 +349,6 @@ export function rotateFurnitureInstance(
 }
 
 /**
- * Resizes a furniture instance within configured min/max/step limits (US-11, AC-11).
- * Rejects invalid dimensions with clear reason; non-mutation guarantee on rejection.
- */
-export function resizeFurnitureInstance(
-  plan: FloorPlan,
-  catalog: FurnitureCatalog,
-  furnitureId: string,
-  widthMm: number,
-  depthMm: number,
-  options?: ResizeOptions,
-): ResizeFurnitureResult {
-  const isZh = options?.locale?.toLowerCase().startsWith("zh");
-
-  if (!Number.isFinite(widthMm) || !Number.isFinite(depthMm) || widthMm <= 0 || depthMm <= 0) {
-    return {
-      success: false,
-      error: isZh
-        ? "尺寸宽度和进深必须为大于 0 的有效数值。"
-        : "Dimensions width and depth must be positive numbers.",
-    };
-  }
-
-  const existing = plan.furniture.find((f) => f.id === furnitureId);
-  if (!existing) {
-    return {
-      success: false,
-      error: isZh
-        ? `未在方案中找到编号为 "${furnitureId}" 的家具构件。`
-        : `Furniture instance "${furnitureId}" not found.`,
-    };
-  }
-
-  const def = catalog.definitions.find((d) => d.id === existing.definitionId);
-  const widthRange = def?.allowedSizeRanges?.width;
-  const depthRange = def?.allowedSizeRanges?.depth;
-
-  let finalWidth = Math.round(widthMm);
-  let finalDepth = Math.round(depthMm);
-
-  if (options?.clamp) {
-    if (widthRange) {
-      finalWidth = Math.max(widthRange.min, Math.min(widthRange.max, finalWidth));
-      if (widthRange.step && widthRange.step > 0) {
-        finalWidth =
-          widthRange.min +
-          Math.round((finalWidth - widthRange.min) / widthRange.step) * widthRange.step;
-      }
-    }
-    if (depthRange) {
-      finalDepth = Math.max(depthRange.min, Math.min(depthRange.max, finalDepth));
-      if (depthRange.step && depthRange.step > 0) {
-        finalDepth =
-          depthRange.min +
-          Math.round((finalDepth - depthRange.min) / depthRange.step) * depthRange.step;
-      }
-    }
-  } else {
-    const furnitureName = def
-      ? (isZh ? getFloorPlanI18n(options?.locale).getFurnitureName(def.id, def.name) : def.name)
-      : existing.definitionId;
-
-    if (widthRange) {
-      if (finalWidth < widthRange.min) {
-        return {
-          success: false,
-          error: isZh
-            ? `宽度 ${finalWidth} mm 低于${furnitureName}允许的最小尺寸 ${widthRange.min} mm。`
-            : `Width ${finalWidth} mm is below minimum allowed ${widthRange.min} mm for ${furnitureName}.`,
-        };
-      }
-      if (finalWidth > widthRange.max) {
-        return {
-          success: false,
-          error: isZh
-            ? `宽度 ${finalWidth} mm 超出${furnitureName}允许的最大尺寸 ${widthRange.max} mm。`
-            : `Width ${finalWidth} mm exceeds maximum allowed ${widthRange.max} mm for ${furnitureName}.`,
-        };
-      }
-    }
-
-    if (depthRange) {
-      if (finalDepth < depthRange.min) {
-        return {
-          success: false,
-          error: isZh
-            ? `进深 ${finalDepth} mm 低于${furnitureName}允许的最小尺寸 ${depthRange.min} mm。`
-            : `Depth ${finalDepth} mm is below minimum allowed ${depthRange.min} mm for ${furnitureName}.`,
-        };
-      }
-      if (finalDepth > depthRange.max) {
-        return {
-          success: false,
-          error: isZh
-            ? `进深 ${finalDepth} mm 超出${furnitureName}允许的最大尺寸 ${depthRange.max} mm。`
-            : `Depth ${finalDepth} mm exceeds maximum allowed ${depthRange.max} mm for ${furnitureName}.`,
-        };
-      }
-    }
-  }
-
-  const nextPlan = cloneFloorPlan(plan);
-  const target = nextPlan.furniture.find((f) => f.id === furnitureId)!;
-  target.width = finalWidth;
-  target.depth = finalDepth;
-
-  return {
-    success: true,
-    plan: nextPlan,
-    instance: { ...target },
-  };
-}
-
-/**
  * Removes a furniture instance from FloorPlan (US-11, AC-11).
  */
 export function deleteFurnitureInstance(
@@ -502,7 +374,7 @@ export function deleteFurnitureInstance(
 }
 
 /**
- * Helper to fetch detailed metadata for a furniture instance including its definition and allowed ranges.
+ * Helper to fetch detailed metadata for a furniture instance including its definition and active specification.
  */
 export function getFurnitureInstanceDetails(
   plan: FloorPlan,
@@ -513,10 +385,12 @@ export function getFurnitureInstanceDetails(
   if (!instance) return undefined;
 
   const definition = catalog.definitions.find((d) => d.id === instance.definitionId);
+  const specification =
+    definition?.specifications.find((s) => s.id === instance.specificationId) ??
+    definition?.specifications[0];
   return {
     instance,
     definition,
-    widthRange: definition?.allowedSizeRanges?.width,
-    depthRange: definition?.allowedSizeRanges?.depth,
+    specification,
   };
 }

@@ -21,6 +21,22 @@ export const CORRUPT_PLANS = {
     meta: { name: "Missing Version" },
     vertices: [],
   },
+  legacyVersionV0: {
+    version: 0,
+    unit: "mm",
+    meta: { name: "Legacy Plan v0", source: "template" },
+    vertices: [{ id: "v1", x: 0, y: 0 }],
+    walls: [],
+    rooms: [],
+  },
+  legacyVersionV1: {
+    version: 1,
+    unit: "mm",
+    meta: { name: "Legacy Plan v1", source: "template" },
+    vertices: [{ id: "v1", x: 0, y: 0 }],
+    walls: [],
+    rooms: [],
+  },
   unsupportedVersionHigh: {
     version: 42,
     unit: "mm",
@@ -36,7 +52,7 @@ export const CORRUPT_PLANS = {
     rooms: [],
   },
   nonArrayVertices: {
-    version: 1,
+    version: 2,
     unit: "mm",
     meta: { name: "Corrupt Vertices", source: "template" },
     vertices: "not-an-array",
@@ -46,7 +62,7 @@ export const CORRUPT_PLANS = {
     furniture: [],
   },
   brokenVertexReference: {
-    version: 1,
+    version: 2,
     unit: "mm",
     meta: { name: "Broken Vertex Ref", source: "template" },
     vertices: [{ id: "v1", x: 0, y: 0 }],
@@ -64,7 +80,7 @@ export const CORRUPT_PLANS = {
     furniture: [],
   },
   brokenOpeningPosition: {
-    version: 1,
+    version: 2,
     unit: "mm",
     meta: { name: "Broken Position", source: "template" },
     vertices: [

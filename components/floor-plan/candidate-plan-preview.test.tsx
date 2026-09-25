@@ -57,7 +57,7 @@ describe("CandidatePlanPreview & Render Adapter (AC-15, AC-16, AC-17, AC-18)", (
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.version).toBe(1);
+      expect(result.value.version).toBe(2);
       expect(result.value.unit).toBe("mm");
       expect(result.value.rooms[0].boundaryWallIds).toEqual(
         VALID_STANDARD_FLOOR_PLAN.rooms[0].boundaryWallIds,

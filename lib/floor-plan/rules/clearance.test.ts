@@ -11,7 +11,7 @@ import { evaluatePlanRules } from "./evaluator";
 describe("Clearance and Guidance Rules (US-13, AC-13)", () => {
   // Base 6000x6000 room with wall at y=3000
   const createTestPlan = (): FloorPlan => ({
-    version: 1,
+    version: 2,
     unit: "mm",
     meta: {
       name: "Clearance Test Plan",

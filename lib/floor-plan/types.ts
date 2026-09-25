@@ -1,5 +1,5 @@
 /**
- * FloorPlan v1 Contract Types
+ * FloorPlan v2 Contract Types
  *
  * Domain types according to docs/floor.md v0.2 and CONTEXT.md:
  * - FloorPlan: Canonical scale-aware topology (vertices, walls, ordered room boundaries, wall-bound openings, furniture).
@@ -118,10 +118,10 @@ export interface FloorPlanMeta {
 }
 
 /**
- * Canonical FloorPlan v1
+ * Canonical FloorPlan v2
  */
 export interface FloorPlan {
-  version: 1;
+  version: 2;
   unit: UnitMillimetre;
   meta: FloorPlanMeta;
   vertices: Vertex[];
@@ -160,62 +160,17 @@ export interface FurnitureSpecification {
   clearance: Record<FurnitureSide, ClearanceThreshold>;
 }
 
-export interface FurnitureDimensions {
-  width: number; // in mm
-  depth: number; // in mm
-  height?: number; // in mm
-}
-
-export interface DimensionRange {
-  min: number; // in mm
-  max: number; // in mm
-  step?: number; // in mm
-}
-
-export interface FurnitureAllowedRanges {
-  width?: DimensionRange;
-  depth?: DimensionRange;
-  height?: DimensionRange;
-}
-
-export interface FurnitureClearanceRules {
-  front?: number; // in mm
-  back?: number; // in mm
-  left?: number; // in mm
-  right?: number; // in mm
-  all?: number; // in mm
-}
-
 export interface FurnitureDefinition {
   id: string;
   name: string;
   category: FurnitureCategory;
   specifications: FurnitureSpecification[];
-  // Legacy compatibility fields preserved during expand phase (AC-4 adapter)
-  defaultSize?: FurnitureDimensions;
-  allowedSizeRanges?: FurnitureAllowedRanges;
-  clearanceRules?: FurnitureClearanceRules;
 }
 
 export interface FurnitureCatalog {
   version: 2;
   unit: UnitMillimetre;
   definitions: FurnitureDefinition[];
-}
-
-export interface FurnitureDefinitionV1 {
-  id: string;
-  name: string;
-  category: FurnitureCategory;
-  defaultSize: FurnitureDimensions;
-  allowedSizeRanges?: FurnitureAllowedRanges;
-  clearanceRules?: FurnitureClearanceRules;
-}
-
-export interface FurnitureCatalogV1 {
-  version: 1;
-  unit: UnitMillimetre;
-  definitions: FurnitureDefinitionV1[];
 }
 
 /**
@@ -289,25 +244,6 @@ export interface SpaceRuleConfig {
     circulation: CirculationRuleConfig;
     furnitureClearance: FurnitureClearanceRuleConfig;
   };
-}
-
-/**
- * Immediately previous supported schema version (v0)
- */
-export interface FloorPlanV0 {
-  version: 0;
-  unit?: "m" | "mm";
-  meta: {
-    name: string;
-    source?: string;
-    createdAt?: string;
-    updatedAt?: string;
-  };
-  vertices: { id: string; x: number; y: number }[];
-  walls: { id: string; from: string; to: string; thickness: number; lockAxis?: string }[];
-  openings: { id: string; type: string; wallId: string; position: number; width: number; height?: number }[];
-  rooms: { id: string; type: string; name?: string; wallIds: string[] }[]; // v0 used wallIds
-  furniture: { id: string; definitionId: string; x: number; y: number; width: number; depth: number; rotation: number }[];
 }
 
 /**

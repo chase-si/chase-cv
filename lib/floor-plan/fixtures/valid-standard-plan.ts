@@ -1,7 +1,7 @@
-import type { FloorPlan, StandardFloorPlan } from "../types";
+import type { StandardFloorPlan } from "../types";
 
 export const VALID_STANDARD_FLOOR_PLAN: StandardFloorPlan = {
-  version: 1,
+  version: 2,
   unit: "mm",
   meta: {
     id: "floor-plan-std-2b1l-01",
