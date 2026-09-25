@@ -382,7 +382,7 @@ export function FloorPlanInspector({
                 data-testid="target-furniture-name"
                 className="font-semibold text-sm text-foreground truncate"
               >
-                {i18n.getFurnitureName(selectedFurniture.definitionId, selectedFurniture.definitionId)}
+                {i18n.getFurnitureName(selectedFurniture.definitionId)}
               </p>
             </div>
             <Badge
@@ -438,9 +438,15 @@ export function FloorPlanInspector({
                       size="sm"
                       variant={isActive ? "default" : "outline"}
                       data-testid={`inspector-spec-option-${spec.id}`}
+                      data-selected={isActive ? "true" : "false"}
                       aria-pressed={isActive}
+                      aria-label={
+                        locale === "zh"
+                          ? `切换预设规格为 ${spec.name}`
+                          : `Switch specification to ${spec.name}`
+                      }
                       onClick={() => handleSelectSpecification(spec.id)}
-                      className="h-8 px-2 text-[11px] font-mono"
+                      className="min-h-11 min-w-11 lg:h-8 lg:min-h-0 lg:min-w-0 px-2 text-[11px] font-mono touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                     >
                       {spec.name}
                     </Button>
@@ -458,8 +464,9 @@ export function FloorPlanInspector({
                 size="sm"
                 variant="outline"
                 data-testid="rotate-furniture-btn"
+                aria-label={locale === "zh" ? "旋转 90°" : "Rotate 90°"}
                 onClick={handleRotateFurniture}
-                className="h-9 text-xs flex items-center justify-center gap-1.5"
+                className="min-h-11 min-w-11 lg:h-9 lg:min-h-0 lg:min-w-0 text-xs flex items-center justify-center gap-1.5 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               >
                 <RotateCw className="h-3.5 w-3.5" />
                 <span>{locale === "zh" ? "旋转 90°" : "Rotate 90°"}</span>
@@ -469,8 +476,9 @@ export function FloorPlanInspector({
                 size="sm"
                 variant="outline"
                 data-testid="delete-furniture-btn"
+                aria-label={t.actions.close === "关闭" ? "删除" : "Delete"}
                 onClick={handleDeleteFurniture}
-                className="h-9 text-xs flex items-center justify-center gap-1.5 text-destructive hover:text-destructive"
+                className="min-h-11 min-w-11 lg:h-9 lg:min-h-0 lg:min-w-0 text-xs flex items-center justify-center gap-1.5 text-destructive hover:text-destructive touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 <span>{t.actions.close === "关闭" ? "删除" : "Delete"}</span>
@@ -490,11 +498,11 @@ export function FloorPlanInspector({
                   data-testid="nudge-furniture-left"
                   onClick={() => handleNudgeFurniture(-100, 0)}
                   aria-label={locale === "zh" ? "向左微调" : "Nudge left"}
-                  className="h-9 w-9 min-h-[36px] min-w-[36px] p-0"
+                  className="h-11 w-11 min-h-11 min-w-11 lg:h-9 lg:w-9 lg:min-h-[36px] lg:min-w-[36px] p-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                   <Button
                     type="button"
                     size="sm"
@@ -502,7 +510,7 @@ export function FloorPlanInspector({
                     data-testid="nudge-furniture-up"
                     onClick={() => handleNudgeFurniture(0, -100)}
                     aria-label={locale === "zh" ? "向上微调" : "Nudge up"}
-                    className="h-9 w-9 min-h-[36px] min-w-[36px] p-0"
+                    className="h-11 w-11 min-h-11 min-w-11 lg:h-9 lg:w-9 lg:min-h-[36px] lg:min-w-[36px] p-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                   >
                     <ArrowUp className="h-4 w-4" />
                   </Button>
@@ -513,7 +521,7 @@ export function FloorPlanInspector({
                     data-testid="nudge-furniture-down"
                     onClick={() => handleNudgeFurniture(0, 100)}
                     aria-label={locale === "zh" ? "向下微调" : "Nudge down"}
-                    className="h-9 w-9 min-h-[36px] min-w-[36px] p-0"
+                    className="h-11 w-11 min-h-11 min-w-11 lg:h-9 lg:w-9 lg:min-h-[36px] lg:min-w-[36px] p-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                   >
                     <ArrowDown className="h-4 w-4" />
                   </Button>
@@ -525,7 +533,7 @@ export function FloorPlanInspector({
                   data-testid="nudge-furniture-right"
                   onClick={() => handleNudgeFurniture(100, 0)}
                   aria-label={locale === "zh" ? "向右微调" : "Nudge right"}
-                  className="h-9 w-9 min-h-[36px] min-w-[36px] p-0"
+                  className="h-11 w-11 min-h-11 min-w-11 lg:h-9 lg:w-9 lg:min-h-[36px] lg:min-w-[36px] p-0 touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                 >
                   <ArrowRight className="h-4 w-4" />
                 </Button>

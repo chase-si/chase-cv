@@ -541,6 +541,7 @@ export function FloorPlanSvgViewer({
                   onRotate={handleRotateFurniture}
                   onDragStart={handleFurnitureDragStart}
                   hasViolation={violationFurnitureIds.has(f.id)}
+                  locale={locale}
                 />
               );
             })}
