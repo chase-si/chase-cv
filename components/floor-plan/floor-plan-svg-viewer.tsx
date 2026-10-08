@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { FloorPlan } from "@/lib/floor-plan";
 import {
   computeFloorPlanBounds,
+  computePlanFitBounds,
   computePrincipalDimensions,
   getVertexMap,
   getWallMap,
@@ -18,6 +19,7 @@ import {
   zoomByFactor,
 } from "@/lib/floor-plan/view-transform";
 import type { EntitySelectHandler, SelectedEntity } from "./types";
+import { cn } from "@/lib/utils";
 import { moveFurnitureInstance, rotateFurnitureInstance } from "@/lib/floor-plan/furniture-operations";
 import {
   computeFurnitureClearanceZones,
@@ -81,6 +83,7 @@ export function FloorPlanSvgViewer({
   const vertexMap = React.useMemo(() => getVertexMap(plan), [plan]);
   const wallMap = React.useMemo(() => getWallMap(plan), [plan]);
   const bounds = React.useMemo(() => computeFloorPlanBounds(plan), [plan]);
+  const fitBounds = React.useMemo(() => computePlanFitBounds(plan), [plan]);
   const dimensions = React.useMemo(() => computePrincipalDimensions(plan), [plan]);
 
   const evaluatedViolations = React.useMemo(
@@ -128,33 +131,64 @@ export function FloorPlanSvgViewer({
     return set;
   }, [evaluatedViolations, plan.furniture]);
 
-  // Fit to view helper
+  // Fit to view helper using stable plan fit bounds and 5% padding
   const fitToView = React.useCallback(
     (width: number, height: number) => {
-      const fitted = calculateFitToView(bounds, width, height, 0.15);
+      const fitted = calculateFitToView(fitBounds, width, height, 0.05);
       setTransform(fitted);
     },
-    [bounds],
+    [fitBounds],
   );
 
-  // Measure container and auto-fit on plan change or container resize
+  const viewportSizeRef = React.useRef({ width: 0, height: 0 });
+  const fitToViewRef = React.useRef(fitToView);
+  fitToViewRef.current = fitToView;
+
+  // Measure container and auto-fit on initial mount & container resize
   React.useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+
+    // Immediate dimension detection if container is already measured
+    const initW = container.clientWidth;
+    const initH = container.clientHeight;
+    if (initW > 0 && initH > 0 && viewportSizeRef.current.width === 0) {
+      viewportSizeRef.current = { width: initW, height: initH };
+      setViewportSize({ width: initW, height: initH });
+      fitToViewRef.current(initW, initH);
+    }
 
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
         if (width > 0 && height > 0) {
+          const prev = viewportSizeRef.current;
+          const hasResized = Math.abs(width - prev.width) > 2 || Math.abs(height - prev.height) > 2;
+          viewportSizeRef.current = { width, height };
           setViewportSize({ width, height });
-          fitToView(width, height);
+          if (hasResized) {
+            fitToViewRef.current(width, height);
+          }
         }
       }
     });
 
     observer.observe(container);
     return () => observer.disconnect();
-  }, [fitToView]);
+  }, []);
+
+  // Auto-fit when plan identity changes (e.g. user selects a different plan in catalog)
+  const planIdentity = plan.meta.id || plan.meta.name;
+  const prevPlanIdentityRef = React.useRef(planIdentity);
+  React.useEffect(() => {
+    if (prevPlanIdentityRef.current !== planIdentity) {
+      prevPlanIdentityRef.current = planIdentity;
+      const { width, height } = viewportSizeRef.current;
+      if (width > 0 && height > 0) {
+        fitToView(width, height);
+      }
+    }
+  }, [planIdentity, fitToView]);
 
   // Wheel zoom handler with passive: false to prevent document scroll
   React.useEffect(() => {
@@ -308,7 +342,10 @@ export function FloorPlanSvgViewer({
     <div
       ref={containerRef}
       data-testid="floor-plan-viewer-surface"
-      className={`relative w-full h-full min-h-[400px] overflow-hidden bg-slate-50/60 dark:bg-slate-950/60 select-none ${className}`}
+      className={cn(
+        "relative w-full h-full min-h-[320px] lg:min-h-0 overflow-hidden bg-slate-50/60 dark:bg-slate-950/60 select-none",
+        className,
+      )}
     >
       {/* Interactive SVG Canvas */}
       <svg
