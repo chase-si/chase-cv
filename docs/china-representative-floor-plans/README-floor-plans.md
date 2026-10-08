@@ -1,11 +1,12 @@
 # 中国代表性真实住宅户型数据集
 
-本数据集包含 **50 套**基于公开真实户型图正交简化重建的中国城市住宅户型，作为 `/floor-plan` 目录的唯一标准户型来源。
+本数据集包含 **54 套**基于公开真实户型图正交简化重建的中国城市住宅户型（不含四室及以上），作为 `/floor-plan` 目录的唯一标准户型来源。
 
 ## 文件
 
-- `../../lib/floor-plan/catalog-data.ts`：运行时目录数据源（由本目录 `standard-floorplans-50.ts` 同步），导出 50 个 `StandardFloorPlan` 与 `FLOOR_PLAN_CATALOG_DATA`。
-- `standard-floorplans-50.ts`：原始数据集参考副本。
+- `../../lib/floor-plan/catalog-data.ts`：运行时目录数据源（由本目录 `standard-floorplans-65.ts` 同步后剔除四室及以上），导出 54 个 `StandardFloorPlan` 与 `FLOOR_PLAN_CATALOG_DATA`。
+- `standard-floorplans-65.ts`：原始数据集参考副本。
+- `standard-floorplans-50.ts`：上一版 50 套数据集，已不再作为目录来源。
 - `generate-floor-plans.mjs`：历史参数化生成脚本（当前目录已切换为真实来源重建数据）。
 
 ## 使用方法

@@ -26,7 +26,7 @@ test.describe("Floor Plan SVG Viewer & Catalog (Issue #175 & #206)", () => {
     await expect(page.getByTestId(`plan-id-${PLAN_2BR}`)).toContainText(PLAN_2BR);
     await expect(page.getByTestId(`plan-area-${PLAN_2BR}`)).toBeVisible();
     await expect(page.getByTestId(`plan-rooms-${PLAN_2BR}`)).toBeVisible();
-    await expect(page.getByTestId(`plan-tags-${PLAN_2BR}`)).toContainText("2B1L");
+    await expect(page.getByTestId(`plan-tags-${PLAN_2BR}`)).toContainText("2BR");
     await expect(page.getByTestId(`floor-plan-thumbnail-${PLAN_2BR}`)).toBeVisible();
 
     // Open a studio-like 1室0厅 plan.
