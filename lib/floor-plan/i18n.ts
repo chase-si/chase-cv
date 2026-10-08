@@ -1061,14 +1061,9 @@ export const PLAN_TAGS_ZH: Record<string, string> = {
   "3-Room": "三居室",
   "Spacious": "宽敞通透",
   "Representative": "代表性户型",
-  "1B1L": "一室一厅",
-  "2B1L": "两室一厅",
-  "2B2L": "两室两厅",
-  "3B1L": "三室一厅",
-  "3B2L": "三室两厅",
-  "4B2L": "四室两厅",
-  "5B2L": "五室两厅",
-  "4B+": "四室及以上",
+  "1BR": "一室",
+  "2BR": "二室",
+  "3BR": "三室",
 };
 
 export function getFloorPlanLocale(requested?: string): FloorPlanLocale {

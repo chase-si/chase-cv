@@ -1,21 +1,10 @@
-/**
- * 中国代表性真实住宅户型数据集（54 套，不含四室及以上）
- *
- * 来源：docs/china-representative-floor-plans/standard-floorplans-65.ts
- * 说明：source 字段按既有 StandardFloorPlan schema 固定为 "template"；
- * 真实来源见独立 research-manifest。所有对象均为 raw StandardFloorPlan。
- * 数据集原文为 FloorPlan version 1，写入目录时提升为当前契约要求的 version 2。
- */
-
-import type { StandardFloorPlan } from "@/lib/floor-plan/types";
-
 // China representative residential floor plans — v2 / 65 plans.
 // 2026-09-20: 10 prior four-bedroom models removed and replaced; 15 small/medium plans added.
 // Each StandardFloorPlan remains a raw literal object; research/source metadata is kept outside this schema.
 // New geometry is compiled from manually authored per-source room placements; compiler only shares/splits walls and validates topology.
 
 export const PLAN_CN_SZ_XINHEZIYOU_50: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sz-xinheziyou-1br-50",
@@ -473,7 +462,7 @@ export const PLAN_CN_SZ_XINHEZIYOU_50: StandardFloorPlan = {
 };
 
 export const PLAN_CN_SH_JUNHAOGUOJI_40: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sh-junhaoguoji-1br-40",
@@ -963,7 +952,7 @@ export const PLAN_CN_SH_JUNHAOGUOJI_40: StandardFloorPlan = {
 };
 
 export const PLAN_CN_BJ_GERUIYAJU_50: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-geruiyaju-1br-50",
@@ -1495,7 +1484,7 @@ export const PLAN_CN_BJ_GERUIYAJU_50: StandardFloorPlan = {
 };
 
 export const PLAN_CN_CD_JINDU_50: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-cd-jindu-1br-50",
@@ -2033,7 +2022,7 @@ export const PLAN_CN_CD_JINDU_50: StandardFloorPlan = {
 };
 
 export const PLAN_CN_GZ_ZHONGTAITIANJING_50: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-gz-zhongtaitianjing-1br-50",
@@ -2571,7 +2560,7 @@ export const PLAN_CN_GZ_ZHONGTAITIANJING_50: StandardFloorPlan = {
 };
 
 export const PLAN_CN_SH_RUIDONG_67: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-sh-ruidong-2br-67",
@@ -2654,7 +2643,7 @@ export const PLAN_CN_SH_RUIDONG_67: StandardFloorPlan = {
 };
 
 export const PLAN_CN_BJ_BEIXINJIAYUAN_60: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-beixinjiayuan-2br-60",
@@ -3284,7 +3273,7 @@ export const PLAN_CN_BJ_BEIXINJIAYUAN_60: StandardFloorPlan = {
 };
 
 export const PLAN_CN_NJ_MAQUNGONGYU_60: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-nj-maqungongyu-2br-60",
@@ -3908,7 +3897,7 @@ export const PLAN_CN_NJ_MAQUNGONGYU_60: StandardFloorPlan = {
 };
 
 export const PLAN_CN_GZ_GUIXIANSHANGPIN_60: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-gz-guixianshangpin-2br-60",
@@ -4560,7 +4549,7 @@ export const PLAN_CN_GZ_GUIXIANSHANGPIN_60: StandardFloorPlan = {
 };
 
 export const PLAN_CN_SH_DUSHIFUYUAN_61: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sh-dushifuyuan-2br-61",
@@ -5190,7 +5179,7 @@ export const PLAN_CN_SH_DUSHIFUYUAN_61: StandardFloorPlan = {
 };
 
 export const PLAN_CN_TJ_ZHONGYUANLI_70: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-tj-zhongyuanli-2br-70",
@@ -5834,7 +5823,7 @@ export const PLAN_CN_TJ_ZHONGYUANLI_70: StandardFloorPlan = {
 };
 
 export const PLAN_CN_SZ_SHANYUEWAN_70B: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-sz-shanyuewan-70b-70",
@@ -5914,7 +5903,7 @@ export const PLAN_CN_SZ_SHANYUEWAN_70B: StandardFloorPlan = {
 };
 
 export const PLAN_CN_BJ_ZHONGHAIHUIDELI_77: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-bj-zhonghaihuideli-2br-77-mid",
@@ -5988,7 +5977,7 @@ export const PLAN_CN_BJ_ZHONGHAIHUIDELI_77: StandardFloorPlan = {
 };
 
 export const PLAN_CN_BJ_HEJINGTIANHUI_70: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-hejingtianhui-2br-70",
@@ -6626,7 +6615,7 @@ export const PLAN_CN_BJ_HEJINGTIANHUI_70: StandardFloorPlan = {
 };
 
 export const PLAN_CN_SH_DANGDAIWANGUOFU_70: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sh-dangdaiwanguofu-2br-70",
@@ -7250,7 +7239,7 @@ export const PLAN_CN_SH_DANGDAIWANGUOFU_70: StandardFloorPlan = {
 };
 
 export const PLAN_CN_GZ_SHENYEJIANGYUEWAN_80: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-gz-shenyejiangyuewan-2br-80",
@@ -7888,7 +7877,7 @@ export const PLAN_CN_GZ_SHENYEJIANGYUEWAN_80: StandardFloorPlan = {
 };
 
 export const PLAN_CN_CD_LANGUANGSHENGFEI_80: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-cd-languangshengfei-2br-80",
@@ -8536,7 +8525,7 @@ export const PLAN_CN_CD_LANGUANGSHENGFEI_80: StandardFloorPlan = {
 };
 
 export const PLAN_CN_HZ_CHUNBONANYUAN_81: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-hz-chunbonanyuan-2br-81",
@@ -9188,7 +9177,7 @@ export const PLAN_CN_HZ_CHUNBONANYUAN_81: StandardFloorPlan = {
 };
 
 export const PLAN_CN_GZ_HUAHUIMINGYUAN_80: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-gz-huahuimingyuan-2br-80",
@@ -9862,7 +9851,7 @@ export const PLAN_CN_GZ_HUAHUIMINGYUAN_80: StandardFloorPlan = {
 };
 
 export const PLAN_CN_NJ_LANYUAN_70: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-nj-lanyuan-3br-70",
@@ -10584,7 +10573,7 @@ export const PLAN_CN_NJ_LANYUAN_70: StandardFloorPlan = {
 };
 
 export const PLAN_CN_BJ_ANHUIBEILI_80: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-anhueibeili-3br-80",
@@ -11314,7 +11303,7 @@ export const PLAN_CN_BJ_ANHUIBEILI_80: StandardFloorPlan = {
 };
 
 export const PLAN_CN_BJ_JINGANDONGLI_81: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-jingandongli-3br-81",
@@ -12082,7 +12071,7 @@ export const PLAN_CN_BJ_JINGANDONGLI_81: StandardFloorPlan = {
 };
 
 export const PLAN_CN_WH_DONGTINGHUAYUAN_93: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-wh-dongtinghuayuan-3br-93",
@@ -12786,7 +12775,7 @@ export const PLAN_CN_WH_DONGTINGHUAYUAN_93: StandardFloorPlan = {
 };
 
 export const PLAN_CN_CD_BEIHUIGUIXIAN_91: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-cd-beihuiguixian-3br-91",
@@ -13524,7 +13513,7 @@ export const PLAN_CN_CD_BEIHUIGUIXIAN_91: StandardFloorPlan = {
 };
 
 export const PLAN_CN_CD_GUIHUZHENGRONGFU_100: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-cd-guihuzhengrongfu-3br-100",
@@ -14254,7 +14243,7 @@ export const PLAN_CN_CD_GUIHUZHENGRONGFU_100: StandardFloorPlan = {
 };
 
 export const PLAN_CN_CD_HUAHUITIANDI_100: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-cd-huahuitiandi-3br-100",
@@ -15038,7 +15027,7 @@ export const PLAN_CN_CD_HUAHUITIANDI_100: StandardFloorPlan = {
 };
 
 export const PLAN_CN_WH_YIDAYUNSHANHU_110: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-wh-yidayunshanhu-3br-110",
@@ -15798,7 +15787,7 @@ export const PLAN_CN_WH_YIDAYUNSHANHU_110: StandardFloorPlan = {
 };
 
 export const PLAN_CN_WH_BAOLIHUAYUAN_116: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-wh-baolihuayuan-3br-116",
@@ -16592,7 +16581,7 @@ export const PLAN_CN_WH_BAOLIHUAYUAN_116: StandardFloorPlan = {
 };
 
 export const PLAN_CN_HZ_QINGLONGYUAN_110: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-hz-qinglongyuan-3br-110",
@@ -17354,7 +17343,7 @@ export const PLAN_CN_HZ_QINGLONGYUAN_110: StandardFloorPlan = {
 };
 
 export const PLAN_CN_HZ_JUESHIFENGQING_110: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-hz-jueshifengqing-3br-110",
@@ -18112,7 +18101,7 @@ export const PLAN_CN_HZ_JUESHIFENGQING_110: StandardFloorPlan = {
 };
 
 export const PLAN_CN_NJ_CHANGJIANGYUEFU_110: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-nj-changjiangyuefu-3br-110",
@@ -18874,7 +18863,7 @@ export const PLAN_CN_NJ_CHANGJIANGYUEFU_110: StandardFloorPlan = {
 };
 
 export const PLAN_CN_NJ_ZIYUEFU_110: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-nj-ziyuefu-3br-110",
@@ -19658,7 +19647,7 @@ export const PLAN_CN_NJ_ZIYUEFU_110: StandardFloorPlan = {
 };
 
 export const PLAN_CN_GZ_ZHUJIANGJINMAOFU_109: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-gz-zhujiangjinmaofu-3br-109",
@@ -20400,7 +20389,7 @@ export const PLAN_CN_GZ_ZHUJIANGJINMAOFU_109: StandardFloorPlan = {
 };
 
 export const PLAN_CN_GZ_ZIZAICHENGSHI_113: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-gz-zizaichengshi-3br-113",
@@ -21210,7 +21199,7 @@ export const PLAN_CN_GZ_ZIZAICHENGSHI_113: StandardFloorPlan = {
 };
 
 export const PLAN_CN_BJ_TIANTONGYUANBEI_155: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-tiantongyuanbei-3br-155",
@@ -21938,7 +21927,7 @@ export const PLAN_CN_BJ_TIANTONGYUANBEI_155: StandardFloorPlan = {
 };
 
 export const PLAN_CN_BJ_HUIGUYANGGUANG_154: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-bj-huiguyangguang-3br-154",
@@ -22776,7 +22765,7 @@ export const PLAN_CN_BJ_HUIGUYANGGUANG_154: StandardFloorPlan = {
 };
 
 export const PLAN_CN_SH_HUIHAOTIANXIA_149: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sh-huihaotianxia-3br-149",
@@ -23529,8 +23518,1149 @@ export const PLAN_CN_SH_HUIHAOTIANXIA_149: StandardFloorPlan = {
   "furniture": []
 };
 
+export const PLAN_CN_SZ_YUNYIFU_4BR_110: StandardFloorPlan = {
+  version: 1,
+  unit: "mm",
+  meta: {
+    id: "plan-cn-sz-yunyifu-4br-110",
+    name: "深圳卓越闽泰·云奕府 110㎡户型，4室2厅2卫1厨 110.0m²",
+    source: "template",
+    isStandard: true,
+    createdAt: "2026-09-20T00:00:00.000Z",
+    updatedAt: "2026-09-20T00:00:00.000Z",
+    description: "基于深圳卓越闽泰·云奕府公开真实户型资料正交简化重建；110.0㎡为来源建筑面积，来源另标套内89.07㎡。保留来源可核对的主要房间数量、厨卫/阳台位置关系和主要动线；精确结构尺寸以来源户型图为准。",
+  },
+  vertices: [
+    { id: "v1", x: 0, y: 0 },
+    { id: "v2", x: 1940, y: 0 },
+    { id: "v3", x: 4030, y: 0 },
+    { id: "v4", x: 5270, y: 0 },
+    { id: "v5", x: 7600, y: 0 },
+    { id: "v6", x: 8140, y: 0 },
+    { id: "v7", x: 10080, y: 0 },
+    { id: "v8", x: 8140, y: 1710 },
+    { id: "v9", x: 10080, y: 1710 },
+    { id: "v10", x: 4030, y: 1940 },
+    { id: "v11", x: 5270, y: 1940 },
+    { id: "v12", x: 0, y: 2330 },
+    { id: "v13", x: 1940, y: 2330 },
+    { id: "v14", x: 4030, y: 2330 },
+    { id: "v15", x: 5270, y: 2330 },
+    { id: "v16", x: 7600, y: 2330 },
+    { id: "v17", x: 0, y: 5580 },
+    { id: "v18", x: 1240, y: 5580 },
+    { id: "v19", x: 3410, y: 5580 },
+    { id: "v20", x: 5580, y: 5580 },
+    { id: "v21", x: 0, y: 7440 },
+    { id: "v22", x: 1240, y: 7440 },
+    { id: "v23", x: 0, y: 8530 },
+    { id: "v24", x: 3410, y: 8530 },
+    { id: "v25", x: 5580, y: 8530 },
+    { id: "v26", x: 8140, y: 8530 },
+    { id: "v27", x: 10080, y: 8530 },
+    { id: "v28", x: 5580, y: 9770 },
+    { id: "v29", x: 8140, y: 9770 },
+  ],
+  walls: [
+    { id: "w1", from: "v1", to: "v2", thickness: 200, lockAxis: "horizontal" },
+    { id: "w2", from: "v1", to: "v12", thickness: 200, lockAxis: "vertical" },
+    { id: "w3", from: "v2", to: "v3", thickness: 200, lockAxis: "horizontal" },
+    { id: "w4", from: "v2", to: "v13", thickness: 120, lockAxis: "vertical" },
+    { id: "w5", from: "v3", to: "v4", thickness: 200, lockAxis: "horizontal" },
+    { id: "w6", from: "v3", to: "v10", thickness: 120, lockAxis: "vertical" },
+    { id: "w7", from: "v4", to: "v5", thickness: 200, lockAxis: "horizontal" },
+    { id: "w8", from: "v4", to: "v11", thickness: 120, lockAxis: "vertical" },
+    { id: "w9", from: "v5", to: "v6", thickness: 200, lockAxis: "horizontal" },
+    { id: "w10", from: "v5", to: "v16", thickness: 120, lockAxis: "vertical" },
+    { id: "w11", from: "v6", to: "v7", thickness: 200, lockAxis: "horizontal" },
+    { id: "w12", from: "v6", to: "v8", thickness: 120, lockAxis: "vertical" },
+    { id: "w13", from: "v7", to: "v9", thickness: 200, lockAxis: "vertical" },
+    { id: "w14", from: "v8", to: "v9", thickness: 120, lockAxis: "horizontal" },
+    { id: "w15", from: "v9", to: "v27", thickness: 200, lockAxis: "vertical" },
+    { id: "w16", from: "v10", to: "v11", thickness: 120, lockAxis: "horizontal" },
+    { id: "w17", from: "v10", to: "v14", thickness: 120, lockAxis: "vertical" },
+    { id: "w18", from: "v11", to: "v15", thickness: 120, lockAxis: "vertical" },
+    { id: "w19", from: "v12", to: "v13", thickness: 120, lockAxis: "horizontal" },
+    { id: "w20", from: "v12", to: "v17", thickness: 200, lockAxis: "vertical" },
+    { id: "w21", from: "v13", to: "v14", thickness: 120, lockAxis: "horizontal" },
+    { id: "w22", from: "v15", to: "v16", thickness: 120, lockAxis: "horizontal" },
+    { id: "w23", from: "v17", to: "v18", thickness: 120, lockAxis: "horizontal" },
+    { id: "w24", from: "v17", to: "v21", thickness: 200, lockAxis: "vertical" },
+    { id: "w25", from: "v18", to: "v19", thickness: 120, lockAxis: "horizontal" },
+    { id: "w26", from: "v18", to: "v22", thickness: 120, lockAxis: "vertical" },
+    { id: "w27", from: "v19", to: "v20", thickness: 120, lockAxis: "horizontal" },
+    { id: "w28", from: "v19", to: "v24", thickness: 120, lockAxis: "vertical" },
+    { id: "w29", from: "v20", to: "v25", thickness: 120, lockAxis: "vertical" },
+    { id: "w30", from: "v21", to: "v22", thickness: 120, lockAxis: "horizontal" },
+    { id: "w31", from: "v21", to: "v23", thickness: 200, lockAxis: "vertical" },
+    { id: "w32", from: "v23", to: "v24", thickness: 200, lockAxis: "horizontal" },
+    { id: "w33", from: "v24", to: "v25", thickness: 200, lockAxis: "horizontal" },
+    { id: "w34", from: "v25", to: "v26", thickness: 120, lockAxis: "horizontal" },
+    { id: "w35", from: "v25", to: "v28", thickness: 200, lockAxis: "vertical" },
+    { id: "w36", from: "v26", to: "v27", thickness: 200, lockAxis: "horizontal" },
+    { id: "w37", from: "v26", to: "v29", thickness: 200, lockAxis: "vertical" },
+    { id: "w38", from: "v28", to: "v29", thickness: 200, lockAxis: "horizontal" },
+  ],
+  openings: [
+    { id: "d1", type: "door", wallId: "w19", position: 0.5, width: 850, height: 2100 },
+    { id: "d2", type: "door", wallId: "w21", position: 0.5, width: 800, height: 2100 },
+    { id: "d3", type: "door", wallId: "w16", position: 0.5, width: 700, height: 2100 },
+    { id: "d4", type: "door", wallId: "w10", position: 0.5, width: 800, height: 2100 },
+    { id: "d5", type: "door", wallId: "w25", position: 0.5, width: 850, height: 2100 },
+    { id: "d6", type: "door", wallId: "w26", position: 0.5, width: 700, height: 2100 },
+    { id: "d7", type: "door", wallId: "w29", position: 0.5, width: 800, height: 2100 },
+    { id: "d8", type: "door", wallId: "w34", position: 0.5, width: 2200, height: 2100 },
+    { id: "d9", type: "door", wallId: "w14", position: 0.5, width: 800, height: 2100 },
+    { id: "d10", type: "door", wallId: "w15", position: 0.5, width: 900, height: 2100 },
+    { id: "win1", type: "window", wallId: "w2", position: 0.5, width: 1000, height: 1500 },
+    { id: "win2", type: "window", wallId: "w3", position: 0.5, width: 1358, height: 1500 },
+    { id: "win3", type: "window", wallId: "w5", position: 0.5, width: 800, height: 900 },
+    { id: "win4", type: "window", wallId: "w7", position: 0.5, width: 1400, height: 1500 },
+    { id: "win5", type: "window", wallId: "w32", position: 0.5, width: 1400, height: 1500 },
+    { id: "win6", type: "window", wallId: "w24", position: 0.5, width: 800, height: 900 },
+    { id: "win7", type: "window", wallId: "w33", position: 0.5, width: 1400, height: 1500 },
+    { id: "win8", type: "window", wallId: "w20", position: 0.5, width: 1800, height: 1500 },
+  ],
+  rooms: [
+    { id: "r1", type: "kitchen", name: "厨房", boundaryWallIds: ["w1", "w4", "w19", "w2"] },
+    { id: "r2", type: "bedroom", name: "次卧A", boundaryWallIds: ["w3", "w6", "w17", "w21", "w4"] },
+    { id: "r3", type: "bathroom", name: "公卫", boundaryWallIds: ["w5", "w8", "w16", "w6"] },
+    { id: "r4", type: "bedroom", name: "次卧B", boundaryWallIds: ["w7", "w10", "w22", "w18", "w8"] },
+    { id: "r5", type: "bathroom", name: "主卫", boundaryWallIds: ["w23", "w26", "w30", "w24"] },
+    { id: "r6", type: "bedroom", name: "主卧", boundaryWallIds: ["w25", "w28", "w32", "w31", "w30", "w26"] },
+    { id: "r7", type: "bedroom", name: "次卧C", boundaryWallIds: ["w27", "w29", "w33", "w28"] },
+    { id: "r8", type: "balcony", name: "客厅阳台", boundaryWallIds: ["w34", "w37", "w38", "w35"] },
+    { id: "r9", type: "bedroom", name: "入户储物/设备位", boundaryWallIds: ["w11", "w13", "w14", "w12"] },
+    { id: "r10", type: "living_room", name: "客餐厅与玄关", boundaryWallIds: ["w36", "w34", "w29", "w27", "w25", "w23", "w20", "w19", "w21", "w17", "w16", "w18", "w22", "w10", "w9", "w12", "w14", "w15"] },
+  ],
+  furniture: [],
+};
+
+export const PLAN_CN_BJ_ZHONGHAIXUESHILI_4BR_115: StandardFloorPlan = {
+  version: 1,
+  unit: "mm",
+  meta: {
+    id: "plan-cn-bj-zhonghaixueshili-4br-115",
+    name: "北京中海学仕里 D户型，4室2厅2卫1厨 115.0m²",
+    source: "template",
+    isStandard: true,
+    createdAt: "2026-09-20T00:00:00.000Z",
+    updatedAt: "2026-09-20T00:00:00.000Z",
+    description: "基于北京中海学仕里公开真实户型资料正交简化重建；115.0㎡为来源建筑面积，来源另标套内94.94㎡。保留来源可核对的主要房间数量、厨卫/阳台位置关系和主要动线；精确结构尺寸以来源户型图为准。",
+  },
+  vertices: [
+    { id: "v1", x: 0, y: 0 },
+    { id: "v2", x: 2240, y: 0 },
+    { id: "v3", x: 4470, y: 0 },
+    { id: "v4", x: 5830, y: 0 },
+    { id: "v5", x: 8230, y: 0 },
+    { id: "v6", x: 9990, y: 0 },
+    { id: "v7", x: 4470, y: 1680 },
+    { id: "v8", x: 5830, y: 1680 },
+    { id: "v9", x: 0, y: 2720 },
+    { id: "v10", x: 2240, y: 2720 },
+    { id: "v11", x: 2240, y: 2800 },
+    { id: "v12", x: 4470, y: 2800 },
+    { id: "v13", x: 5830, y: 2800 },
+    { id: "v14", x: 8230, y: 2800 },
+    { id: "v15", x: 8230, y: 3040 },
+    { id: "v16", x: 9990, y: 3040 },
+    { id: "v17", x: 0, y: 5750 },
+    { id: "v18", x: 1360, y: 5750 },
+    { id: "v19", x: 3750, y: 5750 },
+    { id: "v20", x: 0, y: 7830 },
+    { id: "v21", x: 1360, y: 7830 },
+    { id: "v22", x: 0, y: 9110 },
+    { id: "v23", x: 3750, y: 9110 },
+    { id: "v24", x: 6870, y: 9110 },
+    { id: "v25", x: 9990, y: 9110 },
+    { id: "v26", x: 3750, y: 10390 },
+    { id: "v27", x: 6870, y: 10390 },
+  ],
+  walls: [
+    { id: "w1", from: "v1", to: "v2", thickness: 200, lockAxis: "horizontal" },
+    { id: "w2", from: "v1", to: "v9", thickness: 200, lockAxis: "vertical" },
+    { id: "w3", from: "v2", to: "v3", thickness: 200, lockAxis: "horizontal" },
+    { id: "w4", from: "v2", to: "v10", thickness: 120, lockAxis: "vertical" },
+    { id: "w5", from: "v3", to: "v4", thickness: 200, lockAxis: "horizontal" },
+    { id: "w6", from: "v3", to: "v7", thickness: 120, lockAxis: "vertical" },
+    { id: "w7", from: "v4", to: "v5", thickness: 200, lockAxis: "horizontal" },
+    { id: "w8", from: "v4", to: "v8", thickness: 120, lockAxis: "vertical" },
+    { id: "w9", from: "v5", to: "v6", thickness: 200, lockAxis: "horizontal" },
+    { id: "w10", from: "v5", to: "v14", thickness: 120, lockAxis: "vertical" },
+    { id: "w11", from: "v6", to: "v16", thickness: 200, lockAxis: "vertical" },
+    { id: "w12", from: "v7", to: "v8", thickness: 120, lockAxis: "horizontal" },
+    { id: "w13", from: "v7", to: "v12", thickness: 120, lockAxis: "vertical" },
+    { id: "w14", from: "v8", to: "v13", thickness: 120, lockAxis: "vertical" },
+    { id: "w15", from: "v9", to: "v10", thickness: 120, lockAxis: "horizontal" },
+    { id: "w16", from: "v9", to: "v17", thickness: 200, lockAxis: "vertical" },
+    { id: "w17", from: "v10", to: "v11", thickness: 120, lockAxis: "vertical" },
+    { id: "w18", from: "v11", to: "v12", thickness: 120, lockAxis: "horizontal" },
+    { id: "w19", from: "v13", to: "v14", thickness: 120, lockAxis: "horizontal" },
+    { id: "w20", from: "v14", to: "v15", thickness: 120, lockAxis: "vertical" },
+    { id: "w21", from: "v15", to: "v16", thickness: 120, lockAxis: "horizontal" },
+    { id: "w22", from: "v16", to: "v25", thickness: 200, lockAxis: "vertical" },
+    { id: "w23", from: "v17", to: "v18", thickness: 120, lockAxis: "horizontal" },
+    { id: "w24", from: "v17", to: "v20", thickness: 200, lockAxis: "vertical" },
+    { id: "w25", from: "v18", to: "v19", thickness: 120, lockAxis: "horizontal" },
+    { id: "w26", from: "v18", to: "v21", thickness: 120, lockAxis: "vertical" },
+    { id: "w27", from: "v19", to: "v23", thickness: 120, lockAxis: "vertical" },
+    { id: "w28", from: "v20", to: "v21", thickness: 120, lockAxis: "horizontal" },
+    { id: "w29", from: "v20", to: "v22", thickness: 200, lockAxis: "vertical" },
+    { id: "w30", from: "v22", to: "v23", thickness: 200, lockAxis: "horizontal" },
+    { id: "w31", from: "v23", to: "v24", thickness: 120, lockAxis: "horizontal" },
+    { id: "w32", from: "v23", to: "v26", thickness: 200, lockAxis: "vertical" },
+    { id: "w33", from: "v24", to: "v25", thickness: 200, lockAxis: "horizontal" },
+    { id: "w34", from: "v24", to: "v27", thickness: 200, lockAxis: "vertical" },
+    { id: "w35", from: "v26", to: "v27", thickness: 200, lockAxis: "horizontal" },
+  ],
+  openings: [
+    { id: "d1", type: "door", wallId: "w15", position: 0.5, width: 850, height: 2100 },
+    { id: "d2", type: "door", wallId: "w18", position: 0.5, width: 800, height: 2100 },
+    { id: "d3", type: "door", wallId: "w12", position: 0.5, width: 700, height: 2100 },
+    { id: "d4", type: "door", wallId: "w19", position: 0.5, width: 800, height: 2100 },
+    { id: "d5", type: "door", wallId: "w21", position: 0.5, width: 800, height: 2100 },
+    { id: "d6", type: "door", wallId: "w27", position: 0.5, width: 850, height: 2100 },
+    { id: "d7", type: "door", wallId: "w26", position: 0.5, width: 700, height: 2100 },
+    { id: "d8", type: "door", wallId: "w31", position: 0.5, width: 2200, height: 2100 },
+    { id: "d9", type: "door", wallId: "w22", position: 0.5, width: 900, height: 2100 },
+    { id: "win1", type: "window", wallId: "w2", position: 0.5, width: 1000, height: 1500 },
+    { id: "win2", type: "window", wallId: "w3", position: 0.5, width: 1400, height: 1500 },
+    { id: "win3", type: "window", wallId: "w5", position: 0.5, width: 800, height: 900 },
+    { id: "win4", type: "window", wallId: "w7", position: 0.5, width: 1400, height: 1500 },
+    { id: "win5", type: "window", wallId: "w11", position: 0.5, width: 1400, height: 1500 },
+    { id: "win6", type: "window", wallId: "w30", position: 0.5, width: 1400, height: 1500 },
+    { id: "win7", type: "window", wallId: "w24", position: 0.5, width: 800, height: 900 },
+    { id: "win8", type: "window", wallId: "w33", position: 0.5, width: 1800, height: 1500 },
+  ],
+  rooms: [
+    { id: "r1", type: "kitchen", name: "厨房", boundaryWallIds: ["w1", "w4", "w15", "w2"] },
+    { id: "r2", type: "bedroom", name: "次卧A", boundaryWallIds: ["w3", "w6", "w13", "w18", "w17", "w4"] },
+    { id: "r3", type: "bathroom", name: "公卫", boundaryWallIds: ["w5", "w8", "w12", "w6"] },
+    { id: "r4", type: "bedroom", name: "次卧B", boundaryWallIds: ["w7", "w10", "w19", "w14", "w8"] },
+    { id: "r5", type: "bedroom", name: "书房/次卧C", boundaryWallIds: ["w9", "w11", "w21", "w20", "w10"] },
+    { id: "r6", type: "bathroom", name: "主卫", boundaryWallIds: ["w23", "w26", "w28", "w24"] },
+    { id: "r7", type: "bedroom", name: "主卧", boundaryWallIds: ["w25", "w27", "w30", "w29", "w28", "w26"] },
+    { id: "r8", type: "balcony", name: "客厅阳台", boundaryWallIds: ["w31", "w34", "w35", "w32"] },
+    { id: "r9", type: "living_room", name: "客餐厅与玄关", boundaryWallIds: ["w33", "w31", "w27", "w25", "w23", "w16", "w15", "w17", "w18", "w13", "w12", "w14", "w19", "w20", "w21", "w22"] },
+  ],
+  furniture: [],
+};
+
+export const PLAN_CN_SH_DAHUAJINXIU_LANAN_4BR_120: StandardFloorPlan = {
+  version: 1,
+  unit: "mm",
+  meta: {
+    id: "plan-cn-sh-dahuajinxiu-lanan-4br-120",
+    name: "上海大华锦绣四季·澜岸 建面约120㎡户型，4室2厅2卫1厨 120.0m²",
+    source: "template",
+    isStandard: true,
+    createdAt: "2026-09-20T00:00:00.000Z",
+    updatedAt: "2026-09-20T00:00:00.000Z",
+    description: "基于上海大华锦绣四季·澜岸公开真实户型资料正交简化重建；120.0㎡为来源建筑面积，不等同于模型净几何面积。保留来源可核对的主要房间数量、厨卫/阳台位置关系和主要动线；精确结构尺寸以来源户型图为准。",
+  },
+  vertices: [
+    { id: "v1", x: 0, y: 0 },
+    { id: "v2", x: 2340, y: 0 },
+    { id: "v3", x: 4600, y: 0 },
+    { id: "v4", x: 6000, y: 0 },
+    { id: "v5", x: 8180, y: 0 },
+    { id: "v6", x: 10130, y: 0 },
+    { id: "v7", x: 4600, y: 1870 },
+    { id: "v8", x: 6000, y: 1870 },
+    { id: "v9", x: 2340, y: 2180 },
+    { id: "v10", x: 4600, y: 2180 },
+    { id: "v11", x: 0, y: 2730 },
+    { id: "v12", x: 2340, y: 2730 },
+    { id: "v13", x: 6000, y: 2730 },
+    { id: "v14", x: 8180, y: 2730 },
+    { id: "v15", x: 10130, y: 2730 },
+    { id: "v16", x: 0, y: 5770 },
+    { id: "v17", x: 1400, y: 5770 },
+    { id: "v18", x: 3900, y: 5770 },
+    { id: "v19", x: 0, y: 7790 },
+    { id: "v20", x: 1400, y: 7790 },
+    { id: "v21", x: 0, y: 9120 },
+    { id: "v22", x: 3900, y: 9120 },
+    { id: "v23", x: 6390, y: 9120 },
+    { id: "v24", x: 9510, y: 9120 },
+    { id: "v25", x: 10130, y: 9120 },
+    { id: "v26", x: 6390, y: 10290 },
+    { id: "v27", x: 9510, y: 10290 },
+  ],
+  walls: [
+    { id: "w1", from: "v1", to: "v2", thickness: 200, lockAxis: "horizontal" },
+    { id: "w2", from: "v1", to: "v11", thickness: 200, lockAxis: "vertical" },
+    { id: "w3", from: "v2", to: "v3", thickness: 200, lockAxis: "horizontal" },
+    { id: "w4", from: "v2", to: "v9", thickness: 120, lockAxis: "vertical" },
+    { id: "w5", from: "v3", to: "v4", thickness: 200, lockAxis: "horizontal" },
+    { id: "w6", from: "v3", to: "v7", thickness: 120, lockAxis: "vertical" },
+    { id: "w7", from: "v4", to: "v5", thickness: 200, lockAxis: "horizontal" },
+    { id: "w8", from: "v4", to: "v8", thickness: 120, lockAxis: "vertical" },
+    { id: "w9", from: "v5", to: "v6", thickness: 200, lockAxis: "horizontal" },
+    { id: "w10", from: "v5", to: "v14", thickness: 120, lockAxis: "vertical" },
+    { id: "w11", from: "v6", to: "v15", thickness: 200, lockAxis: "vertical" },
+    { id: "w12", from: "v7", to: "v8", thickness: 120, lockAxis: "horizontal" },
+    { id: "w13", from: "v7", to: "v10", thickness: 120, lockAxis: "vertical" },
+    { id: "w14", from: "v8", to: "v13", thickness: 120, lockAxis: "vertical" },
+    { id: "w15", from: "v9", to: "v10", thickness: 120, lockAxis: "horizontal" },
+    { id: "w16", from: "v9", to: "v12", thickness: 120, lockAxis: "vertical" },
+    { id: "w17", from: "v11", to: "v12", thickness: 120, lockAxis: "horizontal" },
+    { id: "w18", from: "v11", to: "v16", thickness: 200, lockAxis: "vertical" },
+    { id: "w19", from: "v13", to: "v14", thickness: 120, lockAxis: "horizontal" },
+    { id: "w20", from: "v14", to: "v15", thickness: 120, lockAxis: "horizontal" },
+    { id: "w21", from: "v15", to: "v25", thickness: 200, lockAxis: "vertical" },
+    { id: "w22", from: "v16", to: "v17", thickness: 120, lockAxis: "horizontal" },
+    { id: "w23", from: "v16", to: "v19", thickness: 200, lockAxis: "vertical" },
+    { id: "w24", from: "v17", to: "v18", thickness: 120, lockAxis: "horizontal" },
+    { id: "w25", from: "v17", to: "v20", thickness: 120, lockAxis: "vertical" },
+    { id: "w26", from: "v18", to: "v22", thickness: 120, lockAxis: "vertical" },
+    { id: "w27", from: "v19", to: "v20", thickness: 120, lockAxis: "horizontal" },
+    { id: "w28", from: "v19", to: "v21", thickness: 200, lockAxis: "vertical" },
+    { id: "w29", from: "v21", to: "v22", thickness: 200, lockAxis: "horizontal" },
+    { id: "w30", from: "v22", to: "v23", thickness: 200, lockAxis: "horizontal" },
+    { id: "w31", from: "v23", to: "v24", thickness: 120, lockAxis: "horizontal" },
+    { id: "w32", from: "v23", to: "v26", thickness: 200, lockAxis: "vertical" },
+    { id: "w33", from: "v24", to: "v25", thickness: 200, lockAxis: "horizontal" },
+    { id: "w34", from: "v24", to: "v27", thickness: 200, lockAxis: "vertical" },
+    { id: "w35", from: "v26", to: "v27", thickness: 200, lockAxis: "horizontal" },
+  ],
+  openings: [
+    { id: "d1", type: "door", wallId: "w17", position: 0.5, width: 800, height: 2100 },
+    { id: "d2", type: "door", wallId: "w15", position: 0.5, width: 900, height: 2100 },
+    { id: "d3", type: "door", wallId: "w12", position: 0.5, width: 700, height: 2100 },
+    { id: "d4", type: "door", wallId: "w19", position: 0.5, width: 800, height: 2100 },
+    { id: "d5", type: "door", wallId: "w20", position: 0.5, width: 800, height: 2100 },
+    { id: "d6", type: "door", wallId: "w26", position: 0.5, width: 850, height: 2100 },
+    { id: "d7", type: "door", wallId: "w25", position: 0.5, width: 700, height: 2100 },
+    { id: "d8", type: "door", wallId: "w31", position: 0.5, width: 2400, height: 2100 },
+    { id: "d9", type: "door", wallId: "w21", position: 0.5, width: 900, height: 2100 },
+    { id: "win1", type: "window", wallId: "w2", position: 0.5, width: 1400, height: 1500 },
+    { id: "win2", type: "window", wallId: "w3", position: 0.5, width: 1000, height: 1500 },
+    { id: "win3", type: "window", wallId: "w5", position: 0.5, width: 800, height: 900 },
+    { id: "win4", type: "window", wallId: "w7", position: 0.5, width: 1400, height: 1500 },
+    { id: "win5", type: "window", wallId: "w11", position: 0.5, width: 1400, height: 1500 },
+    { id: "win6", type: "window", wallId: "w29", position: 0.5, width: 1400, height: 1500 },
+    { id: "win7", type: "window", wallId: "w23", position: 0.5, width: 800, height: 900 },
+    { id: "win8", type: "window", wallId: "w18", position: 0.5, width: 1800, height: 1500 },
+  ],
+  rooms: [
+    { id: "r1", type: "bedroom", name: "次卧A", boundaryWallIds: ["w1", "w4", "w16", "w17", "w2"] },
+    { id: "r2", type: "kitchen", name: "厨房", boundaryWallIds: ["w3", "w6", "w13", "w15", "w4"] },
+    { id: "r3", type: "bathroom", name: "公卫", boundaryWallIds: ["w5", "w8", "w12", "w6"] },
+    { id: "r4", type: "bedroom", name: "次卧B", boundaryWallIds: ["w7", "w10", "w19", "w14", "w8"] },
+    { id: "r5", type: "bedroom", name: "书房/次卧C", boundaryWallIds: ["w9", "w11", "w20", "w10"] },
+    { id: "r6", type: "bathroom", name: "主卫", boundaryWallIds: ["w22", "w25", "w27", "w23"] },
+    { id: "r7", type: "bedroom", name: "主卧", boundaryWallIds: ["w24", "w26", "w29", "w28", "w27", "w25"] },
+    { id: "r8", type: "balcony", name: "客厅阳台", boundaryWallIds: ["w31", "w34", "w35", "w32"] },
+    { id: "r9", type: "living_room", name: "客餐厅与玄关", boundaryWallIds: ["w33", "w31", "w30", "w26", "w24", "w22", "w18", "w17", "w16", "w15", "w13", "w12", "w14", "w19", "w20", "w21"] },
+  ],
+  furniture: [],
+};
+
+export const PLAN_CN_BJ_TANGU_4BR_125: StandardFloorPlan = {
+  version: 1,
+  unit: "mm",
+  meta: {
+    id: "plan-cn-bj-tangu-4br-125",
+    name: "北京京投发展·檀谷 125平户型，4室2厅2卫1厨 125.0m²",
+    source: "template",
+    isStandard: true,
+    createdAt: "2026-09-20T00:00:00.000Z",
+    updatedAt: "2026-09-20T00:00:00.000Z",
+    description: "基于北京京投发展·檀谷公开真实户型资料正交简化重建；125.0㎡为来源建筑面积，来源另标套内98.31㎡。保留来源可核对的主要房间数量、厨卫/阳台位置关系和主要动线；精确结构尺寸以来源户型图为准。",
+  },
+  vertices: [
+    { id: "v1", x: 0, y: 0 },
+    { id: "v2", x: 2400, y: 0 },
+    { id: "v3", x: 4880, y: 0 },
+    { id: "v4", x: 6230, y: 0 },
+    { id: "v5", x: 8390, y: 0 },
+    { id: "v6", x: 10230, y: 0 },
+    { id: "v7", x: 4880, y: 2080 },
+    { id: "v8", x: 6230, y: 2080 },
+    { id: "v9", x: 0, y: 2240 },
+    { id: "v10", x: 2400, y: 2240 },
+    { id: "v11", x: 6230, y: 2400 },
+    { id: "v12", x: 8390, y: 2400 },
+    { id: "v13", x: 2400, y: 2720 },
+    { id: "v14", x: 4880, y: 2720 },
+    { id: "v15", x: 8390, y: 3040 },
+    { id: "v16", x: 10230, y: 3040 },
+    { id: "v17", x: 0, y: 5750 },
+    { id: "v18", x: 1360, y: 5750 },
+    { id: "v19", x: 4160, y: 5750 },
+    { id: "v20", x: 0, y: 7830 },
+    { id: "v21", x: 1360, y: 7830 },
+    { id: "v22", x: 0, y: 9190 },
+    { id: "v23", x: 4160, y: 9190 },
+    { id: "v24", x: 7510, y: 9190 },
+    { id: "v25", x: 10230, y: 9190 },
+    { id: "v26", x: 4160, y: 10470 },
+    { id: "v27", x: 7510, y: 10470 },
+  ],
+  walls: [
+    { id: "w1", from: "v1", to: "v2", thickness: 200, lockAxis: "horizontal" },
+    { id: "w2", from: "v1", to: "v9", thickness: 200, lockAxis: "vertical" },
+    { id: "w3", from: "v2", to: "v3", thickness: 200, lockAxis: "horizontal" },
+    { id: "w4", from: "v2", to: "v10", thickness: 120, lockAxis: "vertical" },
+    { id: "w5", from: "v3", to: "v4", thickness: 200, lockAxis: "horizontal" },
+    { id: "w6", from: "v3", to: "v7", thickness: 120, lockAxis: "vertical" },
+    { id: "w7", from: "v4", to: "v5", thickness: 200, lockAxis: "horizontal" },
+    { id: "w8", from: "v4", to: "v8", thickness: 120, lockAxis: "vertical" },
+    { id: "w9", from: "v5", to: "v6", thickness: 200, lockAxis: "horizontal" },
+    { id: "w10", from: "v5", to: "v12", thickness: 120, lockAxis: "vertical" },
+    { id: "w11", from: "v6", to: "v16", thickness: 200, lockAxis: "vertical" },
+    { id: "w12", from: "v7", to: "v8", thickness: 120, lockAxis: "horizontal" },
+    { id: "w13", from: "v7", to: "v14", thickness: 120, lockAxis: "vertical" },
+    { id: "w14", from: "v8", to: "v11", thickness: 120, lockAxis: "vertical" },
+    { id: "w15", from: "v9", to: "v10", thickness: 120, lockAxis: "horizontal" },
+    { id: "w16", from: "v9", to: "v17", thickness: 200, lockAxis: "vertical" },
+    { id: "w17", from: "v10", to: "v13", thickness: 120, lockAxis: "vertical" },
+    { id: "w18", from: "v11", to: "v12", thickness: 120, lockAxis: "horizontal" },
+    { id: "w19", from: "v12", to: "v15", thickness: 120, lockAxis: "vertical" },
+    { id: "w20", from: "v13", to: "v14", thickness: 120, lockAxis: "horizontal" },
+    { id: "w21", from: "v15", to: "v16", thickness: 120, lockAxis: "horizontal" },
+    { id: "w22", from: "v16", to: "v25", thickness: 200, lockAxis: "vertical" },
+    { id: "w23", from: "v17", to: "v18", thickness: 120, lockAxis: "horizontal" },
+    { id: "w24", from: "v17", to: "v20", thickness: 200, lockAxis: "vertical" },
+    { id: "w25", from: "v18", to: "v19", thickness: 120, lockAxis: "horizontal" },
+    { id: "w26", from: "v18", to: "v21", thickness: 120, lockAxis: "vertical" },
+    { id: "w27", from: "v19", to: "v23", thickness: 120, lockAxis: "vertical" },
+    { id: "w28", from: "v20", to: "v21", thickness: 120, lockAxis: "horizontal" },
+    { id: "w29", from: "v20", to: "v22", thickness: 200, lockAxis: "vertical" },
+    { id: "w30", from: "v22", to: "v23", thickness: 200, lockAxis: "horizontal" },
+    { id: "w31", from: "v23", to: "v24", thickness: 120, lockAxis: "horizontal" },
+    { id: "w32", from: "v23", to: "v26", thickness: 200, lockAxis: "vertical" },
+    { id: "w33", from: "v24", to: "v25", thickness: 200, lockAxis: "horizontal" },
+    { id: "w34", from: "v24", to: "v27", thickness: 200, lockAxis: "vertical" },
+    { id: "w35", from: "v26", to: "v27", thickness: 200, lockAxis: "horizontal" },
+  ],
+  openings: [
+    { id: "d1", type: "door", wallId: "w15", position: 0.5, width: 900, height: 2100 },
+    { id: "d2", type: "door", wallId: "w20", position: 0.5, width: 800, height: 2100 },
+    { id: "d3", type: "door", wallId: "w12", position: 0.5, width: 700, height: 2100 },
+    { id: "d4", type: "door", wallId: "w18", position: 0.5, width: 800, height: 2100 },
+    { id: "d5", type: "door", wallId: "w21", position: 0.5, width: 800, height: 2100 },
+    { id: "d6", type: "door", wallId: "w27", position: 0.5, width: 850, height: 2100 },
+    { id: "d7", type: "door", wallId: "w26", position: 0.5, width: 700, height: 2100 },
+    { id: "d8", type: "door", wallId: "w31", position: 0.5, width: 2400, height: 2100 },
+    { id: "d9", type: "door", wallId: "w22", position: 0.5, width: 900, height: 2100 },
+    { id: "win1", type: "window", wallId: "w1", position: 0.5, width: 1000, height: 1500 },
+    { id: "win2", type: "window", wallId: "w3", position: 0.5, width: 1400, height: 1500 },
+    { id: "win3", type: "window", wallId: "w5", position: 0.5, width: 800, height: 900 },
+    { id: "win4", type: "window", wallId: "w7", position: 0.5, width: 1400, height: 1500 },
+    { id: "win5", type: "window", wallId: "w11", position: 0.5, width: 1400, height: 1500 },
+    { id: "win6", type: "window", wallId: "w30", position: 0.5, width: 1400, height: 1500 },
+    { id: "win7", type: "window", wallId: "w24", position: 0.5, width: 800, height: 900 },
+    { id: "win8", type: "window", wallId: "w16", position: 0.5, width: 1800, height: 1500 },
+  ],
+  rooms: [
+    { id: "r1", type: "kitchen", name: "厨房", boundaryWallIds: ["w1", "w4", "w15", "w2"] },
+    { id: "r2", type: "bedroom", name: "次卧A", boundaryWallIds: ["w3", "w6", "w13", "w20", "w17", "w4"] },
+    { id: "r3", type: "bathroom", name: "公卫", boundaryWallIds: ["w5", "w8", "w12", "w6"] },
+    { id: "r4", type: "bedroom", name: "次卧B", boundaryWallIds: ["w7", "w10", "w18", "w14", "w8"] },
+    { id: "r5", type: "bedroom", name: "次卧C", boundaryWallIds: ["w9", "w11", "w21", "w19", "w10"] },
+    { id: "r6", type: "bathroom", name: "主卫", boundaryWallIds: ["w23", "w26", "w28", "w24"] },
+    { id: "r7", type: "bedroom", name: "主卧", boundaryWallIds: ["w25", "w27", "w30", "w29", "w28", "w26"] },
+    { id: "r8", type: "balcony", name: "客厅阳台", boundaryWallIds: ["w31", "w34", "w35", "w32"] },
+    { id: "r9", type: "living_room", name: "客餐厅与玄关", boundaryWallIds: ["w33", "w31", "w27", "w25", "w23", "w16", "w15", "w17", "w20", "w13", "w12", "w14", "w18", "w19", "w21", "w22"] },
+  ],
+  furniture: [],
+};
+
+export const PLAN_CN_NJ_YUYUEGUANGNIAN_4BR_125: StandardFloorPlan = {
+  version: 1,
+  unit: "mm",
+  meta: {
+    id: "plan-cn-nj-yuyueguangnian-4br-125",
+    name: "南京万科·雨悦光年 户型图A，4室2厅2卫1厨 125.0m²",
+    source: "template",
+    isStandard: true,
+    createdAt: "2026-09-20T00:00:00.000Z",
+    updatedAt: "2026-09-20T00:00:00.000Z",
+    description: "基于南京万科·雨悦光年公开真实户型资料正交简化重建；125.0㎡为来源建筑面积，来源另标套内111.3㎡。保留来源可核对的主要房间数量、厨卫/阳台位置关系和主要动线；精确结构尺寸以来源户型图为准。",
+  },
+  vertices: [
+    { id: "v1", x: 0, y: 0 },
+    { id: "v2", x: 2680, y: 0 },
+    { id: "v3", x: 5110, y: 0 },
+    { id: "v4", x: 6490, y: 0 },
+    { id: "v5", x: 8920, y: 0 },
+    { id: "v6", x: 10870, y: 0 },
+    { id: "v7", x: 5110, y: 2030 },
+    { id: "v8", x: 6490, y: 2030 },
+    { id: "v9", x: 0, y: 2430 },
+    { id: "v10", x: 2680, y: 2430 },
+    { id: "v11", x: 2680, y: 2840 },
+    { id: "v12", x: 5110, y: 2840 },
+    { id: "v13", x: 6490, y: 2840 },
+    { id: "v14", x: 8920, y: 2840 },
+    { id: "v15", x: 8920, y: 3250 },
+    { id: "v16", x: 10870, y: 3250 },
+    { id: "v17", x: 0, y: 6000 },
+    { id: "v18", x: 1460, y: 6000 },
+    { id: "v19", x: 4060, y: 6000 },
+    { id: "v20", x: 0, y: 8280 },
+    { id: "v21", x: 1460, y: 8280 },
+    { id: "v22", x: 1950, y: 9570 },
+    { id: "v23", x: 4060, y: 9570 },
+    { id: "v24", x: 8440, y: 9570 },
+    { id: "v25", x: 10870, y: 9570 },
+    { id: "v26", x: 0, y: 10550 },
+    { id: "v27", x: 1950, y: 10550 },
+    { id: "v28", x: 4060, y: 10790 },
+    { id: "v29", x: 8440, y: 10790 },
+  ],
+  walls: [
+    { id: "w1", from: "v1", to: "v2", thickness: 200, lockAxis: "horizontal" },
+    { id: "w2", from: "v1", to: "v9", thickness: 200, lockAxis: "vertical" },
+    { id: "w3", from: "v2", to: "v3", thickness: 200, lockAxis: "horizontal" },
+    { id: "w4", from: "v2", to: "v10", thickness: 120, lockAxis: "vertical" },
+    { id: "w5", from: "v3", to: "v4", thickness: 200, lockAxis: "horizontal" },
+    { id: "w6", from: "v3", to: "v7", thickness: 120, lockAxis: "vertical" },
+    { id: "w7", from: "v4", to: "v5", thickness: 200, lockAxis: "horizontal" },
+    { id: "w8", from: "v4", to: "v8", thickness: 120, lockAxis: "vertical" },
+    { id: "w9", from: "v5", to: "v6", thickness: 200, lockAxis: "horizontal" },
+    { id: "w10", from: "v5", to: "v14", thickness: 120, lockAxis: "vertical" },
+    { id: "w11", from: "v6", to: "v16", thickness: 200, lockAxis: "vertical" },
+    { id: "w12", from: "v7", to: "v8", thickness: 120, lockAxis: "horizontal" },
+    { id: "w13", from: "v7", to: "v12", thickness: 120, lockAxis: "vertical" },
+    { id: "w14", from: "v8", to: "v13", thickness: 120, lockAxis: "vertical" },
+    { id: "w15", from: "v9", to: "v10", thickness: 120, lockAxis: "horizontal" },
+    { id: "w16", from: "v9", to: "v17", thickness: 200, lockAxis: "vertical" },
+    { id: "w17", from: "v10", to: "v11", thickness: 120, lockAxis: "vertical" },
+    { id: "w18", from: "v11", to: "v12", thickness: 120, lockAxis: "horizontal" },
+    { id: "w19", from: "v13", to: "v14", thickness: 120, lockAxis: "horizontal" },
+    { id: "w20", from: "v14", to: "v15", thickness: 120, lockAxis: "vertical" },
+    { id: "w21", from: "v15", to: "v16", thickness: 120, lockAxis: "horizontal" },
+    { id: "w22", from: "v16", to: "v25", thickness: 200, lockAxis: "vertical" },
+    { id: "w23", from: "v17", to: "v18", thickness: 120, lockAxis: "horizontal" },
+    { id: "w24", from: "v17", to: "v20", thickness: 200, lockAxis: "vertical" },
+    { id: "w25", from: "v18", to: "v19", thickness: 120, lockAxis: "horizontal" },
+    { id: "w26", from: "v18", to: "v21", thickness: 120, lockAxis: "vertical" },
+    { id: "w27", from: "v19", to: "v23", thickness: 120, lockAxis: "vertical" },
+    { id: "w28", from: "v20", to: "v21", thickness: 120, lockAxis: "horizontal" },
+    { id: "w29", from: "v20", to: "v26", thickness: 200, lockAxis: "vertical" },
+    { id: "w30", from: "v22", to: "v23", thickness: 200, lockAxis: "horizontal" },
+    { id: "w31", from: "v22", to: "v27", thickness: 200, lockAxis: "vertical" },
+    { id: "w32", from: "v23", to: "v24", thickness: 120, lockAxis: "horizontal" },
+    { id: "w33", from: "v23", to: "v28", thickness: 200, lockAxis: "vertical" },
+    { id: "w34", from: "v24", to: "v25", thickness: 200, lockAxis: "horizontal" },
+    { id: "w35", from: "v24", to: "v29", thickness: 200, lockAxis: "vertical" },
+    { id: "w36", from: "v26", to: "v27", thickness: 200, lockAxis: "horizontal" },
+    { id: "w37", from: "v28", to: "v29", thickness: 200, lockAxis: "horizontal" },
+  ],
+  openings: [
+    { id: "d1", type: "door", wallId: "w15", position: 0.5, width: 900, height: 2100 },
+    { id: "d2", type: "door", wallId: "w18", position: 0.5, width: 800, height: 2100 },
+    { id: "d3", type: "door", wallId: "w12", position: 0.5, width: 700, height: 2100 },
+    { id: "d4", type: "door", wallId: "w19", position: 0.5, width: 800, height: 2100 },
+    { id: "d5", type: "door", wallId: "w21", position: 0.5, width: 800, height: 2100 },
+    { id: "d6", type: "door", wallId: "w27", position: 0.5, width: 850, height: 2100 },
+    { id: "d7", type: "door", wallId: "w26", position: 0.5, width: 700, height: 2100 },
+    { id: "d8", type: "door", wallId: "w32", position: 0.5, width: 2500, height: 2100 },
+    { id: "d9", type: "door", wallId: "w22", position: 0.5, width: 900, height: 2100 },
+    { id: "win1", type: "window", wallId: "w1", position: 0.5, width: 1000, height: 1500 },
+    { id: "win2", type: "window", wallId: "w3", position: 0.5, width: 1400, height: 1500 },
+    { id: "win3", type: "window", wallId: "w5", position: 0.5, width: 800, height: 900 },
+    { id: "win4", type: "window", wallId: "w7", position: 0.5, width: 1400, height: 1500 },
+    { id: "win5", type: "window", wallId: "w11", position: 0.5, width: 1400, height: 1500 },
+    { id: "win6", type: "window", wallId: "w29", position: 0.5, width: 1400, height: 1500 },
+    { id: "win7", type: "window", wallId: "w24", position: 0.5, width: 800, height: 900 },
+    { id: "win8", type: "window", wallId: "w16", position: 0.5, width: 1800, height: 1500 },
+  ],
+  rooms: [
+    { id: "r1", type: "kitchen", name: "厨房", boundaryWallIds: ["w1", "w4", "w15", "w2"] },
+    { id: "r2", type: "bedroom", name: "次卧A", boundaryWallIds: ["w3", "w6", "w13", "w18", "w17", "w4"] },
+    { id: "r3", type: "bathroom", name: "公卫", boundaryWallIds: ["w5", "w8", "w12", "w6"] },
+    { id: "r4", type: "bedroom", name: "次卧B", boundaryWallIds: ["w7", "w10", "w19", "w14", "w8"] },
+    { id: "r5", type: "bedroom", name: "书房/次卧C", boundaryWallIds: ["w9", "w11", "w21", "w20", "w10"] },
+    { id: "r6", type: "bathroom", name: "主卫", boundaryWallIds: ["w23", "w26", "w28", "w24"] },
+    { id: "r7", type: "bedroom", name: "主卧", boundaryWallIds: ["w25", "w27", "w30", "w31", "w36", "w29", "w28", "w26"] },
+    { id: "r8", type: "balcony", name: "主阳台", boundaryWallIds: ["w32", "w35", "w37", "w33"] },
+    { id: "r9", type: "living_room", name: "客餐厅与玄关", boundaryWallIds: ["w34", "w32", "w27", "w25", "w23", "w16", "w15", "w17", "w18", "w13", "w12", "w14", "w19", "w20", "w21", "w22"] },
+  ],
+  furniture: [],
+};
+
+export const PLAN_CN_GZ_TIANYUEJIANGWAN_4BR_130: StandardFloorPlan = {
+  version: 1,
+  unit: "mm",
+  meta: {
+    id: "plan-cn-gz-tianyuejiangwan-4br-130",
+    name: "广州越秀·天悦江湾 2栋建面130㎡四室户型，4室2厅2卫1厨 130.0m²",
+    source: "template",
+    isStandard: true,
+    createdAt: "2026-09-20T00:00:00.000Z",
+    updatedAt: "2026-09-20T00:00:00.000Z",
+    description: "基于广州越秀·天悦江湾公开真实户型资料正交简化重建；130.0㎡为来源建筑面积，来源另标套内94.99㎡。保留来源可核对的主要房间数量、厨卫/阳台位置关系和主要动线；精确结构尺寸以来源户型图为准。",
+  },
+  vertices: [
+    { id: "v1", x: 0, y: 0 },
+    { id: "v2", x: 2190, y: 0 },
+    { id: "v3", x: 4470, y: 0 },
+    { id: "v4", x: 5770, y: 0 },
+    { id: "v5", x: 7800, y: 0 },
+    { id: "v6", x: 10070, y: 0 },
+    { id: "v7", x: 4470, y: 2030 },
+    { id: "v8", x: 5770, y: 2030 },
+    { id: "v9", x: 0, y: 2440 },
+    { id: "v10", x: 2190, y: 2440 },
+    { id: "v11", x: 5770, y: 2600 },
+    { id: "v12", x: 7800, y: 2600 },
+    { id: "v13", x: 2190, y: 2760 },
+    { id: "v14", x: 4470, y: 2760 },
+    { id: "v15", x: 7800, y: 3090 },
+    { id: "v16", x: 10070, y: 3090 },
+    { id: "v17", x: 0, y: 5680 },
+    { id: "v18", x: 1380, y: 5680 },
+    { id: "v19", x: 3900, y: 5680 },
+    { id: "v20", x: 0, y: 7710 },
+    { id: "v21", x: 1380, y: 7710 },
+    { id: "v22", x: 0, y: 9010 },
+    { id: "v23", x: 3900, y: 9010 },
+    { id: "v24", x: 7150, y: 9010 },
+    { id: "v25", x: 10070, y: 9010 },
+    { id: "v26", x: 3900, y: 10310 },
+    { id: "v27", x: 7150, y: 10310 },
+  ],
+  walls: [
+    { id: "w1", from: "v1", to: "v2", thickness: 200, lockAxis: "horizontal" },
+    { id: "w2", from: "v1", to: "v9", thickness: 200, lockAxis: "vertical" },
+    { id: "w3", from: "v2", to: "v3", thickness: 200, lockAxis: "horizontal" },
+    { id: "w4", from: "v2", to: "v10", thickness: 120, lockAxis: "vertical" },
+    { id: "w5", from: "v3", to: "v4", thickness: 200, lockAxis: "horizontal" },
+    { id: "w6", from: "v3", to: "v7", thickness: 120, lockAxis: "vertical" },
+    { id: "w7", from: "v4", to: "v5", thickness: 200, lockAxis: "horizontal" },
+    { id: "w8", from: "v4", to: "v8", thickness: 120, lockAxis: "vertical" },
+    { id: "w9", from: "v5", to: "v6", thickness: 200, lockAxis: "horizontal" },
+    { id: "w10", from: "v5", to: "v12", thickness: 120, lockAxis: "vertical" },
+    { id: "w11", from: "v6", to: "v16", thickness: 200, lockAxis: "vertical" },
+    { id: "w12", from: "v7", to: "v8", thickness: 120, lockAxis: "horizontal" },
+    { id: "w13", from: "v7", to: "v14", thickness: 120, lockAxis: "vertical" },
+    { id: "w14", from: "v8", to: "v11", thickness: 120, lockAxis: "vertical" },
+    { id: "w15", from: "v9", to: "v10", thickness: 120, lockAxis: "horizontal" },
+    { id: "w16", from: "v9", to: "v17", thickness: 200, lockAxis: "vertical" },
+    { id: "w17", from: "v10", to: "v13", thickness: 120, lockAxis: "vertical" },
+    { id: "w18", from: "v11", to: "v12", thickness: 120, lockAxis: "horizontal" },
+    { id: "w19", from: "v12", to: "v15", thickness: 120, lockAxis: "vertical" },
+    { id: "w20", from: "v13", to: "v14", thickness: 120, lockAxis: "horizontal" },
+    { id: "w21", from: "v15", to: "v16", thickness: 120, lockAxis: "horizontal" },
+    { id: "w22", from: "v16", to: "v25", thickness: 200, lockAxis: "vertical" },
+    { id: "w23", from: "v17", to: "v18", thickness: 120, lockAxis: "horizontal" },
+    { id: "w24", from: "v17", to: "v20", thickness: 200, lockAxis: "vertical" },
+    { id: "w25", from: "v18", to: "v19", thickness: 120, lockAxis: "horizontal" },
+    { id: "w26", from: "v18", to: "v21", thickness: 120, lockAxis: "vertical" },
+    { id: "w27", from: "v19", to: "v23", thickness: 120, lockAxis: "vertical" },
+    { id: "w28", from: "v20", to: "v21", thickness: 120, lockAxis: "horizontal" },
+    { id: "w29", from: "v20", to: "v22", thickness: 200, lockAxis: "vertical" },
+    { id: "w30", from: "v22", to: "v23", thickness: 200, lockAxis: "horizontal" },
+    { id: "w31", from: "v23", to: "v24", thickness: 120, lockAxis: "horizontal" },
+    { id: "w32", from: "v23", to: "v26", thickness: 200, lockAxis: "vertical" },
+    { id: "w33", from: "v24", to: "v25", thickness: 200, lockAxis: "horizontal" },
+    { id: "w34", from: "v24", to: "v27", thickness: 200, lockAxis: "vertical" },
+    { id: "w35", from: "v26", to: "v27", thickness: 200, lockAxis: "horizontal" },
+  ],
+  openings: [
+    { id: "d1", type: "door", wallId: "w15", position: 0.5, width: 900, height: 2100 },
+    { id: "d2", type: "door", wallId: "w20", position: 0.5, width: 800, height: 2100 },
+    { id: "d3", type: "door", wallId: "w12", position: 0.5, width: 700, height: 2100 },
+    { id: "d4", type: "door", wallId: "w18", position: 0.5, width: 800, height: 2100 },
+    { id: "d5", type: "door", wallId: "w21", position: 0.5, width: 800, height: 2100 },
+    { id: "d6", type: "door", wallId: "w27", position: 0.5, width: 850, height: 2100 },
+    { id: "d7", type: "door", wallId: "w26", position: 0.5, width: 700, height: 2100 },
+    { id: "d8", type: "door", wallId: "w31", position: 0.5, width: 2200, height: 2100 },
+    { id: "d9", type: "door", wallId: "w22", position: 0.5, width: 900, height: 2100 },
+    { id: "win1", type: "window", wallId: "w2", position: 0.5, width: 1000, height: 1500 },
+    { id: "win2", type: "window", wallId: "w3", position: 0.5, width: 1400, height: 1500 },
+    { id: "win3", type: "window", wallId: "w7", position: 0.5, width: 1319, height: 1500 },
+    { id: "win4", type: "window", wallId: "w11", position: 0.5, width: 1400, height: 1500 },
+    { id: "win5", type: "window", wallId: "w30", position: 0.5, width: 1400, height: 1500 },
+    { id: "win6", type: "window", wallId: "w16", position: 0.5, width: 1800, height: 1500 },
+  ],
+  rooms: [
+    { id: "r1", type: "kitchen", name: "厨房", boundaryWallIds: ["w1", "w4", "w15", "w2"] },
+    { id: "r2", type: "bedroom", name: "次卧A", boundaryWallIds: ["w3", "w6", "w13", "w20", "w17", "w4"] },
+    { id: "r3", type: "bathroom", name: "公卫", boundaryWallIds: ["w5", "w8", "w12", "w6"] },
+    { id: "r4", type: "bedroom", name: "次卧B", boundaryWallIds: ["w7", "w10", "w18", "w14", "w8"] },
+    { id: "r5", type: "bedroom", name: "次卧C", boundaryWallIds: ["w9", "w11", "w21", "w19", "w10"] },
+    { id: "r6", type: "bathroom", name: "主卫", boundaryWallIds: ["w23", "w26", "w28", "w24"] },
+    { id: "r7", type: "bedroom", name: "主卧", boundaryWallIds: ["w25", "w27", "w30", "w29", "w28", "w26"] },
+    { id: "r8", type: "balcony", name: "客厅阳台", boundaryWallIds: ["w31", "w34", "w35", "w32"] },
+    { id: "r9", type: "living_room", name: "客餐厅与玄关", boundaryWallIds: ["w33", "w31", "w27", "w25", "w23", "w16", "w15", "w17", "w20", "w13", "w12", "w14", "w18", "w19", "w21", "w22"] },
+  ],
+  furniture: [],
+};
+
+export const PLAN_CN_CD_QINGYUNYIHAO_4BR_135: StandardFloorPlan = {
+  version: 1,
+  unit: "mm",
+  meta: {
+    id: "plan-cn-cd-qingyunyiyhao-4br-135",
+    name: "成都马厂坝TOD青雲壹号 A3，4室2厅2卫1厨 135.0m²",
+    source: "template",
+    isStandard: true,
+    createdAt: "2026-09-20T00:00:00.000Z",
+    updatedAt: "2026-09-20T00:00:00.000Z",
+    description: "基于成都马厂坝TOD青雲壹号公开真实户型资料正交简化重建；135.0㎡为来源建筑面积，不等同于模型净几何面积。保留来源可核对的主要房间数量、厨卫/阳台位置关系和主要动线；精确结构尺寸以来源户型图为准。",
+  },
+  vertices: [
+    { id: "v1", x: 0, y: 0 },
+    { id: "v2", x: 2280, y: 0 },
+    { id: "v3", x: 4880, y: 0 },
+    { id: "v4", x: 6350, y: 0 },
+    { id: "v5", x: 8790, y: 0 },
+    { id: "v6", x: 10580, y: 0 },
+    { id: "v7", x: -1300, y: 410 },
+    { id: "v8", x: 0, y: 410 },
+    { id: "v9", x: 4880, y: 2040 },
+    { id: "v10", x: 6350, y: 2040 },
+    { id: "v11", x: -1300, y: 2120 },
+    { id: "v12", x: 0, y: 2120 },
+    { id: "v13", x: 0, y: 2520 },
+    { id: "v14", x: 2280, y: 2520 },
+    { id: "v15", x: 2280, y: 2770 },
+    { id: "v16", x: 4880, y: 2770 },
+    { id: "v17", x: 6350, y: 2770 },
+    { id: "v18", x: 8790, y: 2770 },
+    { id: "v19", x: 8790, y: 2930 },
+    { id: "v20", x: 10580, y: 2930 },
+    { id: "v21", x: 0, y: 5860 },
+    { id: "v22", x: 1550, y: 5860 },
+    { id: "v23", x: 4310, y: 5860 },
+    { id: "v24", x: 0, y: 7730 },
+    { id: "v25", x: 1550, y: 7730 },
+    { id: "v26", x: 0, y: 9440 },
+    { id: "v27", x: 4310, y: 9440 },
+    { id: "v28", x: 8300, y: 9440 },
+    { id: "v29", x: 10580, y: 9440 },
+    { id: "v30", x: 4310, y: 10910 },
+    { id: "v31", x: 8300, y: 10910 },
+  ],
+  walls: [
+    { id: "w1", from: "v1", to: "v2", thickness: 200, lockAxis: "horizontal" },
+    { id: "w2", from: "v1", to: "v8", thickness: 200, lockAxis: "vertical" },
+    { id: "w3", from: "v2", to: "v3", thickness: 200, lockAxis: "horizontal" },
+    { id: "w4", from: "v2", to: "v14", thickness: 120, lockAxis: "vertical" },
+    { id: "w5", from: "v3", to: "v4", thickness: 200, lockAxis: "horizontal" },
+    { id: "w6", from: "v3", to: "v9", thickness: 120, lockAxis: "vertical" },
+    { id: "w7", from: "v4", to: "v5", thickness: 200, lockAxis: "horizontal" },
+    { id: "w8", from: "v4", to: "v10", thickness: 120, lockAxis: "vertical" },
+    { id: "w9", from: "v5", to: "v6", thickness: 200, lockAxis: "horizontal" },
+    { id: "w10", from: "v5", to: "v18", thickness: 120, lockAxis: "vertical" },
+    { id: "w11", from: "v6", to: "v20", thickness: 200, lockAxis: "vertical" },
+    { id: "w12", from: "v7", to: "v8", thickness: 200, lockAxis: "horizontal" },
+    { id: "w13", from: "v7", to: "v11", thickness: 200, lockAxis: "vertical" },
+    { id: "w14", from: "v8", to: "v12", thickness: 120, lockAxis: "vertical" },
+    { id: "w15", from: "v9", to: "v10", thickness: 120, lockAxis: "horizontal" },
+    { id: "w16", from: "v9", to: "v16", thickness: 120, lockAxis: "vertical" },
+    { id: "w17", from: "v10", to: "v17", thickness: 120, lockAxis: "vertical" },
+    { id: "w18", from: "v11", to: "v12", thickness: 200, lockAxis: "horizontal" },
+    { id: "w19", from: "v12", to: "v13", thickness: 200, lockAxis: "vertical" },
+    { id: "w20", from: "v13", to: "v14", thickness: 120, lockAxis: "horizontal" },
+    { id: "w21", from: "v13", to: "v21", thickness: 200, lockAxis: "vertical" },
+    { id: "w22", from: "v14", to: "v15", thickness: 120, lockAxis: "vertical" },
+    { id: "w23", from: "v15", to: "v16", thickness: 120, lockAxis: "horizontal" },
+    { id: "w24", from: "v17", to: "v18", thickness: 120, lockAxis: "horizontal" },
+    { id: "w25", from: "v18", to: "v19", thickness: 120, lockAxis: "vertical" },
+    { id: "w26", from: "v19", to: "v20", thickness: 120, lockAxis: "horizontal" },
+    { id: "w27", from: "v20", to: "v29", thickness: 200, lockAxis: "vertical" },
+    { id: "w28", from: "v21", to: "v22", thickness: 120, lockAxis: "horizontal" },
+    { id: "w29", from: "v21", to: "v24", thickness: 200, lockAxis: "vertical" },
+    { id: "w30", from: "v22", to: "v23", thickness: 120, lockAxis: "horizontal" },
+    { id: "w31", from: "v22", to: "v25", thickness: 120, lockAxis: "vertical" },
+    { id: "w32", from: "v23", to: "v27", thickness: 120, lockAxis: "vertical" },
+    { id: "w33", from: "v24", to: "v25", thickness: 120, lockAxis: "horizontal" },
+    { id: "w34", from: "v24", to: "v26", thickness: 200, lockAxis: "vertical" },
+    { id: "w35", from: "v26", to: "v27", thickness: 200, lockAxis: "horizontal" },
+    { id: "w36", from: "v27", to: "v28", thickness: 120, lockAxis: "horizontal" },
+    { id: "w37", from: "v27", to: "v30", thickness: 200, lockAxis: "vertical" },
+    { id: "w38", from: "v28", to: "v29", thickness: 200, lockAxis: "horizontal" },
+    { id: "w39", from: "v28", to: "v31", thickness: 200, lockAxis: "vertical" },
+    { id: "w40", from: "v30", to: "v31", thickness: 200, lockAxis: "horizontal" },
+  ],
+  openings: [
+    { id: "d1", type: "door", wallId: "w20", position: 0.5, width: 900, height: 2100 },
+    { id: "d2", type: "door", wallId: "w14", position: 0.5, width: 800, height: 2100 },
+    { id: "d3", type: "door", wallId: "w23", position: 0.5, width: 800, height: 2100 },
+    { id: "d4", type: "door", wallId: "w15", position: 0.5, width: 700, height: 2100 },
+    { id: "d5", type: "door", wallId: "w24", position: 0.5, width: 800, height: 2100 },
+    { id: "d6", type: "door", wallId: "w26", position: 0.5, width: 800, height: 2100 },
+    { id: "d7", type: "door", wallId: "w32", position: 0.5, width: 850, height: 2100 },
+    { id: "d8", type: "door", wallId: "w31", position: 0.5, width: 700, height: 2100 },
+    { id: "d9", type: "door", wallId: "w36", position: 0.5, width: 2500, height: 2100 },
+    { id: "d10", type: "door", wallId: "w27", position: 0.5, width: 900, height: 2100 },
+    { id: "win1", type: "window", wallId: "w1", position: 0.5, width: 1000, height: 1500 },
+    { id: "win2", type: "window", wallId: "w3", position: 0.5, width: 1400, height: 1500 },
+    { id: "win3", type: "window", wallId: "w5", position: 0.5, width: 800, height: 900 },
+    { id: "win4", type: "window", wallId: "w7", position: 0.5, width: 1400, height: 1500 },
+    { id: "win5", type: "window", wallId: "w11", position: 0.5, width: 1400, height: 1500 },
+    { id: "win6", type: "window", wallId: "w35", position: 0.5, width: 1400, height: 1500 },
+    { id: "win7", type: "window", wallId: "w29", position: 0.5, width: 800, height: 900 },
+    { id: "win8", type: "window", wallId: "w21", position: 0.5, width: 1800, height: 1500 },
+  ],
+  rooms: [
+    { id: "r1", type: "kitchen", name: "厨房", boundaryWallIds: ["w1", "w4", "w20", "w19", "w14", "w2"] },
+    { id: "r2", type: "balcony", name: "生活阳台", boundaryWallIds: ["w12", "w14", "w18", "w13"] },
+    { id: "r3", type: "bedroom", name: "次卧A", boundaryWallIds: ["w3", "w6", "w16", "w23", "w22", "w4"] },
+    { id: "r4", type: "bathroom", name: "公卫", boundaryWallIds: ["w5", "w8", "w15", "w6"] },
+    { id: "r5", type: "bedroom", name: "次卧B", boundaryWallIds: ["w7", "w10", "w24", "w17", "w8"] },
+    { id: "r6", type: "bedroom", name: "书房/次卧C", boundaryWallIds: ["w9", "w11", "w26", "w25", "w10"] },
+    { id: "r7", type: "bathroom", name: "主卫", boundaryWallIds: ["w28", "w31", "w33", "w29"] },
+    { id: "r8", type: "bedroom", name: "主卧", boundaryWallIds: ["w30", "w32", "w35", "w34", "w33", "w31"] },
+    { id: "r9", type: "balcony", name: "客厅阳台", boundaryWallIds: ["w36", "w39", "w40", "w37"] },
+    { id: "r10", type: "living_room", name: "客餐厅与玄关", boundaryWallIds: ["w20", "w22", "w23", "w16", "w15", "w17", "w24", "w25", "w26", "w27", "w38", "w36", "w32", "w30", "w28", "w21"] },
+  ],
+  furniture: [],
+};
+
+export const PLAN_CN_HZ_FENGCUIYUNXUAN_4BR_139: StandardFloorPlan = {
+  version: 1,
+  unit: "mm",
+  meta: {
+    id: "plan-cn-hz-fengcuiyunxuan-4br-139",
+    name: "杭州滨江联合枫翠云轩 A户型，4室2厅2卫1厨 139.0m²",
+    source: "template",
+    isStandard: true,
+    createdAt: "2026-09-20T00:00:00.000Z",
+    updatedAt: "2026-09-20T00:00:00.000Z",
+    description: "基于杭州滨江联合枫翠云轩公开真实户型资料正交简化重建；139.0㎡为来源建筑面积，不等同于模型净几何面积。保留来源可核对的主要房间数量、厨卫/阳台位置关系和主要动线；精确结构尺寸以来源户型图为准。",
+  },
+  vertices: [
+    { id: "v1", x: 0, y: 0 },
+    { id: "v2", x: 2440, y: 0 },
+    { id: "v3", x: 4890, y: 0 },
+    { id: "v4", x: 6360, y: 0 },
+    { id: "v5", x: 8640, y: 0 },
+    { id: "v6", x: 10840, y: 0 },
+    { id: "v7", x: 4890, y: 2040 },
+    { id: "v8", x: 6360, y: 2040 },
+    { id: "v9", x: 0, y: 2280 },
+    { id: "v10", x: 2440, y: 2280 },
+    { id: "v11", x: 8640, y: 2690 },
+    { id: "v12", x: 10840, y: 2690 },
+    { id: "v13", x: 6360, y: 2850 },
+    { id: "v14", x: 8640, y: 2850 },
+    { id: "v15", x: 2440, y: 2930 },
+    { id: "v16", x: 4890, y: 2930 },
+    { id: "v17", x: 0, y: 6030 },
+    { id: "v18", x: 1470, y: 6030 },
+    { id: "v19", x: 3750, y: 6030 },
+    { id: "v20", x: 0, y: 8310 },
+    { id: "v21", x: 1470, y: 8310 },
+    { id: "v22", x: 0, y: 9620 },
+    { id: "v23", x: 3750, y: 9620 },
+    { id: "v24", x: 8960, y: 9620 },
+    { id: "v25", x: 10840, y: 9620 },
+    { id: "v26", x: 3750, y: 10920 },
+    { id: "v27", x: 8960, y: 10920 },
+  ],
+  walls: [
+    { id: "w1", from: "v1", to: "v2", thickness: 200, lockAxis: "horizontal" },
+    { id: "w2", from: "v1", to: "v9", thickness: 200, lockAxis: "vertical" },
+    { id: "w3", from: "v2", to: "v3", thickness: 200, lockAxis: "horizontal" },
+    { id: "w4", from: "v2", to: "v10", thickness: 120, lockAxis: "vertical" },
+    { id: "w5", from: "v3", to: "v4", thickness: 200, lockAxis: "horizontal" },
+    { id: "w6", from: "v3", to: "v7", thickness: 120, lockAxis: "vertical" },
+    { id: "w7", from: "v4", to: "v5", thickness: 200, lockAxis: "horizontal" },
+    { id: "w8", from: "v4", to: "v8", thickness: 120, lockAxis: "vertical" },
+    { id: "w9", from: "v5", to: "v6", thickness: 200, lockAxis: "horizontal" },
+    { id: "w10", from: "v5", to: "v11", thickness: 120, lockAxis: "vertical" },
+    { id: "w11", from: "v6", to: "v12", thickness: 200, lockAxis: "vertical" },
+    { id: "w12", from: "v7", to: "v8", thickness: 120, lockAxis: "horizontal" },
+    { id: "w13", from: "v7", to: "v16", thickness: 120, lockAxis: "vertical" },
+    { id: "w14", from: "v8", to: "v13", thickness: 120, lockAxis: "vertical" },
+    { id: "w15", from: "v9", to: "v10", thickness: 120, lockAxis: "horizontal" },
+    { id: "w16", from: "v9", to: "v17", thickness: 200, lockAxis: "vertical" },
+    { id: "w17", from: "v10", to: "v15", thickness: 120, lockAxis: "vertical" },
+    { id: "w18", from: "v11", to: "v12", thickness: 120, lockAxis: "horizontal" },
+    { id: "w19", from: "v11", to: "v14", thickness: 120, lockAxis: "vertical" },
+    { id: "w20", from: "v12", to: "v25", thickness: 200, lockAxis: "vertical" },
+    { id: "w21", from: "v13", to: "v14", thickness: 120, lockAxis: "horizontal" },
+    { id: "w22", from: "v15", to: "v16", thickness: 120, lockAxis: "horizontal" },
+    { id: "w23", from: "v17", to: "v18", thickness: 120, lockAxis: "horizontal" },
+    { id: "w24", from: "v17", to: "v20", thickness: 200, lockAxis: "vertical" },
+    { id: "w25", from: "v18", to: "v19", thickness: 120, lockAxis: "horizontal" },
+    { id: "w26", from: "v18", to: "v21", thickness: 120, lockAxis: "vertical" },
+    { id: "w27", from: "v19", to: "v23", thickness: 120, lockAxis: "vertical" },
+    { id: "w28", from: "v20", to: "v21", thickness: 120, lockAxis: "horizontal" },
+    { id: "w29", from: "v20", to: "v22", thickness: 200, lockAxis: "vertical" },
+    { id: "w30", from: "v22", to: "v23", thickness: 200, lockAxis: "horizontal" },
+    { id: "w31", from: "v23", to: "v24", thickness: 120, lockAxis: "horizontal" },
+    { id: "w32", from: "v23", to: "v26", thickness: 200, lockAxis: "vertical" },
+    { id: "w33", from: "v24", to: "v25", thickness: 200, lockAxis: "horizontal" },
+    { id: "w34", from: "v24", to: "v27", thickness: 200, lockAxis: "vertical" },
+    { id: "w35", from: "v26", to: "v27", thickness: 200, lockAxis: "horizontal" },
+  ],
+  openings: [
+    { id: "d1", type: "door", wallId: "w15", position: 0.5, width: 900, height: 2100 },
+    { id: "d2", type: "door", wallId: "w22", position: 0.5, width: 800, height: 2100 },
+    { id: "d3", type: "door", wallId: "w12", position: 0.5, width: 700, height: 2100 },
+    { id: "d4", type: "door", wallId: "w21", position: 0.5, width: 800, height: 2100 },
+    { id: "d5", type: "door", wallId: "w18", position: 0.5, width: 800, height: 2100 },
+    { id: "d6", type: "door", wallId: "w27", position: 0.5, width: 850, height: 2100 },
+    { id: "d7", type: "door", wallId: "w26", position: 0.5, width: 700, height: 2100 },
+    { id: "d8", type: "door", wallId: "w31", position: 0.5, width: 2600, height: 2100 },
+    { id: "d9", type: "door", wallId: "w20", position: 0.5, width: 900, height: 2100 },
+    { id: "win1", type: "window", wallId: "w1", position: 0.5, width: 1000, height: 1500 },
+    { id: "win2", type: "window", wallId: "w3", position: 0.5, width: 1400, height: 1500 },
+    { id: "win3", type: "window", wallId: "w5", position: 0.5, width: 800, height: 900 },
+    { id: "win4", type: "window", wallId: "w7", position: 0.5, width: 1400, height: 1500 },
+    { id: "win5", type: "window", wallId: "w11", position: 0.5, width: 1400, height: 1500 },
+    { id: "win6", type: "window", wallId: "w30", position: 0.5, width: 1400, height: 1500 },
+    { id: "win7", type: "window", wallId: "w24", position: 0.5, width: 800, height: 900 },
+    { id: "win8", type: "window", wallId: "w16", position: 0.5, width: 1800, height: 1500 },
+  ],
+  rooms: [
+    { id: "r1", type: "kitchen", name: "厨房", boundaryWallIds: ["w1", "w4", "w15", "w2"] },
+    { id: "r2", type: "bedroom", name: "次卧A", boundaryWallIds: ["w3", "w6", "w13", "w22", "w17", "w4"] },
+    { id: "r3", type: "bathroom", name: "公卫", boundaryWallIds: ["w5", "w8", "w12", "w6"] },
+    { id: "r4", type: "bedroom", name: "次卧B", boundaryWallIds: ["w7", "w10", "w19", "w21", "w14", "w8"] },
+    { id: "r5", type: "bedroom", name: "书房/次卧C", boundaryWallIds: ["w9", "w11", "w18", "w10"] },
+    { id: "r6", type: "bathroom", name: "主卫", boundaryWallIds: ["w23", "w26", "w28", "w24"] },
+    { id: "r7", type: "bedroom", name: "主卧", boundaryWallIds: ["w25", "w27", "w30", "w29", "w28", "w26"] },
+    { id: "r8", type: "balcony", name: "客厅阳台", boundaryWallIds: ["w31", "w34", "w35", "w32"] },
+    { id: "r9", type: "living_room", name: "客餐厅与玄关", boundaryWallIds: ["w33", "w31", "w27", "w25", "w23", "w16", "w15", "w17", "w22", "w13", "w12", "w14", "w21", "w19", "w18", "w20"] },
+  ],
+  furniture: [],
+};
+
+export const PLAN_CN_WH_CHANGJIANGYUE_4BR_140: StandardFloorPlan = {
+  version: 1,
+  unit: "mm",
+  meta: {
+    id: "plan-cn-wh-changjiangyue-4br-140",
+    name: "武汉长江悦 3D户型，4室2厅2卫1厨 140.0m²",
+    source: "template",
+    isStandard: true,
+    createdAt: "2026-09-20T00:00:00.000Z",
+    updatedAt: "2026-09-20T00:00:00.000Z",
+    description: "基于武汉长江悦公开真实户型资料正交简化重建；140.0㎡为来源建筑面积，不等同于模型净几何面积。保留来源可核对的主要房间数量、厨卫/阳台位置关系和主要动线；精确结构尺寸以来源户型图为准。",
+  },
+  vertices: [
+    { id: "v1", x: 0, y: 0 },
+    { id: "v2", x: 2530, y: 0 },
+    { id: "v3", x: 4890, y: 0 },
+    { id: "v4", x: 6270, y: 0 },
+    { id: "v5", x: 8560, y: 0 },
+    { id: "v6", x: 11000, y: 0 },
+    { id: "v7", x: 4890, y: 2040 },
+    { id: "v8", x: 6270, y: 2040 },
+    { id: "v9", x: 2530, y: 2440 },
+    { id: "v10", x: 4890, y: 2440 },
+    { id: "v11", x: 6270, y: 2770 },
+    { id: "v12", x: 8560, y: 2770 },
+    { id: "v13", x: 0, y: 2850 },
+    { id: "v14", x: 2530, y: 2850 },
+    { id: "v15", x: 8560, y: 2930 },
+    { id: "v16", x: 11000, y: 2930 },
+    { id: "v17", x: 0, y: 5950 },
+    { id: "v18", x: 1470, y: 5950 },
+    { id: "v19", x: 4070, y: 5950 },
+    { id: "v20", x: 0, y: 8070 },
+    { id: "v21", x: 1470, y: 8070 },
+    { id: "v22", x: 0, y: 9620 },
+    { id: "v23", x: 4070, y: 9620 },
+    { id: "v24", x: 8560, y: 9620 },
+    { id: "v25", x: 11000, y: 9620 },
+    { id: "v26", x: 4070, y: 11000 },
+    { id: "v27", x: 8560, y: 11000 },
+  ],
+  walls: [
+    { id: "w1", from: "v1", to: "v2", thickness: 200, lockAxis: "horizontal" },
+    { id: "w2", from: "v1", to: "v13", thickness: 200, lockAxis: "vertical" },
+    { id: "w3", from: "v2", to: "v3", thickness: 200, lockAxis: "horizontal" },
+    { id: "w4", from: "v2", to: "v9", thickness: 120, lockAxis: "vertical" },
+    { id: "w5", from: "v3", to: "v4", thickness: 200, lockAxis: "horizontal" },
+    { id: "w6", from: "v3", to: "v7", thickness: 120, lockAxis: "vertical" },
+    { id: "w7", from: "v4", to: "v5", thickness: 200, lockAxis: "horizontal" },
+    { id: "w8", from: "v4", to: "v8", thickness: 120, lockAxis: "vertical" },
+    { id: "w9", from: "v5", to: "v6", thickness: 200, lockAxis: "horizontal" },
+    { id: "w10", from: "v5", to: "v12", thickness: 120, lockAxis: "vertical" },
+    { id: "w11", from: "v6", to: "v16", thickness: 200, lockAxis: "vertical" },
+    { id: "w12", from: "v7", to: "v8", thickness: 120, lockAxis: "horizontal" },
+    { id: "w13", from: "v7", to: "v10", thickness: 120, lockAxis: "vertical" },
+    { id: "w14", from: "v8", to: "v11", thickness: 120, lockAxis: "vertical" },
+    { id: "w15", from: "v9", to: "v10", thickness: 120, lockAxis: "horizontal" },
+    { id: "w16", from: "v9", to: "v14", thickness: 120, lockAxis: "vertical" },
+    { id: "w17", from: "v11", to: "v12", thickness: 120, lockAxis: "horizontal" },
+    { id: "w18", from: "v12", to: "v15", thickness: 120, lockAxis: "vertical" },
+    { id: "w19", from: "v13", to: "v14", thickness: 120, lockAxis: "horizontal" },
+    { id: "w20", from: "v13", to: "v17", thickness: 200, lockAxis: "vertical" },
+    { id: "w21", from: "v15", to: "v16", thickness: 120, lockAxis: "horizontal" },
+    { id: "w22", from: "v16", to: "v25", thickness: 200, lockAxis: "vertical" },
+    { id: "w23", from: "v17", to: "v18", thickness: 120, lockAxis: "horizontal" },
+    { id: "w24", from: "v17", to: "v20", thickness: 200, lockAxis: "vertical" },
+    { id: "w25", from: "v18", to: "v19", thickness: 120, lockAxis: "horizontal" },
+    { id: "w26", from: "v18", to: "v21", thickness: 120, lockAxis: "vertical" },
+    { id: "w27", from: "v19", to: "v23", thickness: 120, lockAxis: "vertical" },
+    { id: "w28", from: "v20", to: "v21", thickness: 120, lockAxis: "horizontal" },
+    { id: "w29", from: "v20", to: "v22", thickness: 200, lockAxis: "vertical" },
+    { id: "w30", from: "v22", to: "v23", thickness: 200, lockAxis: "horizontal" },
+    { id: "w31", from: "v23", to: "v24", thickness: 120, lockAxis: "horizontal" },
+    { id: "w32", from: "v23", to: "v26", thickness: 200, lockAxis: "vertical" },
+    { id: "w33", from: "v24", to: "v25", thickness: 200, lockAxis: "horizontal" },
+    { id: "w34", from: "v24", to: "v27", thickness: 200, lockAxis: "vertical" },
+    { id: "w35", from: "v26", to: "v27", thickness: 200, lockAxis: "horizontal" },
+  ],
+  openings: [
+    { id: "d1", type: "door", wallId: "w19", position: 0.5, width: 800, height: 2100 },
+    { id: "d2", type: "door", wallId: "w15", position: 0.5, width: 900, height: 2100 },
+    { id: "d3", type: "door", wallId: "w12", position: 0.5, width: 700, height: 2100 },
+    { id: "d4", type: "door", wallId: "w17", position: 0.5, width: 800, height: 2100 },
+    { id: "d5", type: "door", wallId: "w21", position: 0.5, width: 800, height: 2100 },
+    { id: "d6", type: "door", wallId: "w27", position: 0.5, width: 850, height: 2100 },
+    { id: "d7", type: "door", wallId: "w26", position: 0.5, width: 700, height: 2100 },
+    { id: "d8", type: "door", wallId: "w31", position: 0.5, width: 2500, height: 2100 },
+    { id: "d9", type: "door", wallId: "w22", position: 0.5, width: 900, height: 2100 },
+    { id: "win1", type: "window", wallId: "w2", position: 0.5, width: 1400, height: 1500 },
+    { id: "win2", type: "window", wallId: "w3", position: 0.5, width: 1000, height: 1500 },
+    { id: "win3", type: "window", wallId: "w5", position: 0.5, width: 800, height: 900 },
+    { id: "win4", type: "window", wallId: "w7", position: 0.5, width: 1400, height: 1500 },
+    { id: "win5", type: "window", wallId: "w11", position: 0.5, width: 1400, height: 1500 },
+    { id: "win6", type: "window", wallId: "w30", position: 0.5, width: 1400, height: 1500 },
+    { id: "win7", type: "window", wallId: "w24", position: 0.5, width: 800, height: 900 },
+    { id: "win8", type: "window", wallId: "w20", position: 0.5, width: 1800, height: 1500 },
+  ],
+  rooms: [
+    { id: "r1", type: "bedroom", name: "次卧A", boundaryWallIds: ["w1", "w4", "w16", "w19", "w2"] },
+    { id: "r2", type: "kitchen", name: "厨房", boundaryWallIds: ["w3", "w6", "w13", "w15", "w4"] },
+    { id: "r3", type: "bathroom", name: "公卫", boundaryWallIds: ["w5", "w8", "w12", "w6"] },
+    { id: "r4", type: "bedroom", name: "次卧B", boundaryWallIds: ["w7", "w10", "w17", "w14", "w8"] },
+    { id: "r5", type: "bedroom", name: "书房/次卧C", boundaryWallIds: ["w9", "w11", "w21", "w18", "w10"] },
+    { id: "r6", type: "bathroom", name: "主卫", boundaryWallIds: ["w23", "w26", "w28", "w24"] },
+    { id: "r7", type: "bedroom", name: "主卧", boundaryWallIds: ["w25", "w27", "w30", "w29", "w28", "w26"] },
+    { id: "r8", type: "balcony", name: "客厅阳台", boundaryWallIds: ["w31", "w34", "w35", "w32"] },
+    { id: "r9", type: "living_room", name: "客餐厅与玄关", boundaryWallIds: ["w33", "w31", "w27", "w25", "w23", "w20", "w19", "w16", "w15", "w13", "w12", "w14", "w17", "w18", "w21", "w22"] },
+  ],
+  furniture: [],
+};
+
+export const PLAN_CN_SZ_HANXIDIANJU_4BR_120: StandardFloorPlan = {
+  version: 1,
+  unit: "mm",
+  meta: {
+    id: "plan-cn-sz-hanxidianju-4br-120",
+    name: "深圳翰熙典居 B 120平，4室2厅2卫1厨 120.0m²",
+    source: "template",
+    isStandard: true,
+    createdAt: "2026-09-20T00:00:00.000Z",
+    updatedAt: "2026-09-20T00:00:00.000Z",
+    description: "基于深圳翰熙典居公开真实户型资料正交简化重建；120.0㎡为来源建筑面积，来源另标套内92.12㎡。保留来源可核对的主要房间数量、厨卫/阳台位置关系和主要动线；精确结构尺寸以来源户型图为准。",
+  },
+  vertices: [
+    { id: "v1", x: 0, y: 0 },
+    { id: "v2", x: 2100, y: 0 },
+    { id: "v3", x: 4360, y: 0 },
+    { id: "v4", x: 5600, y: 0 },
+    { id: "v5", x: 7630, y: 0 },
+    { id: "v6", x: 9810, y: 0 },
+    { id: "v7", x: -1170, y: 390 },
+    { id: "v8", x: 0, y: 390 },
+    { id: "v9", x: -1170, y: 1870 },
+    { id: "v10", x: 0, y: 1870 },
+    { id: "v11", x: 4360, y: 1870 },
+    { id: "v12", x: 5600, y: 1870 },
+    { id: "v13", x: 0, y: 2330 },
+    { id: "v14", x: 2100, y: 2330 },
+    { id: "v15", x: 2100, y: 2570 },
+    { id: "v16", x: 4360, y: 2570 },
+    { id: "v17", x: 5600, y: 2650 },
+    { id: "v18", x: 7630, y: 2650 },
+    { id: "v19", x: 7630, y: 2800 },
+    { id: "v20", x: 9810, y: 2800 },
+    { id: "v21", x: 0, y: 5450 },
+    { id: "v22", x: 1320, y: 5450 },
+    { id: "v23", x: 3890, y: 5450 },
+    { id: "v24", x: 0, y: 7390 },
+    { id: "v25", x: 1320, y: 7390 },
+    { id: "v26", x: 0, y: 8790 },
+    { id: "v27", x: 3890, y: 8790 },
+    { id: "v28", x: 7240, y: 8790 },
+    { id: "v29", x: 9810, y: 8790 },
+    { id: "v30", x: 3890, y: 10040 },
+    { id: "v31", x: 7240, y: 10040 },
+  ],
+  walls: [
+    { id: "w1", from: "v1", to: "v2", thickness: 200, lockAxis: "horizontal" },
+    { id: "w2", from: "v1", to: "v8", thickness: 200, lockAxis: "vertical" },
+    { id: "w3", from: "v2", to: "v3", thickness: 200, lockAxis: "horizontal" },
+    { id: "w4", from: "v2", to: "v14", thickness: 120, lockAxis: "vertical" },
+    { id: "w5", from: "v3", to: "v4", thickness: 200, lockAxis: "horizontal" },
+    { id: "w6", from: "v3", to: "v11", thickness: 120, lockAxis: "vertical" },
+    { id: "w7", from: "v4", to: "v5", thickness: 200, lockAxis: "horizontal" },
+    { id: "w8", from: "v4", to: "v12", thickness: 120, lockAxis: "vertical" },
+    { id: "w9", from: "v5", to: "v6", thickness: 200, lockAxis: "horizontal" },
+    { id: "w10", from: "v5", to: "v18", thickness: 120, lockAxis: "vertical" },
+    { id: "w11", from: "v6", to: "v20", thickness: 200, lockAxis: "vertical" },
+    { id: "w12", from: "v7", to: "v8", thickness: 200, lockAxis: "horizontal" },
+    { id: "w13", from: "v7", to: "v9", thickness: 200, lockAxis: "vertical" },
+    { id: "w14", from: "v8", to: "v10", thickness: 120, lockAxis: "vertical" },
+    { id: "w15", from: "v9", to: "v10", thickness: 200, lockAxis: "horizontal" },
+    { id: "w16", from: "v10", to: "v13", thickness: 200, lockAxis: "vertical" },
+    { id: "w17", from: "v11", to: "v12", thickness: 120, lockAxis: "horizontal" },
+    { id: "w18", from: "v11", to: "v16", thickness: 120, lockAxis: "vertical" },
+    { id: "w19", from: "v12", to: "v17", thickness: 120, lockAxis: "vertical" },
+    { id: "w20", from: "v13", to: "v14", thickness: 120, lockAxis: "horizontal" },
+    { id: "w21", from: "v13", to: "v21", thickness: 200, lockAxis: "vertical" },
+    { id: "w22", from: "v14", to: "v15", thickness: 120, lockAxis: "vertical" },
+    { id: "w23", from: "v15", to: "v16", thickness: 120, lockAxis: "horizontal" },
+    { id: "w24", from: "v17", to: "v18", thickness: 120, lockAxis: "horizontal" },
+    { id: "w25", from: "v18", to: "v19", thickness: 120, lockAxis: "vertical" },
+    { id: "w26", from: "v19", to: "v20", thickness: 120, lockAxis: "horizontal" },
+    { id: "w27", from: "v20", to: "v29", thickness: 200, lockAxis: "vertical" },
+    { id: "w28", from: "v21", to: "v22", thickness: 120, lockAxis: "horizontal" },
+    { id: "w29", from: "v21", to: "v24", thickness: 200, lockAxis: "vertical" },
+    { id: "w30", from: "v22", to: "v23", thickness: 120, lockAxis: "horizontal" },
+    { id: "w31", from: "v22", to: "v25", thickness: 120, lockAxis: "vertical" },
+    { id: "w32", from: "v23", to: "v27", thickness: 120, lockAxis: "vertical" },
+    { id: "w33", from: "v24", to: "v25", thickness: 120, lockAxis: "horizontal" },
+    { id: "w34", from: "v24", to: "v26", thickness: 200, lockAxis: "vertical" },
+    { id: "w35", from: "v26", to: "v27", thickness: 200, lockAxis: "horizontal" },
+    { id: "w36", from: "v27", to: "v28", thickness: 120, lockAxis: "horizontal" },
+    { id: "w37", from: "v27", to: "v30", thickness: 200, lockAxis: "vertical" },
+    { id: "w38", from: "v28", to: "v29", thickness: 200, lockAxis: "horizontal" },
+    { id: "w39", from: "v28", to: "v31", thickness: 200, lockAxis: "vertical" },
+    { id: "w40", from: "v30", to: "v31", thickness: 200, lockAxis: "horizontal" },
+  ],
+  openings: [
+    { id: "d1", type: "door", wallId: "w20", position: 0.5, width: 900, height: 2100 },
+    { id: "d2", type: "door", wallId: "w14", position: 0.5, width: 800, height: 2100 },
+    { id: "d3", type: "door", wallId: "w23", position: 0.5, width: 800, height: 2100 },
+    { id: "d4", type: "door", wallId: "w17", position: 0.5, width: 700, height: 2100 },
+    { id: "d5", type: "door", wallId: "w24", position: 0.5, width: 800, height: 2100 },
+    { id: "d6", type: "door", wallId: "w26", position: 0.5, width: 800, height: 2100 },
+    { id: "d7", type: "door", wallId: "w32", position: 0.5, width: 850, height: 2100 },
+    { id: "d8", type: "door", wallId: "w31", position: 0.5, width: 700, height: 2100 },
+    { id: "d9", type: "door", wallId: "w36", position: 0.5, width: 2400, height: 2100 },
+    { id: "d10", type: "door", wallId: "w27", position: 0.5, width: 900, height: 2100 },
+    { id: "win1", type: "window", wallId: "w1", position: 0.5, width: 1000, height: 1500 },
+    { id: "win2", type: "window", wallId: "w3", position: 0.5, width: 1400, height: 1500 },
+    { id: "win3", type: "window", wallId: "w5", position: 0.5, width: 800, height: 900 },
+    { id: "win4", type: "window", wallId: "w7", position: 0.5, width: 1319, height: 1500 },
+    { id: "win5", type: "window", wallId: "w11", position: 0.5, width: 1400, height: 1500 },
+    { id: "win6", type: "window", wallId: "w35", position: 0.5, width: 1400, height: 1500 },
+    { id: "win7", type: "window", wallId: "w29", position: 0.5, width: 800, height: 900 },
+    { id: "win8", type: "window", wallId: "w21", position: 0.5, width: 1800, height: 1500 },
+  ],
+  rooms: [
+    { id: "r1", type: "kitchen", name: "厨房", boundaryWallIds: ["w1", "w4", "w20", "w16", "w14", "w2"] },
+    { id: "r2", type: "balcony", name: "生活阳台", boundaryWallIds: ["w12", "w14", "w15", "w13"] },
+    { id: "r3", type: "bedroom", name: "次卧A", boundaryWallIds: ["w3", "w6", "w18", "w23", "w22", "w4"] },
+    { id: "r4", type: "bathroom", name: "公卫", boundaryWallIds: ["w5", "w8", "w17", "w6"] },
+    { id: "r5", type: "bedroom", name: "次卧B", boundaryWallIds: ["w7", "w10", "w24", "w19", "w8"] },
+    { id: "r6", type: "bedroom", name: "次卧C", boundaryWallIds: ["w9", "w11", "w26", "w25", "w10"] },
+    { id: "r7", type: "bathroom", name: "主卫", boundaryWallIds: ["w28", "w31", "w33", "w29"] },
+    { id: "r8", type: "bedroom", name: "主卧", boundaryWallIds: ["w30", "w32", "w35", "w34", "w33", "w31"] },
+    { id: "r9", type: "balcony", name: "客厅阳台", boundaryWallIds: ["w36", "w39", "w40", "w37"] },
+    { id: "r10", type: "living_room", name: "客餐厅与玄关", boundaryWallIds: ["w20", "w22", "w23", "w18", "w17", "w19", "w24", "w25", "w26", "w27", "w38", "w36", "w32", "w30", "w28", "w21"] },
+  ],
+  furniture: [],
+};
+
 export const PLAN_CN_SH_WEIFANGER_1BR0_36: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sh-weifanger-1br0-36",
@@ -23988,7 +25118,7 @@ export const PLAN_CN_SH_WEIFANGER_1BR0_36: StandardFloorPlan = {
 };
 
 export const PLAN_CN_SH_WEIFANGER_2BR0_44: StandardFloorPlan = {
-  "version": 2,
+  "version": 1,
   "unit": "mm",
   "meta": {
     "id": "plan-cn-sh-weifanger-2br0-44",
@@ -24551,8 +25681,1158 @@ export const PLAN_CN_SH_WEIFANGER_2BR0_44: StandardFloorPlan = {
   "furniture": []
 };
 
+export const PLAN_CN_GZ_BAOLITIANYUE_251: StandardFloorPlan = {
+  "version": 1,
+  "unit": "mm",
+  "meta": {
+    "id": "plan-cn-gz-baolitianyue-5br-251",
+    "name": "广州保利天悦 5室2厅4卫1厨 251m²",
+    "source": "template",
+    "isStandard": true,
+    "createdAt": "2026-09-19T00:00:00.000Z",
+    "updatedAt": "2026-09-19T00:00:00.000Z",
+    "description": "基于广州保利天悦公开真实户型资料按正交几何简化重建；251.00m²为来源标注建筑面积，不等同于房间几何面积。模型约206.04m²，按来源套内面积校准。保留公开资料可确认的主要房间、厨卫、公共区与阳台邻接关系；精确墙长以原始户型图复核为准。"
+  },
+  "vertices": [
+    {
+      "id": "v1",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "v2",
+      "x": 1810,
+      "y": 0
+    },
+    {
+      "id": "v3",
+      "x": 3820,
+      "y": 0
+    },
+    {
+      "id": "v4",
+      "x": 6050,
+      "y": 0
+    },
+    {
+      "id": "v5",
+      "x": 8000,
+      "y": 0
+    },
+    {
+      "id": "v6",
+      "x": 10160,
+      "y": 0
+    },
+    {
+      "id": "v7",
+      "x": 12040,
+      "y": 0
+    },
+    {
+      "id": "v8",
+      "x": 14120,
+      "y": 0
+    },
+    {
+      "id": "v9",
+      "x": 15930,
+      "y": 0
+    },
+    {
+      "id": "v10",
+      "x": 17950,
+      "y": 0
+    },
+    {
+      "id": "v11",
+      "x": 20180,
+      "y": 0
+    },
+    {
+      "id": "v12",
+      "x": 0,
+      "y": 2140
+    },
+    {
+      "id": "v13",
+      "x": 3820,
+      "y": 2140
+    },
+    {
+      "id": "v14",
+      "x": 6050,
+      "y": 2140
+    },
+    {
+      "id": "v15",
+      "x": 8000,
+      "y": 2140
+    },
+    {
+      "id": "v16",
+      "x": 12040,
+      "y": 2140
+    },
+    {
+      "id": "v17",
+      "x": 15930,
+      "y": 2140
+    },
+    {
+      "id": "v18",
+      "x": 20180,
+      "y": 2140
+    },
+    {
+      "id": "v19",
+      "x": 0,
+      "y": 3970
+    },
+    {
+      "id": "v20",
+      "x": 1810,
+      "y": 3970
+    },
+    {
+      "id": "v21",
+      "x": 3820,
+      "y": 3970
+    },
+    {
+      "id": "v22",
+      "x": 6050,
+      "y": 3970
+    },
+    {
+      "id": "v23",
+      "x": 8000,
+      "y": 3970
+    },
+    {
+      "id": "v24",
+      "x": 10160,
+      "y": 3970
+    },
+    {
+      "id": "v25",
+      "x": 12040,
+      "y": 3970
+    },
+    {
+      "id": "v26",
+      "x": 14120,
+      "y": 3970
+    },
+    {
+      "id": "v27",
+      "x": 15930,
+      "y": 3970
+    },
+    {
+      "id": "v28",
+      "x": 17950,
+      "y": 3970
+    },
+    {
+      "id": "v29",
+      "x": 20180,
+      "y": 3970
+    },
+    {
+      "id": "v30",
+      "x": 0,
+      "y": 5930
+    },
+    {
+      "id": "v31",
+      "x": 1810,
+      "y": 5930
+    },
+    {
+      "id": "v32",
+      "x": 3820,
+      "y": 5930
+    },
+    {
+      "id": "v33",
+      "x": 6050,
+      "y": 5930
+    },
+    {
+      "id": "v34",
+      "x": 8000,
+      "y": 5930
+    },
+    {
+      "id": "v35",
+      "x": 10160,
+      "y": 5930
+    },
+    {
+      "id": "v36",
+      "x": 12040,
+      "y": 5930
+    },
+    {
+      "id": "v37",
+      "x": 14120,
+      "y": 5930
+    },
+    {
+      "id": "v38",
+      "x": 15930,
+      "y": 5930
+    },
+    {
+      "id": "v39",
+      "x": 17950,
+      "y": 5930
+    },
+    {
+      "id": "v40",
+      "x": 20180,
+      "y": 5930
+    },
+    {
+      "id": "v41",
+      "x": 0,
+      "y": 8010
+    },
+    {
+      "id": "v42",
+      "x": 1810,
+      "y": 8010
+    },
+    {
+      "id": "v43",
+      "x": 6050,
+      "y": 8010
+    },
+    {
+      "id": "v44",
+      "x": 10160,
+      "y": 8010
+    },
+    {
+      "id": "v45",
+      "x": 14120,
+      "y": 8010
+    },
+    {
+      "id": "v46",
+      "x": 20180,
+      "y": 8010
+    },
+    {
+      "id": "v47",
+      "x": 0,
+      "y": 10210
+    },
+    {
+      "id": "v48",
+      "x": 1810,
+      "y": 10210
+    },
+    {
+      "id": "v49",
+      "x": 3820,
+      "y": 10210
+    },
+    {
+      "id": "v50",
+      "x": 6050,
+      "y": 10210
+    },
+    {
+      "id": "v51",
+      "x": 8000,
+      "y": 10210
+    },
+    {
+      "id": "v52",
+      "x": 10160,
+      "y": 10210
+    },
+    {
+      "id": "v53",
+      "x": 12040,
+      "y": 10210
+    },
+    {
+      "id": "v54",
+      "x": 14120,
+      "y": 10210
+    },
+    {
+      "id": "v55",
+      "x": 15930,
+      "y": 10210
+    },
+    {
+      "id": "v56",
+      "x": 17950,
+      "y": 10210
+    },
+    {
+      "id": "v57",
+      "x": 20180,
+      "y": 10210
+    }
+  ],
+  "walls": [
+    {
+      "id": "w1",
+      "from": "v12",
+      "to": "v1",
+      "thickness": 200,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w2",
+      "from": "v1",
+      "to": "v2",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w3",
+      "from": "v2",
+      "to": "v3",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w4",
+      "from": "v3",
+      "to": "v13",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w5",
+      "from": "v13",
+      "to": "v21",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w6",
+      "from": "v21",
+      "to": "v20",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w7",
+      "from": "v20",
+      "to": "v19",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w8",
+      "from": "v19",
+      "to": "v12",
+      "thickness": 200,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w9",
+      "from": "v4",
+      "to": "v14",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w10",
+      "from": "v14",
+      "to": "v22",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w11",
+      "from": "v22",
+      "to": "v21",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w12",
+      "from": "v3",
+      "to": "v4",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w13",
+      "from": "v5",
+      "to": "v15",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w14",
+      "from": "v15",
+      "to": "v23",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w15",
+      "from": "v23",
+      "to": "v22",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w16",
+      "from": "v4",
+      "to": "v5",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w17",
+      "from": "v5",
+      "to": "v6",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w18",
+      "from": "v6",
+      "to": "v7",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w19",
+      "from": "v7",
+      "to": "v16",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w20",
+      "from": "v16",
+      "to": "v25",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w21",
+      "from": "v25",
+      "to": "v24",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w22",
+      "from": "v24",
+      "to": "v23",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w23",
+      "from": "v7",
+      "to": "v8",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w24",
+      "from": "v8",
+      "to": "v9",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w25",
+      "from": "v9",
+      "to": "v17",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w26",
+      "from": "v17",
+      "to": "v27",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w27",
+      "from": "v27",
+      "to": "v26",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w28",
+      "from": "v26",
+      "to": "v25",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w29",
+      "from": "v31",
+      "to": "v30",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w30",
+      "from": "v30",
+      "to": "v19",
+      "thickness": 200,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w31",
+      "from": "v9",
+      "to": "v10",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w32",
+      "from": "v10",
+      "to": "v11",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w33",
+      "from": "v11",
+      "to": "v18",
+      "thickness": 200,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w34",
+      "from": "v18",
+      "to": "v29",
+      "thickness": 200,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w35",
+      "from": "v29",
+      "to": "v28",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w36",
+      "from": "v28",
+      "to": "v39",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w37",
+      "from": "v39",
+      "to": "v38",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w38",
+      "from": "v38",
+      "to": "v37",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w39",
+      "from": "v37",
+      "to": "v36",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w40",
+      "from": "v36",
+      "to": "v35",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w41",
+      "from": "v35",
+      "to": "v34",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w42",
+      "from": "v34",
+      "to": "v33",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w43",
+      "from": "v33",
+      "to": "v32",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w44",
+      "from": "v32",
+      "to": "v31",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w45",
+      "from": "v29",
+      "to": "v40",
+      "thickness": 200,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w46",
+      "from": "v40",
+      "to": "v39",
+      "thickness": 120,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w47",
+      "from": "v31",
+      "to": "v42",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w48",
+      "from": "v42",
+      "to": "v48",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w49",
+      "from": "v48",
+      "to": "v47",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w50",
+      "from": "v47",
+      "to": "v41",
+      "thickness": 200,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w51",
+      "from": "v41",
+      "to": "v30",
+      "thickness": 200,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w52",
+      "from": "v33",
+      "to": "v43",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w53",
+      "from": "v43",
+      "to": "v50",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w54",
+      "from": "v50",
+      "to": "v49",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w55",
+      "from": "v49",
+      "to": "v48",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w56",
+      "from": "v35",
+      "to": "v44",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w57",
+      "from": "v44",
+      "to": "v52",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w58",
+      "from": "v52",
+      "to": "v51",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w59",
+      "from": "v51",
+      "to": "v50",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w60",
+      "from": "v37",
+      "to": "v45",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w61",
+      "from": "v45",
+      "to": "v54",
+      "thickness": 120,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w62",
+      "from": "v54",
+      "to": "v53",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w63",
+      "from": "v53",
+      "to": "v52",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w64",
+      "from": "v40",
+      "to": "v46",
+      "thickness": 200,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w65",
+      "from": "v46",
+      "to": "v57",
+      "thickness": 200,
+      "lockAxis": "vertical"
+    },
+    {
+      "id": "w66",
+      "from": "v57",
+      "to": "v56",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w67",
+      "from": "v56",
+      "to": "v55",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    },
+    {
+      "id": "w68",
+      "from": "v55",
+      "to": "v54",
+      "thickness": 200,
+      "lockAxis": "horizontal"
+    }
+  ],
+  "openings": [
+    {
+      "id": "d1",
+      "type": "door",
+      "wallId": "w34",
+      "position": 0.28,
+      "width": 900,
+      "height": 2100
+    },
+    {
+      "id": "d2",
+      "type": "door",
+      "wallId": "w6",
+      "position": 0.5,
+      "width": 850,
+      "height": 2100
+    },
+    {
+      "id": "d3",
+      "type": "door",
+      "wallId": "w29",
+      "position": 0.5,
+      "width": 700,
+      "height": 2100
+    },
+    {
+      "id": "d4",
+      "type": "door",
+      "wallId": "w25",
+      "position": 0.5,
+      "width": 700,
+      "height": 2100
+    },
+    {
+      "id": "d5",
+      "type": "door",
+      "wallId": "w41",
+      "position": 0.5,
+      "width": 700,
+      "height": 2100
+    },
+    {
+      "id": "d6",
+      "type": "door",
+      "wallId": "w22",
+      "position": 0.5,
+      "width": 800,
+      "height": 2100
+    },
+    {
+      "id": "d7",
+      "type": "door",
+      "wallId": "w11",
+      "position": 0.5,
+      "width": 800,
+      "height": 2100
+    },
+    {
+      "id": "d8",
+      "type": "door",
+      "wallId": "w43",
+      "position": 0.5,
+      "width": 800,
+      "height": 2100
+    },
+    {
+      "id": "d9",
+      "type": "door",
+      "wallId": "w39",
+      "position": 0.5,
+      "width": 800,
+      "height": 2100
+    },
+    {
+      "id": "d10",
+      "type": "door",
+      "wallId": "w37",
+      "position": 0.5,
+      "width": 800,
+      "height": 2100
+    },
+    {
+      "id": "d11",
+      "type": "door",
+      "wallId": "w13",
+      "position": 0.5,
+      "width": 700,
+      "height": 2100
+    },
+    {
+      "id": "d12",
+      "type": "door",
+      "wallId": "w35",
+      "position": 0.5,
+      "width": 1600,
+      "height": 2200
+    },
+    {
+      "id": "win1",
+      "type": "window",
+      "wallId": "w32",
+      "position": 0.5,
+      "width": 1800,
+      "height": 1500
+    },
+    {
+      "id": "win2",
+      "type": "window",
+      "wallId": "w17",
+      "position": 0.5,
+      "width": 1400,
+      "height": 1500
+    },
+    {
+      "id": "win3",
+      "type": "window",
+      "wallId": "w12",
+      "position": 0.5,
+      "width": 1400,
+      "height": 1500
+    },
+    {
+      "id": "win4",
+      "type": "window",
+      "wallId": "w54",
+      "position": 0.5,
+      "width": 1400,
+      "height": 1500
+    },
+    {
+      "id": "win5",
+      "type": "window",
+      "wallId": "w62",
+      "position": 0.5,
+      "width": 1400,
+      "height": 1500
+    },
+    {
+      "id": "win6",
+      "type": "window",
+      "wallId": "w66",
+      "position": 0.5,
+      "width": 1400,
+      "height": 1500
+    },
+    {
+      "id": "win7",
+      "type": "window",
+      "wallId": "w1",
+      "position": 0.5,
+      "width": 1000,
+      "height": 1000
+    },
+    {
+      "id": "win8",
+      "type": "window",
+      "wallId": "w50",
+      "position": 0.5,
+      "width": 800,
+      "height": 1000
+    },
+    {
+      "id": "win9",
+      "type": "window",
+      "wallId": "w16",
+      "position": 0.5,
+      "width": 800,
+      "height": 1000
+    },
+    {
+      "id": "win10",
+      "type": "window",
+      "wallId": "w23",
+      "position": 0.5,
+      "width": 800,
+      "height": 1000
+    }
+  ],
+  "rooms": [
+    {
+      "id": "r1",
+      "type": "living_room",
+      "name": "客餐厅与玄关",
+      "boundaryWallIds": [
+        "w29",
+        "w30",
+        "w7",
+        "w6",
+        "w11",
+        "w15",
+        "w22",
+        "w21",
+        "w28",
+        "w27",
+        "w26",
+        "w25",
+        "w31",
+        "w32",
+        "w33",
+        "w34",
+        "w35",
+        "w36",
+        "w37",
+        "w38",
+        "w39",
+        "w40",
+        "w41",
+        "w42",
+        "w43",
+        "w44"
+      ]
+    },
+    {
+      "id": "r2",
+      "type": "kitchen",
+      "name": "厨房",
+      "boundaryWallIds": [
+        "w1",
+        "w2",
+        "w3",
+        "w4",
+        "w5",
+        "w6",
+        "w7",
+        "w8"
+      ]
+    },
+    {
+      "id": "r3",
+      "type": "bedroom",
+      "name": "主卧",
+      "boundaryWallIds": [
+        "w13",
+        "w17",
+        "w18",
+        "w19",
+        "w20",
+        "w21",
+        "w22",
+        "w14"
+      ]
+    },
+    {
+      "id": "r4",
+      "type": "bedroom",
+      "name": "次卧一",
+      "boundaryWallIds": [
+        "w9",
+        "w10",
+        "w11",
+        "w5",
+        "w4",
+        "w12"
+      ]
+    },
+    {
+      "id": "r5",
+      "type": "bedroom",
+      "name": "次卧二",
+      "boundaryWallIds": [
+        "w47",
+        "w44",
+        "w43",
+        "w52",
+        "w53",
+        "w54",
+        "w55",
+        "w48"
+      ]
+    },
+    {
+      "id": "r6",
+      "type": "bedroom",
+      "name": "次卧三",
+      "boundaryWallIds": [
+        "w56",
+        "w40",
+        "w39",
+        "w60",
+        "w61",
+        "w62",
+        "w63",
+        "w57"
+      ]
+    },
+    {
+      "id": "r7",
+      "type": "bedroom",
+      "name": "次卧四",
+      "boundaryWallIds": [
+        "w60",
+        "w38",
+        "w37",
+        "w46",
+        "w64",
+        "w65",
+        "w66",
+        "w67",
+        "w68",
+        "w61"
+      ]
+    },
+    {
+      "id": "r8",
+      "type": "bathroom",
+      "name": "公卫",
+      "boundaryWallIds": [
+        "w47",
+        "w48",
+        "w49",
+        "w50",
+        "w51",
+        "w29"
+      ]
+    },
+    {
+      "id": "r9",
+      "type": "bathroom",
+      "name": "主卫",
+      "boundaryWallIds": [
+        "w13",
+        "w14",
+        "w15",
+        "w10",
+        "w9",
+        "w16"
+      ]
+    },
+    {
+      "id": "r10",
+      "type": "bathroom",
+      "name": "次卫",
+      "boundaryWallIds": [
+        "w19",
+        "w23",
+        "w24",
+        "w25",
+        "w26",
+        "w27",
+        "w28",
+        "w20"
+      ]
+    },
+    {
+      "id": "r11",
+      "type": "bathroom",
+      "name": "客卫",
+      "boundaryWallIds": [
+        "w52",
+        "w42",
+        "w41",
+        "w56",
+        "w57",
+        "w58",
+        "w59",
+        "w53"
+      ]
+    },
+    {
+      "id": "r12",
+      "type": "balcony",
+      "name": "客厅阳台",
+      "boundaryWallIds": [
+        "w45",
+        "w46",
+        "w36",
+        "w35"
+      ]
+    }
+  ],
+  "furniture": []
+};
+
 export const PLAN_CN_SZ_LONGSHENGYUNFANG_H_1BR_34: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-sz-longshengyunfang-h-1br-34",
@@ -24623,7 +26903,7 @@ export const PLAN_CN_SZ_LONGSHENGYUNFANG_H_1BR_34: StandardFloorPlan = {
 };
 
 export const PLAN_CN_QD_LUSHANGLANAN_APT_1BR_33: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-qd-lushanglanan-apt-1br-33",
@@ -24692,7 +26972,7 @@ export const PLAN_CN_QD_LUSHANGLANAN_APT_1BR_33: StandardFloorPlan = {
 };
 
 export const PLAN_CN_ZZ_LONGHUJINYICHENG_APT_1BR_58: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-zz-longhujinyicheng-apt-1br-58",
@@ -24761,7 +27041,7 @@ export const PLAN_CN_ZZ_LONGHUJINYICHENG_APT_1BR_58: StandardFloorPlan = {
 };
 
 export const PLAN_CN_FS_BAOLIYUJIANGNAN_APT_1BR_41: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-fs-baoliyujiangnan-apt-1br-41",
@@ -24832,7 +27112,7 @@ export const PLAN_CN_FS_BAOLIYUJIANGNAN_APT_1BR_41: StandardFloorPlan = {
 };
 
 export const PLAN_CN_NM_YUANPENGXIANGLINJUN_APT_1BR_32: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-nm-yuanpengxianglinjun-apt-1br-32",
@@ -24894,7 +27174,7 @@ export const PLAN_CN_NM_YUANPENGXIANGLINJUN_APT_1BR_32: StandardFloorPlan = {
 };
 
 export const PLAN_CN_SZ_LONGSHENGYUNFANG_G_2BR_55: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-sz-longshengyunfang-g-2br-55",
@@ -24973,7 +27253,7 @@ export const PLAN_CN_SZ_LONGSHENGYUNFANG_G_2BR_55: StandardFloorPlan = {
 };
 
 export const PLAN_CN_SZ_SHENTIEJINGCHENG_D_2BR_77: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-sz-shentiejingcheng-d-2br-77",
@@ -25056,7 +27336,7 @@ export const PLAN_CN_SZ_SHENTIEJINGCHENG_D_2BR_77: StandardFloorPlan = {
 };
 
 export const PLAN_CN_BJ_WANKEDONGLU_C1_2BR_89: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-bj-wankedonglu-c1-2br-89",
@@ -25149,7 +27429,7 @@ export const PLAN_CN_BJ_WANKEDONGLU_C1_2BR_89: StandardFloorPlan = {
 };
 
 export const PLAN_CN_SH_GUMEIYUEHUA_C_2BR_90: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-sh-gumeiyuehua-c-2br-90",
@@ -25240,7 +27520,7 @@ export const PLAN_CN_SH_GUMEIYUEHUA_C_2BR_90: StandardFloorPlan = {
 };
 
 export const PLAN_CN_BJ_ZIJINXINGANXIAN_2BR_90: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-bj-zijinxinganxian-2br-90",
@@ -25334,7 +27614,7 @@ export const PLAN_CN_BJ_ZIJINXINGANXIAN_2BR_90: StandardFloorPlan = {
 };
 
 export const PLAN_CN_BJ_YUNHEYAN_3BR_90: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-bj-yunheyan-3br-90",
@@ -25435,7 +27715,7 @@ export const PLAN_CN_BJ_YUNHEYAN_3BR_90: StandardFloorPlan = {
 };
 
 export const PLAN_CN_GZ_ZHILIANQICHEXIAOZHEN_3BR_95: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-gz-zhilianqichexiaozhen-3br-95",
@@ -25551,7 +27831,7 @@ export const PLAN_CN_GZ_ZHILIANQICHEXIAOZHEN_3BR_95: StandardFloorPlan = {
 };
 
 export const PLAN_CN_SZ_SHIYUECHENGNANYUAN_C7_3BR_100: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-sz-shiyuechengnanyuan-c7-3br-100",
@@ -25652,7 +27932,7 @@ export const PLAN_CN_SZ_SHIYUECHENGNANYUAN_C7_3BR_100: StandardFloorPlan = {
 };
 
 export const PLAN_CN_WH_WEILAIZHONGXIN_A1_3BR_100: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-wh-weilaizhongxin-a1-3br-100",
@@ -25753,7 +28033,7 @@ export const PLAN_CN_WH_WEILAIZHONGXIN_A1_3BR_100: StandardFloorPlan = {
 };
 
 export const PLAN_CN_HZ_KANAOFU_SHIGUANG_3BR_100: StandardFloorPlan = {
-  version: 2,
+  version: 1,
   unit: "mm",
   meta: {
     id: "plan-cn-hz-kan-aofu-shiguang-3br-100",
@@ -25852,65 +28132,3 @@ export const PLAN_CN_HZ_KANAOFU_SHIGUANG_3BR_100: StandardFloorPlan = {
   ],
   furniture: [],
 };
-
-
-
-/**
- * The single source of truth for floor plans available in the UI catalogue.
- */
-export const FLOOR_PLAN_CATALOG_DATA: readonly StandardFloorPlan[] = [
-  PLAN_CN_SZ_XINHEZIYOU_50,
-  PLAN_CN_SH_JUNHAOGUOJI_40,
-  PLAN_CN_BJ_GERUIYAJU_50,
-  PLAN_CN_CD_JINDU_50,
-  PLAN_CN_GZ_ZHONGTAITIANJING_50,
-  PLAN_CN_SH_RUIDONG_67,
-  PLAN_CN_BJ_BEIXINJIAYUAN_60,
-  PLAN_CN_NJ_MAQUNGONGYU_60,
-  PLAN_CN_GZ_GUIXIANSHANGPIN_60,
-  PLAN_CN_SH_DUSHIFUYUAN_61,
-  PLAN_CN_TJ_ZHONGYUANLI_70,
-  PLAN_CN_SZ_SHANYUEWAN_70B,
-  PLAN_CN_BJ_ZHONGHAIHUIDELI_77,
-  PLAN_CN_BJ_HEJINGTIANHUI_70,
-  PLAN_CN_SH_DANGDAIWANGUOFU_70,
-  PLAN_CN_GZ_SHENYEJIANGYUEWAN_80,
-  PLAN_CN_CD_LANGUANGSHENGFEI_80,
-  PLAN_CN_HZ_CHUNBONANYUAN_81,
-  PLAN_CN_GZ_HUAHUIMINGYUAN_80,
-  PLAN_CN_NJ_LANYUAN_70,
-  PLAN_CN_BJ_ANHUIBEILI_80,
-  PLAN_CN_BJ_JINGANDONGLI_81,
-  PLAN_CN_WH_DONGTINGHUAYUAN_93,
-  PLAN_CN_CD_BEIHUIGUIXIAN_91,
-  PLAN_CN_CD_GUIHUZHENGRONGFU_100,
-  PLAN_CN_CD_HUAHUITIANDI_100,
-  PLAN_CN_WH_YIDAYUNSHANHU_110,
-  PLAN_CN_WH_BAOLIHUAYUAN_116,
-  PLAN_CN_HZ_QINGLONGYUAN_110,
-  PLAN_CN_HZ_JUESHIFENGQING_110,
-  PLAN_CN_NJ_CHANGJIANGYUEFU_110,
-  PLAN_CN_NJ_ZIYUEFU_110,
-  PLAN_CN_GZ_ZHUJIANGJINMAOFU_109,
-  PLAN_CN_GZ_ZIZAICHENGSHI_113,
-  PLAN_CN_BJ_TIANTONGYUANBEI_155,
-  PLAN_CN_BJ_HUIGUYANGGUANG_154,
-  PLAN_CN_SH_HUIHAOTIANXIA_149,
-  PLAN_CN_SH_WEIFANGER_1BR0_36,
-  PLAN_CN_SH_WEIFANGER_2BR0_44,
-  PLAN_CN_SZ_LONGSHENGYUNFANG_H_1BR_34,
-  PLAN_CN_QD_LUSHANGLANAN_APT_1BR_33,
-  PLAN_CN_ZZ_LONGHUJINYICHENG_APT_1BR_58,
-  PLAN_CN_FS_BAOLIYUJIANGNAN_APT_1BR_41,
-  PLAN_CN_NM_YUANPENGXIANGLINJUN_APT_1BR_32,
-  PLAN_CN_SZ_LONGSHENGYUNFANG_G_2BR_55,
-  PLAN_CN_SZ_SHENTIEJINGCHENG_D_2BR_77,
-  PLAN_CN_BJ_WANKEDONGLU_C1_2BR_89,
-  PLAN_CN_SH_GUMEIYUEHUA_C_2BR_90,
-  PLAN_CN_BJ_ZIJINXINGANXIAN_2BR_90,
-  PLAN_CN_BJ_YUNHEYAN_3BR_90,
-  PLAN_CN_GZ_ZHILIANQICHEXIAOZHEN_3BR_95,
-  PLAN_CN_SZ_SHIYUECHENGNANYUAN_C7_3BR_100,
-  PLAN_CN_WH_WEILAIZHONGXIN_A1_3BR_100,
-  PLAN_CN_HZ_KANAOFU_SHIGUANG_3BR_100,
-];

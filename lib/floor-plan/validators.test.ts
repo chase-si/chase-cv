@@ -47,8 +47,8 @@ describe("AC-15, AC-19 & AC-21: FloorPlan v2 & Furniture Contract Validators", (
       expect(validateStandardFloorPlan(v0Plan).ok).toBe(false);
     });
 
-    it("validates all 50 standard floor plans in FLOOR_PLAN_CATALOG_DATA under strict v2 contract (AC-21)", () => {
-      expect(FLOOR_PLAN_CATALOG_DATA.length).toBe(50);
+    it("validates all standard floor plans in FLOOR_PLAN_CATALOG_DATA under strict v2 contract (AC-21)", () => {
+      expect(FLOOR_PLAN_CATALOG_DATA.length).toBe(54);
       for (const plan of FLOOR_PLAN_CATALOG_DATA) {
         expect(plan.version).toBe(2);
       }
