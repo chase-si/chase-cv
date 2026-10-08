@@ -118,6 +118,32 @@ export function computeVertexBounds(plan: FloorPlan): PlanBounds {
 }
 
 /**
+ * Compute the bounding box specifically for fitting the floor plan in viewports.
+ * Uses outer structural vertices as a stable reference so furniture operations
+ * do not jump or shift the view, with padding for principal dimension annotations.
+ */
+export function computePlanFitBounds(plan: FloorPlan, paddingMm = 800): PlanBounds {
+  const vBounds = computeVertexBounds(plan);
+  const minX = vBounds.minX - paddingMm;
+  const minY = vBounds.minY - paddingMm;
+  const maxX = vBounds.maxX + 400;
+  const maxY = vBounds.maxY + 400;
+  const width = Math.max(1, maxX - minX);
+  const height = Math.max(1, maxY - minY);
+
+  return {
+    minX,
+    minY,
+    maxX,
+    maxY,
+    width,
+    height,
+    centerX: minX + width / 2,
+    centerY: minY + height / 2,
+  };
+}
+
+/**
  * Compute the outer bounding box of the floor plan.
  * Accounts for vertices, walls, and furniture.
  */

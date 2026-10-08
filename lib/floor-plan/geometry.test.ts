@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   computeFloorPlanBounds,
   computeOpeningGeometry,
+  computePlanFitBounds,
   computePlanTotalArea,
   computePolygonArea,
   computePolygonCentroid,
@@ -136,5 +137,15 @@ describe("FloorPlan geometry calculations", () => {
     expect(widthDim!.valueMm).toBe(6000);
     expect(heightDim).toBeDefined();
     expect(heightDim!.valueMm).toBe(5000);
+  });
+
+  it("computes stable plan fit bounds with padding for dimensions", () => {
+    const fitBounds = computePlanFitBounds(VALID_STANDARD_FLOOR_PLAN, 800);
+    expect(fitBounds.minX).toBe(-800);
+    expect(fitBounds.minY).toBe(-800);
+    expect(fitBounds.maxX).toBe(6400);
+    expect(fitBounds.maxY).toBe(5400);
+    expect(fitBounds.width).toBe(7200);
+    expect(fitBounds.height).toBe(6200);
   });
 });

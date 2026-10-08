@@ -665,13 +665,13 @@ export function FloorPlanShell({
         </div>
       }
     >
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden lg:h-full">
         {/* Streamlined Workspace: Mobile Canvas-Primary Stack, Desktop 2-Pane */}
-        <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start">
+        <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[22rem_minmax(0,1fr)] lg:grid-rows-1 lg:items-stretch lg:h-full">
           {/* Primary Floor-Plan Canvas Section (Order 1 on Mobile, Right Pane on Desktop) */}
           <section
             data-testid="floor-plan-canvas-section"
-            className="order-1 flex min-h-0 flex-1 flex-col gap-2.5 lg:order-2 lg:max-h-full"
+            className="order-1 flex min-h-0 flex-1 flex-col gap-2.5 lg:order-2 lg:h-full"
           >
             <FloorPlanToolbar
               currentPlan={currentPlan}
@@ -687,7 +687,7 @@ export function FloorPlanShell({
             />
 
             <Card
-              className="relative flex min-h-[340px] flex-1 flex-col overflow-hidden p-0 sm:min-h-[520px]"
+              className="relative flex min-h-[340px] flex-1 flex-col overflow-hidden p-0 sm:min-h-[460px] lg:min-h-0 lg:h-full"
             >
               <FloorPlanSvgViewer
                 plan={currentPlan}
@@ -698,6 +698,7 @@ export function FloorPlanShell({
                 targetRoomId={targetRoomId}
                 onUpdatePlan={handleUpdatePlan}
                 locale={locale}
+                className="flex-1 min-h-0 w-full h-full"
               />
             </Card>
           </section>
@@ -705,9 +706,9 @@ export function FloorPlanShell({
           {/* Context & Assessment Controls Rail (Order 2 Stacked Below Canvas on Mobile, Left Pane on Desktop) */}
           <aside
             data-testid="desktop-context-pane"
-            className="order-2 flex min-h-0 flex-col gap-3 lg:order-1 lg:max-h-full"
+            className="order-2 flex min-h-0 flex-col gap-3 lg:order-1 lg:h-full"
           >
-            <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <Card className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
               <CardHeader
                 data-testid="active-plan-summary"
                 className="shrink-0 border-b border-border/70 p-3 space-y-1"

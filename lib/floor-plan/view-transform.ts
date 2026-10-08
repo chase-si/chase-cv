@@ -23,7 +23,7 @@ export function calculateFitToView(
   bounds: PlanBounds,
   viewportWidth: number,
   viewportHeight: number,
-  paddingRatio = 0.15,
+  paddingRatio = 0.05,
 ): ViewTransform {
   if (viewportWidth <= 0 || viewportHeight <= 0 || bounds.width <= 0 || bounds.height <= 0) {
     return DEFAULT_VIEW_TRANSFORM;
