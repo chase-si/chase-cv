@@ -68,7 +68,7 @@ test.describe("Floor Plan SVG Viewer & Catalog (Issue #175 & #206)", () => {
     await expect(page.getByTestId("floor-plan-opening-d1")).toBeVisible();
 
     // 4. Furniture layer is present (source plans ship without pre-placed furniture)
-    await expect(page.getByTestId("floor-plan-furniture-layer")).toBeVisible();
+    await expect(page.getByTestId("floor-plan-furniture-layer")).toBeAttached();
 
     // 5. Principal dimensions
     await expect(page.getByTestId("floor-plan-dimensions-layer")).toBeVisible();
@@ -110,33 +110,27 @@ test.describe("Floor Plan SVG Viewer & Catalog (Issue #175 & #206)", () => {
     const fittedZoom = await zoomBadge.textContent();
     expect(fittedZoom).toBe(initialZoom);
 
-    // Select entity: wall
-    const wall1 = page.getByTestId("floor-plan-wall-w1");
-    await wall1.click();
-    await expect(wall1).toHaveAttribute("data-selected", "true");
-    await expect(page.getByTestId("selected-structure-banner")).toBeVisible();
-    await page.getByTestId("open-structure-tools-btn").click();
+    // Select entity: wall -> read-only wall details appear in inspector
+    const wall2 = page.getByTestId("floor-plan-wall-w2");
+    await wall2.click();
+    await expect(wall2).toHaveAttribute("data-selected", "true");
     await expect(page.getByTestId("inspector-wall-details")).toBeVisible();
-    await page.keyboard.press("Escape");
 
-    // Select entity: opening
+    // Select entity: opening -> read-only opening details appear in inspector
     const window1 = page.getByTestId("floor-plan-opening-win1");
     await window1.click();
     await expect(window1).toHaveAttribute("data-selected", "true");
-    await expect(page.getByTestId("selected-structure-banner")).toBeVisible();
-    await page.getByTestId("open-structure-tools-btn").click();
     await expect(page.getByTestId("inspector-opening-details")).toBeVisible();
-    await page.keyboard.press("Escape");
 
-    // Advance to room stage & select room
-    await page.getByTestId("use-plan-btn").click();
+    // Select room directly on canvas -> target room details & room inspector appear
     const room1 = page.getByTestId("floor-plan-room-r1");
     await room1.click();
     await expect(room1).toHaveAttribute("data-selected", "true");
     await expect(page.getByTestId("target-room-details")).toBeVisible();
+    await expect(page.getByTestId("inspector-room-details")).toBeVisible();
   });
 
-  test("AC-3: mobile viewport renders plan elements and supports modal plan selector", async ({
+  test("AC-3 & AC-23: mobile viewport renders plan elements and supports modal plan selector without legacy stepper", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 375, height: 667 });
@@ -147,7 +141,7 @@ test.describe("Floor Plan SVG Viewer & Catalog (Issue #175 & #206)", () => {
     await expect(page.getByTestId("floor-plan-rooms-layer")).toBeVisible();
     await expect(page.getByTestId("floor-plan-walls-layer")).toBeVisible();
     await expect(page.getByTestId("floor-plan-openings-layer")).toBeVisible();
-    await expect(page.getByTestId("floor-plan-furniture-layer")).toBeVisible();
+    await expect(page.getByTestId("floor-plan-furniture-layer")).toBeAttached();
 
     // Save mobile screenshot for visual review
     await page.screenshot({ path: "test-results/floor-plan-mobile.png" });
@@ -161,9 +155,10 @@ test.describe("Floor Plan SVG Viewer & Catalog (Issue #175 & #206)", () => {
     await page.keyboard.press("Escape");
     await expect(mobileCatalog).not.toBeVisible();
 
-    // Workflow stepper & mobile bottom panel are visible
-    await expect(page.getByTestId("floor-plan-stage-stepper")).toBeVisible();
-    await expect(page.getByTestId("mobile-step-panel")).toBeVisible();
+    // Streamlined v2 MVP workspace: active plan summary and context rail are visible, legacy stepper is absent
+    await expect(page.getByTestId("active-plan-summary")).toBeVisible();
+    await expect(page.getByTestId("desktop-context-pane")).toBeVisible();
+    await expect(page.getByTestId("floor-plan-stage-stepper")).not.toBeVisible();
   });
 
   test("internal route contract: robots meta has noindex, nofollow", async ({
