@@ -37,13 +37,9 @@ export function FloorPlanCatalog({
   const categoryCounts = React.useMemo(() => {
     const counts: Record<FloorPlanCategoryKey, number> = {
       all: plans.length,
-      studio: 0,
-      "1b1l": 0,
-      "2b1l": 0,
-      "2b2l": 0,
-      "3b1l": 0,
-      "3b2l": 0,
-      "4b_plus": 0,
+      "1br": 0,
+      "2br": 0,
+      "3br": 0,
     };
     for (const p of plans) {
       if (p.categoryKey && counts[p.categoryKey] !== undefined) {

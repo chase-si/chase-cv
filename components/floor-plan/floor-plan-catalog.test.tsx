@@ -79,16 +79,16 @@ describe("FloorPlanCatalog (AC-1)", () => {
       />,
     );
 
-    const studioPlans = plans.filter((p) => p.categoryKey === "studio");
-    const threeBrPlans = plans.filter((p) => p.categoryKey === "3b1l" || p.categoryKey === "3b2l");
-    expect(studioPlans.length).toBeGreaterThan(0);
+    const oneBrPlans = plans.filter((p) => p.categoryKey === "1br");
+    const threeBrPlans = plans.filter((p) => p.categoryKey === "3br");
+    expect(oneBrPlans.length).toBeGreaterThan(0);
     expect(threeBrPlans.length).toBeGreaterThan(0);
 
-    const studioFilterBtn = screen.getByTestId("catalog-filter-studio");
-    expect(studioFilterBtn).toHaveTextContent(`Studio (${studioPlans.length})`);
-    fireEvent.click(studioFilterBtn);
+    const oneBrFilterBtn = screen.getByTestId("catalog-filter-1br");
+    expect(oneBrFilterBtn).toHaveTextContent(`1BR (${oneBrPlans.length})`);
+    fireEvent.click(oneBrFilterBtn);
 
-    expect(screen.getByTestId(`plan-name-${studioPlans[0].id}`)).toBeInTheDocument();
+    expect(screen.getByTestId(`plan-name-${oneBrPlans[0].id}`)).toBeInTheDocument();
     expect(screen.queryByTestId(`plan-name-${threeBrPlans[0].id}`)).not.toBeInTheDocument();
 
     // Toggle off or click All to restore
@@ -96,7 +96,7 @@ describe("FloorPlanCatalog (AC-1)", () => {
     expect(allFilterBtn).toHaveTextContent(`All (${plans.length})`);
     fireEvent.click(allFilterBtn);
 
-    expect(screen.getByTestId(`plan-name-${studioPlans[0].id}`)).toBeInTheDocument();
+    expect(screen.getByTestId(`plan-name-${oneBrPlans[0].id}`)).toBeInTheDocument();
     expect(screen.getByTestId(`plan-name-${threeBrPlans[0].id}`)).toBeInTheDocument();
   });
 });

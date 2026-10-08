@@ -8,14 +8,14 @@ import { FLOOR_PLAN_CATALOG_DATA } from "./catalog-data";
 import { validateCandidateFloorPlan, validateFloorPlan } from "./validators";
 
 describe("Standard Floor Plan Catalog (AC-1, AC-21)", () => {
-  it("contains 20–50 approved, scaled Standard plans covering common layouts and passing candidate validator (AC-1, AC-21)", () => {
+  it("contains approved, scaled Standard plans covering common layouts and passing candidate validator (AC-1, AC-21)", () => {
     const catalogValidation = validateStandardPlanCatalog(FLOOR_PLAN_CATALOG_DATA);
     expect(catalogValidation.ok).toBe(true);
 
     const plans = getStandardPlans();
 
-    // 50 source-derived Chinese residential floor plans
-    expect(plans).toHaveLength(50);
+    // Source-derived Chinese residential floor plans (4BR+ layouts excluded)
+    expect(plans).toHaveLength(54);
 
     const ids = new Set<string>();
     const coveredCategories = new Set<string>();
@@ -55,12 +55,10 @@ describe("Standard Floor Plan Catalog (AC-1, AC-21)", () => {
       expect(validateFloorPlan(item.plan).ok).toBe(true);
     }
 
-    // AC-1: Covers common 1/2/3-bedroom (and studio/4br+) layouts
-    expect(coveredCategories.has("studio")).toBe(true);
-    expect(coveredCategories.has("1b1l")).toBe(true);
-    expect(coveredCategories.has("2b1l")).toBe(true);
-    expect(coveredCategories.has("3b1l")).toBe(true);
-    expect(coveredCategories.has("4b_plus")).toBe(true);
+    expect(coveredCategories.has("1br")).toBe(true);
+    expect(coveredCategories.has("2br")).toBe(true);
+    expect(coveredCategories.has("3br")).toBe(true);
+    expect(coveredCategories.has("all")).toBe(false);
   });
 
   it("fails catalog validation and reports the specific failing standard plan asset ID and field path (AC-21)", () => {
@@ -103,14 +101,14 @@ describe("Standard Floor Plan Catalog (AC-1, AC-21)", () => {
     const plan = getStandardPlanById("plan-cn-sh-ruidong-2br-67");
     expect(plan).toBeDefined();
     expect(plan!.name).toBe("上海瑞冬小区两居室 67m²");
-    expect(plan!.tags).toContain("2B1L");
-    expect(plan!.categoryKey).toBe("2b1l");
+    expect(plan!.tags).toContain("2BR");
+    expect(plan!.categoryKey).toBe("2br");
 
     const threeBr = getStandardPlanById("plan-cn-nj-lanyuan-3br-70");
     expect(threeBr).toBeDefined();
     expect(threeBr!.name).toContain("兰园");
-    expect(threeBr!.tags.some((t) => t.includes("3B") || t.includes("三室"))).toBe(true);
-    expect(["3b1l", "3b2l"]).toContain(threeBr!.categoryKey);
+    expect(threeBr!.tags).toContain("3BR");
+    expect(threeBr!.categoryKey).toBe("3br");
   });
 
   it("returns undefined for unknown plan ID", () => {
