@@ -7,6 +7,7 @@ import {
 } from "@/lib/find-in-video/model-options";
 
 import { CodedError, type StatusNotice } from "./coded-error";
+import { shouldSkipWebGpu, webGpuAttemptMs } from "./webgpu-policy";
 
 type Point = [number, number];
 type Detection = {
@@ -105,6 +106,7 @@ async function openSessions(
   names: readonly string[],
   provider: ExecutionProviderName,
   manifest: ModelManifest,
+  weights: Map<string, Uint8Array>,
   progress?: (notice: StatusNotice) => void,
 ) {
   const sessions: ort.InferenceSession[] = [];
@@ -112,20 +114,24 @@ async function openSessions(
   try {
     for (const name of names) {
       progress?.({ code: "initializing", values: { name, provider: label } });
-      const bytes = await loadModel(name, manifest, progress);
+      let bytes = weights.get(name);
+      if (!bytes) {
+        bytes = await loadModel(name, manifest, progress);
+        weights.set(name, bytes);
+      }
       const created = ort.InferenceSession.create(bytes, {
         executionProviders: [provider],
         graphOptimizationLevel: "all",
       });
       let session: ort.InferenceSession;
       try {
-        session = provider === "webgpu" ? await withTimeout(created, 45_000) : await created;
+        session = provider === "webgpu" ? await withTimeout(created, webGpuAttemptMs) : await created;
       } catch (error) {
         void created.then((late) => late.release()).catch(() => undefined);
         throw error;
       }
       sessions.push(session);
-      if (provider === "webgpu") await withTimeout(warmup(session), 45_000);
+      if (provider === "webgpu") await withTimeout(warmup(session), webGpuAttemptMs);
     }
     return sessions;
   } catch (error) {
@@ -168,13 +174,25 @@ export class FaceEngine {
     mode: "auto" | "wasm" = "auto",
   ) {
     const manifest = await readModelManifest();
-    if (mode === "auto" && (await webGpuReady())) {
-      const sessions = await openSessions(buffaloModel.files, "webgpu", manifest, progress);
-      progress?.({ code: "ready", values: { provider: "WebGPU" } });
-      return new FaceEngine("webgpu", sessions[0], sessions[1]);
+    const weights = new Map<string, Uint8Array>();
+    const skipWebGpu = shouldSkipWebGpu({
+      userAgent: navigator.userAgent,
+      platform: navigator.platform,
+      maxTouchPoints: navigator.maxTouchPoints,
+    });
+    if (mode === "auto" && !skipWebGpu && (await webGpuReady())) {
+      try {
+        const sessions = await openSessions(buffaloModel.files, "webgpu", manifest, weights, progress);
+        progress?.({ code: "ready", values: { provider: "WebGPU" } });
+        return new FaceEngine("webgpu", sessions[0], sessions[1]);
+      } catch (error) {
+        console.warn("WebGPU session failed, using downloaded weights with WASM", error);
+        progress?.({ code: "wasmFallback" });
+      }
+    } else {
+      progress?.(mode === "wasm" || skipWebGpu ? { code: "wasmFallback" } : { code: "wasmNoGpu" });
     }
-    progress?.(mode === "wasm" ? { code: "wasmFallback" } : { code: "wasmNoGpu" });
-    const sessions = await openSessions(buffaloModel.files, "wasm", manifest, progress);
+    const sessions = await openSessions(buffaloModel.files, "wasm", manifest, weights, progress);
     progress?.({ code: "ready", values: { provider: "WASM" } });
     return new FaceEngine("wasm", sessions[0], sessions[1]);
   }

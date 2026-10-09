@@ -3,14 +3,6 @@ import { CodedError, type StatusNotice } from "./coded-error";
 import type { WorkerResponse } from "./face-protocol";
 import { buffaloModel, buffaloModelId, type ExecutionProviderName, type ModelId } from "./model-options";
 
-function timeoutAfter<T>(promise: Promise<T>, milliseconds: number) {
-  let timer = 0;
-  return new Promise<T>((resolve, reject) => {
-    timer = window.setTimeout(() => reject(new CodedError("webgpuTimeout")), milliseconds);
-    promise.then(resolve, reject);
-  }).finally(() => window.clearTimeout(timer));
-}
-
 type Pending = { resolve: (message: WorkerResponse) => void; reject: (error: Error) => void };
 type ClientCall =
   | { type: "load"; modelId: ModelId; provider: "auto" | "wasm" }
@@ -70,30 +62,15 @@ export class FaceSession {
   }
 
   static async create(onStatus?: (notice: StatusNotice) => void) {
-    try {
-      return await FaceSession.open("auto", onStatus, 40_000);
-    } catch (error) {
-      console.warn("WebGPU unavailable, falling back to WASM", error);
-      onStatus?.({ code: "wasmFallback" });
-      return FaceSession.open("wasm", onStatus, 0);
-    }
-  }
-
-  private static async open(
-    provider: "auto" | "wasm",
-    onStatus: ((notice: StatusNotice) => void) | undefined,
-    timeout: number,
-  ) {
     const worker = new Worker(new URL("./face-worker.ts", import.meta.url), { type: "module" });
     const session = new FaceSession(worker, buffaloModelId);
     session.onStatus = onStatus ?? null;
     try {
-      const loading = session.call<Extract<WorkerResponse, { type: "loaded" }>>({
+      const loaded = await session.call<Extract<WorkerResponse, { type: "loaded" }>>({
         type: "load",
         modelId: buffaloModelId,
-        provider,
+        provider: "auto",
       });
-      const loaded = timeout ? await timeoutAfter(loading, timeout) : await loading;
       session.provider = loaded.provider;
       return session;
     } catch (error) {
