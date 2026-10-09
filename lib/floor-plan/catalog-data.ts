@@ -4,7 +4,7 @@
  * 来源：docs/china-representative-floor-plans/standard-floorplans-65.ts
  * 说明：source 字段按既有 StandardFloorPlan schema 固定为 "template"；
  * 真实来源见独立 research-manifest。所有对象均为 raw StandardFloorPlan。
- * 数据集原文为 FloorPlan version 1，写入目录时提升为当前契约要求的 version 2。
+ * 数据集与目录均为当前契约要求的 FloorPlan version 2。
  */
 
 import type { StandardFloorPlan } from "@/lib/floor-plan/types";
