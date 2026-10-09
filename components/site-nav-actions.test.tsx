@@ -64,13 +64,22 @@ describe("SiteNavActions", () => {
     const projectItems = within(projects)
       .getAllByRole("menuitem")
       .map((item) => item.getAttribute("href"));
-    expect(projectItems).toEqual(["/dudu-scanner", "/magic-cursor", "/image-to-ui", "/flow"]);
+    expect(projectItems).toEqual([
+      "/dudu-scanner",
+      "/magic-cursor",
+      "/image-to-ui",
+      "/flow",
+      "/find-in-video",
+    ]);
     expect(screen.getByText("Explore configurable cursor effects.")).toBeInTheDocument();
     expect(screen.getByText("Turn painting palettes into interface themes.")).toBeInTheDocument();
     expect(
       screen.getByText("A playful tummy-scanning game that turns healthy habits into parent-child fun."),
     ).toBeInTheDocument();
     expect(screen.getByText("Visualize and edit structured flows.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Find people in a local video from reference photos, in the browser."),
+    ).toBeInTheDocument();
 
     fireEvent.keyDown(projectsButton, { key: "Escape" });
     expect(within(nav).queryByRole("menu", { name: "Playground" })).not.toBeInTheDocument();
@@ -88,6 +97,7 @@ describe("SiteNavActions", () => {
     expect(within(projects).getByText("把名画配色变成界面主题。")).toBeInTheDocument();
     expect(within(projects).getByText("扫描肚子揭晓角色，再给小朋友健康习惯小建议。")).toBeInTheDocument();
     expect(within(projects).getByText("可视化编辑结构化流程。")).toBeInTheDocument();
+    expect(within(projects).getByText("在浏览器里根据参考图查找视频中的人物。")).toBeInTheDocument();
 
     fireEvent.click(within(projects).getByRole("menuitem", { name: /肚肚扫描仪/i }));
 
@@ -128,7 +138,13 @@ describe("SiteNavActions", () => {
       .getAllByRole("menuitem")
       .filter((item) => item.getAttribute("href")?.startsWith("/"))
       .map((item) => item.getAttribute("href"));
-    expect(projectItems).toEqual(["/dudu-scanner", "/magic-cursor", "/image-to-ui", "/flow"]);
+    expect(projectItems).toEqual([
+      "/dudu-scanner",
+      "/magic-cursor",
+      "/image-to-ui",
+      "/flow",
+      "/find-in-video",
+    ]);
     expect(within(menu).getByRole("menuitem", { name: "Blog" })).toHaveAttribute(
       "href",
       "https://blog.dashuaibi.vip/blog",

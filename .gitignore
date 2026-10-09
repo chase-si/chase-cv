@@ -43,4 +43,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# onnxruntime-web wasm copied by scripts/copy-onnx-runtime.mjs
+/public/onnx/
+
 .agents/*

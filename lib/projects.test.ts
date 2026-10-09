@@ -9,6 +9,7 @@ describe("project navigation and homepage showcase order", () => {
       "magicCursor",
       "imageToUi",
       "flowEditor",
+      "findInVideo",
     ]);
   });
 

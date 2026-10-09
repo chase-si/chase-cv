@@ -205,6 +205,12 @@
         "ogImageAlt": "户型实验室：候选户型资产预览与空间验证",
         "applicationName": "户型实验室"
       }
+    },
+    "findInVideo": {
+      "title": "视频人物查找 — 用参考图定位视频中的人 | Chase's CV",
+      "description": "在浏览器中加载 Buffalo L，加入参考图，查找这些人在本地视频里出现的时间。照片、视频和人脸特征都留在你的设备上。",
+      "ogImageAlt": "视频人物查找：用参考图在本地视频里定位人物",
+      "applicationName": "视频人物查找"
     }
   },
   "siteNav": {
@@ -230,6 +236,10 @@
         "flowEditor": {
           "name": "Flow Editor",
           "description": "可视化编辑结构化流程。"
+        },
+        "findInVideo": {
+          "name": "视频人物查找",
+          "description": "在浏览器里根据参考图查找视频中的人物。"
         }
       }
     },
@@ -1113,6 +1123,143 @@
     "lab": {
       "title": "户型实验室",
       "description": "候选户型资产预览与空间验证实验室"
+    }
+  },
+  "findInVideo": {
+    "title": "视频人物查找",
+    "description": "照片、视频和人脸特征只留在这台浏览器里。",
+    "loadModel": "加载识别模型",
+    "loadingModel": "正在加载…",
+    "modelReady": "已就绪 · {provider}",
+    "license": "InsightFace 官方预训练的 Buffalo L 模型仅限<strong>非商业研究</strong>使用。",
+    "licenseLink": "查看 InsightFace 模型来源与许可",
+    "referencesTitle": "参考人物",
+    "referenceCount": "{valid} 张有效 / {total} 张图片",
+    "addPhotos": "选择图片",
+    "addPhotosNote": "每张图片代表一人。支持 JPG、JPEG、PNG、HEIC。人物名取自文件名。",
+    "replace": "替换",
+    "remove": "移除 {filename}",
+    "removeLabel": "移除",
+    "validFace": "已验证：一张清晰人脸",
+    "checkingPhoto": "正在浏览器中验证…",
+    "thumbnailAlt": "{name}的参考图缩略图",
+    "emptyPhotos": "还没有参考图。选择几张清晰的单人照开始。",
+    "selectVideo": "选择源视频",
+    "changeVideo": "更换视频",
+    "readingVideo": "正在读取视频…",
+    "videoTitle": "源视频",
+    "videoEmpty": "分析前选择浏览器可以播放的视频。",
+    "noVideoYet": "也可以先选择视频。开始分析前还需至少一张有效参考图。",
+    "duration": "时长",
+    "resolution": "分辨率",
+    "prepareSeconds": "准备耗时（秒）",
+    "playerLabel": "{filename} 视频播放器",
+    "playerLoading": "正在加载视频播放器…",
+    "analyze": "开始分析",
+    "analyzing": "正在分析 · {percent}%",
+    "retryAnalysis": "重试分析",
+    "analyzeAgain": "开始新分析",
+    "cancel": "取消分析",
+    "progressLabel": "分析进度",
+    "processedLabel": "已处理视频时间",
+    "processed": "{done} / {total}",
+    "framesLabel": "已分析帧数",
+    "frames": "{count} 帧",
+    "peopleProgress": "逐人已发现片段数",
+    "segmentCount": "{count} 个片段",
+    "needReference": "至少需要一张通过验证的参考图。",
+    "longVideoHint": "浏览器按每秒一帧检测人脸并与参考图比较。长视频可能需要较长时间。",
+    "resultsTitle": "分析完成",
+    "resultsMeta": "每秒一帧 · 已分析 {frames} 帧 · {provider}",
+    "hits": "{count} 个命中秒",
+    "notFound": "未发现",
+    "errors": {
+      "missingManifest": "未找到模型清单。请重新构建，并确认发布包包含 models/ 目录。",
+      "manifestNotJson": "模型清单不是 JSON。请重新构建，并确认发布包包含 models/ 目录。",
+      "manifestIncomplete": "模型清单缺少或无法识别 {name}。",
+      "missingPart": "模型清单缺少 {name}。",
+      "partFailed": "模型文件读取失败：{part}（{status}）。",
+      "partHtml": "模型文件缺失：{part}。服务器返回了 HTML 页面。",
+      "partLength": "{name} 文件长度不符。",
+      "partIncomplete": "{name} 文件不完整。",
+      "checksumFailed": "{name} 校验失败。",
+      "webgpuTimeout": "WebGPU 初始化超时。",
+      "noCanvas": "无法创建画布。",
+      "alignFailed": "无法对齐人脸。",
+      "noFace": "未检测到清晰人脸。",
+      "multipleFaces": "检测到多张人脸。请使用仅有一人的照片。",
+      "faceTooSmall": "人脸太小或不够清晰。请更换正面清楚的照片。",
+      "faceBlurry": "人脸模糊。请更换清晰照片。",
+      "noEmbedding": "无法提取人脸特征。",
+      "loadModelFirst": "请先加载识别模型。",
+      "sessionDisposed": "模型已释放。",
+      "workerFailed": "识别进程失败。",
+      "noFrames": "没有可分析的视频帧。",
+      "noFramesNamed": "{name} 没有可分析的视频帧。",
+      "decodeTimeout": "浏览器解码视频超时。",
+      "videoUndecodable": "浏览器无法解码此视频。请转换为 H.264 MP4。",
+      "imageTooLarge": "单张图片不能超过 25 MB。",
+      "imageType": "仅支持 JPG、JPEG、PNG、HEIC 图片。",
+      "imageDecode": "浏览器无法解码这张图片。",
+      "heicDecode": "无法解码 HEIC 图片。请转换为 JPG 后重试。",
+      "imagePixels": "图片尺寸过大。",
+      "videoType": "仅支持 MP4、MOV、MKV 视频。",
+      "videoTimeout": "视频读取超时。请检查文件或编码。",
+      "videoNoTrack": "视频没有可读取的视频轨或时长。",
+      "videoPlayFailed": "无法播放此片段。请检查视频。",
+      "playerNotReady": "播放器尚未就绪。",
+      "mp4Unsupported": "浏览器无法顺序解码此视频。",
+      "framesShort": "视频帧不足，无法完成每秒抽样。"
+    },
+    "status": {
+      "checking": "正在检查模型文件…",
+      "manifestReady": "模型文件已准备。点击按钮后在浏览器中加载。",
+      "reading": "正在读取 {name}（{index}/{total}）…",
+      "initializing": "正在初始化 {name}（{provider}）…",
+      "ready": "模型已就绪（{provider}）。",
+      "wasmFallback": "WebGPU 不可用，改用 WASM…",
+      "wasmNoGpu": "当前浏览器没有 WebGPU，改用 WASM…",
+      "missingManifest": "未找到模型清单。",
+      "manifestNotJson": "模型清单不是 JSON。",
+      "manifestIncomplete": "模型清单缺少 {name}。",
+      "workerFailed": "识别进程失败。"
+    },
+    "landing": {
+      "purposeTitle": "这个页面做什么",
+      "purposeBody": "视频人物查找在浏览器里加载 Buffalo L 人脸模型，检查每张参考图是否只有一张清晰人脸，并按每秒一帧抽样本地视频。所选文件和提取出的人脸特征只留在这次访问的内存中。",
+      "stepsTitle": "如何使用",
+      "step1": "加载识别模型。大约 182MB，只有点击之后才会下载。",
+      "step2": "添加一张或多张参考图。每张图应只有一张清晰人脸，显示名称来自文件名。",
+      "step3": "选择当前浏览器能播放的 MP4、MOV 或 MKV。没有服务器转码。",
+      "step4": "开始分析，查看进度，并跳到匹配片段。进行中的分析可以取消。",
+      "faqTitle": "常见问题",
+      "faq": {
+        "local": {
+          "question": "照片或视频会上传吗？",
+          "answer": "不会。参考图、源视频和人脸特征都留在这个浏览器标签页里。刷新页面会清空本次会话。"
+        },
+        "photos": {
+          "question": "怎样的参考图才有效？",
+          "answer": "照片里必须恰好有一张清晰人脸。多张人脸、没有人脸或人脸模糊都会被拒绝，这样一张图只代表一个人。"
+        },
+        "video": {
+          "question": "可以分析哪些视频？",
+          "answer": "浏览器能够解码的 MP4、MOV 和 MKV。如果无法播放，请先在本机转成 H.264 MP4。"
+        },
+        "license": {
+          "question": "模型有什么使用限制？",
+          "answer": "Buffalo L 使用 InsightFace 官方预训练模型，仅限非商业研究。页面提供模型来源和许可链接。"
+        },
+        "desktop": {
+          "question": "用什么浏览器比较合适？",
+          "answer": "桌面版 Chrome 或 Edge 更合适。模型体积大，按每秒一帧分析长视频也取决于这台设备。"
+        }
+      },
+      "relatedTitle": "继续看看",
+      "relatedToolsTitle": "其他游乐场工具",
+      "relatedToolsDescription": "看完这段视频后，可以打开另一个实验。",
+      "workExperienceLink": "查看工作经历",
+      "contactLink": "联系 Chase"
     }
   }
 }

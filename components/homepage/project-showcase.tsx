@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageIcon, MousePointer2, ScanLine, Workflow } from "lucide-react";
+import { ImageIcon, MousePointer2, ScanFace, ScanLine, Workflow } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { HomepageMotion } from "@/components/homepage/homepage-motion";
@@ -19,6 +19,7 @@ const projectIcons = {
   imageToUi: ImageIcon,
   duduScanner: ScanLine,
   flowEditor: Workflow,
+  findInVideo: ScanFace,
 } satisfies Record<ProjectId, React.ComponentType<React.SVGProps<SVGSVGElement>>>;
 
 const navById = Object.fromEntries(

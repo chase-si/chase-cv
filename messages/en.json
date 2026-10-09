@@ -205,6 +205,12 @@
         "ogImageAlt": "Floor Plan Lab: candidate floor plan asset preview",
         "applicationName": "Floor Plan Lab"
       }
+    },
+    "findInVideo": {
+      "title": "Find in Video — Locate People from Reference Photos | Chase's CV",
+      "description": "Load Buffalo L in the browser, add reference photos, and find when those people appear in a local video. Photos, video, and face features stay on your device.",
+      "ogImageAlt": "Find in Video: locate people in a local video from reference photos",
+      "applicationName": "Find in Video"
     }
   },
   "siteNav": {
@@ -230,6 +236,10 @@
         "flowEditor": {
           "name": "Flow Editor",
           "description": "Visualize and edit structured flows."
+        },
+        "findInVideo": {
+          "name": "Find in Video",
+          "description": "Find people in a local video from reference photos, in the browser."
         }
       }
     },
@@ -1113,6 +1123,143 @@
     "lab": {
       "title": "Floor Plan Lab",
       "description": "Candidate floor plan asset preview and spatial validation lab"
+    }
+  },
+  "findInVideo": {
+    "title": "Find in Video",
+    "description": "Photos, video, and face features stay in this browser.",
+    "loadModel": "Load recognition model",
+    "loadingModel": "Loading…",
+    "modelReady": "Ready · {provider}",
+    "license": "InsightFace's official pretrained Buffalo L models are for <strong>non-commercial research</strong> only.",
+    "licenseLink": "View the InsightFace model source and license",
+    "referencesTitle": "Reference people",
+    "referenceCount": "{valid} valid / {total} photos",
+    "addPhotos": "Choose photos",
+    "addPhotosNote": "Each photo is one person. JPG, JPEG, PNG, and HEIC. The name comes from the file name.",
+    "emptyPhotos": "No reference photos yet. Choose a few clear single-person photos.",
+    "replace": "Replace",
+    "remove": "Remove {filename}",
+    "removeLabel": "Remove",
+    "validFace": "Verified: one clear face",
+    "checkingPhoto": "Checking in the browser…",
+    "thumbnailAlt": "Thumbnail of {name}",
+    "selectVideo": "Choose a video",
+    "changeVideo": "Change video",
+    "readingVideo": "Reading video…",
+    "videoTitle": "Source video",
+    "videoEmpty": "Choose a browser-playable video before analysis.",
+    "noVideoYet": "You can choose the video before the photos. Analysis still needs at least one valid reference photo.",
+    "duration": "Duration",
+    "resolution": "Resolution",
+    "prepareSeconds": "Prep time (s)",
+    "playerLabel": "Player for {filename}",
+    "playerLoading": "Loading the video player…",
+    "analyze": "Start analysis",
+    "analyzing": "Analyzing · {percent}%",
+    "retryAnalysis": "Retry analysis",
+    "analyzeAgain": "Start a new analysis",
+    "cancel": "Cancel analysis",
+    "progressLabel": "Analysis progress",
+    "processedLabel": "Processed video time",
+    "processed": "{done} / {total}",
+    "framesLabel": "Frames analyzed",
+    "frames": "{count} frames",
+    "peopleProgress": "Segments found per person",
+    "segmentCount": "{count} segments",
+    "needReference": "At least one verified reference photo is required.",
+    "longVideoHint": "The browser checks faces once per second and compares them with the reference photos. Long videos can take a while.",
+    "resultsTitle": "Analysis complete",
+    "resultsMeta": "One frame per second · {frames} frames · {provider}",
+    "hits": "{count} hit seconds",
+    "notFound": "Not found",
+    "errors": {
+      "missingManifest": "Model manifest was not found. Rebuild and confirm the release includes models/.",
+      "manifestNotJson": "The model manifest is not JSON. Rebuild and confirm the release includes models/.",
+      "manifestIncomplete": "The model manifest is missing or unreadable for {name}.",
+      "missingPart": "The model manifest is missing {name}.",
+      "partFailed": "Could not read model file {part} ({status}).",
+      "partHtml": "Model file {part} is missing. The server returned an HTML page.",
+      "partLength": "{name} has an unexpected file length.",
+      "partIncomplete": "{name} is incomplete.",
+      "checksumFailed": "{name} failed checksum verification.",
+      "webgpuTimeout": "WebGPU initialization timed out.",
+      "noCanvas": "Could not create a canvas.",
+      "alignFailed": "Could not align the face.",
+      "noFace": "No clear face was detected.",
+      "multipleFaces": "More than one face was detected. Use a photo of one person.",
+      "faceTooSmall": "The face is too small or not clear enough. Use a sharper front-facing photo.",
+      "faceBlurry": "The face is blurry. Use a sharper photo.",
+      "noEmbedding": "Could not extract a face embedding.",
+      "loadModelFirst": "Load the recognition model first.",
+      "sessionDisposed": "The model was released.",
+      "workerFailed": "The recognition process failed.",
+      "noFrames": "This video has no frames to analyze.",
+      "noFramesNamed": "{name} has no frames to analyze.",
+      "decodeTimeout": "The browser timed out while decoding the video.",
+      "videoUndecodable": "This browser cannot decode the video. Convert it to H.264 MP4.",
+      "imageTooLarge": "Each image must be 25 MB or smaller.",
+      "imageType": "Only JPG, JPEG, PNG, and HEIC images are supported.",
+      "imageDecode": "The browser could not decode this image.",
+      "heicDecode": "Could not decode the HEIC image. Convert it to JPG and try again.",
+      "imagePixels": "The image dimensions are too large.",
+      "videoType": "Only MP4, MOV, and MKV videos are supported.",
+      "videoTimeout": "Reading the video timed out. Check the file or its encoding.",
+      "videoNoTrack": "The video has no readable video track or duration.",
+      "videoPlayFailed": "Could not play this segment. Check the video.",
+      "playerNotReady": "The player is not ready yet.",
+      "mp4Unsupported": "The browser cannot decode this video sequentially.",
+      "framesShort": "There are not enough frames to sample one per second."
+    },
+    "status": {
+      "checking": "Checking model files…",
+      "manifestReady": "Model files are ready. Load the recognition model in the browser.",
+      "reading": "Reading {name} ({index}/{total})…",
+      "initializing": "Initializing {name} ({provider})…",
+      "ready": "Model ready ({provider}).",
+      "wasmFallback": "WebGPU is unavailable. Switching to WASM…",
+      "wasmNoGpu": "This browser has no WebGPU. Switching to WASM…",
+      "missingManifest": "Model manifest was not found.",
+      "manifestNotJson": "The model manifest is not JSON.",
+      "manifestIncomplete": "The model manifest is missing {name}.",
+      "workerFailed": "The recognition process failed."
+    },
+    "landing": {
+      "purposeTitle": "What this page does",
+      "purposeBody": "Find in Video loads the Buffalo L face models in your browser, checks that each reference photo contains one clear face, and samples a local video at one frame per second. The selected files and the resulting face features stay in memory for this visit.",
+      "stepsTitle": "How to use it",
+      "step1": "Load the recognition model. The download is about 182 MB and starts only after you click.",
+      "step2": "Add one or more reference photos. Each photo should show exactly one clear face, and its display name comes from the file name.",
+      "step3": "Choose an MP4, MOV, or MKV file that this browser can play. There is no server-side transcode.",
+      "step4": "Start analysis, watch the progress, and jump the player to a matched segment. You can cancel a run in progress.",
+      "faqTitle": "FAQ",
+      "faq": {
+        "local": {
+          "question": "Are the photos or video uploaded?",
+          "answer": "No. Reference photos, the source video, and face embeddings stay in this browser tab. Refreshing the page clears the session."
+        },
+        "photos": {
+          "question": "What makes a reference photo valid?",
+          "answer": "The photo must contain exactly one clear face. Multiple faces, a missing face, or a blurry face are rejected so each photo represents one person."
+        },
+        "video": {
+          "question": "Which videos can be analyzed?",
+          "answer": "MP4, MOV, and MKV files that the browser can decode. If playback fails, convert the file to H.264 MP4 on your computer first."
+        },
+        "license": {
+          "question": "What are the model terms?",
+          "answer": "Buffalo L uses InsightFace's official pretrained models, which are limited to non-commercial research. The page links to the model source and license."
+        },
+        "desktop": {
+          "question": "Which browser should I use?",
+          "answer": "Desktop Chrome or Edge is the practical choice. The model is large, and sampling a long video once per second depends on the device."
+        }
+      },
+      "relatedTitle": "Keep exploring",
+      "relatedToolsTitle": "Other playground tools",
+      "relatedToolsDescription": "Open another experiment when you are done with this video.",
+      "workExperienceLink": "View work experience",
+      "contactLink": "Contact Chase"
     }
   }
 }

@@ -25,6 +25,7 @@ export type MetadataNamespace =
   | MagicCursorEffectMetadataNamespace
   | "metadata.imageToUi"
   | "metadata.flow"
+  | "metadata.findInVideo"
   | "metadata.duduScanner"
   | "metadata.notFound";
 

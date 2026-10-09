@@ -7,6 +7,7 @@ import {
   ImageIcon,
   Menu,
   MousePointer2,
+  ScanFace,
   ScanSearch,
   Workflow,
 } from "lucide-react";
@@ -25,6 +26,7 @@ const projectIcons = {
   imageToUi: ImageIcon,
   duduScanner: ScanSearch,
   flowEditor: Workflow,
+  findInVideo: ScanFace,
 } satisfies Record<ProjectId, React.ComponentType<React.SVGProps<SVGSVGElement>>>;
 
 type ProjectMenuItemsProps = {
