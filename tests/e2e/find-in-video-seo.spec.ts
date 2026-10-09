@@ -6,7 +6,7 @@ test.describe("find in video SEO landing", () => {
 
     await expect(page.getByRole("heading", { level: 1, name: "Find in Video" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Load recognition model" })).toBeVisible();
-    await expect(page.getByText(/non-commercial research/i)).toBeVisible();
+    await expect(page.getByTestId("find-in-video-tool").getByText(/non-commercial research/i)).toBeVisible();
 
     const jsonLd = page.locator('script[type="application/ld+json"]');
     await expect(jsonLd).toHaveCount(1);

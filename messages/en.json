@@ -1128,6 +1128,7 @@
   "findInVideo": {
     "title": "Find in Video",
     "description": "Photos, video, and face features stay in this browser.",
+    "nextStep": "Next",
     "loadModel": "Load recognition model",
     "loadingModel": "Loading…",
     "modelReady": "Ready · {provider}",
@@ -1173,6 +1174,25 @@
     "resultsMeta": "One frame per second · {frames} frames · {provider}",
     "hits": "{count} hit seconds",
     "notFound": "Not found",
+    "personClips": "Clips for {name}",
+    "clipSelection": "Select clips for {name}",
+    "selectClip": "Select {name}: {start}–{end}",
+    "playClip": "Play {start}–{end}",
+    "selectAllClips": "Select all",
+    "clearClips": "Clear selection",
+    "downloadClips": "Download joined clips",
+    "selectedClips": "{count} selected · about {seconds}s",
+    "clipSafetyHint": "Includes 1s before and after each match. Overlapping clips are merged. Fast export keeps the original format and audio; keyframes may extend the downloaded clips beyond these times.",
+    "cancelExport": "Cancel export",
+    "exportCancelled": "Export cancelled. Your selection is kept.",
+    "exportComplete": "Download started · {count} joined clips · {seconds}s before container timing adjustments.",
+    "exportStages": {
+      "loading": "Loading local video export…",
+      "preparing": "Reading tracks and preparing safe clip boundaries…",
+      "cutting": "Copying clips · {completed}/{total}",
+      "joining": "Joining selected clips…",
+      "download": "Preparing download…"
+    },
     "errors": {
       "missingManifest": "Model manifest was not found. Rebuild and confirm the release includes models/.",
       "manifestNotJson": "The model manifest is not JSON. Rebuild and confirm the release includes models/.",
@@ -1209,7 +1229,14 @@
       "videoPlayFailed": "Could not play this segment. Check the video.",
       "playerNotReady": "The player is not ready yet.",
       "mp4Unsupported": "The browser cannot decode this video sequentially.",
-      "framesShort": "There are not enough frames to sample one per second."
+      "framesShort": "There are not enough frames to sample one per second.",
+      "exportEmptySelection": "Select at least one clip to download.",
+      "exportInvalidTimeline": "This video's timestamps or keyframes cannot be safely joined without re-encoding.",
+      "exportUnsupported": "These tracks cannot be copied into the original video format. No re-encoding was performed.",
+      "exportLoadFailed": "Could not load the local video export tools. Please retry.",
+      "exportMemory": "Not enough browser memory to export these clips. Select fewer clips and close unused tabs, then retry.",
+      "exportTimeout": "Video export timed out. Select fewer clips and retry.",
+      "exportFailed": "Could not export these clips. Your selection is kept; you can retry."
     },
     "status": {
       "checking": "Checking model files…",

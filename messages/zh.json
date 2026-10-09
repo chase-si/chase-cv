@@ -1128,6 +1128,7 @@
   "findInVideo": {
     "title": "视频人物查找",
     "description": "照片、视频和人脸特征只留在这台浏览器里。",
+    "nextStep": "下一步",
     "loadModel": "加载识别模型",
     "loadingModel": "正在加载…",
     "modelReady": "已就绪 · {provider}",
@@ -1173,6 +1174,25 @@
     "resultsMeta": "每秒一帧 · 已分析 {frames} 帧 · {provider}",
     "hits": "{count} 个命中秒",
     "notFound": "未发现",
+    "personClips": "{name}的片段",
+    "clipSelection": "选择{name}的片段",
+    "selectClip": "选择{name}：{start}–{end}",
+    "playClip": "播放 {start}–{end}",
+    "selectAllClips": "全选",
+    "clearClips": "清空选择",
+    "downloadClips": "拼接下载",
+    "selectedClips": "已选 {count} 段 · 预计 {seconds} 秒",
+    "clipSafetyHint": "每段匹配前后各保留 1 秒，重叠片段合并。快速导出保留原格式和音频，关键帧可能使下载内容超出显示时间。",
+    "cancelExport": "取消导出",
+    "exportCancelled": "已取消导出，保留当前选择。",
+    "exportComplete": "已开始下载 · 合并后 {count} 段 · 时间范围合计 {seconds} 秒，实际文件时长可能略有差异。",
+    "exportStages": {
+      "loading": "正在加载本地视频导出工具…",
+      "preparing": "正在读取音视频轨道并准备安全裁切范围…",
+      "cutting": "正在复制片段 · {completed}/{total}",
+      "joining": "正在拼接所选片段…",
+      "download": "正在准备下载…"
+    },
     "errors": {
       "missingManifest": "未找到模型清单。请重新构建，并确认发布包包含 models/ 目录。",
       "manifestNotJson": "模型清单不是 JSON。请重新构建，并确认发布包包含 models/ 目录。",
@@ -1209,7 +1229,14 @@
       "videoPlayFailed": "无法播放此片段。请检查视频。",
       "playerNotReady": "播放器尚未就绪。",
       "mp4Unsupported": "浏览器无法顺序解码此视频。",
-      "framesShort": "视频帧不足，无法完成每秒抽样。"
+      "framesShort": "视频帧不足，无法完成每秒抽样。",
+      "exportEmptySelection": "请至少选择一个片段再下载。",
+      "exportInvalidTimeline": "此视频的时间戳或关键帧无法安全拼接，需要重新编码才能处理。",
+      "exportUnsupported": "无法将这些音视频轨道直接复制到原视频格式，未进行重新编码。",
+      "exportLoadFailed": "无法加载本地视频导出工具，请重试。",
+      "exportMemory": "浏览器内存不足，请减少所选片段、关闭其他标签页后重试。",
+      "exportTimeout": "视频导出超时，请减少所选片段后重试。",
+      "exportFailed": "无法导出片段，当前选择已保留，可重新尝试。"
     },
     "status": {
       "checking": "正在检查模型文件…",

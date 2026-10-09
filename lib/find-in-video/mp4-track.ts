@@ -5,7 +5,7 @@ export class Mp4Unsupported extends Error {
   }
 }
 
-export type VideoSample = { offset: number; size: number; pts: number; sync: boolean }
+export type VideoSample = { offset: number; size: number; pts: number; dts: number; sync: boolean }
 export type VideoRotation = 0 | 90 | 180 | 270
 export type VideoTrack = {
   codec: string
@@ -200,6 +200,7 @@ function sampleTable(data: Uint8Array, stbl: Box, mediaTimescale: number, mediaS
       samples.push({
         offset: position, size,
         pts: (decodeTimes[sampleIndex] + offsets[sampleIndex]) / mediaTimescale - mediaShift,
+        dts: decodeTimes[sampleIndex] / mediaTimescale - mediaShift,
         sync: sync.has(sampleIndex),
       })
       position += size

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
+import { PersonClips } from "@/components/find-in-video/person-clips";
 import { ToolPageChrome } from "@/components/tool-page-chrome";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,9 +23,13 @@ import {
   type Segment,
 } from "@/lib/find-in-video/browser-analysis";
 import { CodedError, type StatusNotice } from "@/lib/find-in-video/coded-error";
+import { clipDownloadName, clipRangeDuration } from "@/lib/find-in-video/clip-ranges";
+import type { PersonResult } from "@/lib/find-in-video/analysis-run";
+import type { ExportProgress } from "@/lib/find-in-video/export-clips";
 import { FaceSession } from "@/lib/find-in-video/face-client";
 import { readModelManifest } from "@/lib/find-in-video/model-manifest";
 import { buffaloModel, type ExecutionProviderName } from "@/lib/find-in-video/model-options";
+import { cn } from "@/lib/utils";
 
 type Reference = {
   id: string;
@@ -65,6 +70,9 @@ export function FindInVideoTool() {
   const t = useTranslations("findInVideo");
   const engine = useRef<FaceSession | null>(null);
   const abort = useRef<AbortController | null>(null);
+  const exportAbort = useRef<AbortController | null>(null);
+  const downloadUrls = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const mounted = useRef(true);
   const player = useRef<HTMLVideoElement>(null);
   const photoInput = useRef<HTMLInputElement>(null);
   const replacementInput = useRef<HTMLInputElement>(null);
@@ -86,7 +94,13 @@ export function FindInVideoTool() {
   const [analysisProgress, setAnalysisProgress] = useState<AnalysisProgress | null>(null);
   const [analysisStarting, setAnalysisStarting] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [analysis, setAnalysis] = useState<(AnalysisResult & { runId: string }) | null>(null);
+  const [exportState, setExportState] = useState<{
+    personId: string;
+    progress: ExportProgress | null;
+    error?: string;
+    summary?: string;
+  } | null>(null);
   const [executionProvider, setExecutionProvider] = useState<ExecutionProviderName | null>(null);
 
   const explain = (failure: unknown) => {
@@ -110,6 +124,8 @@ export function FindInVideoTool() {
       : reason;
 
   useEffect(() => {
+    mounted.current = true;
+    const urls = downloadUrls.current;
     readModelManifest()
       .then(() => {
         setModelAvailable(true);
@@ -123,7 +139,14 @@ export function FindInVideoTool() {
         });
       });
     return () => {
+      mounted.current = false;
       abort.current?.abort();
+      exportAbort.current?.abort();
+      for (const [url, timer] of urls) {
+        clearTimeout(timer);
+        URL.revokeObjectURL(url);
+      }
+      urls.clear();
       if (videoUrl.current) URL.revokeObjectURL(videoUrl.current);
       void engine.current?.dispose();
     };
@@ -149,6 +172,7 @@ export function FindInVideoTool() {
 
   const validCount = references.filter((item) => item.valid).length;
   const analysisBusy = analysisStarting || !!analysisProgress;
+  const exportBusy = !!exportState?.progress;
   const canStart =
     !!video &&
     !!modelLoaded &&
@@ -157,7 +181,8 @@ export function FindInVideoTool() {
     !busyId &&
     !videoBusy &&
     playerReady &&
-    !analysisBusy;
+    !analysisBusy &&
+    !exportBusy;
 
   async function makeReference(file: File, id = crypto.randomUUID()): Promise<Reference> {
     const { bitmap, thumbnail } = await readImage(file);
@@ -174,7 +199,7 @@ export function FindInVideoTool() {
   }
 
   async function addFiles(files: FileList | null) {
-    if (!files?.length || !engine.current) return;
+    if (!files?.length || !engine.current || exportAbort.current) return;
     setError(null);
     setAnalysis(null);
     setAnalysisError(null);
@@ -200,7 +225,7 @@ export function FindInVideoTool() {
     const id = replacementId.current;
     replacementId.current = null;
     if (replacementInput.current) replacementInput.current.value = "";
-    if (!id || !file || !engine.current) return;
+    if (!id || !file || !engine.current || exportAbort.current) return;
     setBusyId(id);
     setError(null);
     setAnalysis(null);
@@ -216,7 +241,7 @@ export function FindInVideoTool() {
 
   async function selectVideo(file: File | undefined) {
     if (videoInput.current) videoInput.current.value = "";
-    if (!file) return;
+    if (!file || exportAbort.current) return;
     setVideoBusy(true);
     setVideoError(null);
     try {
@@ -235,11 +260,12 @@ export function FindInVideoTool() {
   }
 
   async function startAnalysis() {
-    if (!canStart || !video || !engine.current) return;
+    if (!canStart || !video || !engine.current || exportAbort.current) return;
     const controller = new AbortController();
     abort.current = controller;
     setAnalysisStarting(true);
     setAnalysis(null);
+    setExportState(null);
     setAnalysisError(null);
     try {
       const valid = references
@@ -267,7 +293,7 @@ export function FindInVideoTool() {
         controller.signal,
         setAnalysisProgress,
       );
-      if (!controller.signal.aborted) setAnalysis(result);
+      if (!controller.signal.aborted) setAnalysis({ ...result, runId: crypto.randomUUID() });
     } catch (failure) {
       if (!(failure instanceof DOMException && failure.name === "AbortError")) {
         setAnalysisError(explain(failure));
@@ -290,12 +316,333 @@ export function FindInVideoTool() {
       setVideoError(explain(new CodedError("playerNotReady")));
       return;
     }
-    target.currentTime = Math.max(0, segment.start_seconds - 2);
+    target.currentTime = segment.start_seconds;
     target.scrollIntoView({ behavior: "smooth", block: "center" });
     void target.play().catch(() => setVideoError(explain(new CodedError("videoPlayFailed"))));
   }
 
+  async function downloadPersonClips(person: PersonResult, ranges: Segment[]) {
+    if (!video || !analysis || analysis.video_id !== video.id || analysisBusy ||
+      videoBusy || pending.length || busyId || exportAbort.current || !ranges.length) return;
+    const controller = new AbortController();
+    exportAbort.current = controller;
+    setExportState({ personId: person.id, progress: { stage: "loading" } });
+    try {
+      const { exportClips } = await import("@/lib/find-in-video/export-clips").catch(() => {
+        throw new CodedError("exportLoadFailed");
+      });
+      if (controller.signal.aborted) return;
+      const result = await exportClips({
+        file: video.file,
+        duration: video.duration,
+        ranges,
+        signal: controller.signal,
+        onProgress: (progress) => {
+          if (mounted.current && !controller.signal.aborted) setExportState({ personId: person.id, progress });
+        },
+      });
+      if (controller.signal.aborted || !mounted.current) return;
+      const url = URL.createObjectURL(result.blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = clipDownloadName(video.filename, person.name);
+      document.body.append(link);
+      try {
+        link.click();
+      } finally {
+        link.remove();
+        // Leave enough time for browsers to take ownership of the download.
+        downloadUrls.current.set(url, setTimeout(() => {
+          URL.revokeObjectURL(url);
+          downloadUrls.current.delete(url);
+        }, 60_000));
+      }
+      setExportState({ personId: person.id, progress: null, summary: t("exportComplete", {
+        count: result.ranges.length, seconds: clipRangeDuration(result.ranges).toFixed(1),
+      }) });
+    } catch (failure) {
+      if (mounted.current && !controller.signal.aborted) {
+        setExportState({ personId: person.id, progress: null, error: explain(failure) });
+      }
+    } finally {
+      if (exportAbort.current === controller) exportAbort.current = null;
+      if (mounted.current && controller.signal.aborted) {
+        setExportState({ personId: person.id, progress: null, summary: t("exportCancelled") });
+      }
+    }
+  }
+
+  function exportFeedback(personId: string) {
+    if (exportState?.personId !== personId) return null;
+    const progress = exportState.progress;
+    return (
+      <div className="space-y-2">
+        {progress ? (
+          <div className="flex flex-wrap items-center gap-3" role="status">
+            <p className="text-sm text-muted-foreground">
+              {progress.stage === "cutting"
+                ? t("exportStages.cutting", { completed: progress.completed, total: progress.total })
+                : t(`exportStages.${progress.stage}`)}
+            </p>
+            <Button type="button" size="sm" variant="outline" onClick={() => exportAbort.current?.abort()}>
+              {t("cancelExport")}
+            </Button>
+          </div>
+        ) : null}
+        {exportState.error ? <p className="text-sm text-destructive" role="alert">{exportState.error}</p> : null}
+        {exportState.summary ? <p className="text-sm text-muted-foreground" role="status">{exportState.summary}</p> : null}
+      </div>
+    );
+  }
+
   const loaded = modelLoaded;
+  const totalPhotos = references.length + pending.length;
+  const nextStep = !loaded ? "model" : validCount === 0 ? "photos" : !video ? "video" : null;
+  const steps = [
+    {
+      id: "model" as const,
+      index: "01",
+      label: loaded
+        ? t("modelReady", { provider: providerLabel(executionProvider) })
+        : modelLoading
+          ? t("loadingModel")
+          : t("loadModel"),
+      status: explainNotice(modelStatus),
+      disabled: !modelAvailable || modelLoading || loaded,
+    },
+    {
+      id: "photos" as const,
+      index: "02",
+      label: t("addPhotos"),
+      status: `${validCount}/${totalPhotos}`,
+      disabled: !loaded || analysisBusy || exportBusy,
+    },
+    {
+      id: "video" as const,
+      index: "03",
+      label: videoBusy ? t("readingVideo") : video ? t("changeVideo") : t("selectVideo"),
+      status: video?.filename ?? t("videoEmpty"),
+      disabled: videoBusy || analysisBusy || exportBusy,
+    },
+  ];
+
+  const referenceList = (
+    <>
+      {references.length === 0 && pending.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("emptyPhotos")}</p>
+      ) : (
+        <ul className="space-y-3" aria-label={t("referencesTitle")}>
+          {references.map((item) => (
+            <li key={item.id} className="flex min-w-0 gap-3 rounded-xl border border-border p-3">
+              {item.thumbnail ? (
+                // Data URLs from the local canvas cannot go through the image optimizer.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.thumbnail}
+                  alt={t("thumbnailAlt", { name: item.name })}
+                  className="size-16 shrink-0 rounded-lg border border-border object-cover"
+                />
+              ) : (
+                <div className="flex size-16 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground">
+                  ?
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium text-foreground">{item.name}</p>
+                <p className="truncate text-xs text-muted-foreground">{item.filename}</p>
+                <p className="mt-1 text-xs text-muted-foreground" role="status">
+                  {item.valid ? t("validFace") : explainReason(item.reason ?? "noFace")}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={busyId === item.id || analysisBusy || exportBusy}
+                    onClick={() => {
+                      replacementId.current = item.id;
+                      replacementInput.current?.click();
+                    }}
+                  >
+                    {t("replace")}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    disabled={busyId === item.id || analysisBusy || exportBusy}
+                    aria-label={t("remove", { filename: item.filename })}
+                    onClick={() => {
+                      setReferences((previous) => previous.filter((old) => old.id !== item.id));
+                      setAnalysis(null);
+                    }}
+                  >
+                    {t("removeLabel")}
+                  </Button>
+                </div>
+              </div>
+            </li>
+          ))}
+          {pending.map((name, index) => (
+            <li key={`${name}-${index}`} className="rounded-xl border border-border p-3">
+              <p className="truncate font-medium">{name.replace(/\.[^.]+$/, "")}</p>
+              <p className="text-xs text-muted-foreground" role="status">
+                {t("checkingPhoto")}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+
+  const videoStage = (
+    <div className="space-y-4">
+      {!video && !videoError ? <p className="text-sm text-muted-foreground">{t("noVideoYet")}</p> : null}
+      {videoError ? (
+        <p className="text-sm text-destructive" role="alert">
+          {videoError}
+        </p>
+      ) : null}
+      {video ? (
+        <>
+          <dl className="grid grid-cols-3 gap-3 text-sm">
+            <div>
+              <dt className="text-muted-foreground">{t("duration")}</dt>
+              <dd className="font-medium tabular-nums">{formatDuration(video.duration)}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">{t("resolution")}</dt>
+              <dd className="font-medium tabular-nums">
+                {video.width} × {video.height}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">{t("prepareSeconds")}</dt>
+              <dd className="font-medium tabular-nums">{video.preparationSeconds.toFixed(1)}</dd>
+            </div>
+          </dl>
+          <video
+            ref={player}
+            key={video.id}
+            controls
+            preload="auto"
+            playsInline
+            src={video.url}
+            aria-label={t("playerLabel", { filename: video.filename })}
+            className="max-h-80 w-full rounded-xl border border-border bg-black"
+            onLoadedData={() => {
+              setPlayerReady(true);
+              setVideoError(null);
+            }}
+            onError={() => {
+              setPlayerReady(false);
+              setVideoError(explain(new CodedError("videoUndecodable")));
+            }}
+          />
+          {!playerReady && !videoError ? (
+            <p className="text-sm text-muted-foreground" role="status">
+              {t("playerLoading")}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="button" disabled={!canStart} onClick={() => void startAnalysis()}>
+              {analysisBusy
+                ? t("analyzing", {
+                    percent: (analysisProgress?.progress_percent ?? 0).toFixed(1),
+                  })
+                : analysisError
+                  ? t("retryAnalysis")
+                  : analysis
+                    ? t("analyzeAgain")
+                    : t("analyze")}
+            </Button>
+            {!validCount ? <p className="text-sm text-muted-foreground">{t("needReference")}</p> : null}
+          </div>
+          {analysisProgress ? (
+            <div className="space-y-3 rounded-xl border border-border p-3" aria-label={t("progressLabel")}>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium">
+                  {t("analyzing", {
+                    percent: analysisProgress.progress_percent.toFixed(1),
+                  })}
+                  {executionProvider ? ` · ${providerLabel(executionProvider)}` : ""}
+                </p>
+                <Button type="button" size="sm" variant="outline" onClick={cancelAnalysis}>
+                  {t("cancel")}
+                </Button>
+              </div>
+              <Progress value={analysisProgress.progress_percent} />
+              <dl className="grid gap-2 text-sm sm:grid-cols-2">
+                <div>
+                  <dt className="text-muted-foreground">{t("processedLabel")}</dt>
+                  <dd className="tabular-nums">
+                    {t("processed", {
+                      done: formatDuration(analysisProgress.processed_seconds),
+                      total: formatDuration(analysisProgress.duration),
+                    })}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">{t("framesLabel")}</dt>
+                  <dd className="tabular-nums">{t("frames", { count: analysisProgress.sampled_frames })}</dd>
+                </div>
+              </dl>
+              <ul className="space-y-1 text-sm" aria-label={t("peopleProgress")}>
+                {analysisProgress.people.map((person) => (
+                  <li key={person.id} className="flex justify-between gap-3">
+                    <span className="min-w-0 truncate">{person.name}</span>
+                    <span className="shrink-0 font-medium">
+                      {t("segmentCount", { count: person.segment_count })}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-sm text-muted-foreground" role="status">
+                {t("longVideoHint")}
+              </p>
+            </div>
+          ) : null}
+          {analysisError ? (
+            <p className="text-sm text-destructive" role="alert">
+              {analysisError}
+            </p>
+          ) : null}
+          {analysis ? (
+            <div className="space-y-3" aria-live="polite">
+              <div>
+                <p className="font-medium">{t("resultsTitle")}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("resultsMeta", {
+                    frames: analysis.sampled_frames,
+                    provider: providerLabel(executionProvider),
+                  })}
+                </p>
+              </div>
+              {analysis.people.map((person) => (
+                <PersonClips
+                  key={`${analysis.runId}-${person.id}`}
+                  person={person}
+                  duration={video.duration}
+                  disabled={exportBusy || analysisBusy || videoBusy || !!pending.length || !!busyId}
+                  playerReady={playerReady}
+                  onSeek={seekToSegment}
+                  onExport={(ranges) => void downloadPersonClips(person, ranges)}
+                  feedback={exportFeedback(person.id)}
+                />
+              ))}
+            </div>
+          ) : null}
+        </>
+      ) : null}
+    </div>
+  );
+
+  const photoError = error ? (
+    <p className="text-sm text-destructive" role="alert">
+      {error}
+    </p>
+  ) : null;
 
   return (
     <ToolPageChrome
@@ -304,354 +651,108 @@ export function FindInVideoTool() {
       actions={
         loaded ? (
           <Badge variant="accent">{t("modelReady", { provider: providerLabel(executionProvider) })}</Badge>
-        ) : (
-          <Button
-            type="button"
-            disabled={!modelAvailable || modelLoading}
-            onClick={() => void loadModel()}
-          >
-            {modelLoading ? t("loadingModel") : t("loadModel")}
-          </Button>
-        )
+        ) : null
       }
     >
-      <div
-        data-testid="find-in-video-tool"
-        className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-stretch"
-      >
-        <Card className="flex min-h-0 flex-col overflow-hidden lg:max-h-full">
-          <CardHeader className="shrink-0 gap-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <CardTitle>{t("referencesTitle")}</CardTitle>
-                <CardDescription>
-                  {t("referenceCount", {
-                    valid: validCount,
-                    total: references.length + pending.length,
-                  })}
-                </CardDescription>
-              </div>
-            </div>
-            <p className="rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground">
-              {t.rich("license", {
-                strong: (chunks) => <strong>{chunks}</strong>,
-              })}
-            </p>
-            <a
-              href={buffaloModel.licenseUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm text-primary underline-offset-4 hover:underline"
-            >
-              {t("licenseLink")}
-            </a>
-            <p className="text-sm text-muted-foreground" role="status">
-              {explainNotice(modelStatus)}
-            </p>
-          </CardHeader>
-          <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
-            <input
-              ref={photoInput}
-              className="sr-only"
-              type="file"
-              multiple
-              accept=".jpg,.jpeg,.png,.heic,image/jpeg,image/png,image/heic"
-              aria-label={t("addPhotos")}
-              onChange={(event) => void addFiles(event.target.files)}
-            />
-            <input
-              ref={replacementInput}
-              className="sr-only"
-              type="file"
-              accept=".jpg,.jpeg,.png,.heic,image/jpeg,image/png,image/heic"
-              aria-label={t("replace")}
-              onChange={(event) => void replaceFile(event.target.files?.[0])}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full shrink-0"
-              disabled={!loaded || analysisBusy}
-              onClick={() => photoInput.current?.click()}
-            >
-              {t("addPhotos")}
-            </Button>
-            <p className="shrink-0 text-xs text-muted-foreground">{t("addPhotosNote")}</p>
-            <CardScrollArea className="min-h-0 flex-1 pr-1">
-              {references.length === 0 && pending.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t("emptyPhotos")}</p>
-              ) : (
-                <ul className="space-y-3" aria-label={t("referencesTitle")}>
-                  {references.map((item) => (
-                    <li key={item.id} className="flex min-w-0 gap-3 rounded-xl border border-border p-3">
-                      {item.thumbnail ? (
-                        // Data URLs from the local canvas cannot go through the image optimizer.
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={item.thumbnail}
-                          alt={t("thumbnailAlt", { name: item.name })}
-                          className="size-16 shrink-0 rounded-lg border border-border object-cover"
-                        />
-                      ) : (
-                        <div className="flex size-16 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground">
-                          ?
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium text-foreground">{item.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">{item.filename}</p>
-                        <p className="mt-1 text-xs text-muted-foreground" role="status">
-                          {item.valid ? t("validFace") : explainReason(item.reason ?? "noFace")}
-                        </p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            disabled={busyId === item.id || analysisBusy}
-                            onClick={() => {
-                              replacementId.current = item.id;
-                              replacementInput.current?.click();
-                            }}
-                          >
-                            {t("replace")}
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            disabled={busyId === item.id || analysisBusy}
-                            aria-label={t("remove", { filename: item.filename })}
-                            onClick={() => {
-                              setReferences((previous) => previous.filter((old) => old.id !== item.id));
-                              setAnalysis(null);
-                            }}
-                          >
-                            {t("removeLabel")}
-                          </Button>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                  {pending.map((name, index) => (
-                    <li key={`${name}-${index}`} className="rounded-xl border border-border p-3">
-                      <p className="truncate font-medium">{name.replace(/\.[^.]+$/, "")}</p>
-                      <p className="text-xs text-muted-foreground" role="status">
-                        {t("checkingPhoto")}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardScrollArea>
-            {error ? (
-              <p className="text-sm text-destructive" role="alert">
-                {error}
-              </p>
-            ) : null}
-          </CardContent>
-        </Card>
-
-        <Card className="flex min-h-0 flex-col overflow-hidden lg:max-h-full">
-          <CardHeader className="shrink-0">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <CardTitle>{t("videoTitle")}</CardTitle>
-                <CardDescription>{video ? video.filename : t("videoEmpty")}</CardDescription>
-              </div>
-              <Button
-                type="button"
-                className="shrink-0"
-                disabled={videoBusy || analysisBusy}
-                onClick={() => videoInput.current?.click()}
+      <div data-testid="find-in-video-tool" className="flex min-h-0 flex-1 flex-col gap-3">
+        <input
+          ref={photoInput}
+          className="sr-only"
+          type="file"
+          multiple
+          accept=".jpg,.jpeg,.png,.heic,image/jpeg,image/png,image/heic"
+          aria-label={t("addPhotos")}
+          onChange={(event) => void addFiles(event.target.files)}
+        />
+        <input
+          ref={replacementInput}
+          className="sr-only"
+          type="file"
+          accept=".jpg,.jpeg,.png,.heic,image/jpeg,image/png,image/heic"
+          aria-label={t("replace")}
+          onChange={(event) => void replaceFile(event.target.files?.[0])}
+        />
+        <input
+          ref={videoInput}
+          className="sr-only"
+          type="file"
+          accept=".mp4,.mov,.mkv,video/mp4,video/quicktime"
+          aria-label={t("selectVideo")}
+          onChange={(event) => void selectVideo(event.target.files?.[0])}
+        />
+        <div className="grid shrink-0 gap-2 sm:grid-cols-3">
+          {steps.map((step) => {
+            const current = step.id === nextStep;
+            return (
+              <div
+                key={step.id}
+                className={cn(
+                  "flex min-w-0 flex-col gap-2 rounded-xl border bg-card p-3",
+                  current ? "border-primary" : "border-border",
+                )}
               >
-                {videoBusy ? t("readingVideo") : video ? t("changeVideo") : t("selectVideo")}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="flex min-h-0 flex-1 flex-col">
-            <input
-              ref={videoInput}
-              className="sr-only"
-              type="file"
-              accept=".mp4,.mov,.mkv,video/mp4,video/quicktime"
-              aria-label={t("selectVideo")}
-              onChange={(event) => void selectVideo(event.target.files?.[0])}
-            />
-            <CardScrollArea className="min-h-0 flex-1 pr-1">
-              <div className="space-y-4">
-                {!video && !videoError ? (
-                  <p className="text-sm text-muted-foreground">{t("noVideoYet")}</p>
-                ) : null}
-                {videoError ? (
-                  <p className="text-sm text-destructive" role="alert">
-                    {videoError}
-                  </p>
-                ) : null}
-                {video ? (
-                  <>
-                    <dl className="grid grid-cols-3 gap-3 text-sm">
-                      <div>
-                        <dt className="text-muted-foreground">{t("duration")}</dt>
-                        <dd className="font-medium tabular-nums">{formatDuration(video.duration)}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-muted-foreground">{t("resolution")}</dt>
-                        <dd className="font-medium tabular-nums">
-                          {video.width} × {video.height}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-muted-foreground">{t("prepareSeconds")}</dt>
-                        <dd className="font-medium tabular-nums">
-                          {video.preparationSeconds.toFixed(1)}
-                        </dd>
-                      </div>
-                    </dl>
-                    <video
-                      ref={player}
-                      key={video.id}
-                      controls
-                      preload="auto"
-                      playsInline
-                      src={video.url}
-                      aria-label={t("playerLabel", { filename: video.filename })}
-                      className="max-h-80 w-full rounded-xl border border-border bg-black"
-                      onLoadedData={() => {
-                        setPlayerReady(true);
-                        setVideoError(null);
-                      }}
-                      onError={() => {
-                        setPlayerReady(false);
-                        setVideoError(explain(new CodedError("videoUndecodable")));
-                      }}
-                    />
-                    {!playerReady && !videoError ? (
-                      <p className="text-sm text-muted-foreground" role="status">
-                        {t("playerLoading")}
-                      </p>
-                    ) : null}
-                    <div className="flex flex-wrap items-center gap-3">
-                      <Button type="button" disabled={!canStart} onClick={() => void startAnalysis()}>
-                        {analysisBusy
-                          ? t("analyzing", {
-                              percent: (analysisProgress?.progress_percent ?? 0).toFixed(1),
-                            })
-                          : analysisError
-                            ? t("retryAnalysis")
-                            : analysis
-                              ? t("analyzeAgain")
-                              : t("analyze")}
-                      </Button>
-                      {!validCount ? (
-                        <p className="text-sm text-muted-foreground">{t("needReference")}</p>
-                      ) : null}
-                    </div>
-                    {analysisProgress ? (
-                      <div className="space-y-3 rounded-xl border border-border p-3" aria-label={t("progressLabel")}>
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm font-medium">
-                            {t("analyzing", {
-                              percent: analysisProgress.progress_percent.toFixed(1),
-                            })}
-                            {executionProvider ? ` · ${providerLabel(executionProvider)}` : ""}
-                          </p>
-                          <Button type="button" size="sm" variant="outline" onClick={cancelAnalysis}>
-                            {t("cancel")}
-                          </Button>
-                        </div>
-                        <Progress value={analysisProgress.progress_percent} />
-                        <dl className="grid gap-2 text-sm sm:grid-cols-2">
-                          <div>
-                            <dt className="text-muted-foreground">{t("processedLabel")}</dt>
-                            <dd className="tabular-nums">
-                              {t("processed", {
-                                done: formatDuration(analysisProgress.processed_seconds),
-                                total: formatDuration(analysisProgress.duration),
-                              })}
-                            </dd>
-                          </div>
-                          <div>
-                            <dt className="text-muted-foreground">{t("framesLabel")}</dt>
-                            <dd className="tabular-nums">
-                              {t("frames", { count: analysisProgress.sampled_frames })}
-                            </dd>
-                          </div>
-                        </dl>
-                        <ul className="space-y-1 text-sm" aria-label={t("peopleProgress")}>
-                          {analysisProgress.people.map((person) => (
-                            <li key={person.id} className="flex justify-between gap-3">
-                              <span className="min-w-0 truncate">{person.name}</span>
-                              <span className="shrink-0 font-medium">
-                                {t("segmentCount", { count: person.segment_count })}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                        <p className="text-sm text-muted-foreground" role="status">
-                          {t("longVideoHint")}
-                        </p>
-                      </div>
-                    ) : null}
-                    {analysisError ? (
-                      <p className="text-sm text-destructive" role="alert">
-                        {analysisError}
-                      </p>
-                    ) : null}
-                    {analysis ? (
-                      <div className="space-y-3" aria-live="polite">
-                        <div>
-                          <p className="font-medium">{t("resultsTitle")}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {t("resultsMeta", {
-                              frames: analysis.sampled_frames,
-                              provider: providerLabel(executionProvider),
-                            })}
-                          </p>
-                        </div>
-                        {analysis.people.map((person) => (
-                          <article key={person.id} className="space-y-2 rounded-xl border border-border p-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <h2 className="truncate text-base font-medium">{person.name}</h2>
-                                <p className="truncate text-xs text-muted-foreground">{person.filename}</p>
-                              </div>
-                              <Badge variant="outline">
-                                {t("hits", { count: person.hit_seconds.length })}
-                              </Badge>
-                            </div>
-                            {person.segments.length === 0 ? (
-                              <p className="text-sm text-muted-foreground">{t("notFound")}</p>
-                            ) : (
-                              <ul className="flex flex-wrap gap-2">
-                                {person.segments.map((segment) => (
-                                  <li key={`${person.id}-${segment.start_seconds}`}>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      disabled={!playerReady}
-                                      onClick={() => seekToSegment(segment)}
-                                    >
-                                      {formatDuration(segment.start_seconds)}
-                                      {segment.end_seconds !== segment.start_seconds
-                                        ? ` – ${formatDuration(segment.end_seconds)}`
-                                        : ""}
-                                    </Button>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </article>
-                        ))}
-                      </div>
-                    ) : null}
-                  </>
-                ) : null}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-xs text-muted-foreground">{step.index}</span>
+                  {current ? <Badge>{t("nextStep")}</Badge> : null}
+                </div>
+                <Button
+                  type="button"
+                  className="w-full"
+                  variant={current ? "default" : "outline"}
+                  disabled={step.disabled}
+                  onClick={() => {
+                    if (step.id === "model") void loadModel();
+                    else if (step.id === "photos") photoInput.current?.click();
+                    else videoInput.current?.click();
+                  }}
+                >
+                  {step.label}
+                </Button>
+                <p className="truncate text-xs text-muted-foreground">{step.status}</p>
               </div>
-            </CardScrollArea>
-          </CardContent>
-        </Card>
+            );
+          })}
+        </div>
+        <div className="flex min-w-0 shrink-0 items-center gap-2 text-xs text-muted-foreground">
+          <p className="min-w-0 truncate">
+            {t.rich("license", {
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
+          </p>
+          <a
+            href={buffaloModel.licenseUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 text-primary underline-offset-4 hover:underline"
+          >
+            {t("licenseLink")}
+          </a>
+        </div>
+        <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-stretch">
+          <Card className="flex min-h-0 flex-col overflow-hidden lg:max-h-full">
+            <CardHeader className="shrink-0">
+              <div className="flex items-baseline justify-between gap-3">
+                <CardTitle>{t("referencesTitle")}</CardTitle>
+                <p className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                  {validCount}/{totalPhotos}
+                </p>
+              </div>
+            </CardHeader>
+            <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
+              <CardScrollArea className="min-h-0 flex-1 pr-1">{referenceList}</CardScrollArea>
+              {photoError}
+            </CardContent>
+          </Card>
+          <Card className="flex min-h-0 flex-col overflow-hidden lg:max-h-full">
+            <CardHeader className="shrink-0">
+              <CardTitle>{t("videoTitle")}</CardTitle>
+              <CardDescription>{video ? video.filename : t("videoEmpty")}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex min-h-0 flex-1 flex-col">
+              <CardScrollArea className="min-h-0 flex-1 pr-1">{videoStage}</CardScrollArea>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </ToolPageChrome>
   );
