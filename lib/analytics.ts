@@ -25,7 +25,10 @@ export type AnalyticsEventName =
   | "dudu_scanner_contact_click"
   | "magic_cursor_related_effect_click"
   | "magic_cursor_related_tool_click"
-  | "magic_cursor_hub_effect_click";
+  | "magic_cursor_hub_effect_click"
+  | "find_in_video_related_tool_click"
+  | "find_in_video_profile_click"
+  | "find_in_video_contact_click";
 
 export function trackEvent(
   name: AnalyticsEventName,

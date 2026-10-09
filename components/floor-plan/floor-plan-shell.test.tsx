@@ -1,0 +1,567 @@
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { VALID_STANDARD_FLOOR_PLAN } from "@/lib/floor-plan/fixtures/valid-standard-plan";
+import {
+  STUDIO_STANDARD_FLOOR_PLAN,
+  THREE_BED_STANDARD_FLOOR_PLAN,
+} from "@/lib/floor-plan/fixtures/standard-plans";
+import { buildStandardPlanSummary } from "@/lib/floor-plan/catalog";
+import {
+  createPlacementScenario,
+  type FurniturePlacement,
+  type PlacementScenario,
+  type StandardFloorPlan,
+} from "@/lib/floor-plan";
+import { FloorPlanShell } from "./floor-plan-shell";
+
+/** Editor fixtures with furniture — used by shell integration tests */
+const FIXTURE_PLANS = [
+  VALID_STANDARD_FLOOR_PLAN,
+  STUDIO_STANDARD_FLOOR_PLAN,
+  THREE_BED_STANDARD_FLOOR_PLAN,
+].map((plan) => buildStandardPlanSummary(plan));
+
+// Mock ResizeObserver for jsdom
+class MockResizeObserver {
+  observe(el: Element) {
+    this.callback([
+      {
+        contentRect: { width: 800, height: 600 },
+        target: el,
+      },
+    ]);
+  }
+  unobserve() {}
+  disconnect() {}
+  constructor(private callback: (entries: any[]) => void) {}
+}
+
+vi.stubGlobal("ResizeObserver", MockResizeObserver);
+
+afterEach(() => {
+  cleanup();
+});
+
+describe("FloorPlanShell Integration (Streamlined MVP Architecture)", () => {
+  it("renders ToolPageChrome header, 2-pane workspace, toolbar, and viewer", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Floor Plan Space Validator" }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("tool-page-chrome")).toBeInTheDocument();
+    expect(screen.getByTestId("desktop-context-pane")).toBeInTheDocument();
+    expect(screen.getByTestId("floor-plan-viewer-surface")).toBeInTheDocument();
+    expect(screen.getByTestId("open-plan-selector-btn")).toBeInTheDocument();
+    expect(screen.getByTestId("open-furniture-catalog-btn")).toBeInTheDocument();
+
+    // Pruned surfaces must not exist
+    expect(screen.queryByTestId("floor-plan-stage-stepper")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("undo-btn")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("redo-btn")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("customize-plan-btn")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("open-advanced-tools-btn")).not.toBeInTheDocument();
+  });
+
+  it("browses and selects standard plan from on-demand selector dialog, updating canvas and summary", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+
+    // Catalog dialog is closed initially
+    expect(screen.queryByTestId("floor-plan-selector-dialog")).not.toBeInTheDocument();
+
+    // Open on-demand selector
+    fireEvent.click(screen.getByTestId("open-plan-selector-btn"));
+
+    expect(screen.getByTestId("floor-plan-selector-dialog")).toBeInTheDocument();
+    expect(screen.getByTestId("floor-plan-catalog")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("plan-name-floor-plan-std-studio-01"),
+    ).toHaveTextContent("Modern Compact Studio");
+
+    // Select Studio plan
+    const studioOpenBtn = screen.getByTestId("open-plan-btn-floor-plan-std-studio-01");
+    fireEvent.click(studioOpenBtn);
+
+    // Dialog closes and studio plan is active
+    expect(screen.queryByTestId("floor-plan-selector-dialog")).not.toBeInTheDocument();
+    expect(screen.getAllByText("Modern Compact Studio").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByTestId("floor-plan-room-sr1")).toBeInTheDocument();
+  });
+
+  it("selects room on canvas or room list, updating target room details and focus", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+
+    // Click room r1 on canvas
+    const room1 = screen.getByTestId("floor-plan-room-r1");
+    fireEvent.click(room1);
+
+    // Inspector shows room details
+    const roomDetails = screen.getByTestId("inspector-room-details");
+    expect(roomDetails).toBeInTheDocument();
+    expect(within(roomDetails).getByTestId("target-room-name")).toHaveTextContent("Living Room");
+    expect(within(roomDetails).getByTestId("target-room-area")).toBeInTheDocument();
+
+    // Pruned room span editor is absent
+    expect(screen.queryByTestId("room-span-editor")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("target-span-input")).not.toBeInTheDocument();
+  });
+
+  it("selects wall on canvas and shows read-only inspector details with bounded room navigation", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+
+    const wall7 = screen.getByTestId("floor-plan-wall-w7");
+    fireEvent.click(wall7);
+
+    const wallDetails = screen.getByTestId("inspector-wall-details");
+    expect(wallDetails).toBeInTheDocument();
+    expect(within(wallDetails).getByText("w7")).toBeInTheDocument();
+    expect(within(wallDetails).getByText("Living Room")).toBeInTheDocument();
+    expect(within(wallDetails).getByText("Master Bedroom")).toBeInTheDocument();
+
+    // Click bounded room to navigate
+    fireEvent.click(within(wallDetails).getByText("Master Bedroom"));
+    const roomDetails = screen.getByTestId("inspector-room-details");
+    expect(roomDetails).toBeInTheDocument();
+    expect(within(roomDetails).getByTestId("target-room-name")).toHaveTextContent("Master Bedroom");
+  });
+
+  it("selects opening on canvas and shows read-only inspector details without opening editor", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+
+    const door1 = screen.getByTestId("floor-plan-opening-door1");
+    fireEvent.click(door1);
+
+    expect(screen.getByTestId("inspector-opening-details")).toBeInTheDocument();
+    expect(screen.getByText("900 mm")).toBeInTheDocument();
+    expect(screen.queryByTestId("opening-editor")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("opening-width-input")).not.toBeInTheDocument();
+  });
+
+  it("adds furniture from context recommendations panel into the active plan", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+
+    const addBtns = screen.getAllByTestId(/^add-context-furniture-/);
+    expect(addBtns.length).toBeGreaterThan(0);
+    const initialFurnitureCount = screen.getAllByTestId(/^floor-plan-furniture-/).length;
+
+    fireEvent.click(addBtns[0]);
+
+    const newFurnitureCount = screen.getAllByTestId(/^floor-plan-furniture-/).length;
+    expect(newFurnitureCount).toBe(initialFurnitureCount + 1);
+  });
+
+  it("opens full furniture catalog dialog and adds furniture", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+
+    fireEvent.click(screen.getByTestId("open-furniture-catalog-btn"));
+    expect(screen.getByTestId("furniture-catalog-dialog")).toBeInTheDocument();
+
+    const addDefBtns = screen.getAllByTestId(/^add-furniture-item-/);
+    expect(addDefBtns.length).toBeGreaterThan(0);
+    fireEvent.click(addDefBtns[0]);
+
+    // Dialog closes
+    expect(screen.queryByTestId("furniture-catalog-dialog")).not.toBeInTheDocument();
+  });
+
+  it("selects furniture and displays read-only dimensions without arbitrary resize inputs (AC-4)", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+
+    const sofa = screen.getByTestId("floor-plan-furniture-f1");
+    fireEvent.click(sofa);
+
+    expect(screen.getByTestId("inspector-furniture-details")).toBeInTheDocument();
+    expect(screen.getByTestId("inspector-furniture-dimensions")).toHaveTextContent("2100 × 900 mm");
+
+    // AC-4: No arbitrary inputs
+    expect(screen.queryByTestId("furniture-width-input")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("furniture-depth-input")).not.toBeInTheDocument();
+
+    // Rotate and Delete actions are available
+    expect(screen.getByTestId("rotate-furniture-btn")).toBeInTheDocument();
+    expect(screen.getByTestId("delete-furniture-btn")).toBeInTheDocument();
+  });
+
+  it("rotates and deletes selected furniture instance", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+
+    const sofa = screen.getByTestId("floor-plan-furniture-f1");
+    fireEvent.click(sofa);
+
+    // Rotate
+    fireEvent.click(screen.getByTestId("rotate-furniture-btn"));
+    expect(screen.getByText("90°")).toBeInTheDocument();
+
+    // Delete
+    fireEvent.click(screen.getByTestId("delete-furniture-btn"));
+    expect(screen.queryByTestId("floor-plan-furniture-f1")).not.toBeInTheDocument();
+  });
+
+  it("nudges furniture via on-screen nudge buttons and keyboard arrow keys", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+
+    const sofa = screen.getByTestId("floor-plan-furniture-f1");
+    fireEvent.click(sofa);
+
+    expect(screen.getByText("X: 800 mm, Y: 1200 mm")).toBeInTheDocument();
+
+    // On-screen nudge right
+    fireEvent.click(screen.getByTestId("nudge-furniture-right"));
+    expect(screen.getByText("X: 900 mm, Y: 1200 mm")).toBeInTheDocument();
+
+    // Keyboard arrow down
+    fireEvent.keyDown(window, { key: "ArrowDown" });
+    expect(screen.getByText("X: 900 mm, Y: 1300 mm")).toBeInTheDocument();
+
+    // Keyboard arrow up with Shift (500mm)
+    fireEvent.keyDown(window, { key: "ArrowUp", shiftKey: true });
+    expect(screen.getByText("X: 900 mm, Y: 800 mm")).toBeInTheDocument();
+  });
+
+  it("displays decision panel and updates verdict and spatial feedback", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+
+    expect(screen.getByTestId("furniture-decision-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("decision-status-badge")).toBeInTheDocument();
+    expect(screen.getByTestId("decision-summary-card")).toBeInTheDocument();
+  });
+
+  it("toggles canvas mode between pan and edit", () => {
+    render(<FloorPlanShell initialPlans={FIXTURE_PLANS} />);
+
+    const panBtn = screen.getByTestId("mode-toggle-pan");
+    const editBtn = screen.getByTestId("mode-toggle-edit");
+
+    fireEvent.click(panBtn);
+    expect(panBtn.className).toContain("bg-primary");
+    expect(editBtn.className).not.toContain("bg-primary");
+
+    fireEvent.click(editBtn);
+    expect(editBtn.className).toContain("bg-primary");
+    expect(panBtn.className).not.toContain("bg-primary");
+  });
+
+  it("integrates PlacementScenario end-to-end: retains multiple placements, respects target selection, and leaves standard plan unmutated (AC-2, AC-3)", () => {
+    // Deep freeze standard plan to strictly prove topology cannot be mutated
+    const originalPlan: StandardFloorPlan = JSON.parse(
+      JSON.stringify(STUDIO_STANDARD_FLOOR_PLAN),
+    );
+    Object.freeze(originalPlan);
+    Object.freeze(originalPlan.vertices);
+    Object.freeze(originalPlan.walls);
+    Object.freeze(originalPlan.openings);
+    Object.freeze(originalPlan.rooms);
+    const planSnapshot = JSON.stringify(originalPlan);
+
+    const bedPlacement: FurniturePlacement = {
+      id: "placement-bed",
+      definitionId: "bed-double",
+      specificationId: "bed-double-1800x2000",
+      x: 1500,
+      y: 1500,
+      rotation: 0,
+    };
+    const sofaPlacement: FurniturePlacement = {
+      id: "placement-sofa",
+      definitionId: "sofa-3seat",
+      specificationId: "sofa-3seat-2100x900",
+      x: 2500,
+      y: 2500,
+      rotation: 90,
+    };
+
+    const initialScenario = createPlacementScenario(
+      originalPlan.meta.id!,
+      [bedPlacement, sofaPlacement],
+      "placement-bed",
+    );
+
+    const onScenarioChange = vi.fn();
+    const onPlanChange = vi.fn();
+
+    render(
+      <FloorPlanShell
+        initialActivePlan={originalPlan}
+        initialScenario={initialScenario}
+        onScenarioChange={onScenarioChange}
+        onPlanChange={onPlanChange}
+      />,
+    );
+
+    // Both furniture items from scenario must be rendered on the canvas
+    expect(screen.getByTestId("floor-plan-furniture-placement-bed")).toBeInTheDocument();
+    expect(screen.getByTestId("floor-plan-furniture-placement-sofa")).toBeInTheDocument();
+
+    // Primary decision panel focuses on the selected target (bed)
+    expect(screen.getByTestId("furniture-decision-panel")).toBeInTheDocument();
+
+    // Switch target by clicking sofa on canvas
+    fireEvent.click(screen.getByTestId("floor-plan-furniture-placement-sofa"));
+    expect(onScenarioChange).toHaveBeenCalled();
+    const latestScenario: PlacementScenario =
+      onScenarioChange.mock.calls[onScenarioChange.mock.calls.length - 1][0];
+    expect(latestScenario.targetPlacementId).toBe("placement-sofa");
+    expect(latestScenario.placements).toHaveLength(2);
+
+    // Rotate the selected sofa
+    fireEvent.click(screen.getByTestId("rotate-furniture-btn"));
+    const scenarioAfterRotate: PlacementScenario =
+      onScenarioChange.mock.calls[onScenarioChange.mock.calls.length - 1][0];
+    expect(scenarioAfterRotate.placements).toHaveLength(2);
+    const rotatedSofa = scenarioAfterRotate.placements.find(
+      (p) => p.id === "placement-sofa",
+    );
+    expect(rotatedSofa?.rotation).toBe(180);
+
+    // Prove topology of original StandardFloorPlan is 100% unmutated
+    expect(JSON.stringify(originalPlan)).toBe(planSnapshot);
+  });
+
+  it("AC-5: switches specificationId on placed furniture in FloorPlanShell, keeping center (x, y) and rotation unchanged while immediately updating SVG footprint and spatial assessment", () => {
+    const originalPlan: StandardFloorPlan = JSON.parse(
+      JSON.stringify(STUDIO_STANDARD_FLOOR_PLAN),
+    );
+    const bedPlacement: FurniturePlacement = {
+      id: "placement-bed",
+      definitionId: "bed-double",
+      specificationId: "bed-double-1800",
+      x: 1500,
+      y: 1600,
+      rotation: 90,
+    };
+    const initialScenario = createPlacementScenario(
+      originalPlan.meta.id!,
+      [bedPlacement],
+      "placement-bed",
+    );
+    const onScenarioChange = vi.fn();
+
+    render(
+      <FloorPlanShell
+        initialActivePlan={originalPlan}
+        initialScenario={initialScenario}
+        onScenarioChange={onScenarioChange}
+      />,
+    );
+
+    // Select bed on canvas
+    const svgBed = screen.getByTestId("floor-plan-furniture-placement-bed");
+    fireEvent.click(svgBed);
+
+    // Initial state: center (1500, 1600), rotation 90, dimensions 1800 × 2000
+    expect(svgBed).toHaveAttribute("transform", "translate(1500, 1600) rotate(90)");
+    const footprintBefore = screen.getByTestId("furniture-footprint-placement-bed");
+    expect(footprintBefore).toHaveAttribute("width", "1800");
+    expect(footprintBefore).toHaveAttribute("height", "2000");
+    expect(screen.getByTestId("inspector-furniture-dimensions")).toHaveTextContent("1800 × 2000 mm");
+
+    // Switch specification to bed-double-1500 (1500 × 2000 mm)
+    const spec1500Btn = screen.getByTestId("inspector-spec-option-bed-double-1500");
+    fireEvent.click(spec1500Btn);
+
+    // Assert center (x, y) and rotation are strictly unchanged on SVG canvas and inspector
+    const svgBedAfter = screen.getByTestId("floor-plan-furniture-placement-bed");
+    expect(svgBedAfter).toHaveAttribute("transform", "translate(1500, 1600) rotate(90)");
+    expect(screen.getByText("X: 1500 mm, Y: 1600 mm")).toBeInTheDocument();
+    expect(screen.getByText("90°")).toBeInTheDocument();
+
+    // Assert SVG footprint and inspector/decision panel dimensions immediately updated to 1500 × 2000 mm
+    const footprintAfter = screen.getByTestId("furniture-footprint-placement-bed");
+    expect(footprintAfter).toHaveAttribute("width", "1500");
+    expect(footprintAfter).toHaveAttribute("height", "2000");
+    expect(screen.getByTestId("inspector-furniture-dimensions")).toHaveTextContent("1500 × 2000 mm");
+    expect(screen.getByTestId("decision-dimensions")).toHaveTextContent("1500 × 2000 mm");
+
+    // Assert PlacementScenario callback received updated specificationId with preserved x, y, rotation
+    const latestScenario: PlacementScenario =
+      onScenarioChange.mock.calls[onScenarioChange.mock.calls.length - 1][0];
+    const updatedPlacement = latestScenario.placements.find((p) => p.id === "placement-bed");
+    expect(updatedPlacement).toEqual({
+      id: "placement-bed",
+      definitionId: "bed-double",
+      specificationId: "bed-double-1500",
+      x: 1500,
+      y: 1600,
+      rotation: 90,
+    });
+  });
+
+  it("AC-6: moves furniture (drag and nudge), rotates in 90° steps (0 -> 90 -> 180 -> 270 -> 0), and deletes furniture with immediate canvas redraw and assessment sync", () => {
+    const originalPlan: StandardFloorPlan = JSON.parse(
+      JSON.stringify(STUDIO_STANDARD_FLOOR_PLAN),
+    );
+    const bedPlacement: FurniturePlacement = {
+      id: "placement-bed",
+      definitionId: "bed-double",
+      specificationId: "bed-double-1500",
+      x: 500, // Initially colliding with wall (must-adjust)
+      y: 1500,
+      rotation: 0,
+    };
+    const initialScenario = createPlacementScenario(
+      originalPlan.meta.id!,
+      [bedPlacement],
+      "placement-bed",
+    );
+    const onScenarioChange = vi.fn();
+
+    render(
+      <FloorPlanShell
+        initialActivePlan={originalPlan}
+        initialScenario={initialScenario}
+        onScenarioChange={onScenarioChange}
+      />,
+    );
+
+    const svgBed = screen.getByTestId("floor-plan-furniture-placement-bed");
+    fireEvent.click(svgBed);
+
+    // Initially colliding at x=500 -> status is must-adjust
+    expect(screen.getByTestId("decision-status-must-adjust")).toBeInTheDocument();
+
+    // 1. Move furniture via pointer drag on SVG canvas to valid center (x: 1500, y: 1500)
+    fireEvent.pointerDown(svgBed, { button: 0, clientX: 100, clientY: 100 });
+    const svgCanvas = screen.getByTestId("floor-plan-svg-canvas");
+    fireEvent.pointerMove(svgCanvas, { clientX: 250, clientY: 100 });
+    fireEvent.pointerUp(svgCanvas, { button: 0 });
+
+    // Also nudge right to verify immediate coordinate & canvas transform update
+    fireEvent.click(screen.getByTestId("nudge-furniture-right"));
+    const movedScenario: PlacementScenario =
+      onScenarioChange.mock.calls[onScenarioChange.mock.calls.length - 1][0];
+    const movedBed = movedScenario.placements[0];
+    expect(movedBed.x).toBeGreaterThan(500);
+    expect(screen.getByTestId("floor-plan-furniture-placement-bed")).toHaveAttribute(
+      "transform",
+      `translate(${movedBed.x}, ${movedBed.y}) rotate(0)`,
+    );
+
+    // 2. Rotate in 90° steps: 0 -> 90 -> 180 -> 270 -> 0
+    const rotateBtn = screen.getByTestId("rotate-furniture-btn");
+    for (const expectedAngle of [90, 180, 270, 0]) {
+      fireEvent.click(rotateBtn);
+      expect(screen.getByTestId("floor-plan-furniture-placement-bed")).toHaveAttribute(
+        "transform",
+        `translate(${movedBed.x}, ${movedBed.y}) rotate(${expectedAngle})`,
+      );
+      const rotScenario: PlacementScenario =
+        onScenarioChange.mock.calls[onScenarioChange.mock.calls.length - 1][0];
+      expect(rotScenario.placements[0].rotation).toBe(expectedAngle);
+    }
+
+    // 3. Delete furniture: removed from canvas and scenario immediately
+    fireEvent.click(screen.getByTestId("delete-furniture-btn"));
+    expect(screen.queryByTestId("floor-plan-furniture-placement-bed")).not.toBeInTheDocument();
+    const afterDeleteScenario: PlacementScenario =
+      onScenarioChange.mock.calls[onScenarioChange.mock.calls.length - 1][0];
+    expect(afterDeleteScenario.placements).toHaveLength(0);
+    expect(afterDeleteScenario.targetPlacementId).toBeUndefined();
+  });
+
+  it("AC-1, AC-3, AC-12 & AC-13: synchronizes plan summary on selection, retains multi-furniture obstacles, switches target placement via list or canvas, and renders only target findings with qualified copy", () => {
+    const onScenarioChange = vi.fn();
+    render(
+      <FloorPlanShell
+        initialPlans={FIXTURE_PLANS}
+        onScenarioChange={onScenarioChange}
+        locale="zh"
+      />,
+    );
+
+    // 1. AC-1: Select standard plan from catalog and verify both canvas and plan summary synchronize
+    expect(screen.getByTestId("active-plan-summary")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("open-plan-selector-btn"));
+    fireEvent.click(screen.getByTestId("open-plan-btn-floor-plan-std-studio-01"));
+
+    expect(screen.getByTestId("active-plan-name")).toHaveTextContent("Modern Compact Studio");
+    expect(screen.getByTestId("active-plan-area")).toHaveTextContent(
+      FIXTURE_PLANS[1].formattedArea,
+    );
+    expect(screen.getByTestId("active-plan-room-breakdown")).toHaveTextContent(
+      FIXTURE_PLANS[1].roomBreakdown,
+    );
+    expect(screen.getByTestId("floor-plan-room-sr1")).toBeInTheDocument();
+
+    // 2. AC-3 & AC-12: Multi-furniture scenario where f-bed has a clearance encroachment from f-sofa,
+    // while f-sofa collides with wall sw1.
+    cleanup();
+    const studioPlan: StandardFloorPlan = JSON.parse(
+      JSON.stringify(STUDIO_STANDARD_FLOOR_PLAN),
+    );
+    const bedPlacement: FurniturePlacement = {
+      id: "f-bed",
+      definitionId: "bed-double",
+      specificationId: "bed-double-1800", // 1800 x 2000, right clearance min 500 / rec 600
+      x: 1800,
+      y: 2200,
+      rotation: 0,
+    };
+    // Place sofa at x = 3500 (right edge of bed is 1800 + 900 = 2700; sofa width=2100, depth=900, rotated 90 -> width along X is 900, left edge is 3500 - 450 = 3050.
+    // Clearance from bed right edge (2700) to sofa left edge (3050) is 350 mm < minimum 500 mm (and rec 600 mm)!
+    // Meanwhile sofa's right edge is 3500 + 450 = 3950, which collides with right wall sw2 (at x=4000, thickness 200 -> 3900..4100)!
+    const sofaPlacement: FurniturePlacement = {
+      id: "f-sofa",
+      definitionId: "sofa-3seat",
+      specificationId: "sofa-3seat-2100",
+      x: 3500,
+      y: 2200,
+      rotation: 90,
+    };
+
+    const multiScenario = createPlacementScenario(
+      studioPlan.meta.id!,
+      [bedPlacement, sofaPlacement],
+      "f-bed",
+    );
+
+    render(
+      <FloorPlanShell
+        initialActivePlan={studioPlan}
+        initialScenario={multiScenario}
+        onScenarioChange={onScenarioChange}
+        locale="zh"
+      />,
+    );
+
+    // Both furniture placements are rendered on canvas and in the placed furniture list
+    expect(screen.getByTestId("floor-plan-furniture-f-bed")).toBeInTheDocument();
+    expect(screen.getByTestId("floor-plan-furniture-f-sofa")).toBeInTheDocument();
+    expect(screen.getByTestId("placed-furniture-list")).toBeInTheDocument();
+    expect(screen.getByTestId("select-target-furniture-f-bed")).toBeInTheDocument();
+    expect(screen.getByTestId("select-target-furniture-f-sofa")).toBeInTheDocument();
+    expect(screen.getByTestId("active-target-badge-f-bed")).toBeInTheDocument();
+
+    // When f-bed is target:
+    // - f-sofa acts as a solid obstacle causing a right-side below-minimum-clearance finding on f-bed (measured 350 mm, min 500 mm, rec 600 mm)
+    // - f-sofa's own wall-overlap with sw2 is NOT shown in FurnitureDecisionPanel!
+    const panel = screen.getByTestId("furniture-decision-panel");
+    expect(within(panel).getByTestId("decision-title")).toHaveTextContent("双人床");
+    expect(within(panel).getByTestId("decision-issue-below-minimum-clearance")).toBeInTheDocument();
+    expect(within(panel).queryByTestId("decision-issue-wall-overlap")).not.toBeInTheDocument();
+
+    const bedClearanceIssue = within(panel).getByTestId("decision-issue-below-minimum-clearance");
+    expect(bedClearanceIssue).toHaveTextContent("三人位沙发 (f-sofa)");
+    expect(bedClearanceIssue).toHaveTextContent("右侧");
+    expect(bedClearanceIssue).toHaveTextContent("350 mm");
+    expect(bedClearanceIssue).toHaveTextContent("最低 600 mm / 推荐 750 mm");
+    expect(bedClearanceIssue).toHaveTextContent("250 mm");
+    expect(bedClearanceIssue).toHaveTextContent("左侧");
+
+    // 3. Switch target placement to f-sofa using the placed furniture switcher list in left rail
+    fireEvent.click(screen.getByTestId("select-target-furniture-f-sofa"));
+
+    expect(screen.getByTestId("active-target-badge-f-sofa")).toBeInTheDocument();
+    expect(within(panel).getByTestId("decision-title")).toHaveTextContent("三人位沙发");
+    // Now f-sofa's wall-overlap finding IS shown!
+    expect(within(panel).getByTestId("decision-issue-wall-overlap")).toBeInTheDocument();
+    // Both placements remain on canvas
+    expect(screen.getByTestId("floor-plan-furniture-f-bed")).toBeInTheDocument();
+    expect(screen.getByTestId("floor-plan-furniture-f-sofa")).toBeInTheDocument();
+
+    // 4. AC-13: Verify qualified non-guarantee disclaimer in panel
+    expect(within(panel).getByTestId("decision-disclaimer")).toHaveTextContent("不构成施工");
+    expect(within(panel).getByTestId("decision-disclaimer")).toHaveTextContent("建筑规范");
+  });
+});
+
+

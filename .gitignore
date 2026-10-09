@@ -42,3 +42,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# onnxruntime-web wasm copied by scripts/copy-onnx-runtime.mjs
+/public/onnx/
+
+# FFmpeg runtime copied by scripts/copy-ffmpeg-runtime.mjs
+/public/ffmpeg/
+
+.agents/*
