@@ -33,6 +33,16 @@ Settled layout:
 </ToolPageChrome>
 ```
 
+## Floor-plan workspace
+
+`floor-plan` also uses `ToolPageChrome`, with a canvas-first mobile exception requested for this tool:
+
+- Below `lg`, `MobileWorkspace` fits beneath `SiteNav` in the available visual viewport. A plan picker, mode controls, canvas, compact selection card and bottom actions replace the stacked desktop rail. Short screens keep the page heading accessible but visually hidden to give the canvas more space; short landscape screens use two columns.
+- Selection alone never opens a modal. Properties, rooms, furniture and checks open only when requested. Closing a panel preserves the selected object; selecting another panel must not be overridden by that object.
+- `MobileBottomSheet` uses Base UI Dialog for focus management and scroll locking, with `Card` + `CardScrollArea` and safe-area / keyboard height handling. On desktop, checks and PNG previews reuse the same surface as a centered dialog.
+- Desktop keeps an independent scrolling context rail and a larger canvas. The toolbar contains modes and checks; plan changes, furniture and export live in the page header. Selected-object controls precede the collapsible recommendations, and detailed assessment is available from the summary or expanded rail section.
+- Both sizes retain the same domain model and geometry. Pointer gestures support dragging and pinch zoom; cancelled gestures roll back the drag preview. Image export renders the full plan, independent of the current canvas zoom.
+
 ## Card Shells
 
 Use `Card` for the outer shell of product/tool workspace regions:

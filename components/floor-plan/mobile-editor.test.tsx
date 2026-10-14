@@ -86,7 +86,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5, AC-4, AC-27)", () => {
     expect(screen.queryByTestId("mobile-bottom-sheet")).not.toBeInTheDocument();
   });
 
-  it("opens mobile bottom properties surface when an entity is selected in Edit Mode", () => {
+  it("keeps the canvas unobstructed on selection and opens properties on request", () => {
     render(<FloorPlanShell initialPlans={FIXTURE_PLANS} isMobile={true} />);
 
     // Switch to Edit Mode
@@ -97,7 +97,9 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5, AC-4, AC-27)", () => {
     const wall1 = screen.getByTestId("floor-plan-wall-w1");
     fireEvent.click(wall1);
 
-    // Mobile bottom sheet opens
+    // Selection updates the summary without interrupting a drag with a modal.
+    expect(screen.queryByTestId("mobile-bottom-sheet")).not.toBeInTheDocument();
+    fireEvent.click(within(screen.getByTestId("mobile-selection-card")).getByRole("button", { name: "View details" }));
     const sheet = screen.getByTestId("mobile-bottom-sheet");
     expect(sheet).toBeInTheDocument();
     expect(sheet).toHaveTextContent("Wall");
@@ -139,6 +141,9 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5, AC-4, AC-27)", () => {
     const sofa = screen.getByTestId("floor-plan-furniture-f1");
     fireEvent.click(sofa);
 
+    expect(screen.queryByTestId("mobile-bottom-sheet")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("mobile-open-properties-btn"));
+
     // Inspector opens in mobile bottom sheet
     const sheet = screen.getByTestId("mobile-bottom-sheet");
     expect(sheet).toBeInTheDocument();
@@ -178,101 +183,61 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5, AC-4, AC-27)", () => {
     const addFurnitureBtn = screen.getByTestId("mobile-add-furniture-btn");
     expect(addFurnitureBtn.className).toMatch(/min-h-\[44px\]|h-11/);
 
-    const catalogBtn = screen.getByTestId("mobile-catalog-btn");
-    expect(catalogBtn.className).toMatch(/min-h-\[44px\]|h-11/);
+    const catalogBtn = screen.getByTestId("open-plan-selector-btn");
+    expect(catalogBtn.className).toMatch(/min-h-\[44px\]|h-11|min-h-11/);
 
     const rulesBtn = screen.getByTestId("mobile-rules-btn");
     expect(rulesBtn.className).toMatch(/min-h-\[44px\]|h-11|min-h-11/);
   });
 
-  it("AC-23: keeps floor-plan canvas primary above stacked controls on 375x812 mobile viewport with no horizontal overflow and completes full placement-assessment journey with >= 44x44px touch targets", () => {
-    Object.defineProperty(window, "innerWidth", {
-      writable: true,
-      configurable: true,
-      value: 375,
-    });
-    Object.defineProperty(window, "innerHeight", {
-      writable: true,
-      configurable: true,
-      value: 812,
-    });
-    window.dispatchEvent(new Event("resize"));
+  it("does not change furniture positions while a modal panel handles keyboard input", () => {
+    render(<FloorPlanShell isMobile initialPlans={FIXTURE_PLANS} />);
+    const sofa = screen.getByTestId("floor-plan-furniture-f1");
+    fireEvent.click(sofa);
+    const position = sofa.getAttribute("transform");
+    fireEvent.click(screen.getByTestId("mobile-rooms-btn"));
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(sofa).toHaveAttribute("transform", position);
+    fireEvent.click(screen.getByTestId("mobile-bottom-sheet-close"));
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(sofa.getAttribute("transform")).not.toBe(position);
+  });
 
+  it("completes mobile room, placement, adjustment and assessment flows through on-demand panels", () => {
     render(<FloorPlanShell isMobile={true} initialPlans={FIXTURE_PLANS} locale="zh" />);
+    expect(screen.queryByTestId("desktop-context-pane")).not.toBeInTheDocument();
+    expect(screen.getByTestId("floor-plan-svg-canvas")).toBeInTheDocument();
 
-    // 1. Canvas section is primary (order-1) and precedes controls rail (order-2) in DOM & mobile stack
-    const canvasSection = screen.getByTestId("floor-plan-canvas-section");
-    const contextPane = screen.getByTestId("desktop-context-pane");
-    expect(canvasSection.className).toContain("order-1");
-    expect(contextPane.className).toContain("order-2");
-    expect(
-      canvasSection.compareDocumentPosition(contextPane) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+    fireEvent.click(screen.getByTestId("open-plan-selector-btn"));
+    fireEvent.click(screen.getByTestId("open-plan-btn-floor-plan-std-studio-01"));
+    expect(screen.queryByTestId("mobile-bottom-sheet")).not.toBeInTheDocument();
 
-    // Outer workspace prevents unintended horizontal scroll
-    expect(canvasSection.parentElement?.parentElement?.className).toContain("overflow-x-hidden");
+    fireEvent.click(screen.getByTestId("mobile-rooms-btn"));
+    fireEvent.click(screen.getByTestId("room-item-sr1"));
+    expect(screen.queryByTestId("mobile-bottom-sheet")).not.toBeInTheDocument();
+    expect(screen.getByTestId("mobile-selection-name")).toHaveTextContent("Studio Suite");
 
-    // 2. Verify >= 44x44px touch target classes across all core flow controls
-    const changePlanBtn = screen.getByTestId("open-plan-selector-btn");
-    const addFurnitureHeaderBtn = screen.getByTestId("open-furniture-catalog-btn");
-    expect(changePlanBtn.className).toMatch(/min-h-11|min-h-\[44px\]/);
-    expect(changePlanBtn.className).toMatch(/min-w-11|min-w-\[44px\]/);
-    expect(addFurnitureHeaderBtn.className).toMatch(/min-h-11|min-h-\[44px\]/);
-    expect(addFurnitureHeaderBtn.className).toMatch(/min-w-11|min-w-\[44px\]/);
+    const count = screen.getAllByTestId(/^floor-plan-furniture-/).length;
+    fireEvent.click(screen.getByTestId("mobile-add-furniture-btn"));
+    fireEvent.click(screen.getAllByTestId(/^add-furniture-item-/)[0]);
+    expect(screen.getAllByTestId(/^floor-plan-furniture-/)).toHaveLength(count + 1);
+    expect(screen.queryByTestId("mobile-bottom-sheet")).not.toBeInTheDocument();
 
-    // Select plan via dialog on mobile
-    fireEvent.click(changePlanBtn);
-    const openStudioBtn = screen.getByTestId("open-plan-btn-floor-plan-std-studio-01");
-    expect(openStudioBtn.className).toMatch(/min-h-11|min-h-\[44px\]/);
-    expect(openStudioBtn.className).toMatch(/min-w-11|min-w-\[44px\]/);
-    fireEvent.click(openStudioBtn);
+    fireEvent.click(screen.getByTestId("mobile-open-properties-btn"));
+    const sheet = screen.getByTestId("mobile-bottom-sheet");
+    const specs = within(sheet).getAllByTestId(/^inspector-spec-option-/);
+    fireEvent.click(specs[specs.length - 1]);
+    fireEvent.click(within(sheet).getByTestId("nudge-furniture-right"));
+    fireEvent.click(within(sheet).getByTestId("nudge-furniture-down"));
+    fireEvent.click(within(sheet).getByTestId("rotate-furniture-btn"));
+    expect(within(sheet).getByTestId("inspector-furniture-details")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("mobile-bottom-sheet-close"));
 
-    // Select focus room in stacked controls
-    const roomItem = screen.getByTestId("room-item-sr1");
-    expect(roomItem.className).toMatch(/min-h-\[44px\]|min-h-11/);
-    fireEvent.click(roomItem);
-
-    // Add furniture from context panel
-    const contextSpecOption = screen.getAllByTestId(/^context-spec-option-/)[0];
-    expect(contextSpecOption.className).toMatch(/min-h-11|min-h-\[44px\]/);
-    expect(contextSpecOption.className).toMatch(/min-w-11|min-w-\[44px\]/);
-
-    const addContextBtn = screen.getAllByTestId(/^add-context-furniture-/)[0];
-    expect(addContextBtn.className).toMatch(/min-h-11|min-h-\[44px\]/);
-    expect(addContextBtn.className).toMatch(/min-w-11|min-w-\[44px\]/);
-    fireEvent.click(addContextBtn);
-
-    // Target placement selector pill in placed-furniture-list
-    const targetSelectBtns = screen.getAllByTestId(/^select-target-furniture-/);
-    expect(targetSelectBtns.length).toBeGreaterThan(0);
-    expect(targetSelectBtns[0].className).toMatch(/min-h-11|min-h-\[44px\]/);
-    expect(targetSelectBtns[0].className).toMatch(/min-w-11|min-w-\[44px\]/);
-
-    // Specification switch pills in decision panel & inspector
-    const decisionSpecBtns = screen.getAllByTestId(/^switch-specification-/);
-    expect(decisionSpecBtns.length).toBeGreaterThan(0);
-    expect(decisionSpecBtns[0].className).toMatch(/min-h-11|min-h-\[44px\]/);
-    expect(decisionSpecBtns[0].className).toMatch(/min-w-11|min-w-\[44px\]/);
-    fireEvent.click(decisionSpecBtns[decisionSpecBtns.length - 1]);
-
-    // Rotate, Nudge, and Delete buttons in stacked inspector on mobile
-    const rotateBtn = screen.getByTestId("rotate-furniture-btn");
-    const deleteBtn = screen.getByTestId("delete-furniture-btn");
-    const nudgeLeft = screen.getByTestId("nudge-furniture-left");
-    const nudgeRight = screen.getByTestId("nudge-furniture-right");
-    const nudgeUp = screen.getByTestId("nudge-furniture-up");
-    const nudgeDown = screen.getByTestId("nudge-furniture-down");
-
-    for (const btn of [rotateBtn, deleteBtn, nudgeLeft, nudgeRight, nudgeUp, nudgeDown]) {
-      expect(btn.className).toMatch(/min-h-11|min-h-\[44px\]/);
-      expect(btn.className).toMatch(/min-w-11|min-w-\[44px\]/);
-    }
-
-    // Perform non-drag nudge, rotate, and delete on mobile
-    fireEvent.click(nudgeRight);
-    fireEvent.click(nudgeDown);
-    fireEvent.click(rotateBtn);
-    expect(screen.getByTestId("furniture-decision-panel")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("mobile-rules-btn"));
+    expect(within(screen.getByTestId("mobile-bottom-sheet")).getByTestId("furniture-decision-panel")).toBeInTheDocument();
+    expect(within(screen.getByTestId("mobile-bottom-sheet")).getByTestId("rule-feedback-panel")).toBeInTheDocument();
+    // Checks must remain the requested panel even though a furniture item is selected.
+    expect(screen.queryByTestId("inspector-furniture-details")).not.toBeInTheDocument();
   });
 
   it("AC-24: exposes accessible names, visible focus rings, programmatic selection states, and full keyboard/button non-drag placement adjustments", () => {

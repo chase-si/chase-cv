@@ -530,3 +530,237 @@ export function computePrincipalDimensions(plan: FloorPlan): DimensionAnnotation
 
   return annotations;
 }
+
+const AXIS_TOLERANCE_MM = 1;
+const MIN_SPAN_MM = 150;
+
+interface AxisEdge {
+  fixed: number;
+  start: number;
+  end: number;
+}
+
+interface MeasuredSpan {
+  measure0: number;
+  measure1: number;
+  band0: number;
+  band1: number;
+}
+
+function clusterCoordinates(values: number[]): number[] {
+  const sorted = [...values].sort((a, b) => a - b);
+  const clusters: number[] = [];
+  for (const value of sorted) {
+    if (clusters.length === 0 || value - clusters[clusters.length - 1] > AXIS_TOLERANCE_MM) {
+      clusters.push(value);
+    }
+  }
+  return clusters;
+}
+
+function snapToCluster(value: number, clusters: number[]): number {
+  let best = clusters[0] ?? value;
+  let bestDistance = Math.abs(value - best);
+  for (const cluster of clusters) {
+    const distance = Math.abs(value - cluster);
+    if (distance < bestDistance) {
+      best = cluster;
+      bestDistance = distance;
+    }
+  }
+  return best;
+}
+
+/**
+ * Split a room polygon into horizontal and vertical edges.
+ * Returns null when any edge is diagonal, because bay spans are only defined for orthogonal rooms.
+ */
+function orthogonalEdges(points: Point[]): {
+  horizontal: AxisEdge[];
+  vertical: AxisEdge[];
+  xs: number[];
+  ys: number[];
+} | null {
+  const raw: Array<{ axis: "h" | "v"; fixed: number; start: number; end: number }> = [];
+  const xs: number[] = [];
+  const ys: number[] = [];
+
+  for (let i = 0; i < points.length; i++) {
+    const a = points[i];
+    const b = points[(i + 1) % points.length];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    if (Math.hypot(dx, dy) <= AXIS_TOLERANCE_MM) continue;
+    if (Math.abs(dy) <= AXIS_TOLERANCE_MM) {
+      raw.push({
+        axis: "h",
+        fixed: (a.y + b.y) / 2,
+        start: Math.min(a.x, b.x),
+        end: Math.max(a.x, b.x),
+      });
+    } else if (Math.abs(dx) <= AXIS_TOLERANCE_MM) {
+      raw.push({
+        axis: "v",
+        fixed: (a.x + b.x) / 2,
+        start: Math.min(a.y, b.y),
+        end: Math.max(a.y, b.y),
+      });
+    } else {
+      return null;
+    }
+    xs.push(a.x, b.x);
+    ys.push(a.y, b.y);
+  }
+
+  const xClusters = clusterCoordinates(xs);
+  const yClusters = clusterCoordinates(ys);
+  const horizontal: AxisEdge[] = [];
+  const vertical: AxisEdge[] = [];
+
+  for (const edge of raw) {
+    if (edge.axis === "h") {
+      const start = snapToCluster(edge.start, xClusters);
+      const end = snapToCluster(edge.end, xClusters);
+      if (Math.abs(end - start) <= AXIS_TOLERANCE_MM) continue;
+      horizontal.push({
+        fixed: snapToCluster(edge.fixed, yClusters),
+        start: Math.min(start, end),
+        end: Math.max(start, end),
+      });
+    } else {
+      const start = snapToCluster(edge.start, yClusters);
+      const end = snapToCluster(edge.end, yClusters);
+      if (Math.abs(end - start) <= AXIS_TOLERANCE_MM) continue;
+      vertical.push({
+        fixed: snapToCluster(edge.fixed, xClusters),
+        start: Math.min(start, end),
+        end: Math.max(start, end),
+      });
+    }
+  }
+
+  return { horizontal, vertical, xs: xClusters, ys: yClusters };
+}
+
+function interiorIntervals(edges: AxisEdge[], sample: number): Array<[number, number]> {
+  const crossings = edges
+    .filter((edge) => edge.start < sample && sample < edge.end)
+    .map((edge) => edge.fixed)
+    .sort((a, b) => a - b);
+  const intervals: Array<[number, number]> = [];
+  for (let i = 0; i + 1 < crossings.length; i += 2) {
+    if (crossings[i + 1] - crossings[i] > AXIS_TOLERANCE_MM) {
+      intervals.push([crossings[i], crossings[i + 1]]);
+    }
+  }
+  return intervals;
+}
+
+function mergeMeasuredSpans(raw: MeasuredSpan[]): MeasuredSpan[] {
+  const sorted = [...raw].sort(
+    (a, b) => a.measure0 - b.measure0 || a.measure1 - b.measure1 || a.band0 - b.band0,
+  );
+  const merged: MeasuredSpan[] = [];
+  for (const span of sorted) {
+    const last = merged[merged.length - 1];
+    if (
+      last &&
+      Math.abs(last.measure0 - span.measure0) <= AXIS_TOLERANCE_MM &&
+      Math.abs(last.measure1 - span.measure1) <= AXIS_TOLERANCE_MM &&
+      span.band0 <= last.band1 + AXIS_TOLERANCE_MM
+    ) {
+      last.band1 = Math.max(last.band1, span.band1);
+    } else {
+      merged.push({ ...span });
+    }
+  }
+  return merged;
+}
+
+/** Measure interior distances across `boundaries`, one span per open bay. */
+function spansAcross(boundaries: AxisEdge[], bands: number[]): MeasuredSpan[] {
+  const raw: MeasuredSpan[] = [];
+  for (let i = 0; i + 1 < bands.length; i++) {
+    const band0 = bands[i];
+    const band1 = bands[i + 1];
+    if (band1 - band0 <= AXIS_TOLERANCE_MM) continue;
+    const sample = (band0 + band1) / 2;
+    for (const [measure0, measure1] of interiorIntervals(boundaries, sample)) {
+      if (measure1 - measure0 < MIN_SPAN_MM) continue;
+      raw.push({ measure0, measure1, band0, band1 });
+    }
+  }
+  return mergeMeasuredSpans(raw);
+}
+
+function bandInset(span: number): number {
+  const preferred = Math.min(360, Math.max(180, span * 0.18));
+  return Math.min(preferred, Math.max(0, span / 2 - 20));
+}
+
+function lineOnBand(band0: number, band1: number, avoid: number): number {
+  const margin = bandInset(band1 - band0);
+  const low = band0 + margin;
+  const high = band1 - margin;
+  if (high <= low + AXIS_TOLERANCE_MM) return (band0 + band1) / 2;
+  return Math.abs(low - avoid) >= Math.abs(high - avoid) ? low : high;
+}
+
+function spanToAnnotation(
+  span: MeasuredSpan,
+  orientation: "horizontal" | "vertical",
+  id: string,
+  avoid: number,
+): DimensionAnnotation {
+  const valueMm = Math.round(span.measure1 - span.measure0);
+  const line = lineOnBand(span.band0, span.band1, avoid);
+  if (orientation === "horizontal") {
+    const midX = (span.measure0 + span.measure1) / 2;
+    return {
+      id,
+      label: `${valueMm}`,
+      valueMm,
+      start: { x: span.measure0, y: line },
+      end: { x: span.measure1, y: line },
+      offset: { x: 0, y: 0 },
+      textPoint: { x: midX, y: line },
+      orientation,
+    };
+  }
+  const midY = (span.measure0 + span.measure1) / 2;
+  return {
+    id,
+    label: `${valueMm}`,
+    valueMm,
+    start: { x: line, y: span.measure0 },
+    end: { x: line, y: span.measure1 },
+    offset: { x: 0, y: 0 },
+    textPoint: { x: line, y: midY },
+    orientation,
+  };
+}
+
+/**
+ * Dimension each open bay inside a room: the distance between opposing wall centerlines.
+ * Distances follow wall centerlines, matching the plan's outer dimensions.
+ * An L or U room gets one label per bay, not one label per wall segment.
+ * Diagonal rooms return no spans.
+ */
+export function computeRoomSpanDimensions(points: Point[], idPrefix: string): DimensionAnnotation[] {
+  if (points.length < 3) return [];
+  const axes = orthogonalEdges(points);
+  if (!axes) return [];
+
+  const centroid = computePolygonCentroid(points);
+  const widths = spansAcross(axes.vertical, axes.ys);
+  const heights = spansAcross(axes.horizontal, axes.xs);
+
+  return [
+    ...widths.map((span, index) =>
+      spanToAnnotation(span, "horizontal", `${idPrefix}-h-${index}`, centroid.y),
+    ),
+    ...heights.map((span, index) =>
+      spanToAnnotation(span, "vertical", `${idPrefix}-v-${index}`, centroid.x),
+    ),
+  ];
+}

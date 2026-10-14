@@ -64,6 +64,33 @@ describe("FloorPlanSvgViewer (AC-3 & AC-4)", () => {
     expect(screen.getByTestId("floor-plan-dimensions-layer")).toBeInTheDocument();
     expect(screen.getByTestId("floor-plan-dimension-dim-total-width")).toBeInTheDocument();
     expect(screen.getByTestId("floor-plan-dimension-dim-total-height")).toBeInTheDocument();
+    expect(screen.queryByTestId("floor-plan-dimension-room-r1-h-0")).not.toBeInTheDocument();
+  });
+
+  it("shows room length and width only after the canvas toggle is turned on", () => {
+    const onSelect = vi.fn();
+    render(
+      <FloorPlanSvgViewer
+        plan={VALID_STANDARD_FLOOR_PLAN}
+        selectedEntity={null}
+        onSelect={onSelect}
+      />,
+    );
+
+    const toggle = screen.getByRole("button", { name: "Show room dimensions" });
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    expect(screen.queryByTestId("floor-plan-dimension-room-r1-h-0")).not.toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByTestId("floor-plan-dimension-room-r1-h-0")).toHaveTextContent("3000");
+    expect(screen.getByTestId("floor-plan-dimension-room-r1-v-0")).toHaveTextContent("5000");
+    expect(screen.getByTestId("floor-plan-dimension-room-r2-h-0")).toHaveTextContent("3000");
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    expect(screen.queryByTestId("floor-plan-dimension-room-r1-h-0")).not.toBeInTheDocument();
+    expect(screen.getByTestId("floor-plan-dimension-dim-total-width")).toBeInTheDocument();
   });
 
   it("provides zoom in, zoom out, and fit to view controls (AC-4)", () => {

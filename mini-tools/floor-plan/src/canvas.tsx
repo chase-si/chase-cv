@@ -1,14 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { Maximize2, Minus, Plus } from "lucide-react";
+import { Maximize2, Minus, Plus, Ruler } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SvgFurniture } from "@/components/floor-plan/svg/svg-furniture";
 import { SvgOpening } from "@/components/floor-plan/svg/svg-opening";
 import { SvgWall } from "@/components/floor-plan/svg/svg-wall";
 import { PlanDimension } from "./dimension";
-import { computePlanFitBounds, computePrincipalDimensions, computeRoomPolygon, computePolygonArea, computePolygonCentroid, getVertexMap, getWallMap, type Point } from "@/lib/floor-plan/geometry";
+import { computePlanFitBounds, computePrincipalDimensions, computeRoomPolygon, computeRoomSpanDimensions, computePolygonArea, computePolygonCentroid, getVertexMap, getWallMap, type Point } from "@/lib/floor-plan/geometry";
 import { computePlacementClearanceZones } from "@/lib/floor-plan/space-assessment";
 import { floorPlanToPlacementScenario } from "@/lib/floor-plan/placement-scenario";
 import { calculateFitToView, zoomByFactor, type ViewTransform } from "@/lib/floor-plan/view-transform";
@@ -38,6 +38,7 @@ export function PlanCanvas({ plan, selected, roomId, panMode, showClearance, pro
 }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [view, setView] = React.useState<ViewTransform>({ scale: 0.04, panX: 0, panY: 0 });
+  const [showRoomSpans, setShowRoomSpans] = React.useState(false);
   const viewRef = React.useRef(view);
   const fitScale = React.useRef(0.04);
   const [baselineScale, setBaselineScale] = React.useState(0.04);
@@ -179,6 +180,7 @@ export function PlanCanvas({ plan, selected, roomId, panMode, showClearance, pro
         {plan.openings.map((opening) => <SvgOpening key={opening.id} opening={opening} wall={wallMap.get(opening.wallId)!} vertexMap={vertexMap} selectedEntity={selected} onSelect={noop} />)}
         {renderedPlan.furniture.map((furniture) => <SvgFurniture key={furniture.id} furniture={furniture} selectedEntity={selected} hasViolation={problemIds.has(furniture.id)}
           onSelect={noop} locale="zh" />)}
+        {showRoomSpans && plan.rooms.flatMap((room) => computeRoomSpanDimensions(computeRoomPolygon(room, wallMap, vertexMap), `room-${room.id}`)).map((dimension) => <PlanDimension key={dimension.id} dimension={dimension} scale={view.scale} />)}
         {computePrincipalDimensions(plan).map((dimension) => <PlanDimension key={dimension.id} dimension={dimension} scale={view.scale} />)}
       </g>
     </svg>
@@ -187,6 +189,7 @@ export function PlanCanvas({ plan, selected, roomId, panMode, showClearance, pro
       <span className="rounded-lg border border-border bg-background/90 px-2 py-1 text-[11px] text-muted-foreground">{Math.round(view.scale / baselineScale * 100)}%</span>
     </div>
     <div className="absolute bottom-3 right-3 flex gap-2">
+      <Button variant={showRoomSpans ? "default" : "outline"} className={showRoomSpans ? "size-11" : "size-11 bg-background"} aria-pressed={showRoomSpans} aria-label={i18n.t.svgViewer.showRoomSpans} title={i18n.t.svgViewer.showRoomSpans} onClick={() => setShowRoomSpans((visible) => !visible)}><Ruler /></Button>
       <Button variant="outline" className="size-11 bg-background" aria-label="缩小画布" onClick={() => zoom(1 / 1.3)}><Minus /></Button>
       <Button variant="outline" className="size-11 bg-background" aria-label="放大画布" onClick={() => zoom(1.3)}><Plus /></Button>
       <Button variant="outline" className="size-11 bg-background" aria-label="适应画布" onClick={fit}><Maximize2 /></Button>

@@ -1,0 +1,111 @@
+import { expect, test } from "@playwright/test";
+
+test.use({ channel: "chrome", baseURL: `http://localhost:${process.env.PORT ?? 4100}` });
+
+test("mobile keeps the canvas available through placement, gestures, properties, checks and image export", async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/zh/floor-plan");
+  await expect(page.getByTestId("floor-plan-mobile-workspace")).toBeVisible();
+  await expect(page.getByTestId("desktop-context-pane")).toHaveCount(0);
+  await page.getByTestId("floor-plan-room-r1").tap();
+  await expect(page.getByTestId("mobile-bottom-sheet")).toHaveCount(0);
+  await page.getByTestId("mobile-add-furniture-btn").tap();
+  await page.getByTestId("add-furniture-item-bed-single").tap();
+  await expect(page.getByTestId("mobile-bottom-sheet")).toHaveCount(0);
+  const furniture = page.locator('[data-entity-type="furniture"][data-selected="true"]');
+  await expect(furniture).toBeVisible();
+  const id = await furniture.getAttribute("data-entity-id");
+  const selected = page.locator(`[data-entity-type="furniture"][data-entity-id="${id}"]`);
+  const cdp = await context.newCDPSession(page);
+  const center = await selected.evaluate((el) => {
+    const matrix = (el as SVGGraphicsElement).getScreenCTM()!;
+    return { x: matrix.e, y: matrix.f };
+  });
+  const beforeMove = await selected.getAttribute("transform");
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ ...center, id: 1 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: center.x + 24, y: center.y + 20, id: 1 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect(selected).not.toHaveAttribute("transform", beforeMove!);
+  await expect(page.getByTestId("mobile-bottom-sheet")).toHaveCount(0);
+  const afterMove = await selected.getAttribute("transform");
+  const cancelCenter = await selected.evaluate((el) => {
+    const matrix = (el as SVGGraphicsElement).getScreenCTM()!;
+    return { x: matrix.e, y: matrix.f };
+  });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ ...cancelCenter, id: 1 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: cancelCenter.x - 20, y: cancelCenter.y, id: 1 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+  await expect(selected).toHaveAttribute("transform", afterMove!);
+  const viewport = await page.getByTestId("floor-plan-svg-canvas").boundingBox();
+  const x = viewport!.x + viewport!.width / 2, y = viewport!.y + viewport!.height / 2;
+  const beforePinch = await page.getByTestId("floor-plan-world").getAttribute("transform");
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: x - 35, y, id: 1 }, { x: x + 35, y, id: 2 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x - 65, y, id: 1 }, { x: x + 65, y, id: 2 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect(page.getByTestId("floor-plan-world")).not.toHaveAttribute("transform", beforePinch!);
+  await expect(selected).toHaveAttribute("transform", afterMove!);
+  await page.getByRole("button", { name: "适屏居中", exact: true }).click();
+  await selected.tap();
+  await page.getByTestId("mobile-open-properties-btn").tap();
+  await expect(page.getByTestId("inspector-furniture-details")).toBeVisible();
+  await page.getByTestId("nudge-furniture-right").tap();
+  await page.getByTestId("rotate-furniture-btn").tap();
+  await page.getByTestId("mobile-bottom-sheet-close").tap();
+  await expect(page.getByTestId("mobile-open-properties-btn")).toBeVisible();
+  await page.getByTestId("mobile-rules-btn").tap();
+  await expect(page.getByTestId("rule-feedback-panel")).toBeVisible();
+  await expect(page.getByTestId("inspector-furniture-details")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await page.getByTestId("export-plan-image-btn").tap();
+  const image = page.getByRole("img", { name: "当前户型家具布局图" });
+  await expect(image).toBeVisible();
+  expect(await image.evaluate((el) => (el as HTMLImageElement).naturalWidth)).toBe(1400);
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "保存 PNG 图片" }).tap();
+  expect((await download).suggestedFilename()).toMatch(/布局图\.png$/);
+  await page.keyboard.press("Escape");
+
+  for (const [width, height] of [[320, 568], [844, 390], [768, 1024]]) {
+    await page.setViewportSize({ width, height });
+    await expect.poll(() => page.getByTestId("floor-plan-svg-canvas").evaluate((el) => el.clientHeight)).toBeGreaterThan(90);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
+    const navigation = await page.getByRole("navigation", { name: "户型工具操作" }).boundingBox();
+    expect(navigation!.y + navigation!.height).toBeLessThanOrEqual(height + 1);
+    await page.screenshot({ path: `test-results/floor-plan-web-${width}x${height}.png`, animations: "disabled" });
+  }
+  expect(errors).toEqual([]);
+  await context.close();
+});
+
+test("desktop keeps a large canvas and provides selected properties, assessment and image export", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/zh/floor-plan");
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await expect(page.getByTestId("desktop-context-pane")).toBeVisible();
+  await page.getByTestId("room-item-r1").click();
+  const addButton = page.getByTestId("add-context-furniture-sofa-2seat");
+  await addButton.scrollIntoViewIfNeeded(); await addButton.click();
+  await page.getByTestId("inspector-furniture-details").scrollIntoViewIfNeeded();
+  await expect(page.getByTestId("inspector-furniture-details")).toBeVisible();
+  const selected = page.locator('[data-entity-type="furniture"][data-selected="true"]');
+  const before = await selected.getAttribute("transform");
+  await page.getByTestId("rotate-furniture-btn").click();
+  await expect(selected).not.toHaveAttribute("transform", before!);
+  await page.getByTestId("desktop-assessment-btn").click();
+  await expect(page.getByTestId("mobile-bottom-sheet")).toBeVisible();
+  await expect(page.getByTestId("mobile-bottom-sheet").getByTestId("furniture-decision-panel")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByTestId("export-plan-image-btn").click();
+  await expect(page.getByRole("img", { name: "当前户型家具布局图" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
+  const canvas = await page.getByTestId("floor-plan-svg-canvas").boundingBox();
+  expect(canvas!.width).toBeGreaterThan(700);
+  await page.screenshot({ path: "test-results/floor-plan-web-desktop-updated.png", animations: "disabled" });
+  expect(errors).toEqual([]);
+});

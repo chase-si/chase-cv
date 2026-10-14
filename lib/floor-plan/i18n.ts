@@ -189,6 +189,8 @@ export interface FloorPlanDictionary {
     fitView: string;
     reset: string;
     unscaledNotice: string;
+    roomSpans: string;
+    showRoomSpans: string;
   };
   mobileSheet: {
     roomProperties: string;
@@ -496,6 +498,8 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
     fitView: "适屏居中",
     reset: "重置缩放",
     unscaledNotice: "未标定真实比例（显示相对像素坐标）",
+    roomSpans: "长宽",
+    showRoomSpans: "显示房间长宽",
   },
   mobileSheet: {
     roomProperties: "房间属性",
@@ -803,6 +807,8 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
     fitView: "Fit to view",
     reset: "Reset zoom",
     unscaledNotice: "Uncalibrated geometry (relative pixel scale)",
+    roomSpans: "Size",
+    showRoomSpans: "Show room dimensions",
   },
   mobileSheet: {
     roomProperties: "Room Properties",
