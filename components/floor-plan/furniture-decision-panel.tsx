@@ -524,7 +524,7 @@ export function FurnitureDecisionPanel({
                           className="rounded border border-border/60 bg-background/80 p-1"
                         >
                           <span className="text-muted-foreground block">
-                            {isZh ? "最低 / 推荐标准" : "Min / Recommended"}
+                            {isZh ? "最低 / 推荐" : "Min / Recommended"}
                           </span>
                           <span className="font-mono font-semibold text-foreground">
                             {issue.recommendedFormatted}

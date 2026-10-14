@@ -383,7 +383,7 @@ describe("Furniture Decision Summary (US-13, US-14, US-17, US-20, AC-14, AC-15, 
         "zh",
       );
       expect(clearanceMin.relatedObjectName).toContain("三人位沙发 (f1)");
-      expect(clearanceMin.sideLabel).toContain("前侧");
+      expect(clearanceMin.sideLabel).toBe("前方");
       expect(clearanceMin.measuredFormatted).toBe("380 mm");
       expect(clearanceMin.minimumFormatted).toBe("600 mm");
       expect(clearanceMin.recommendedFormatted).toBe("最低 600 mm / 推荐 900 mm");

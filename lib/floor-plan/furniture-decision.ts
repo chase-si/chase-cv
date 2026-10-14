@@ -80,9 +80,9 @@ export function formatAssessmentFinding(
     if (boundingRooms.length > 0) {
       const roomNames = boundingRooms
         .map((r) => r.name ?? i18n.getRoomTypeLabel(r.type))
-        .join("/");
+        .join(isZh ? "、" : "/");
       relatedObjectName = isZh
-        ? `${roomNames}墙体 (${finding.wallId})`
+        ? `${roomNames}的墙体 (${finding.wallId})`
         : `${roomNames} Wall (${finding.wallId})`;
     } else {
       relatedObjectName = isZh
@@ -101,19 +101,19 @@ export function formatAssessmentFinding(
   if (finding.side) {
     switch (finding.side) {
       case "front":
-        sideLabel = isZh ? "前侧 · 前方 (front)" : "Front (front)";
+        sideLabel = isZh ? "前方" : "Front (front)";
         oppositeDir = isZh ? "后侧" : "back";
         break;
       case "back":
-        sideLabel = isZh ? "后侧 · 后方 (back)" : "Back (back)";
+        sideLabel = isZh ? "后方" : "Back (back)";
         oppositeDir = isZh ? "前侧" : "front";
         break;
       case "left":
-        sideLabel = isZh ? "左侧 (left)" : "Left (left)";
+        sideLabel = isZh ? "左侧" : "Left (left)";
         oppositeDir = isZh ? "右侧" : "right";
         break;
       case "right":
-        sideLabel = isZh ? "右侧 (right)" : "Right (right)";
+        sideLabel = isZh ? "右侧" : "Right (right)";
         oppositeDir = isZh ? "左侧" : "left";
         break;
     }
@@ -142,28 +142,28 @@ export function formatAssessmentFinding(
     title = isZh ? "家具重叠冲突" : "Furniture Overlap";
     const shiftMm = Math.max(1, measuredMm);
     message = isZh
-      ? `目标家具与${relatedObjectName}重叠 (实测穿插 ${measuredMm} mm)`
+      ? `目标家具与${relatedObjectName}重叠，实测穿插 ${measuredMm} mm`
       : `Overlaps with ${relatedObjectName} (measured ${measuredMm} mm)`;
     repairGuidance = isZh
-      ? `建议向远离${relatedObjectName}方向移动至少 ${shiftMm} mm，或旋转 90° / 切换更小预设规格。`
+      ? `建议朝远离${relatedObjectName}的方向移动至少 ${shiftMm} mm，或旋转 90°，或改用更小规格。`
       : `Move at least ${shiftMm} mm away from ${relatedObjectName}, rotate 90°, or switch to a smaller preset specification.`;
   } else if (finding.kind === "wall-overlap") {
     title = isZh ? "家具穿墙冲突" : "Wall Collision";
     const shiftMm = Math.max(1, measuredMm);
     message = isZh
-      ? `目标家具穿插${relatedObjectName} (实测穿插 ${measuredMm} mm)`
+      ? `目标家具与${relatedObjectName}发生穿插，穿入深度 ${measuredMm} mm`
       : `Collides with ${relatedObjectName} (measured ${measuredMm} mm)`;
     repairGuidance = isZh
-      ? `建议向房间内侧移开至少 ${shiftMm} mm 以脱离${relatedObjectName}，或切换更小预设规格。`
+      ? `建议向房间内侧移动至少 ${shiftMm} mm，使家具脱离${relatedObjectName}，或改用更小规格。`
       : `Move at least ${shiftMm} mm inward away from ${relatedObjectName}, or switch to a smaller preset specification.`;
   } else if (finding.kind === "outside-room") {
     title = isZh ? "超出房间边界" : "Outside Room Boundary";
     const shiftMm = Math.max(1, measuredMm);
     message = isZh
-      ? `目标家具超出${relatedObjectName} (距边界 ${measuredMm} mm)`
+      ? `目标家具超出${relatedObjectName}，超出距离 ${measuredMm} mm`
       : `Placement extends outside ${relatedObjectName} (measured ${measuredMm} mm)`;
     repairGuidance = isZh
-      ? `建议向房间内部移动至少 ${shiftMm} mm 使其完全处于${relatedObjectName}内，或切换更小预设规格。`
+      ? `建议向房间内部移动至少 ${shiftMm} mm，使家具完全落在${relatedObjectName}内，或改用更小规格。`
       : `Move at least ${shiftMm} mm inward to stay within ${relatedObjectName}, or switch to a smaller preset specification.`;
   } else if (finding.kind === "below-minimum-clearance") {
     title = isZh ? "方向净距低于最低要求" : "Below Minimum Clearance";
@@ -172,12 +172,12 @@ export function formatAssessmentFinding(
     recommendedFormatted = clearanceRangeFormatted;
     const deficitMin = Math.max(1, minimumMm - measuredMm);
     const deficitRec = Math.max(deficitMin, recommendedMm - measuredMm);
-    const dirText = sideLabel ?? (isZh ? "方向" : "Side");
+    const dirText = sideLabel ?? (isZh ? "该侧" : "Side");
     message = isZh
-      ? `${dirText}距${relatedObjectName}实测净距 ${measuredMm} mm，低于最低要求 ${minimumMm} mm（推荐 ${recommendedMm} mm）`
+      ? `${dirText}与${relatedObjectName}的实测净距为 ${measuredMm} mm，低于最低要求 ${minimumMm} mm，推荐值为 ${recommendedMm} mm`
       : `${dirText} clearance to ${relatedObjectName} is ${measuredMm} mm, below minimum ${minimumMm} mm (recommended ${recommendedMm} mm)`;
     repairGuidance = isZh
-      ? `建议向${oppositeDir}移动至少 ${deficitMin} mm 以满足最低净距（移动 ${deficitRec} mm 可达推荐净距），或切换更小预设规格。`
+      ? `建议向${oppositeDir}移动至少 ${deficitMin} mm，以达到最低净距；移动 ${deficitRec} mm 可达到推荐净距。也可以改用更小规格。`
       : `Move at least ${deficitMin} mm toward the ${oppositeDir} to meet minimum clearance (${deficitRec} mm for recommended clearance), or switch to a smaller preset specification.`;
   } else if (finding.kind === "below-recommended-clearance") {
     title = isZh ? "方向净距低于推荐值" : "Below Recommended Clearance";
@@ -185,12 +185,12 @@ export function formatAssessmentFinding(
     recommendedVal = recommendedMm;
     recommendedFormatted = clearanceRangeFormatted;
     const deficitRec = Math.max(1, recommendedMm - measuredMm);
-    const dirText = sideLabel ?? (isZh ? "方向" : "Side");
+    const dirText = sideLabel ?? (isZh ? "该侧" : "Side");
     message = isZh
-      ? `${dirText}距${relatedObjectName}实测净距 ${measuredMm} mm，已达最低要求 ${minimumMm} mm，但低于推荐值 ${recommendedMm} mm`
+      ? `${dirText}与${relatedObjectName}的实测净距为 ${measuredMm} mm，已达到最低要求 ${minimumMm} mm，但低于推荐值 ${recommendedMm} mm`
       : `${dirText} clearance to ${relatedObjectName} is ${measuredMm} mm (meets minimum ${minimumMm} mm, below recommended ${recommendedMm} mm)`;
     repairGuidance = isZh
-      ? `当前已达最低通行净距；建议向${oppositeDir}移动至少 ${deficitRec} mm 以达推荐净距，或切换更小预设规格。`
+      ? `当前已达到最低净距。建议向${oppositeDir}再移动至少 ${deficitRec} mm，以达到推荐净距，或改用更小规格。`
       : `Minimum clearance is met; move at least ${deficitRec} mm toward the ${oppositeDir} to reach recommended clearance, or switch to a smaller preset specification.`;
   }
 
