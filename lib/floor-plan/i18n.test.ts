@@ -90,6 +90,19 @@ describe("Floor Plan i18n module", () => {
           'Layout guidance: Local passage width between "f1" (sofa-3seat) and "f2" (bookcase) is 400 mm (recommended at least 600 mm for secondary passage).',
       }),
     ).toBe("布局建议：三人位沙发与书架书柜之间的局部通道宽度为 400 mm，次要通道建议至少 600 mm。");
+    expect(
+      zh.getRuleMessage({
+        ruleId: "local-passage",
+        severity: "warning",
+        relatedEntityIds: ["door1", "f1"],
+        relatedObjectIds: ["door1", "f1"],
+        measuredValue: 100,
+        recommendedValue: "600 mm",
+        title: "Door Passage Clearance",
+        message:
+          'Layout guidance: Door passage in front of "door1" is blocked by furniture "f1" (desk). Clear distance is 100 mm (recommended at least 600 mm for secondary passage).',
+      }),
+    ).toBe("布局建议：门“door1”前的通行路线被书桌工作台占用，当前净距 100 mm，建议至少 600 mm。");
 
     // Workflow stages translation
     expect(zh.t.workflow.steps.plan).toBe("户型");

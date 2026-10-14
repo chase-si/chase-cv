@@ -1155,6 +1155,9 @@ function zhRuleMessage(rule: RuleResult): string {
     }
     case "local-passage":
     case "passage-clearance": {
+      if (/door passage/i.test(rule.message)) {
+        return `布局建议：门“${entities[0]?.id ?? "门洞"}”前的通行路线被${zhFurnitureLabel(entities[1])}占用${measuredMm ? `，当前净距 ${measuredMm}` : ""}${recommended ? `，建议至少 ${recommended}` : ""}。`;
+      }
       const other = / and wall /i.test(rule.message)
         ? `墙体“${entities[1]?.id ?? "墙体"}”`
         : zhFurnitureLabel(entities[1]);

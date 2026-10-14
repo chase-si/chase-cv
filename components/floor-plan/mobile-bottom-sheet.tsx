@@ -43,8 +43,13 @@ export function MobileBottomSheet({
         if (!desktop) panel.style.bottom = `${Math.max(0, window.innerHeight - (viewport?.height ?? window.innerHeight) - (viewport?.offsetTop ?? 0))}px`;
       }
     };
-    resize(); viewport?.addEventListener("resize", resize);
-    return () => viewport?.removeEventListener("resize", resize);
+    resize();
+    viewport?.addEventListener("resize", resize);
+    viewport?.addEventListener("scroll", resize);
+    return () => {
+      viewport?.removeEventListener("resize", resize);
+      viewport?.removeEventListener("scroll", resize);
+    };
   }, [open, desktop]);
   return (
     <Dialog.Root open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
@@ -61,18 +66,18 @@ export function MobileBottomSheet({
         render={<Card />}
         data-testid={testId}
         className={cn(
-          "fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[min(78dvh,var(--floor-plan-panel-height,78dvh))] w-full max-w-2xl flex-col gap-0 rounded-b-none border-border bg-card p-0 outline-none",
-          desktop ? "lg:inset-y-auto lg:bottom-1/2 lg:translate-y-1/2 lg:rounded-b-2xl" : "lg:hidden",
+          "fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[min(78dvh,var(--floor-plan-panel-height,78dvh))] max-h-[min(78dvh,var(--floor-plan-panel-height,78dvh))] w-full max-w-2xl flex-col gap-0 rounded-b-none border-border bg-card p-0 outline-none",
+          desktop ? "lg:h-auto lg:inset-y-auto lg:bottom-1/2 lg:translate-y-1/2 lg:rounded-b-2xl" : "lg:hidden",
           className,
         )}
       >
         {/* Drag handle */}
-        <div className="flex w-full items-center justify-center pt-2.5 pb-1">
+        <div className="flex w-full shrink-0 items-center justify-center pt-2.5 pb-1">
           <div className="h-1.5 w-12 rounded-full bg-muted-foreground/30" />
         </div>
 
         {/* Sheet Header */}
-        <div className="flex items-center justify-between border-b border-border/80 px-4 py-2">
+        <div className="flex shrink-0 items-center justify-between border-b border-border/80 px-4 py-2">
           <div className="min-w-0 flex-1 pr-2">
             <div className="flex items-center gap-2">
               <Dialog.Title className="truncate text-base font-semibold text-foreground">
@@ -101,7 +106,7 @@ export function MobileBottomSheet({
         </div>
 
         {/* Sheet Scrollable Body */}
-        <CardScrollArea className="min-h-0 flex-1 px-4 py-3 pb-[max(1rem,var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))]">
+        <CardScrollArea className="min-h-0 flex-1 touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch] px-4 py-3 pb-[max(1rem,var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))]">
           {children}
         </CardScrollArea>
       </Dialog.Popup>

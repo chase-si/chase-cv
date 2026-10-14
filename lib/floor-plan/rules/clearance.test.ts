@@ -335,35 +335,79 @@ describe("Clearance and Guidance Rules (US-13, AC-13)", () => {
       expect(evaluateOpeningClearanceRules(plan)).toHaveLength(0);
     });
 
-    it("reserves only the non-living side of a door between the living room and another room", () => {
+    it("keeps a deep swing zone in the bedroom and a shallow passage zone in the living room", () => {
       const plan = createAdjacentPlan("living_room", "bedroom");
       // Partition center x = 4000. Bedroom inner face is x = 4100.
       placeBesidePartition(plan, "f_bedroom", 4600);
-      const bedroomViolations = evaluateOpeningClearanceRules(plan);
+      const bedroomViolations = evaluateOpeningClearanceRules(plan, VALID_SPACE_RULE_CONFIG);
       expect(bedroomViolations).toHaveLength(1);
+      expect(bedroomViolations[0].ruleId).toBe("opening-keep-clear");
+      expect(bedroomViolations[0].severity).toBe("error");
       expect(bedroomViolations[0].measuredValue).toBe(100);
+      expect(bedroomViolations[0].recommendedValue).toBe("900 mm");
 
-      // Living-room side is not the swing side, even when furniture is 100 mm from the door.
+      // Living-room approach is 100 mm clear, inside the 600 mm passage zone.
       placeBesidePartition(plan, "f_living", 3400);
-      expect(evaluateOpeningClearanceRules(plan)).toHaveLength(0);
+      const livingViolations = evaluateOpeningClearanceRules(plan, VALID_SPACE_RULE_CONFIG);
+      expect(livingViolations).toHaveLength(1);
+      expect(livingViolations[0].ruleId).toBe("local-passage");
+      expect(livingViolations[0].severity).toBe("warning");
+      expect(livingViolations[0].measuredValue).toBe(100);
+      expect(livingViolations[0].recommendedValue).toBe("600 mm");
+      expect(livingViolations[0].message).toMatch(/door passage/i);
+
+      // 700 mm clear of the living-room face, beyond the 600 mm passage zone.
+      placeBesidePartition(plan, "f_clear", 2800);
+      expect(evaluateOpeningClearanceRules(plan, VALID_SPACE_RULE_CONFIG)).toHaveLength(0);
     });
 
-    it("does not reserve space for a balcony door", () => {
+    it("reserves only the indoor passage of a balcony door", () => {
       const plan = createAdjacentPlan("living_room", "balcony");
       placeBesidePartition(plan, "f_living", 3400);
-      expect(evaluateOpeningClearanceRules(plan)).toHaveLength(0);
+      const indoor = evaluateOpeningClearanceRules(plan, VALID_SPACE_RULE_CONFIG);
+      expect(indoor).toHaveLength(1);
+      expect(indoor[0].ruleId).toBe("local-passage");
+      expect(indoor[0].severity).toBe("warning");
+      expect(indoor[0].measuredValue).toBe(100);
 
       placeBesidePartition(plan, "f_balcony", 4600);
-      expect(evaluateOpeningClearanceRules(plan)).toHaveLength(0);
+      expect(evaluateOpeningClearanceRules(plan, VALID_SPACE_RULE_CONFIG)).toHaveLength(0);
     });
 
-    it("reserves the bathroom side of a door between a bedroom and a bathroom", () => {
+    it("reserves the bathroom swing side and the bedroom passage side", () => {
       const plan = createAdjacentPlan("bedroom", "bathroom");
       placeBesidePartition(plan, "f_bathroom", 4600);
-      expect(evaluateOpeningClearanceRules(plan)).toHaveLength(1);
+      const bathroom = evaluateOpeningClearanceRules(plan, VALID_SPACE_RULE_CONFIG);
+      expect(bathroom).toHaveLength(1);
+      expect(bathroom[0].ruleId).toBe("opening-keep-clear");
 
       placeBesidePartition(plan, "f_bedroom", 3400);
-      expect(evaluateOpeningClearanceRules(plan)).toHaveLength(0);
+      const bedroom = evaluateOpeningClearanceRules(plan, VALID_SPACE_RULE_CONFIG);
+      expect(bedroom).toHaveLength(1);
+      expect(bedroom[0].ruleId).toBe("local-passage");
+    });
+
+    it("keeps passage checks when door swing is disabled, and swing checks when circulation is disabled", () => {
+      const plan = createAdjacentPlan("living_room", "bedroom");
+      placeBesidePartition(plan, "f_living", 3400);
+      const swingOff = evaluateOpeningClearanceRules(plan, {
+        ...VALID_SPACE_RULE_CONFIG,
+        rules: {
+          ...VALID_SPACE_RULE_CONFIG.rules,
+          doorSwing: { ...VALID_SPACE_RULE_CONFIG.rules.doorSwing, enabled: false },
+        },
+      });
+      expect(swingOff.map((v) => v.ruleId)).toEqual(["local-passage"]);
+
+      placeBesidePartition(plan, "f_bedroom", 4600);
+      const passageOff = evaluateOpeningClearanceRules(plan, {
+        ...VALID_SPACE_RULE_CONFIG,
+        rules: {
+          ...VALID_SPACE_RULE_CONFIG.rules,
+          circulation: { ...VALID_SPACE_RULE_CONFIG.rules.circulation, enabled: false },
+        },
+      });
+      expect(passageOff.map((v) => v.ruleId)).toEqual(["opening-keep-clear"]);
     });
 
     it("reserves one inward side for every catalog door", () => {
@@ -390,28 +434,38 @@ describe("Clearance and Guidance Rules (US-13, AC-13)", () => {
           const label = `${plan.meta.id} ${opening.id} ${types.join("+")}`;
 
           expect(zone, label).not.toBeNull();
+          const geom = computeOpeningGeometry(opening, wall, vertexMap);
+          expect(geom, label).not.toBeNull();
+          const roomOnSide = (side: "a" | "b") => {
+            const sign = side === "a" ? 1 : -1;
+            const probe = {
+              x: geom!.center.x + geom!.normal.x * sign * 200,
+              y: geom!.center.y + geom!.normal.y * sign * 200,
+            };
+            return adjacent.find((rp) => isPointInPolygon(probe, rp.points));
+          };
+
           if (types.includes("balcony")) {
             expect(zone!.activeSides, label).toEqual([]);
+            expect(zone!.passageSides, label).toHaveLength(1);
+            expect(roomOnSide(zone!.passageSides[0])?.room.type, label).not.toBe("balcony");
             continue;
           }
 
           expect(zone!.activeSides, label).toHaveLength(1);
-          const side = zone!.activeSides[0];
-          const geom = computeOpeningGeometry(opening, wall, vertexMap);
-          expect(geom, label).not.toBeNull();
-          const sign = side === "a" ? 1 : -1;
-          const probe = {
-            x: geom!.center.x + geom!.normal.x * sign * 200,
-            y: geom!.center.y + geom!.normal.y * sign * 200,
-          };
-          const hit = adjacent.find((rp) => isPointInPolygon(probe, rp.points));
-          expect(hit, label).toBeTruthy();
+          const swingRoom = roomOnSide(zone!.activeSides[0]);
+          expect(swingRoom, label).toBeTruthy();
           if (types.length === 1) {
-            expect(hit!.room.type, label).toBe(types[0]);
+            expect(swingRoom!.room.type, label).toBe(types[0]);
+            expect(zone!.passageSides, label).toEqual([]);
           } else if (types.includes("living_room")) {
-            expect(hit!.room.type, label).not.toBe("living_room");
+            expect(swingRoom!.room.type, label).not.toBe("living_room");
+            expect(zone!.passageSides, label).toHaveLength(1);
+            expect(roomOnSide(zone!.passageSides[0])?.room.type, label).toBe("living_room");
           } else if (types.includes("bathroom") && types.includes("bedroom")) {
-            expect(hit!.room.type, label).toBe("bathroom");
+            expect(swingRoom!.room.type, label).toBe("bathroom");
+            expect(zone!.passageSides, label).toHaveLength(1);
+            expect(roomOnSide(zone!.passageSides[0])?.room.type, label).toBe("bedroom");
           }
         }
       }

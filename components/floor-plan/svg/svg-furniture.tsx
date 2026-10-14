@@ -341,15 +341,15 @@ export function SvgFurniture({
           className="pointer-events-none"
         >
           <circle
-            r="45"
+            r="64"
             fill="#ef4444"
             stroke="#ffffff"
             strokeWidth="8"
           />
           <path
-            d="M 0 -18 L 0 6 M 0 16 L 0 22"
+            d="M 0 -30 L 0 10 M 0 24 L 0 34"
             stroke="#ffffff"
-            strokeWidth="10"
+            strokeWidth="14"
             strokeLinecap="round"
           />
         </g>
@@ -367,18 +367,18 @@ export function SvgFurniture({
           }}
         >
           <circle
-            r="45"
+            r="64"
             fill="#2563eb"
             stroke="#ffffff"
-            strokeWidth="6"
+            strokeWidth="8"
             className="hover:scale-110 transition-transform"
           />
           {/* Circular arrow icon */}
           <path
-            d="M -15 -5 A 20 20 0 1 1 0 22 L 0 10 M 0 22 L -12 22"
+            d="M -24 -8 A 31 31 0 1 1 0 34 L 0 16 M 0 34 L -18 34"
             fill="none"
             stroke="#ffffff"
-            strokeWidth="7"
+            strokeWidth="10"
             strokeLinecap="round"
             strokeLinejoin="round"
           />

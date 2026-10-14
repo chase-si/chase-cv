@@ -27,19 +27,27 @@ import {
 import type { RuleResult } from "./types";
 
 /**
- * Geometric keep-clear rectangular zone for a door opening.
- * Doors swing inward, so only `activeSides` are reserved.
+ * Geometric keep-clear rectangles for a door opening.
+ * `activeSides` is the door-swing side. `passageSides` is the walking approach
+ * on the other interior side, drawn shallower than the swing.
  */
 export interface OpeningKeepClearZone {
   openingId: string;
   wallId: string;
   depth: number;
-  sideAPoints: Point[]; // +normal
-  sideBPoints: Point[]; // -normal
+  passageDepth: number;
+  sideAPoints: Point[]; // +normal, swing depth
+  sideBPoints: Point[]; // -normal, swing depth
   sideASurface: [Point, Point];
   sideBSurface: [Point, Point];
+  passageSideAPoints: Point[];
+  passageSideBPoints: Point[];
+  passageSideASurface: [Point, Point];
+  passageSideBSurface: [Point, Point];
   /** "a" is +normal, "b" is -normal. Empty when the door does not swing (balcony). */
   activeSides: Array<"a" | "b">;
+  /** Interior sides that are walked through but are not the swing side. */
+  passageSides: Array<"a" | "b">;
 }
 
 interface RoomPolygon {
@@ -154,8 +162,57 @@ export function resolveOpeningKeepClearSides(
 }
 
 /**
- * Compute the keep-clear rectangle on the inward swing side of a door (AC-13).
- * Pass `roomPolygons` so balcony and living-room doors reserve only the swing side.
+ * Walking approach on interior sides that are not the swing side.
+ * Balcony sides are omitted. An exterior side with no room is omitted.
+ */
+export function resolveOpeningPassageSides(
+  center: Point,
+  normal: Point,
+  wallId: string,
+  roomPolygons: RoomPolygon[],
+  swingSides: Array<"a" | "b">,
+): Array<"a" | "b"> {
+  const { sideA, sideB } = roomsBesideOpening(center, normal, wallId, roomPolygons);
+  const sides: Array<"a" | "b"> = [];
+
+  if (
+    sideA.length > 0 &&
+    !sideA.some((room) => room.type === "balcony") &&
+    !swingSides.includes("a")
+  ) {
+    sides.push("a");
+  }
+  if (
+    sideB.length > 0 &&
+    !sideB.some((room) => room.type === "balcony") &&
+    !swingSides.includes("b")
+  ) {
+    sides.push("b");
+  }
+
+  return sides;
+}
+
+function openingSideRectangle(
+  start: Point,
+  end: Point,
+  normal: Point,
+  halfT: number,
+  depth: number,
+  sign: 1 | -1,
+): { points: Point[]; surface: [Point, Point] } {
+  const near = sign * halfT;
+  const far = sign * (halfT + depth);
+  const p1: Point = { x: start.x + normal.x * near, y: start.y + normal.y * near };
+  const p2: Point = { x: end.x + normal.x * near, y: end.y + normal.y * near };
+  const p3: Point = { x: end.x + normal.x * far, y: end.y + normal.y * far };
+  const p4: Point = { x: start.x + normal.x * far, y: start.y + normal.y * far };
+  return { points: [p1, p2, p3, p4], surface: [p1, p2] };
+}
+
+/**
+ * Compute the swing rectangle and the shallower passage rectangle for a door (AC-13).
+ * Pass `roomPolygons` so each side is classified as swing, passage, or unused.
  */
 export function computeOpeningKeepClearZone(
   opening: Opening,
@@ -163,6 +220,7 @@ export function computeOpeningKeepClearZone(
   vertexMap: Map<string, Vertex>,
   depthMm = 900,
   roomPolygons?: RoomPolygon[],
+  passageDepthMm = 600,
 ): OpeningKeepClearZone | null {
   if (opening.type !== "door") {
     return null;
@@ -175,29 +233,30 @@ export function computeOpeningKeepClearZone(
   const activeSides = roomPolygons
     ? resolveOpeningKeepClearSides(center, normal, wall.id, roomPolygons)
     : (["a", "b"] as Array<"a" | "b">);
+  const passageSides = roomPolygons
+    ? resolveOpeningPassageSides(center, normal, wall.id, roomPolygons, activeSides)
+    : [];
   const halfT = wallThickness / 2;
-
-  // Side A (+normal)
-  const a1: Point = { x: start.x + normal.x * halfT, y: start.y + normal.y * halfT };
-  const a2: Point = { x: end.x + normal.x * halfT, y: end.y + normal.y * halfT };
-  const a3: Point = { x: end.x + normal.x * (halfT + depthMm), y: end.y + normal.y * (halfT + depthMm) };
-  const a4: Point = { x: start.x + normal.x * (halfT + depthMm), y: start.y + normal.y * (halfT + depthMm) };
-
-  // Side B (-normal)
-  const b1: Point = { x: start.x - normal.x * halfT, y: start.y - normal.y * halfT };
-  const b2: Point = { x: end.x - normal.x * halfT, y: end.y - normal.y * halfT };
-  const b3: Point = { x: end.x - normal.x * (halfT + depthMm), y: end.y - normal.y * (halfT + depthMm) };
-  const b4: Point = { x: start.x - normal.x * (halfT + depthMm), y: start.y - normal.y * (halfT + depthMm) };
+  const sideA = openingSideRectangle(start, end, normal, halfT, depthMm, 1);
+  const sideB = openingSideRectangle(start, end, normal, halfT, depthMm, -1);
+  const passageA = openingSideRectangle(start, end, normal, halfT, passageDepthMm, 1);
+  const passageB = openingSideRectangle(start, end, normal, halfT, passageDepthMm, -1);
 
   return {
     openingId: opening.id,
     wallId: wall.id,
     depth: depthMm,
-    sideAPoints: [a1, a2, a3, a4],
-    sideBPoints: [b1, b2, b3, b4],
-    sideASurface: [a1, a2],
-    sideBSurface: [b1, b2],
+    passageDepth: passageDepthMm,
+    sideAPoints: sideA.points,
+    sideBPoints: sideB.points,
+    sideASurface: sideA.surface,
+    sideBSurface: sideB.surface,
+    passageSideAPoints: passageA.points,
+    passageSideBPoints: passageB.points,
+    passageSideASurface: passageA.surface,
+    passageSideBSurface: passageB.surface,
     activeSides,
+    passageSides,
   };
 }
 
@@ -346,21 +405,51 @@ export function computeFurnitureClearanceZones(
  */
 const ENCROACHMENT_AREA_THRESHOLD_MM2 = 10;
 
+function encroachedClearDistance(
+  furniturePolygon: Point[],
+  sides: Array<"a" | "b">,
+  sideAPoints: Point[],
+  sideBPoints: Point[],
+  sideASurface: [Point, Point],
+  sideBSurface: [Point, Point],
+): number | null {
+  let minDist = Infinity;
+  let hit = false;
+
+  for (const side of sides) {
+    const polygon = side === "a" ? sideAPoints : sideBPoints;
+    const surface = side === "a" ? sideASurface : sideBSurface;
+    if (computeOverlapArea(furniturePolygon, polygon) <= ENCROACHMENT_AREA_THRESHOLD_MM2) {
+      continue;
+    }
+    hit = true;
+    const distance = polygonToSegmentDistance(furniturePolygon, surface[0], surface[1]);
+    if (distance < minDist) minDist = distance;
+  }
+
+  if (!hit) return null;
+  return Math.round(minDist === Infinity ? 0 : minDist);
+}
+
 /**
- * Evaluate inward opening keep-clear zone violations (AC-13).
- * Only the swing side is checked: into the living room for an entry door,
- * into the private room for a door off the living room, and not at all for a balcony door.
+ * Evaluate door swing clearance and the shallower walking approach (AC-13).
+ * Swing stays on the inward leaf side. Passage covers the other interior side,
+ * including the indoor side of a balcony sliding door.
  */
 export function evaluateOpeningClearanceRules(
   plan: FloorPlan,
   config?: SpaceRuleConfig,
 ): RuleResult[] {
-  if (config?.rules?.doorSwing?.enabled === false) {
+  const swingEnabled = config?.rules?.doorSwing?.enabled !== false;
+  const passageEnabled = config?.rules?.circulation?.enabled !== false;
+  if (!swingEnabled && !passageEnabled) {
     return [];
   }
 
   const minDepth = config?.rules?.doorSwing?.minClearanceDepthMm ?? 900;
-  const severity = config?.rules?.doorSwing?.severity ?? "warning";
+  const swingSeverity = config?.rules?.doorSwing?.severity ?? "warning";
+  const passageDepth = config?.rules?.circulation?.minSecondaryPassageWidthMm ?? 600;
+  const passageSeverity = config?.rules?.circulation?.severity ?? "warning";
   const violations: RuleResult[] = [];
 
   const vertexMap = getVertexMap(plan);
@@ -378,43 +467,64 @@ export function evaluateOpeningClearanceRules(
     const wall = wallMap.get(opening.wallId);
     if (!wall) continue;
 
-    const zone = computeOpeningKeepClearZone(opening, wall, vertexMap, minDepth, roomPolygons);
-    if (!zone || zone.activeSides.length === 0) continue;
-
-    const checkA = zone.activeSides.includes("a");
-    const checkB = zone.activeSides.includes("b");
+    const zone = computeOpeningKeepClearZone(
+      opening,
+      wall,
+      vertexMap,
+      minDepth,
+      roomPolygons,
+      passageDepth,
+    );
+    if (!zone) continue;
+    if (zone.activeSides.length === 0 && zone.passageSides.length === 0) continue;
 
     for (const furniture of plan.furniture) {
       const fPoly = computeFurniturePolygon(furniture);
 
-      const areaA = checkA ? computeOverlapArea(fPoly, zone.sideAPoints) : 0;
-      const areaB = checkB ? computeOverlapArea(fPoly, zone.sideBPoints) : 0;
-
-      if (areaA > ENCROACHMENT_AREA_THRESHOLD_MM2 || areaB > ENCROACHMENT_AREA_THRESHOLD_MM2) {
-        let minDist = Infinity;
-
-        if (areaA > ENCROACHMENT_AREA_THRESHOLD_MM2) {
-          const dA = polygonToSegmentDistance(fPoly, zone.sideASurface[0], zone.sideASurface[1]);
-          if (dA < minDist) minDist = dA;
+      if (swingEnabled && zone.activeSides.length > 0) {
+        const measuredVal = encroachedClearDistance(
+          fPoly,
+          zone.activeSides,
+          zone.sideAPoints,
+          zone.sideBPoints,
+          zone.sideASurface,
+          zone.sideBSurface,
+        );
+        if (measuredVal !== null) {
+          violations.push({
+            ruleId: "opening-keep-clear",
+            severity: swingSeverity,
+            relatedEntityIds: [opening.id, furniture.id],
+            relatedObjectIds: [opening.id, furniture.id],
+            measuredValue: measuredVal,
+            recommendedValue: `${minDepth} mm`,
+            title: "Opening Keep-Clear Zone",
+            message: `Layout guidance: Door "${opening.id}" keep-clear zone is encroached by furniture "${furniture.id}" (${furniture.definitionId}). Clear distance is ${measuredVal} mm (recommended at least ${minDepth} mm).`,
+          });
         }
+      }
 
-        if (areaB > ENCROACHMENT_AREA_THRESHOLD_MM2) {
-          const dB = polygonToSegmentDistance(fPoly, zone.sideBSurface[0], zone.sideBSurface[1]);
-          if (dB < minDist) minDist = dB;
+      if (passageEnabled && zone.passageSides.length > 0) {
+        const measuredVal = encroachedClearDistance(
+          fPoly,
+          zone.passageSides,
+          zone.passageSideAPoints,
+          zone.passageSideBPoints,
+          zone.passageSideASurface,
+          zone.passageSideBSurface,
+        );
+        if (measuredVal !== null) {
+          violations.push({
+            ruleId: "local-passage",
+            severity: passageSeverity,
+            relatedEntityIds: [opening.id, furniture.id],
+            relatedObjectIds: [opening.id, furniture.id],
+            measuredValue: measuredVal,
+            recommendedValue: `${passageDepth} mm`,
+            title: "Door Passage Clearance",
+            message: `Layout guidance: Door passage in front of "${opening.id}" is blocked by furniture "${furniture.id}" (${furniture.definitionId}). Clear distance is ${measuredVal} mm (recommended at least ${passageDepth} mm for secondary passage).`,
+          });
         }
-
-        const measuredVal = Math.round(minDist === Infinity ? 0 : minDist);
-
-        violations.push({
-          ruleId: "opening-keep-clear",
-          severity,
-          relatedEntityIds: [opening.id, furniture.id],
-          relatedObjectIds: [opening.id, furniture.id],
-          measuredValue: measuredVal,
-          recommendedValue: `${minDepth} mm`,
-          title: "Opening Keep-Clear Zone",
-          message: `Layout guidance: Door "${opening.id}" keep-clear zone is encroached by furniture "${furniture.id}" (${furniture.definitionId}). Clear distance is ${measuredVal} mm (recommended at least ${minDepth} mm).`,
-        });
       }
     }
   }

@@ -138,7 +138,7 @@ export function FloorPlanSvgViewer({
   const openingViolationIds = React.useMemo(() => {
     const set = new Set<string>();
     for (const v of evaluatedViolations) {
-      if (v.ruleId === "opening-keep-clear") {
+      if (v.ruleId === "opening-keep-clear" || v.ruleId === "local-passage") {
         for (const entityId of v.relatedEntityIds) {
           if (plan.openings.some((o) => o.id === entityId)) {
             set.add(entityId);
@@ -537,10 +537,26 @@ export function FloorPlanSvgViewer({
               if (!isSelected && !hasViolation) return null;
 
               const zone = computeOpeningKeepClearZone(op, wall, vertexMap, 900, roomPolygons);
-              if (!zone || zone.activeSides.length === 0) return null;
+              if (!zone || (zone.activeSides.length === 0 && zone.passageSides.length === 0)) {
+                return null;
+              }
 
               const strokeColor = hasViolation ? "#f59e0b" : "#3b82f6";
               const fillColor = hasViolation ? "rgba(245, 158, 11, 0.12)" : "rgba(59, 130, 246, 0.08)";
+              const zones = [
+                ...zone.activeSides.map((side) => ({
+                  key: `swing-${side}`,
+                  kind: "swing" as const,
+                  side,
+                  points: side === "a" ? zone.sideAPoints : zone.sideBPoints,
+                })),
+                ...zone.passageSides.map((side) => ({
+                  key: `passage-${side}`,
+                  kind: "passage" as const,
+                  side,
+                  points: side === "a" ? zone.passageSideAPoints : zone.passageSideBPoints,
+                })),
+              ];
 
               return (
                 <g
@@ -548,20 +564,18 @@ export function FloorPlanSvgViewer({
                   data-testid={`opening-clearance-overlay-${op.id}`}
                   data-violation={hasViolation ? "true" : "false"}
                 >
-                  {zone.activeSides.map((side) => {
-                    const points = side === "a" ? zone.sideAPoints : zone.sideBPoints;
-                    return (
-                      <polygon
-                        key={side}
-                        data-keep-clear-side={side}
-                        points={points.map((p) => `${p.x},${p.y}`).join(" ")}
-                        fill={fillColor}
-                        stroke={strokeColor}
-                        strokeWidth={14}
-                        strokeDasharray="40 20"
-                      />
-                    );
-                  })}
+                  {zones.map((zoneShape) => (
+                    <polygon
+                      key={zoneShape.key}
+                      data-keep-clear-side={zoneShape.side}
+                      data-keep-clear-kind={zoneShape.kind}
+                      points={zoneShape.points.map((p) => `${p.x},${p.y}`).join(" ")}
+                      fill={fillColor}
+                      stroke={strokeColor}
+                      strokeWidth={zoneShape.kind === "swing" ? 14 : 10}
+                      strokeDasharray={zoneShape.kind === "swing" ? "40 20" : "18 14"}
+                    />
+                  ))}
                 </g>
               );
             })}

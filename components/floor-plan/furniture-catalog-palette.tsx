@@ -148,7 +148,7 @@ export function FurnitureCatalogPalette({
       {/* Category Filter Pills / Tabs (AC-10) */}
       <div
         data-testid="furniture-category-filters"
-        className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none"
+        className="flex items-center gap-1 overflow-x-auto touch-pan-x [-webkit-overflow-scrolling:touch] pb-1 scrollbar-none"
       >
         <button
           type="button"
@@ -191,7 +191,7 @@ export function FurnitureCatalogPalette({
       {/* Furniture List */}
       <div
         data-testid="furniture-definition-list"
-        className="grid grid-cols-1 gap-2 max-h-[380px] overflow-y-auto pr-1"
+        className="grid grid-cols-1 gap-2 pr-1"
       >
         {filteredDefinitions.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground">
