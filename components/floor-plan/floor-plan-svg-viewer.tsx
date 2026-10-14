@@ -81,7 +81,7 @@ export function FloorPlanSvgViewer({
   } | null>(null);
   const suppressClickRef = React.useRef(false);
 
-  const [draggingFurniture, setDraggingFurniture] = React.useState<{
+  type FurnitureDrag = {
     id: string;
     startX: number;
     startY: number;
@@ -89,7 +89,11 @@ export function FloorPlanSvgViewer({
     initialY: number;
     currentX: number;
     currentY: number;
-  } | null>(null);
+  };
+  const [draggingFurniture, setDraggingFurniture] = React.useState<FurnitureDrag | null>(null);
+  // Touch moves can arrive before React rerenders the drag state. Read this ref so the first move drags furniture instead of panning the canvas.
+  const draggingFurnitureRef = React.useRef<FurnitureDrag | null>(null);
+  const ignoreLostCaptureRef = React.useRef(false);
 
   const vertexMap = React.useMemo(() => getVertexMap(plan), [plan]);
   const wallMap = React.useMemo(() => getWallMap(plan), [plan]);
@@ -245,7 +249,7 @@ export function FloorPlanSvgViewer({
     furniture: FloorPlan["furniture"][number],
   ) => {
     if (!isInteractiveEdit || canvasMode === "pan") return;
-    setDraggingFurniture({
+    const drag: FurnitureDrag = {
       id: furniture.id,
       startX: e.clientX,
       startY: e.clientY,
@@ -253,7 +257,9 @@ export function FloorPlanSvgViewer({
       initialY: furniture.y,
       currentX: furniture.x,
       currentY: furniture.y,
-    });
+    };
+    draggingFurnitureRef.current = drag;
+    setDraggingFurniture(drag);
   };
 
   const handleRotateFurniture = (furnitureId: string, stepDeg: number = 90) => {
@@ -277,9 +283,12 @@ export function FloorPlanSvgViewer({
       const rect = e.currentTarget.getBoundingClientRect();
       pinchRef.current = { distance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
         center: { x: (a.x + b.x) / 2 - rect.left, y: (a.y + b.y) / 2 - rect.top }, transform };
+      draggingFurnitureRef.current = null;
       setDraggingFurniture(null); isPointerDownRef.current = false;
       suppressClickRef.current = true;
+      ignoreLostCaptureRef.current = true;
       try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* Pointer may have ended. */ }
+      queueMicrotask(() => { ignoreLostCaptureRef.current = false; });
     }
   };
 
@@ -303,15 +312,19 @@ export function FloorPlanSvgViewer({
       return;
     }
     if (pinchRef.current) return;
-    if (draggingFurniture) {
-      if (Math.hypot(e.clientX - draggingFurniture.startX, e.clientY - draggingFurniture.startY) <= 4) return;
+    const activeDrag = draggingFurnitureRef.current;
+    if (activeDrag) {
+      if (Math.hypot(e.clientX - activeDrag.startX, e.clientY - activeDrag.startY) <= 4) return;
       suppressClickRef.current = true;
-      try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* Pointer may have ended. */ }
-      const deltaX = (e.clientX - draggingFurniture.startX) / transform.scale;
-      const deltaY = (e.clientY - draggingFurniture.startY) / transform.scale;
-      const nextX = Math.round(draggingFurniture.initialX + deltaX);
-      const nextY = Math.round(draggingFurniture.initialY + deltaY);
-      setDraggingFurniture((prev) => (prev ? { ...prev, currentX: nextX, currentY: nextY } : null));
+      const deltaX = (e.clientX - activeDrag.startX) / transform.scale;
+      const deltaY = (e.clientY - activeDrag.startY) / transform.scale;
+      const nextDrag = {
+        ...activeDrag,
+        currentX: Math.round(activeDrag.initialX + deltaX),
+        currentY: Math.round(activeDrag.initialY + deltaY),
+      };
+      draggingFurnitureRef.current = nextDrag;
+      setDraggingFurniture(nextDrag);
       return;
     }
 
@@ -322,11 +335,6 @@ export function FloorPlanSvgViewer({
     if (!hasMovedRef.current && Math.hypot(deltaX, deltaY) > 4) {
       hasMovedRef.current = true;
       setIsDragging(true);
-      try {
-        e.currentTarget.setPointerCapture(e.pointerId);
-      } catch {
-        // Ignore if pointer capture fails
-      }
     }
 
     if (hasMovedRef.current) {
@@ -343,25 +351,28 @@ export function FloorPlanSvgViewer({
     activePointers.current.delete(e.pointerId);
     if (pinchRef.current) {
       if (activePointers.current.size === 0) pinchRef.current = null;
+      draggingFurnitureRef.current = null;
       setDraggingFurniture(null); isPointerDownRef.current = false; setIsDragging(false);
       return;
     }
-    if (draggingFurniture) {
+    const finishedDrag = draggingFurnitureRef.current;
+    if (finishedDrag) {
       const moved = Math.hypot(
-        draggingFurniture.currentX - draggingFurniture.initialX,
-        draggingFurniture.currentY - draggingFurniture.initialY,
+        finishedDrag.currentX - finishedDrag.initialX,
+        finishedDrag.currentY - finishedDrag.initialY,
       ) > 5;
       if (!cancelled && moved && onUpdatePlan) {
         const res = moveFurnitureInstance(
           plan,
-          draggingFurniture.id,
-          draggingFurniture.currentX,
-          draggingFurniture.currentY,
+          finishedDrag.id,
+          finishedDrag.currentX,
+          finishedDrag.currentY,
         );
         if (res.success) {
           onUpdatePlan(res.plan, "Move furniture");
         }
       }
+      draggingFurnitureRef.current = null;
       setDraggingFurniture(null);
     }
 
@@ -423,7 +434,10 @@ export function FloorPlanSvgViewer({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={(e) => handlePointerUp(e, true)}
-        onLostPointerCapture={(e) => { if (activePointers.current.has(e.pointerId)) handlePointerUp(e, true); }}
+        onLostPointerCapture={(e) => {
+          if (ignoreLostCaptureRef.current || !activePointers.current.has(e.pointerId)) return;
+          handlePointerUp(e, false);
+        }}
         onClickCapture={(e) => { if (suppressClickRef.current) { e.stopPropagation(); suppressClickRef.current = false; } }}
         onClick={(e) => {
           // Deselect when clicking canvas background
