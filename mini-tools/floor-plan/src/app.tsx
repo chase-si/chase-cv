@@ -2,20 +2,20 @@
 
 import * as React from "react";
 import { createRoot } from "react-dom/client";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Armchair, Check, ChevronDown, ChevronRight, CircleHelp, ClipboardCheck, Hand, Home, Image as ImageIcon, Moon, Move, Plus, Redo2, RotateCw, Sun, Trash2, Undo2, X } from "lucide-react";
+import { Armchair, Check, ChevronDown, ChevronRight, ClipboardCheck, Hand, Home, Image as ImageIcon, Move, Plus, Redo2, RotateCw, Trash2, Undo2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardScrollArea } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { STANDARD_FURNITURE_CATALOG as catalog } from "@/lib/floor-plan/furniture-catalog";
 import { addFurnitureInstance, changeFurnitureSpecification, deleteFurnitureInstance, moveFurnitureInstance, rotateFurnitureInstance } from "@/lib/floor-plan/furniture-operations";
 import { floorPlanToPlacementScenario } from "@/lib/floor-plan/placement-scenario";
-import { assessPlacementScenario } from "@/lib/floor-plan/space-assessment";
-import { evaluatePlanRules } from "@/lib/floor-plan/rules";
+import { assessmentFromRuleResults, evaluatePlanRules } from "@/lib/floor-plan/rules";
 import { getFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { formatAssessmentFinding } from "@/lib/floor-plan/furniture-decision";
 import { computeRoomPolygon, computePolygonArea, getVertexMap, getWallMap } from "@/lib/floor-plan/geometry";
 import { isPointInPolygon } from "@/lib/floor-plan/rules/geometry";
 import type { FloorPlan, FurnitureSpecification } from "@/lib/floor-plan/types";
+import { FloorPlanThumbnail } from "@/components/floor-plan/floor-plan-thumbnail";
 import type { SelectedEntity } from "@/components/floor-plan/types";
 import { cn } from "@/lib/utils";
 import { PlanCanvas } from "./canvas";
@@ -23,8 +23,10 @@ import { loadPlan, plans, readWorkspace, STORAGE_KEY } from "./storage";
 import { createPlanImage, getBridge, savePlanImage } from "./export-image";
 
 const i18n = getFloorPlanI18n("zh");
-type Sheet = "plans" | "furniture" | "properties" | "checks" | "image" | "help" | "reset" | null;
+type Sheet = "plans" | "furniture" | "properties" | "checks" | "image" | null;
 const statusLabels = { suitable: "摆放合适", "trade-off": "空间略紧", "must-adjust": "需要调整", unavailable: "无法评估" };
+const statusTone = { suitable: "text-emerald-600", "trade-off": "text-amber-600", "must-adjust": "text-destructive", unavailable: "text-muted-foreground" };
+const statusSurface = { suitable: "border-emerald-500/40 bg-emerald-500/10", "trade-off": "border-amber-500/40 bg-amber-500/10", "must-adjust": "border-destructive/40 bg-destructive/10", unavailable: "border-border bg-muted/50" };
 const iconButton = "size-11";
 
 function SheetDialog({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
@@ -64,7 +66,6 @@ function App() {
   const [panMode, setPanMode] = React.useState(false);
   const [clearance, setClearance] = React.useState(true);
   const [saved, setSaved] = React.useState(true);
-  const [dark, setDark] = React.useState(() => window.matchMedia("(prefers-color-scheme: dark)").matches);
   const [toast, setToast] = React.useState("");
   const toastTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const undoStack = React.useRef<FloorPlan[]>([]), redoStack = React.useRef<FloorPlan[]>([]);
@@ -78,21 +79,19 @@ function App() {
   const definition = furniture ? catalog.definitions.find((d) => d.id === furniture.definitionId) : undefined;
   const selectedRoom = plan.rooms.find((r) => r.id === roomId);
   const roomName = selectedRoom?.name ?? (selectedRoom ? i18n.getRoomTypeLabel(selectedRoom.type) : "点击房间选择摆放区域");
-  const scenario = React.useMemo(() => floorPlanToPlacementScenario(plan, furniture?.id), [plan, furniture?.id]);
-  const assessment = React.useMemo(() => assessPlacementScenario(plan, scenario, catalog,
-    furniture ? { targetPlacementId: furniture.id } : { includeAllPlacements: true }), [plan, scenario, furniture]);
   const rules = React.useMemo(() => evaluatePlanRules(plan), [plan]);
-  const problemIds = React.useMemo(() => new Set(rules.flatMap((r) => r.relatedEntityIds)), [rules]);
-  const focusedRules = furniture ? rules.filter((r) => r.relatedEntityIds.includes(furniture.id)) : rules;
+  const assessment = React.useMemo(() => assessmentFromRuleResults(plan, rules, furniture?.id), [plan, rules, furniture?.id]);
+  const focusedRules = furniture ? rules.filter((rule) => (rule.affectedFurnitureIds ?? rule.relatedEntityIds).includes(furniture.id)) : rules;
+  const furnitureStatus = React.useMemo(() => Object.fromEntries(plan.furniture.map((item) => [item.id, assessmentFromRuleResults(plan, rules, item.id).status])), [plan, rules]);
+  const hasFurniture = plan.furniture.length > 0;
+  const statusText = hasFurniture ? statusLabels[assessment.status] : "待摆放";
+  const statusClass = hasFurniture ? statusTone[assessment.status] : "text-muted-foreground";
 
   const notify = (message: string) => {
     setToast(message);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(""), 3200);
   };
-  React.useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-  }, [dark]);
   React.useEffect(() => {
     const viewport = window.visualViewport;
     const resize = () => document.documentElement.style.setProperty("--viewport-height", `${viewport?.height ?? window.innerHeight}px`);
@@ -173,7 +172,7 @@ function App() {
     finally { setBusy(false); }
   };
 
-  const title = { plans: "选择户型", furniture: "添加家具", properties: "家具与尺寸", checks: "空间检查", image: "保存布局图", help: "操作指南", reset: "重置当前布局" };
+  const title = { plans: "选择户型", furniture: "添加家具", properties: "家具与尺寸", checks: "空间检查", image: "保存布局图" };
   const selectedLabel = furniture ? i18n.getFurnitureName(furniture.definitionId) : selected?.type === "room" ? roomName : selected?.type === "wall" ? "墙体尺寸" : selected?.type === "opening" ? "门窗尺寸" : "从一个房间开始";
   const selectedWall = selected?.type === "wall" ? plan.walls.find((w) => w.id === selected.id) : undefined;
   const selectedOpening = selected?.type === "opening" ? plan.openings.find((o) => o.id === selected.id) : undefined;
@@ -184,12 +183,9 @@ function App() {
     : selectedRoom ? `${computePolygonArea(computeRoomPolygon(selectedRoom, getWallMap(plan), getVertexMap(plan))).formattedAreaM2} · 点击添加家具` : "选户型 → 点房间 → 摆家具";
 
   return <main className="app-shell mx-auto flex max-w-7xl flex-col gap-3">
-    <header className="flex shrink-0 items-center justify-between gap-2">
-      <div className="min-w-0"><h1 className="text-lg font-bold tracking-tight">户型摆放实验室</h1><p className="intro-copy text-xs text-muted-foreground">先试着摆，再决定怎么买。</p></div>
-      <div className="flex gap-2">
-        <Button variant="outline" className={iconButton} aria-label={dark ? "切换浅色主题" : "切换深色主题"} onClick={() => setDark(!dark)}>{dark ? <Sun /> : <Moon />}</Button>
-        <Button variant="outline" className={iconButton} aria-label="操作指南" onClick={() => setSheet("help")}><CircleHelp /></Button>
-      </div>
+    <header className="flex shrink-0 items-center gap-2">
+      <img src="./assets/icon.png" alt="" width={32} height={32} className="size-8 shrink-0 rounded-lg" />
+      <h1 className="min-w-0 truncate text-lg font-bold tracking-tight">买多大家具</h1>
     </header>
     <Button variant="outline" className="plan-picker h-auto min-h-12 w-full justify-between gap-2 px-3 py-2 text-left" onClick={() => { setQuery(""); setSheet("plans"); }} aria-label="选择户型">
       <Home className="size-5 text-primary" /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{active.name}</span><span className="block truncate text-[11px] text-muted-foreground">{active.tags.join(" / ")} · {active.roomCount} 个功能区 · 模型面积 {active.formattedArea}</span></span><ChevronDown />
@@ -202,10 +198,10 @@ function App() {
       <div className="flex gap-2"><Button variant="outline" className={iconButton} aria-label="撤销" disabled={!history.undo} onClick={() => undo()}><Undo2 /></Button><Button variant="outline" className={iconButton} aria-label="重做" disabled={!history.redo} onClick={() => undo(true)}><Redo2 /></Button></div>
     </div>
     <PlanCanvas key={active.id} plan={plan} selected={selected} roomId={roomId} panMode={panMode} showClearance={clearance}
-      problemIds={problemIds} onSelect={select} onMove={moveFurniture} svgRef={svgRef} />
+      furnitureStatus={furnitureStatus} onSelect={select} onMove={moveFurniture} svgRef={svgRef} />
     <Card className="selection-card min-h-[108px] shrink-0 gap-2 p-3">
       <div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="truncate text-sm font-bold">{selectedLabel}</p><p className="selection-details truncate text-[11px] text-muted-foreground">{detail}</p></div>
-        <Button variant="ghost" className="h-8 px-2 text-[11px] shadow-none" onClick={() => setSheet("checks")}>{statusLabels[assessment.status]}<ChevronRight /></Button>
+        <Button variant="ghost" className={cn("h-8 px-2 text-[11px] font-semibold shadow-none", statusClass)} onClick={() => setSheet("checks")}>{statusText}<ChevronRight /></Button>
       </div>
       <div className="flex items-center gap-2">
         {furniture ? <><Button variant="outline" className="h-11 flex-1" onClick={() => setSheet("properties")}>尺寸 / 微调</Button><Button variant="outline" className={iconButton} aria-label="旋转家具 90 度" onClick={rotate}><RotateCw /></Button><Button variant="destructive" className={iconButton} aria-label="移除家具" onClick={remove}><Trash2 /></Button></>
@@ -220,13 +216,13 @@ function App() {
     {toast && <div role="status" className="pointer-events-none fixed inset-x-4 top-1/3 z-50 mx-auto max-w-sm rounded-xl border border-border bg-foreground px-4 py-3 text-center text-sm text-background shadow-sm">{toast}</div>}
     {sheet && <SheetDialog title={title[sheet]} onClose={() => setSheet(null)}>
       {sheet === "plans" && <div className="space-y-4">
-        <Input className="h-12 rounded-xl border-border bg-background" placeholder="搜索城市、小区、面积" aria-label="搜索户型" value={query} onChange={(e) => setQuery(e.target.value)} />
         <div className="flex gap-2">{[["all", "全部"], ["1br", "一室"], ["2br", "二室"], ["3br", "三室"]].map(([key, label]) => <Button className="min-h-11 flex-1" key={key} variant={category === key ? "default" : "outline"} aria-pressed={category === key} onClick={() => setCategory(key)}>{label}</Button>)}</div>
         <p className="text-xs text-muted-foreground">{plans.length} 套户型 · 切换后保留各自的家具布局</p>
-        {plans.filter((p) => (category === "all" || p.categoryKey === category) && `${p.name} ${p.description}`.toLowerCase().includes(query.toLowerCase())).map((p) => <Button key={p.id} variant="outline" className="h-auto min-h-16 w-full justify-between whitespace-normal p-3 text-left" onClick={() => switchPlan(p.id)}>
-          <span className="min-w-0"><span className="block font-semibold">{p.name}</span><span className="block text-xs text-muted-foreground">{p.roomBreakdown} · 模型 {p.formattedArea}</span></span>{active.id === p.id ? <Check className="text-primary" /> : <ChevronRight />}
+        {plans.filter((p) => category === "all" || p.categoryKey === category).map((p) => <Button key={p.id} variant="outline" className="h-auto min-h-20 w-full justify-between gap-3 whitespace-normal p-2 text-left" onClick={() => switchPlan(p.id)}>
+          <span className="block h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-border bg-muted" aria-hidden="true"><FloorPlanThumbnail plan={p.plan} className="size-full" /></span>
+          <span className="min-w-0 flex-1"><span className="block font-semibold">{p.name}</span><span className="block text-xs text-muted-foreground">{p.roomBreakdown} · 模型 {p.formattedArea}</span></span>{active.id === p.id ? <Check className="shrink-0 text-primary" /> : <ChevronRight className="shrink-0" />}
         </Button>)}
-        {!plans.some((p) => (category === "all" || p.categoryKey === category) && `${p.name} ${p.description}`.toLowerCase().includes(query.toLowerCase())) && <p className="py-6 text-center text-muted-foreground">没有匹配的户型，试试其他关键词。</p>}
+        {!plans.some((p) => category === "all" || p.categoryKey === category) && <p className="py-6 text-center text-muted-foreground">这个分类下没有户型。</p>}
       </div>}
       {sheet === "furniture" && <div className="space-y-4">
         <label className="block text-xs text-muted-foreground">摆放房间<select className="mt-2 h-12 w-full rounded-xl border border-border bg-background px-3 text-base text-foreground" value={roomId ?? plan.rooms.find((r) => ["living_room", "master_bedroom", "bedroom"].includes(r.type))?.id ?? plan.rooms[0].id} onChange={(e) => setRoomId(e.target.value)}>{plan.rooms.map((r) => <option value={r.id} key={r.id}>{r.name ?? i18n.getRoomTypeLabel(r.type)}</option>)}</select></label>
@@ -237,23 +233,18 @@ function App() {
       </div>}
       {sheet === "properties" && furniture && definition && <div className="space-y-5">
         <div><h3 className="mb-2 font-bold">{i18n.getFurnitureName(definition.id)} · 规格</h3><SpecificationButtons specifications={definition.specifications} value={furniture.specificationId} onChange={changeSpec} /><p className="mt-2 text-xs text-muted-foreground">切换规格保留中心位置与朝向。</p></div>
-        <div className="flex items-center justify-between"><span className="text-sm">朝向 {furniture.rotation}°</span><Button className="h-11" variant="outline" onClick={rotate}><RotateCw />旋转 90°</Button></div>
-        <div><h3 className="mb-3 font-bold">位置微调 <span className="text-xs font-normal text-muted-foreground">每次 100 mm</span></h3><div className="grid grid-cols-3 gap-2">
-          <span /><Button className="h-12" variant="outline" aria-label="向上移动 100 mm" onClick={() => moveFurniture(furniture.id, furniture.x, furniture.y - 100)}><ArrowUp /></Button><span />
-          <Button className="h-12" variant="outline" aria-label="向左移动 100 mm" onClick={() => moveFurniture(furniture.id, furniture.x - 100, furniture.y)}><ArrowLeft /></Button><Button className="h-12" variant="outline" aria-label="向下移动 100 mm" onClick={() => moveFurniture(furniture.id, furniture.x, furniture.y + 100)}><ArrowDown /></Button><Button className="h-12" variant="outline" aria-label="向右移动 100 mm" onClick={() => moveFurniture(furniture.id, furniture.x + 100, furniture.y)}><ArrowRight /></Button>
-        </div><p className="mt-2 text-xs text-muted-foreground">中心位置 X {furniture.x} / Y {furniture.y} mm</p></div>
         <Button variant="outline" className="h-12 w-full" aria-pressed={clearance} onClick={() => setClearance(!clearance)}>{clearance ? "隐藏" : "显示"}使用空间参考区</Button>
         <Button className="h-12 w-full" onClick={() => setSheet("checks")}><ClipboardCheck />查看这件家具的空间检查</Button>
       </div>}
       {sheet === "checks" && <div className="space-y-4">
-        <Card className="gap-2 p-4"><p className={cn("text-lg font-bold", assessment.status === "must-adjust" && "text-destructive")}>{statusLabels[assessment.status]}</p><p className="text-xs text-muted-foreground">{furniture ? `正在检查：${i18n.getFurnitureName(furniture.definitionId)}` : "正在检查：全部家具"} · 其他家具也会参与碰撞计算</p></Card>
-        {assessment.findings.map((finding, index) => {
+        <Card className={cn("gap-2 p-4", hasFurniture ? statusSurface[assessment.status] : statusSurface.unavailable)}><p className={cn("text-lg font-bold", statusClass)}>{statusText}</p><p className="text-xs text-muted-foreground">{hasFurniture ? furniture ? `正在检查：${i18n.getFurnitureName(furniture.definitionId)}` : "正在检查：全部家具" : "尚未摆放家具，添加后开始空间检查。"}</p></Card>
+        {hasFurniture && assessment.findings.map((finding, index) => {
           const formatted = formatAssessmentFinding(finding, plan, "zh");
-          return <div key={index} className="space-y-1 rounded-xl border border-border bg-background p-3 text-sm"><p className="font-semibold">{formatted.title}</p><p>{formatted.message}</p><p className="text-xs text-muted-foreground">{formatted.repairGuidance}</p></div>;
+          const tone = finding.kind === "below-recommended-clearance" ? "border-amber-500/40" : "border-destructive/40";
+          return <div key={`${finding.kind}-${finding.placementId}-${index}`} className={cn("space-y-1 rounded-xl border bg-background p-3 text-sm", tone)}><p className="font-semibold">{formatted.title}</p><p>{formatted.message}</p><p className="text-xs text-muted-foreground">{formatted.repairGuidance}</p></div>;
         })}
-        {focusedRules.length > 0 && <h3 className="font-bold">门窗与通行提醒</h3>}
-        {focusedRules.map((rule, index) => <div key={index} className="rounded-xl border border-border p-3"><p className="mb-1 text-sm font-semibold">{i18n.getRuleTitle(rule.ruleId, rule.title)}</p><p className="text-xs text-muted-foreground">{i18n.getRuleMessage(rule)}</p></div>)}
-        {!assessment.findings.length && !focusedRules.length && <p className="text-sm text-muted-foreground">没有发现碰撞或空间不足，可以继续尝试其他规格。</p>}
+        {hasFurniture && focusedRules.filter((rule) => !rule.assessmentFinding).map((rule, index) => <div key={`${rule.ruleId}-${index}`} className={cn("rounded-xl border bg-background p-3", rule.severity === "error" ? "border-destructive/40" : "border-amber-500/40")}><p className="mb-1 text-sm font-semibold">{i18n.getRuleTitle(rule.ruleId, rule.title)}</p><p className="text-xs text-muted-foreground">{i18n.getRuleMessage(rule)}</p></div>)}
+        {hasFurniture && focusedRules.length === 0 && <p className="text-sm text-muted-foreground">没有发现碰撞、净距不足或挡住门，可以继续尝试其他规格。</p>}
         <p className="text-xs text-muted-foreground">户型为简化模型，建筑面积与模型面积可能不同。布局仅供参考，购买前请核对实测尺寸。</p>
       </div>}
       {sheet === "image" && <div className="space-y-4">
@@ -270,11 +261,6 @@ function App() {
         }}>{busy ? "正在保存…" : "保存到相册"}</Button>}
         <p className="text-xs text-muted-foreground">{getBridge()?.saveImageToPhotosAlbum ? "保存时可能需要授权相册权限。" : "当前为浏览器预览。上传到小红书小工具后可保存到相册。"}</p>
       </div>}
-      {sheet === "help" && <div className="space-y-4 text-sm">
-        <p>1. 选择接近你家的户型，点击房间或在家具面板里指定房间。</p><p>2. 添加一件家具，单指拖动摆放。移动按 50 mm 吸附，底部“尺寸 / 微调”可精调。</p><p>3. 双指捏合缩放；“浏览”模式下单指移动画布。右下角按钮可回到完整户型。</p><p>4. 家具选中后可旋转、换规格、移除，并查看空间检查。紫色虚线是建议使用空间。</p><p>5. 每个户型分别自动保存，撤销 / 重做保留本次操作历史。容器清理后本地数据可能丢失，可出图保存。</p>
-        <p className="text-xs text-muted-foreground">{saved ? "当前布局已保存在本机。" : "本机存储不可用，关闭后布局将丢失。"} 此工具完全离线运行。</p><Button variant="destructive" className="h-12 w-full" onClick={() => setSheet("reset")}>重置当前户型的家具</Button>
-      </div>}
-      {sheet === "reset" && <div className="space-y-4"><p className="text-sm">恢复“{active.name}”的初始家具布局。其他户型的布局会保留，本次重置可撤销。</p><div className="flex gap-3"><Button variant="outline" className="h-12 flex-1" onClick={() => setSheet(null)}>取消</Button><Button variant="destructive" className="h-12 flex-1" onClick={() => { commit(loadPlan(active.id, {})); setSelected(null); setRoomId(null); setSheet(null); notify("已恢复初始布局"); }}>确认重置</Button></div></div>}
     </SheetDialog>}
   </main>;
 }

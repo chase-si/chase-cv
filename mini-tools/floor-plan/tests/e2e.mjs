@@ -13,9 +13,10 @@ const server = createServer(async (request, response) => {
   try {
     const pathname = new URL(request.url, "http://localhost").pathname;
     const file = pathname === "/" ? "index.html" : pathname.slice(1);
-    if (!["index.html", "assets/app.js", "assets/style.css"].includes(file)) { response.writeHead(404).end(); return; }
+    if (!["index.html", "assets/app.js", "assets/style.css", "assets/icon.png"].includes(file)) { response.writeHead(404).end(); return; }
     response.setHeader("Content-Security-Policy", csp);
-    response.setHeader("Content-Type", file.endsWith(".js") ? "text/javascript" : file.endsWith(".css") ? "text/css" : "text/html");
+    const type = file.endsWith(".js") ? "text/javascript" : file.endsWith(".css") ? "text/css" : file.endsWith(".png") ? "image/png" : "text/html";
+    response.setHeader("Content-Type", type);
     response.end(await readFile(path.join(root, file)));
   } catch { response.writeHead(500).end(); }
 });
@@ -50,10 +51,11 @@ try {
     } };
   });
   await page.goto(url);
-  await expect(page.getByRole("heading", { name: "户型摆放实验室" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "买多大家具" })).toBeVisible();
   await screenshot("mobile.png");
   const initialName = await page.getByRole("button", { name: "选择户型", exact: true }).innerText();
   const initialCount = await page.locator('[data-entity-type="furniture"]').count();
+  if (initialCount === 0) await expect(page.getByRole("button", { name: "待摆放" })).toBeVisible();
   const firstRoom = page.locator('[data-entity-type="room"]').first();
   const roomPoint = await firstRoom.locator("text").boundingBox();
   await page.touchscreen.tap(roomPoint.x + roomPoint.width / 2, roomPoint.y + roomPoint.height / 2);
@@ -83,8 +85,8 @@ try {
     assert.notEqual(await placed.getAttribute("data-specification-id"), beforeSpec);
     assert.equal((await placed.getAttribute("transform")).split(" rotate")[0], position);
   }
-  await page.getByRole("button", { name: "向右移动 100 mm" }).click();
-  assert.notEqual((await placed.getAttribute("transform")).split(" rotate")[0], position);
+  await expect(page.getByRole("button", { name: "旋转 90°" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "向右移动 100 mm" })).toHaveCount(0);
   await screenshot("properties.png");
   await page.getByRole("button", { name: "关闭面板" }).click();
 
@@ -143,8 +145,9 @@ try {
   await alternative.click();
   assert.notEqual(await page.getByRole("button", { name: "选择户型", exact: true }).innerText(), initialName);
   await page.getByRole("button", { name: "选择户型", exact: true }).click();
+  await expect(page.getByRole("textbox", { name: "搜索户型" })).toHaveCount(0);
+  await expect(page.getByRole("dialog").locator("[data-testid^='floor-plan-thumbnail-']").first()).toBeVisible();
   await page.getByRole("button", { name: "全部", exact: true }).click();
-  await page.getByRole("textbox", { name: "搜索户型" }).fill("信和自由");
   await page.getByRole("dialog").getByRole("button").filter({ hasText: /信和自由/ }).click();
   const restored = page.locator(`[data-entity-id="${placementId}"]`);
   await expect(restored).toHaveAttribute("transform", afterDrag);
@@ -157,10 +160,8 @@ try {
   await expect(page.locator('[data-entity-type="furniture"]')).toHaveCount(initialCount);
   await page.getByRole("button", { name: "撤销", exact: true }).click();
   await expect(restored).toBeVisible();
-  await page.getByRole("button", { name: "切换深色主题" }).click();
-  await expect(page.locator("html")).toHaveClass("dark");
-  await screenshot("dark.png");
-  await page.getByRole("button", { name: "切换浅色主题" }).click();
+  await expect(page.getByRole("button", { name: "切换深色主题" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "操作指南" })).toHaveCount(0);
 
   await page.evaluate(() => document.documentElement.style.setProperty("--safe-area-inset-bottom", "34px"));
   assert.equal(await page.locator("main").evaluate((el) => getComputedStyle(el).paddingBottom), "34px");
@@ -184,14 +185,14 @@ try {
   const local = await offline.newPage();
   local.on("pageerror", (error) => errors.push(error.message));
   await local.goto(pathToFileURL(path.join(root, "index.html")).href);
-  await expect(local.getByRole("heading", { name: "户型摆放实验室" })).toBeVisible();
+  await expect(local.getByRole("heading", { name: "买多大家具" })).toBeVisible();
   await local.getByRole("button", { name: "出图", exact: true }).click();
   await expect(local.getByRole("img")).toBeVisible();
   await expect(local.getByRole("button", { name: "保存到相册", exact: true })).toBeDisabled();
   await local.getByRole("button", { name: "关闭面板" }).click();
   await local.evaluate(() => localStorage.setItem("floor-plan-mini-tool-v1", '{"activePlanId":"broken","drafts":{"bad":null}}'));
   await local.reload();
-  await expect(local.getByRole("heading", { name: "户型摆放实验室" })).toBeVisible();
+  await expect(local.getByRole("heading", { name: "买多大家具" })).toBeVisible();
   const restricted = await offline.newPage();
   await restricted.addInitScript(() => Object.defineProperty(Storage.prototype, "setItem", { value() { throw new Error("Storage is unavailable"); } }));
   await restricted.goto(pathToFileURL(path.join(root, "index.html")).href);

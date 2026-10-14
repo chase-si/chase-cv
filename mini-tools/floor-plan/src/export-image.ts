@@ -48,7 +48,7 @@ export async function createPlanImage(svg: SVGSVGElement, plan: FloorPlan, name:
   context.fillText(name, 40, 50);
   context.fillStyle = theme.getPropertyValue("--muted-foreground").trim();
   context.font = "20px sans-serif";
-  context.fillText("户型摆放实验室 · 尺寸单位 mm · 仅供布局参考，请以实测为准", 40, 92);
+  context.fillText("买多大家具 · 尺寸单位 mm · 仅供布局参考，请以实测为准", 40, 92);
   context.drawImage(image, 0, 130, 1400, imageHeight);
   return canvas.toDataURL("image/png");
 }

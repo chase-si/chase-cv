@@ -8,10 +8,16 @@ body {
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
   overflow: hidden;
 }
+input, textarea, select {
+  -webkit-user-select: text;
+  user-select: text;
+}
 .app-shell {
-  height: var(--viewport-height, 100dvh);
+  height: min(var(--viewport-height, 100dvh), 100dvh);
   padding-top: max(8px, var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
   padding-bottom: max(12px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
   padding-left: max(12px, var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
@@ -28,7 +34,7 @@ body {
   margin: auto auto 0;
   width: min(100%, 640px);
   max-width: 100%;
-  max-height: min(78dvh, var(--viewport-height, 78dvh));
+  max-height: min(78dvh, var(--viewport-height, 78dvh), 100dvh);
   border: 0;
   padding: 0;
   background: transparent;
@@ -36,20 +42,14 @@ body {
   overflow: visible;
 }
 .sheet-dialog::backdrop { background: color-mix(in srgb, var(--foreground) 25%, transparent); }
-.sheet-card { max-height: min(78dvh, var(--viewport-height, 78dvh)); padding-bottom: max(16px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))); }
+.sheet-card { max-height: min(78dvh, var(--viewport-height, 78dvh), 100dvh); padding-bottom: max(16px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))); }
 [data-slot="card-scroll-area"] { -webkit-overflow-scrolling: touch; }
 button { touch-action: manipulation; }
-.dark .plan-canvas [data-entity-type="wall"] polygon { fill: var(--muted-foreground); stroke: var(--foreground); }
-.dark .plan-canvas [data-entity-type="wall"][data-selected="true"] polygon { fill: var(--primary); stroke: var(--primary); }
-.dark .plan-canvas [data-entity-type="furniture"] text { fill: var(--foreground); }
-.dark .plan-canvas [data-testid^="furniture-footprint"] { fill: var(--card); stroke: var(--muted-foreground); }
-.dark .plan-canvas [data-has-violation="true"] [data-testid^="furniture-footprint"] { stroke: var(--destructive); }
-.dark .plan-canvas [data-selected="true"] [data-testid^="furniture-footprint"] { stroke: var(--primary); }
 @media (max-height: 700px) and (max-width: 639px) {
   .app-shell { gap: 8px; }
   .plan-picker { min-height: 44px; padding-top: 6px; padding-bottom: 6px; }
   .selection-card { min-height: 84px; gap: 4px; padding: 8px; }
-  .intro-copy, .selection-details { display: none; }
+  .selection-details { display: none; }
 }
 @media (min-width: 768px) {
   .sheet-dialog { margin: auto; }
@@ -57,7 +57,6 @@ button { touch-action: manipulation; }
 }
 @media (max-height: 560px) {
   .app-shell { gap: 6px; padding-top: 6px; padding-bottom: 6px; }
-  .intro-copy { display: none; }
   .selection-details { display: none; }
 }
 @media (max-height: 560px) and (min-width: 640px) {

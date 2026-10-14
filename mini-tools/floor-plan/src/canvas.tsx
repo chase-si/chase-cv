@@ -13,7 +13,7 @@ import { computePlacementClearanceZones } from "@/lib/floor-plan/space-assessmen
 import { floorPlanToPlacementScenario } from "@/lib/floor-plan/placement-scenario";
 import { calculateFitToView, zoomByFactor, type ViewTransform } from "@/lib/floor-plan/view-transform";
 import { getFloorPlanI18n } from "@/lib/floor-plan/i18n";
-import type { FloorPlan } from "@/lib/floor-plan/types";
+import type { AssessmentStatus, FloorPlan } from "@/lib/floor-plan/types";
 import type { SelectedEntity } from "@/components/floor-plan/types";
 
 const i18n = getFloorPlanI18n("zh");
@@ -29,9 +29,9 @@ type Gesture = {
   moved: boolean;
 };
 
-export function PlanCanvas({ plan, selected, roomId, panMode, showClearance, problemIds, onSelect, onMove, svgRef }: {
+export function PlanCanvas({ plan, selected, roomId, panMode, showClearance, furnitureStatus, onSelect, onMove, svgRef }: {
   plan: FloorPlan; selected: SelectedEntity | null; roomId: string | null;
-  panMode: boolean; showClearance: boolean; problemIds: Set<string>;
+  panMode: boolean; showClearance: boolean; furnitureStatus: Record<string, AssessmentStatus>;
   onSelect: (entity: SelectedEntity | null) => void;
   onMove: (id: string, x: number, y: number) => void;
   svgRef: React.RefObject<SVGSVGElement | null>;
@@ -178,8 +178,11 @@ export function PlanCanvas({ plan, selected, roomId, panMode, showClearance, pro
         </g>)}
         {plan.walls.map((wall) => <SvgWall key={wall.id} wall={wall} vertexMap={vertexMap} selectedEntity={selected} onSelect={noop} />)}
         {plan.openings.map((opening) => <SvgOpening key={opening.id} opening={opening} wall={wallMap.get(opening.wallId)!} vertexMap={vertexMap} selectedEntity={selected} onSelect={noop} />)}
-        {renderedPlan.furniture.map((furniture) => <SvgFurniture key={furniture.id} furniture={furniture} selectedEntity={selected} hasViolation={problemIds.has(furniture.id)}
-          onSelect={noop} locale="zh" />)}
+        {renderedPlan.furniture.map((furniture) => {
+          const status = furnitureStatus[furniture.id] ?? "suitable";
+          return <SvgFurniture key={furniture.id} furniture={furniture} selectedEntity={selected} assessmentStatus={status}
+            hasViolation={status === "must-adjust" || status === "trade-off"} onSelect={noop} locale="zh" />;
+        })}
         {showRoomSpans && plan.rooms.flatMap((room) => computeRoomSpanDimensions(computeRoomPolygon(room, wallMap, vertexMap), `room-${room.id}`)).map((dimension) => <PlanDimension key={dimension.id} dimension={dimension} scale={view.scale} />)}
         {computePrincipalDimensions(plan).map((dimension) => <PlanDimension key={dimension.id} dimension={dimension} scale={view.scale} />)}
       </g>
