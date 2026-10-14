@@ -990,6 +990,7 @@ export const FURNITURE_CATEGORY_LABELS_EN: Record<string, string> = {
 export const FURNITURE_NAMES_ZH: Record<string, string> = {
   "bed-double": "双人床 (1.8m)",
   "bed-single": "单人床 (1.2m)",
+  "sofa-1seat": "单人位沙发",
   "sofa-3seat": "三人位沙发",
   "sofa-2seat": "双人位沙发",
   "armchair": "单人扶手椅",
@@ -1017,6 +1018,7 @@ export const FURNITURE_NAMES_ZH: Record<string, string> = {
 export const FURNITURE_NAMES_EN: Record<string, string> = {
   "bed-double": "Double Bed (1.8m)",
   "bed-single": "Single Bed (1.2m)",
+  "sofa-1seat": "1-Seat Sofa",
   "sofa-3seat": "3-Seat Sofa",
   "sofa-2seat": "2-Seat Loveseat",
   "armchair": "Armchair",
