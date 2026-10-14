@@ -3,6 +3,7 @@ import type { EffectName } from "magic-cursor-effect";
 
 import { DUDU_SCANNER_OG_IMAGE } from "@/lib/dudu-scanner/dudu-scanner-social-image";
 import { FIND_IN_VIDEO_OG_IMAGE } from "@/lib/find-in-video/find-in-video-social-image";
+import { FLOOR_PLAN_OG_IMAGE } from "@/lib/floor-plan/floor-plan-social-image";
 import { FLOW_OG_IMAGE } from "@/lib/flow/flow-social-image";
 import { IMAGE_TO_UI_OG_IMAGE } from "@/lib/image-to-ui/image-to-ui-social-image";
 import { magicCursorEffectMetadataNamespace } from "@/lib/magic-cursor/effect-seo-data";
@@ -45,6 +46,12 @@ function bindingForPathname(pathname: string): IndexedRouteMetadataBinding {
         pathname,
         namespace: "metadata.findInVideo",
         socialImage: FIND_IN_VIDEO_OG_IMAGE,
+      };
+    case "/floor-plan":
+      return {
+        pathname,
+        namespace: "metadata.floorPlan",
+        socialImage: FLOOR_PLAN_OG_IMAGE,
       };
     case "/dudu-scanner":
       return {

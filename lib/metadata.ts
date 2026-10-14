@@ -26,6 +26,7 @@ export type MetadataNamespace =
   | "metadata.imageToUi"
   | "metadata.flow"
   | "metadata.findInVideo"
+  | "metadata.floorPlan"
   | "metadata.duduScanner"
   | "metadata.notFound";
 

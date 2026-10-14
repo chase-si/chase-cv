@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { getIndexedPathnames, getIndexedSeoRoutes } from "@/lib/seo/route-registry";
 import { buildSitemapEntries } from "@/lib/seo/sitemap-entries";
 import { projectNavigationItems } from "@/lib/projects";
@@ -11,41 +11,59 @@ import {
 import { generateMetadata as generateEditorMetadata } from "@/app/[locale]/floor-plan/page";
 import { generateMetadata as generateLabMetadata } from "@/app/[locale]/floor-plan/lab/page";
 
-describe("Floor Plan Internal Release Boundary (AC-19)", () => {
-  describe("Route Registry and Sitemap Exclusions", () => {
-    it("ensures floor plan routes are strictly absent from indexed SEO routes", () => {
+vi.mock("next-intl/server", () => ({
+  getTranslations: vi.fn(async ({ namespace }: { namespace: string }) => {
+    const translator = (key: string) => `${namespace}.${key}`;
+    return Object.assign(translator, {
+      rich: translator,
+      markup: translator,
+      raw: translator,
+      has: () => true,
+    });
+  }),
+  setRequestLocale: vi.fn(),
+}));
+
+describe("Floor Plan release boundary", () => {
+  describe("Route Registry and Sitemap", () => {
+    it("indexes the public floor plan editor and keeps the lab out of SEO routes", () => {
       const indexedRoutes = getIndexedSeoRoutes();
       const indexedPathnames = getIndexedPathnames();
 
-      expect(indexedPathnames).not.toContain("/floor-plan");
-      expect(indexedPathnames).not.toContain("/zh/floor-plan");
-      expect(indexedPathnames).not.toContain("/en/floor-plan");
+      expect(indexedPathnames).toContain("/floor-plan");
       expect(indexedPathnames).not.toContain("/floor-plan/lab");
       expect(indexedPathnames).not.toContain("/zh/floor-plan/lab");
       expect(indexedPathnames).not.toContain("/en/floor-plan/lab");
 
-      const hasFloorPlanInRoutes = indexedRoutes.some(
-        (r) => r.pathname.includes("floor-plan") || r.pathname.includes("recognition"),
-      );
-      expect(hasFloorPlanInRoutes).toBe(false);
+      expect(indexedRoutes.some((route) => route.pathname === "/floor-plan")).toBe(true);
+      expect(
+        indexedRoutes.some(
+          (route) => route.pathname.includes("/floor-plan/lab") || route.pathname.includes("recognition"),
+        ),
+      ).toBe(false);
     });
 
-    it("ensures public sitemap entries do not include floor-plan or recognition lab URLs", () => {
+    it("lists the public editor in the sitemap and omits the lab", () => {
       const sitemap = buildSitemapEntries();
-      const floorPlanUrls = sitemap.filter(
-        (entry) => entry.url.includes("/floor-plan") || entry.url.includes("/recognition"),
+      const editorUrls = sitemap.filter(
+        (entry) => entry.url.includes("/floor-plan") && !entry.url.includes("/floor-plan/lab"),
       );
-      expect(floorPlanUrls).toHaveLength(0);
+      const labUrls = sitemap.filter(
+        (entry) => entry.url.includes("/floor-plan/lab") || entry.url.includes("/recognition"),
+      );
+
+      expect(editorUrls.length).toBeGreaterThan(0);
+      expect(labUrls).toHaveLength(0);
     });
   });
 
   describe("Public Site Navigation Menus", () => {
-    it("ensures public project navigation items do not link to floor plan", () => {
+    it("links the playground to the floor plan editor and not the lab", () => {
       const projectHrefs = projectNavigationItems.map((p) => p.href);
-      expect(projectHrefs).not.toContain("/floor-plan");
-      expect(projectHrefs).not.toContain(FLOOR_PLAN_INTERNAL_ROUTE);
+      expect(projectHrefs).toContain("/floor-plan");
+      expect(projectHrefs).toContain(FLOOR_PLAN_INTERNAL_ROUTE);
       expect(projectHrefs).not.toContain(FLOOR_PLAN_LAB_ROUTE);
-      expect(projectNavigationItems.some((p) => p.id as string === "floorPlan")).toBe(false);
+      expect(projectNavigationItems.some((p) => p.id === "floorPlan")).toBe(true);
     });
   });
 
@@ -57,18 +75,14 @@ describe("Floor Plan Internal Release Boundary (AC-19)", () => {
       });
     });
 
-    it("emits noindex and nofollow metadata from the floor plan page route", async () => {
+    it("emits indexable metadata from the public floor plan page route", async () => {
       const metaZh = await generateEditorMetadata({ params: Promise.resolve({ locale: "zh" }) });
-      expect(metaZh.robots).toEqual({
-        index: false,
-        follow: false,
-      });
+      expect(metaZh.robots).toBeUndefined();
+      expect(metaZh.title).toBe("metadata.floorPlan.title");
 
       const metaEn = await generateEditorMetadata({ params: Promise.resolve({ locale: "en" }) });
-      expect(metaEn.robots).toEqual({
-        index: false,
-        follow: false,
-      });
+      expect(metaEn.robots).toBeUndefined();
+      expect(metaEn.title).toBe("metadata.floorPlan.title");
     });
 
     it("emits noindex and nofollow metadata from the recognition lab page route", async () => {

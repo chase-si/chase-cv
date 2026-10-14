@@ -1,9 +1,27 @@
-export type ProjectId = "magicCursor" | "imageToUi" | "duduScanner" | "flowEditor" | "findInVideo";
+export type ProjectId =
+  | "magicCursor"
+  | "imageToUi"
+  | "duduScanner"
+  | "flowEditor"
+  | "findInVideo"
+  | "floorPlan";
 
 export type ProjectNavigationItem = {
   id: ProjectId;
-  href: "/magic-cursor" | "/image-to-ui" | "/dudu-scanner" | "/flow" | "/find-in-video";
-  analyticsTarget: "magic_cursor" | "image_to_ui" | "dudu_scanner" | "flow_editor" | "find_in_video";
+  href:
+    | "/magic-cursor"
+    | "/image-to-ui"
+    | "/dudu-scanner"
+    | "/flow"
+    | "/find-in-video"
+    | "/floor-plan";
+  analyticsTarget:
+    | "magic_cursor"
+    | "image_to_ui"
+    | "dudu_scanner"
+    | "flow_editor"
+    | "find_in_video"
+    | "floor_plan";
 };
 
 export const projectNavigationItems: ProjectNavigationItem[] = [
@@ -31,6 +49,11 @@ export const projectNavigationItems: ProjectNavigationItem[] = [
     id: "findInVideo",
     href: "/find-in-video",
     analyticsTarget: "find_in_video",
+  },
+  {
+    id: "floorPlan",
+    href: "/floor-plan",
+    analyticsTarget: "floor_plan",
   },
 ];
 

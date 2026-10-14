@@ -240,6 +240,10 @@
         "findInVideo": {
           "name": "Find in Video",
           "description": "Find people in a local video from reference photos, in the browser."
+        },
+        "floorPlan": {
+          "name": "Floor Plan",
+          "description": "Place furniture on standard floor plans and check the fit."
         }
       }
     },

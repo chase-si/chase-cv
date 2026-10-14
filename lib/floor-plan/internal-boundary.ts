@@ -1,9 +1,8 @@
 /**
- * Floor Plan Internal Release Boundary (AC-19)
+ * Floor Plan lab release boundary.
  *
- * Defines route path, robots metadata, and environment-controlled gating
- * to ensure the floor plan editor and recognition lab remain strictly internal
- * until public release.
+ * The editor at `/floor-plan` is a public playground tool. The recognition lab
+ * stays internal: noindex, absent from the sitemap, and gated by environment.
  */
 
 export const FLOOR_PLAN_INTERNAL_ROUTE = "/floor-plan";

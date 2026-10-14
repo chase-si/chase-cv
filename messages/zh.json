@@ -240,6 +240,10 @@
         "findInVideo": {
           "name": "视频人物查找",
           "description": "在浏览器里根据参考图查找视频中的人物。"
+        },
+        "floorPlan": {
+          "name": "户型验证",
+          "description": "在标准户型里摆放家具，检查空间是否放得下。"
         }
       }
     },

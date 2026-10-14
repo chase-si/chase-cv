@@ -70,6 +70,7 @@ describe("SiteNavActions", () => {
       "/image-to-ui",
       "/flow",
       "/find-in-video",
+      "/floor-plan",
     ]);
     expect(screen.getByText("Explore configurable cursor effects.")).toBeInTheDocument();
     expect(screen.getByText("Turn painting palettes into interface themes.")).toBeInTheDocument();
@@ -79,6 +80,9 @@ describe("SiteNavActions", () => {
     expect(screen.getByText("Visualize and edit structured flows.")).toBeInTheDocument();
     expect(
       screen.getByText("Find people in a local video from reference photos, in the browser."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Place furniture on standard floor plans and check the fit."),
     ).toBeInTheDocument();
 
     fireEvent.keyDown(projectsButton, { key: "Escape" });
@@ -98,6 +102,7 @@ describe("SiteNavActions", () => {
     expect(within(projects).getByText("扫描肚子揭晓角色，再给小朋友健康习惯小建议。")).toBeInTheDocument();
     expect(within(projects).getByText("可视化编辑结构化流程。")).toBeInTheDocument();
     expect(within(projects).getByText("在浏览器里根据参考图查找视频中的人物。")).toBeInTheDocument();
+    expect(within(projects).getByText("在标准户型里摆放家具，检查空间是否放得下。")).toBeInTheDocument();
 
     fireEvent.click(within(projects).getByRole("menuitem", { name: /肚肚扫描仪/i }));
 
@@ -144,6 +149,7 @@ describe("SiteNavActions", () => {
       "/image-to-ui",
       "/flow",
       "/find-in-video",
+      "/floor-plan",
     ]);
     expect(within(menu).getByRole("menuitem", { name: "Blog" })).toHaveAttribute(
       "href",
