@@ -8,6 +8,7 @@ import {
   computeFloorPlanBounds,
   computePlanFitBounds,
   computePrincipalDimensions,
+  computeRoomPolygon,
   getVertexMap,
   getWallMap,
 } from "@/lib/floor-plan/geometry";
@@ -82,6 +83,16 @@ export function FloorPlanSvgViewer({
 
   const vertexMap = React.useMemo(() => getVertexMap(plan), [plan]);
   const wallMap = React.useMemo(() => getWallMap(plan), [plan]);
+  const roomPolygons = React.useMemo(
+    () =>
+      plan.rooms
+        .map((room) => ({
+          room,
+          points: computeRoomPolygon(room, wallMap, vertexMap),
+        }))
+        .filter((rp) => rp.points.length >= 3),
+    [plan.rooms, wallMap, vertexMap],
+  );
   const bounds = React.useMemo(() => computeFloorPlanBounds(plan), [plan]);
   const fitBounds = React.useMemo(() => computePlanFitBounds(plan), [plan]);
   const dimensions = React.useMemo(() => computePrincipalDimensions(plan), [plan]);
@@ -453,11 +464,8 @@ export function FloorPlanSvgViewer({
 
               if (!isSelected && !hasViolation) return null;
 
-              const zone = computeOpeningKeepClearZone(op, wall, vertexMap);
-              if (!zone) return null;
-
-              const sideAStr = zone.sideAPoints.map((p) => `${p.x},${p.y}`).join(" ");
-              const sideBStr = zone.sideBPoints.map((p) => `${p.x},${p.y}`).join(" ");
+              const zone = computeOpeningKeepClearZone(op, wall, vertexMap, 900, roomPolygons);
+              if (!zone || zone.activeSides.length === 0) return null;
 
               const strokeColor = hasViolation ? "#f59e0b" : "#3b82f6";
               const fillColor = hasViolation ? "rgba(245, 158, 11, 0.12)" : "rgba(59, 130, 246, 0.08)";
@@ -468,20 +476,20 @@ export function FloorPlanSvgViewer({
                   data-testid={`opening-clearance-overlay-${op.id}`}
                   data-violation={hasViolation ? "true" : "false"}
                 >
-                  <polygon
-                    points={sideAStr}
-                    fill={fillColor}
-                    stroke={strokeColor}
-                    strokeWidth={14}
-                    strokeDasharray="40 20"
-                  />
-                  <polygon
-                    points={sideBStr}
-                    fill={fillColor}
-                    stroke={strokeColor}
-                    strokeWidth={14}
-                    strokeDasharray="40 20"
-                  />
+                  {zone.activeSides.map((side) => {
+                    const points = side === "a" ? zone.sideAPoints : zone.sideBPoints;
+                    return (
+                      <polygon
+                        key={side}
+                        data-keep-clear-side={side}
+                        points={points.map((p) => `${p.x},${p.y}`).join(" ")}
+                        fill={fillColor}
+                        stroke={strokeColor}
+                        strokeWidth={14}
+                        strokeDasharray="40 20"
+                      />
+                    );
+                  })}
                 </g>
               );
             })}

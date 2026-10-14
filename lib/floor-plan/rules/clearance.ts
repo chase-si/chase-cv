@@ -1,12 +1,21 @@
 import {
   computeOpeningGeometry,
+  computePolygonCentroid,
   computeRoomPolygon,
   computeWallGeometry,
   getVertexMap,
   getWallMap,
   type Point,
 } from "../geometry";
-import type { FloorPlan, FurnitureInstance, Opening, SpaceRuleConfig, Wall, Vertex } from "../types";
+import type {
+  FloorPlan,
+  FurnitureInstance,
+  Opening,
+  Room,
+  SpaceRuleConfig,
+  Wall,
+  Vertex,
+} from "../types";
 import { STANDARD_FURNITURE_DEFINITIONS } from "../furniture-catalog";
 import {
   computeFurniturePolygon,
@@ -19,6 +28,7 @@ import type { RuleResult } from "./types";
 
 /**
  * Geometric keep-clear rectangular zone for a door opening.
+ * Doors swing inward, so only `activeSides` are reserved.
  */
 export interface OpeningKeepClearZone {
   openingId: string;
@@ -28,16 +38,131 @@ export interface OpeningKeepClearZone {
   sideBPoints: Point[]; // -normal
   sideASurface: [Point, Point];
   sideBSurface: [Point, Point];
+  /** "a" is +normal, "b" is -normal. Empty when the door does not swing (balcony). */
+  activeSides: Array<"a" | "b">;
+}
+
+interface RoomPolygon {
+  room: Room;
+  points: Point[];
 }
 
 /**
- * Compute symmetric keep-clear rectangular zone on both sides of the wall for a door opening (AC-13).
+ * Rooms immediately beside a door, split by the wall normal.
+ * Side A is +normal and side B is -normal.
+ */
+function roomsBesideOpening(
+  center: Point,
+  normal: Point,
+  wallId: string,
+  roomPolygons: RoomPolygon[],
+): { sideA: Room[]; sideB: Room[] } {
+  const probeDistance = 200;
+  const probeA: Point = {
+    x: center.x + normal.x * probeDistance,
+    y: center.y + normal.y * probeDistance,
+  };
+  const probeB: Point = {
+    x: center.x - normal.x * probeDistance,
+    y: center.y - normal.y * probeDistance,
+  };
+
+  const sideA: Room[] = [];
+  const sideB: Room[] = [];
+
+  for (const rp of roomPolygons) {
+    if (!rp.room.boundaryWallIds.includes(wallId) || rp.points.length < 3) continue;
+
+    const inA = isPointInPolygon(probeA, rp.points);
+    const inB = isPointInPolygon(probeB, rp.points);
+    if (inA && !inB) {
+      sideA.push(rp.room);
+      continue;
+    }
+    if (inB && !inA) {
+      sideB.push(rp.room);
+      continue;
+    }
+    if (inA || inB) continue;
+
+    const centroid = computePolygonCentroid(rp.points);
+    const dot = (centroid.x - center.x) * normal.x + (centroid.y - center.y) * normal.y;
+    if (dot > 0) sideA.push(rp.room);
+    else if (dot < 0) sideB.push(rp.room);
+  }
+
+  return { sideA, sideB };
+}
+
+/**
+ * Which side of a door must stay clear.
+ *
+ * Doors swing inward, so only one side is reserved:
+ * 1. A living-room exterior door reserves the living-room side.
+ * 2. A balcony door does not swing (usually a sliding door), so neither side is reserved.
+ * 3. A door between the living room and another room reserves only the non-living side.
+ * 4. A door between two other rooms, such as a bedroom and a bathroom, reserves the more private room.
+ */
+export function resolveOpeningKeepClearSides(
+  center: Point,
+  normal: Point,
+  wallId: string,
+  roomPolygons: RoomPolygon[],
+): Array<"a" | "b"> {
+  const { sideA, sideB } = roomsBesideOpening(center, normal, wallId, roomPolygons);
+
+  if (sideA.some((room) => room.type === "balcony") || sideB.some((room) => room.type === "balcony")) {
+    return [];
+  }
+
+  const isLiving = (room: Room) => room.type === "living_room";
+  const livingA = sideA.some(isLiving);
+  const livingB = sideB.some(isLiving);
+  const otherA = sideA.some((room) => !isLiving(room));
+  const otherB = sideB.some((room) => !isLiving(room));
+
+  if ((livingA || livingB) && (otherA || otherB)) {
+    if (otherA && !otherB) return ["a"];
+    if (otherB && !otherA) return ["b"];
+    if (!livingA) return ["a"];
+    if (!livingB) return ["b"];
+  }
+
+  if (sideA.length > 0 && sideB.length === 0) return ["a"];
+  if (sideB.length > 0 && sideA.length === 0) return ["b"];
+
+  if (sideA.length > 0 && sideB.length > 0) {
+    const privacy = (room: Room) => {
+      if (room.type === "bathroom" || room.type === "storage") return 3;
+      if (
+        room.type === "kitchen" ||
+        room.type === "bedroom" ||
+        room.type === "master_bedroom" ||
+        room.type === "study"
+      ) {
+        return 2;
+      }
+      return 1;
+    };
+    const rankA = Math.max(...sideA.map(privacy));
+    const rankB = Math.max(...sideB.map(privacy));
+    if (rankB > rankA) return ["b"];
+    return ["a"];
+  }
+
+  return ["a", "b"];
+}
+
+/**
+ * Compute the keep-clear rectangle on the inward swing side of a door (AC-13).
+ * Pass `roomPolygons` so balcony and living-room doors reserve only the swing side.
  */
 export function computeOpeningKeepClearZone(
   opening: Opening,
   wall: Wall,
   vertexMap: Map<string, Vertex>,
   depthMm = 900,
+  roomPolygons?: RoomPolygon[],
 ): OpeningKeepClearZone | null {
   if (opening.type !== "door") {
     return null;
@@ -46,7 +171,10 @@ export function computeOpeningKeepClearZone(
   const geom = computeOpeningGeometry(opening, wall, vertexMap);
   if (!geom) return null;
 
-  const { start, end, normal, wallThickness } = geom;
+  const { start, end, normal, wallThickness, center } = geom;
+  const activeSides = roomPolygons
+    ? resolveOpeningKeepClearSides(center, normal, wall.id, roomPolygons)
+    : (["a", "b"] as Array<"a" | "b">);
   const halfT = wallThickness / 2;
 
   // Side A (+normal)
@@ -69,6 +197,7 @@ export function computeOpeningKeepClearZone(
     sideBPoints: [b1, b2, b3, b4],
     sideASurface: [a1, a2],
     sideBSurface: [b1, b2],
+    activeSides,
   };
 }
 
@@ -218,7 +347,9 @@ export function computeFurnitureClearanceZones(
 const ENCROACHMENT_AREA_THRESHOLD_MM2 = 10;
 
 /**
- * Evaluate symmetric opening keep-clear zone violations (AC-13).
+ * Evaluate inward opening keep-clear zone violations (AC-13).
+ * Only the swing side is checked: into the living room for an entry door,
+ * into the private room for a door off the living room, and not at all for a balcony door.
  */
 export function evaluateOpeningClearanceRules(
   plan: FloorPlan,
@@ -233,7 +364,13 @@ export function evaluateOpeningClearanceRules(
   const violations: RuleResult[] = [];
 
   const vertexMap = getVertexMap(plan);
-  const wallMap = new Map(plan.walls.map((w) => [w.id, w]));
+  const wallMap = getWallMap(plan);
+  const roomPolygons = plan.rooms
+    .map((room) => ({
+      room,
+      points: computeRoomPolygon(room, wallMap, vertexMap),
+    }))
+    .filter((rp) => rp.points.length >= 3);
 
   for (const opening of plan.openings) {
     if (opening.type !== "door") continue;
@@ -241,14 +378,17 @@ export function evaluateOpeningClearanceRules(
     const wall = wallMap.get(opening.wallId);
     if (!wall) continue;
 
-    const zone = computeOpeningKeepClearZone(opening, wall, vertexMap, minDepth);
-    if (!zone) continue;
+    const zone = computeOpeningKeepClearZone(opening, wall, vertexMap, minDepth, roomPolygons);
+    if (!zone || zone.activeSides.length === 0) continue;
+
+    const checkA = zone.activeSides.includes("a");
+    const checkB = zone.activeSides.includes("b");
 
     for (const furniture of plan.furniture) {
       const fPoly = computeFurniturePolygon(furniture);
 
-      const areaA = computeOverlapArea(fPoly, zone.sideAPoints);
-      const areaB = computeOverlapArea(fPoly, zone.sideBPoints);
+      const areaA = checkA ? computeOverlapArea(fPoly, zone.sideAPoints) : 0;
+      const areaB = checkB ? computeOverlapArea(fPoly, zone.sideBPoints) : 0;
 
       if (areaA > ENCROACHMENT_AREA_THRESHOLD_MM2 || areaB > ENCROACHMENT_AREA_THRESHOLD_MM2) {
         let minDist = Infinity;

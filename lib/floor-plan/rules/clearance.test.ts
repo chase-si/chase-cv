@@ -1,11 +1,20 @@
 import { describe, expect, it } from "vitest";
-import type { FloorPlan, SpaceRuleConfig } from "../types";
+import type { FloorPlan, RoomType, SpaceRuleConfig } from "../types";
 import { VALID_SPACE_RULE_CONFIG } from "../fixtures/valid-space-rules";
+import { FLOOR_PLAN_CATALOG_DATA } from "../catalog-data";
 import {
+  computeOpeningGeometry,
+  computeRoomPolygon,
+  getVertexMap,
+  getWallMap,
+} from "../geometry";
+import {
+  computeOpeningKeepClearZone,
   evaluateOpeningClearanceRules,
   evaluateFurnitureClearanceRules,
   evaluateLocalPassageRules,
 } from "./clearance";
+import { isPointInPolygon } from "./geometry";
 import { evaluatePlanRules } from "./evaluator";
 
 describe("Clearance and Guidance Rules (US-13, AC-13)", () => {
@@ -43,7 +52,7 @@ describe("Clearance and Guidance Rules (US-13, AC-13)", () => {
     furniture: [],
   });
 
-  describe("Symmetric Opening Keep-Clear Zone (opening-keep-clear, AC-13)", () => {
+  describe("Inward Opening Keep-Clear Zone (opening-keep-clear, AC-13)", () => {
     it("detects encroachment into symmetric door keep-clear zone on side A (+normal)", () => {
       const plan = createTestPlan();
       // Wall w_top: from (0, 0) to (6000, 0), thickness 200 (y in [-100, 100])
@@ -218,6 +227,194 @@ describe("Clearance and Guidance Rules (US-13, AC-13)", () => {
 
       const violations = evaluateOpeningClearanceRules(plan, disabledConfig);
       expect(violations).toHaveLength(0);
+    });
+
+    it("does not reserve space outside an inward-swinging exterior door", () => {
+      const plan = createTestPlan();
+      plan.openings = [
+        {
+          id: "door_main",
+          type: "door",
+          wallId: "w_top",
+          position: 0.5,
+          width: 900,
+        },
+      ];
+      // Outside the room, on the non-swing side of the top wall.
+      plan.furniture = [
+        {
+          id: "f_outside",
+          definitionId: "desk",
+          x: 3000,
+          y: -700,
+          width: 800,
+          depth: 600,
+          rotation: 0,
+        },
+      ];
+
+      expect(evaluateOpeningClearanceRules(plan)).toHaveLength(0);
+    });
+
+    function createAdjacentPlan(leftType: RoomType, rightType: RoomType): FloorPlan {
+      const plan = createTestPlan();
+      plan.vertices = [
+        { id: "v1", x: 0, y: 0 },
+        { id: "v2", x: 4000, y: 0 },
+        { id: "v3", x: 8000, y: 0 },
+        { id: "v4", x: 8000, y: 4000 },
+        { id: "v5", x: 4000, y: 4000 },
+        { id: "v6", x: 0, y: 4000 },
+      ];
+      plan.walls = [
+        { id: "w_left_top", from: "v1", to: "v2", thickness: 200, lockAxis: "horizontal" },
+        { id: "w_right_top", from: "v2", to: "v3", thickness: 200, lockAxis: "horizontal" },
+        { id: "w_right", from: "v3", to: "v4", thickness: 200, lockAxis: "vertical" },
+        { id: "w_right_bottom", from: "v4", to: "v5", thickness: 200, lockAxis: "horizontal" },
+        { id: "w_left_bottom", from: "v5", to: "v6", thickness: 200, lockAxis: "horizontal" },
+        { id: "w_left", from: "v6", to: "v1", thickness: 200, lockAxis: "vertical" },
+        { id: "w_mid", from: "v2", to: "v5", thickness: 200, lockAxis: "vertical" },
+      ];
+      plan.rooms = [
+        {
+          id: "left",
+          type: leftType,
+          name: "Left",
+          boundaryWallIds: ["w_left_top", "w_mid", "w_left_bottom", "w_left"],
+        },
+        {
+          id: "right",
+          type: rightType,
+          name: "Right",
+          boundaryWallIds: ["w_right_top", "w_right", "w_right_bottom", "w_mid"],
+        },
+      ];
+      plan.openings = [
+        {
+          id: "door_mid",
+          type: "door",
+          wallId: "w_mid",
+          position: 0.5,
+          width: 900,
+        },
+      ];
+      return plan;
+    }
+
+    function placeBesidePartition(plan: FloorPlan, id: string, x: number) {
+      plan.furniture = [
+        {
+          id,
+          definitionId: "desk",
+          x,
+          y: 2000,
+          width: 800,
+          depth: 600,
+          rotation: 0,
+        },
+      ];
+    }
+
+    it("reserves the living room side of an entry door and ignores the outside", () => {
+      const plan = createAdjacentPlan("living_room", "bedroom");
+      plan.openings = [
+        {
+          id: "door_entry",
+          type: "door",
+          wallId: "w_left",
+          position: 0.5,
+          width: 900,
+        },
+      ];
+      // Inside the living room, 300 mm from the inner face at x = 100.
+      placeBesidePartition(plan, "f_inside", 700);
+      expect(evaluateOpeningClearanceRules(plan)).toHaveLength(1);
+      expect(evaluateOpeningClearanceRules(plan)[0].measuredValue).toBe(200);
+
+      placeBesidePartition(plan, "f_outside", -700);
+      expect(evaluateOpeningClearanceRules(plan)).toHaveLength(0);
+    });
+
+    it("reserves only the non-living side of a door between the living room and another room", () => {
+      const plan = createAdjacentPlan("living_room", "bedroom");
+      // Partition center x = 4000. Bedroom inner face is x = 4100.
+      placeBesidePartition(plan, "f_bedroom", 4600);
+      const bedroomViolations = evaluateOpeningClearanceRules(plan);
+      expect(bedroomViolations).toHaveLength(1);
+      expect(bedroomViolations[0].measuredValue).toBe(100);
+
+      // Living-room side is not the swing side, even when furniture is 100 mm from the door.
+      placeBesidePartition(plan, "f_living", 3400);
+      expect(evaluateOpeningClearanceRules(plan)).toHaveLength(0);
+    });
+
+    it("does not reserve space for a balcony door", () => {
+      const plan = createAdjacentPlan("living_room", "balcony");
+      placeBesidePartition(plan, "f_living", 3400);
+      expect(evaluateOpeningClearanceRules(plan)).toHaveLength(0);
+
+      placeBesidePartition(plan, "f_balcony", 4600);
+      expect(evaluateOpeningClearanceRules(plan)).toHaveLength(0);
+    });
+
+    it("reserves the bathroom side of a door between a bedroom and a bathroom", () => {
+      const plan = createAdjacentPlan("bedroom", "bathroom");
+      placeBesidePartition(plan, "f_bathroom", 4600);
+      expect(evaluateOpeningClearanceRules(plan)).toHaveLength(1);
+
+      placeBesidePartition(plan, "f_bedroom", 3400);
+      expect(evaluateOpeningClearanceRules(plan)).toHaveLength(0);
+    });
+
+    it("reserves one inward side for every catalog door", () => {
+      for (const plan of FLOOR_PLAN_CATALOG_DATA) {
+        const vertexMap = getVertexMap(plan);
+        const wallMap = getWallMap(plan);
+        const roomPolygons = plan.rooms
+          .map((room) => ({
+            room,
+            points: computeRoomPolygon(room, wallMap, vertexMap),
+          }))
+          .filter((rp) => rp.points.length >= 3);
+
+        for (const opening of plan.openings) {
+          if (opening.type !== "door") continue;
+          const wall = wallMap.get(opening.wallId);
+          if (!wall) continue;
+
+          const zone = computeOpeningKeepClearZone(opening, wall, vertexMap, 900, roomPolygons);
+          const adjacent = roomPolygons.filter((rp) =>
+            rp.room.boundaryWallIds.includes(opening.wallId),
+          );
+          const types = adjacent.map((rp) => rp.room.type).sort();
+          const label = `${plan.meta.id} ${opening.id} ${types.join("+")}`;
+
+          expect(zone, label).not.toBeNull();
+          if (types.includes("balcony")) {
+            expect(zone!.activeSides, label).toEqual([]);
+            continue;
+          }
+
+          expect(zone!.activeSides, label).toHaveLength(1);
+          const side = zone!.activeSides[0];
+          const geom = computeOpeningGeometry(opening, wall, vertexMap);
+          expect(geom, label).not.toBeNull();
+          const sign = side === "a" ? 1 : -1;
+          const probe = {
+            x: geom!.center.x + geom!.normal.x * sign * 200,
+            y: geom!.center.y + geom!.normal.y * sign * 200,
+          };
+          const hit = adjacent.find((rp) => isPointInPolygon(probe, rp.points));
+          expect(hit, label).toBeTruthy();
+          if (types.length === 1) {
+            expect(hit!.room.type, label).toBe(types[0]);
+          } else if (types.includes("living_room")) {
+            expect(hit!.room.type, label).not.toBe("living_room");
+          } else if (types.includes("bathroom") && types.includes("bedroom")) {
+            expect(hit!.room.type, label).toBe("bathroom");
+          }
+        }
+      }
     });
   });
 

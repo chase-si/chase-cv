@@ -166,9 +166,10 @@ describe("FloorPlanSvgViewer (AC-3 & AC-4)", () => {
       />,
     );
 
-    // Opening clearance overlay should appear when door1 is selected
+    // Opening clearance overlay should appear when door1 is selected, on the inward side only.
     expect(screen.getByTestId("floor-plan-clearance-layer")).toBeInTheDocument();
-    expect(screen.getByTestId("opening-clearance-overlay-door1")).toBeInTheDocument();
+    const overlay = screen.getByTestId("opening-clearance-overlay-door1");
+    expect(overlay.querySelectorAll("[data-keep-clear-side]")).toHaveLength(1);
 
     // Rerender with active violation
     const violationResult = [
