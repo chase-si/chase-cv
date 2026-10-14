@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { StandardFloorPlan } from "./types";
+import type { AssessmentStatus, StandardFloorPlan } from "./types";
 import type { RuleResult } from "./rules/types";
 
 export type FloorPlanLocale = "en" | "zh";
@@ -478,7 +478,7 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
   },
   rules: {
     title: "空间规范审查",
-    allPassed: "所有房间边界、活动净距、门窗避让及家具摆放规范检查通过。",
+    allPassed: "当前家具布局在已配置的空间检查中未发现问题。",
     unscaledNotice: "未标定真实尺寸：依赖毫米绝对尺度的间距规则已抑制。",
     measured: "实测值：",
     recommended: "建议值：",
@@ -787,7 +787,7 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
   },
   rules: {
     title: "Spatial Rules",
-    allPassed: "All room boundaries, clearances, passages, and spatial rules passed.",
+    allPassed: "No issues found in the configured checks for this furniture layout.",
     unscaledNotice: "Uncalibrated scale: Dimension-dependent clearance rules are suppressed.",
     measured: "Measured:",
     recommended: "Recommended:",
@@ -1275,4 +1275,14 @@ export function getFloorPlanI18n(locale?: string) {
 
 export function useFloorPlanI18n(localeProp?: string) {
   return React.useMemo(() => getFloorPlanI18n(localeProp), [localeProp]);
+}
+
+export function getAssessmentStatusLabel(status: AssessmentStatus, locale?: string): string {
+  const isZh = getFloorPlanLocale(locale) === "zh";
+  return {
+    suitable: isZh ? "摆放合适" : "Suitable",
+    "trade-off": isZh ? "空间略紧" : "Tight fit",
+    "must-adjust": isZh ? "需要调整" : "Adjust layout",
+    unavailable: isZh ? "无法评估" : "Unavailable",
+  }[status];
 }

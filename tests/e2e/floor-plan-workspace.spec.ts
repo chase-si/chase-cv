@@ -107,7 +107,7 @@ test("desktop keeps a large canvas and provides selected properties, assessment 
   await expect(selected).not.toHaveAttribute("transform", before!);
   await page.getByTestId("desktop-assessment-btn").click();
   await expect(page.getByTestId("mobile-bottom-sheet")).toBeVisible();
-  await expect(page.getByTestId("mobile-bottom-sheet").getByTestId("furniture-decision-panel")).toBeVisible();
+  await expect(page.getByTestId("mobile-bottom-sheet").getByTestId("rule-feedback-panel")).toBeVisible();
   await page.keyboard.press("Escape");
   await page.getByTestId("export-plan-image-btn").click();
   await expect(page.getByRole("img", { name: "当前户型家具布局图" })).toBeVisible();

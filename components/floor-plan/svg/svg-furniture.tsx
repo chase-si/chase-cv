@@ -1,6 +1,9 @@
 import * as React from "react";
+import { CircleAlert } from "lucide-react";
 import type { FurnitureInstance } from "@/lib/floor-plan";
-import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
+import type { AssessmentStatus } from "@/lib/floor-plan/types";
+import { cn } from "@/lib/utils";
+import { getAssessmentStatusLabel, useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import type { EntitySelectHandler, SelectedEntity } from "../types";
 
 interface SvgFurnitureProps {
@@ -11,6 +14,7 @@ interface SvgFurnitureProps {
   onRotate?: (id: string, stepDeg?: number) => void;
   onDragStart?: (e: React.PointerEvent, furniture: FurnitureInstance) => void;
   hasViolation?: boolean;
+  assessmentStatus?: AssessmentStatus;
   locale?: string;
 }
 
@@ -22,6 +26,7 @@ export function SvgFurniture({
   onRotate,
   onDragStart,
   hasViolation = false,
+  assessmentStatus,
   locale,
 }: SvgFurnitureProps) {
   const i18n = useFloorPlanI18n(locale);
@@ -30,6 +35,8 @@ export function SvgFurniture({
 
   const { x, y, width, depth, rotation, definitionId } = furniture;
   const localizedName = i18n.getFurnitureName(definitionId);
+  const status = assessmentStatus ?? (hasViolation ? "must-adjust" : "suitable");
+  const hasAlert = hasViolation && (status === "must-adjust" || status === "trade-off");
   const halfW = width / 2;
   const halfD = depth / 2;
 
@@ -50,7 +57,8 @@ export function SvgFurniture({
       data-width={width}
       data-depth={depth}
       data-selected={isSelected ? "true" : "false"}
-      data-has-violation={hasViolation ? "true" : "false"}
+      data-has-violation={hasAlert ? "true" : "false"}
+      data-assessment-status={status}
       transform={`translate(${x}, ${y}) rotate(${rotation})`}
       tabIndex={0}
       role="button"
@@ -97,20 +105,21 @@ export function SvgFurniture({
         fill={
           isSelected
             ? "rgba(59, 130, 246, 0.15)"
-            : hasViolation
-              ? "rgba(239, 68, 68, 0.1)"
+            : hasAlert
+              ? "currentColor"
               : "#f8fafc"
         }
         stroke={
           isSelected
             ? "#2563eb"
-            : hasViolation
-              ? "#ef4444"
+            : hasAlert
+              ? "currentColor"
               : "#64748b"
         }
-        strokeWidth={isSelected ? 32 : hasViolation ? 28 : 16}
-        strokeDasharray={hasViolation && !isSelected ? "40 20" : undefined}
-        className="transition-colors duration-150"
+        strokeWidth={isSelected ? 32 : hasAlert ? 28 : 16}
+        strokeDasharray={hasAlert && !isSelected ? "40 20" : undefined}
+        fillOpacity={!isSelected && hasAlert ? 0.1 : undefined}
+        className={cn("transition-colors duration-150", hasAlert && (status === "trade-off" ? "text-amber-500" : "text-destructive"))}
       />
 
       {/* Domain Furniture Interior Details */}
@@ -334,24 +343,15 @@ export function SvgFurniture({
       </text>
 
       {/* Violation Alert Badge on canvas (AC-12) */}
-      {hasViolation && (
+      {hasAlert && (
         <g
           data-testid={`furniture-violation-badge-${furniture.id}`}
           transform={`translate(${halfW - 25}, ${-halfD + 25})`}
-          className="pointer-events-none"
+          data-assessment-status={status}
+          className={cn("pointer-events-none", status === "trade-off" ? "text-amber-500" : "text-destructive")}
         >
-          <circle
-            r="64"
-            fill="#ef4444"
-            stroke="#ffffff"
-            strokeWidth="8"
-          />
-          <path
-            d="M 0 -30 L 0 10 M 0 24 L 0 34"
-            stroke="#ffffff"
-            strokeWidth="14"
-            strokeLinecap="round"
-          />
+          <title>{getAssessmentStatusLabel(status, locale)}</title>
+          <CircleAlert x={-78} y={-78} width={156} height={156} className="fill-background" strokeWidth={2} />
         </g>
       )}
 
@@ -367,18 +367,18 @@ export function SvgFurniture({
           }}
         >
           <circle
-            r="64"
+            r="78"
             fill="#2563eb"
             stroke="#ffffff"
-            strokeWidth="8"
+            strokeWidth="9"
             className="hover:scale-110 transition-transform"
           />
           {/* Circular arrow icon */}
           <path
-            d="M -24 -8 A 31 31 0 1 1 0 34 L 0 16 M 0 34 L -18 34"
+            d="M -30 -10 A 38 38 0 1 1 0 42 L 0 20 M 0 42 L -22 42"
             fill="none"
             stroke="#ffffff"
-            strokeWidth="10"
+            strokeWidth="12"
             strokeLinecap="round"
             strokeLinejoin="round"
           />

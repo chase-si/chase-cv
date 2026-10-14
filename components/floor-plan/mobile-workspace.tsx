@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { StandardPlanSummary } from "@/lib/floor-plan/catalog";
 import type { FloorPlan, SpaceAssessment } from "@/lib/floor-plan/types";
-import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
+import { getAssessmentStatusLabel, useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { cn } from "@/lib/utils";
 import type { SelectedEntity } from "./types";
 
@@ -52,12 +52,7 @@ export function MobileWorkspace({ plan, summary, selectedEntity, roomName, roomA
   const label = furniture ? i18n.getFurnitureName(furniture.definitionId) : selectedEntity
     ? selectedEntity.type === "room" ? roomName : i18n.t.mobileSheet[`${selectedEntity.type}Properties` as "wallProperties" | "openingProperties" | "dimensionProperties"]
     : isZh ? "从一个房间开始" : "Start with a room";
-  const status = {
-    suitable: isZh ? "摆放合适" : "Suitable",
-    "trade-off": isZh ? "空间略紧" : "Tight fit",
-    "must-adjust": isZh ? "需要调整" : "Adjust layout",
-    unavailable: isZh ? "无法评估" : "Unavailable",
-  }[assessment.status];
+  const status = getAssessmentStatusLabel(assessment.status, locale);
   const landscapeGrid = "[@media(max-height:540px)_and_(min-width:640px)]:grid [@media(max-height:540px)_and_(min-width:640px)]:grid-cols-[minmax(0,1.3fr)_minmax(260px,1fr)] [@media(max-height:540px)_and_(min-width:640px)]:grid-rows-[auto_minmax(0,1fr)_auto]";
 
   return <div ref={ref} data-testid="floor-plan-mobile-workspace" className="flex h-[var(--floor-plan-workspace-height,calc(100dvh-4rem-1px))] min-h-0 flex-col">
@@ -85,7 +80,7 @@ export function MobileWorkspace({ plan, summary, selectedEntity, roomName, roomA
         <Card data-testid="mobile-selection-card" className="min-h-[88px] shrink-0 gap-1.5 p-2.5 [@media(max-height:540px)_and_(min-width:640px)]:col-start-2 [@media(max-height:540px)_and_(min-width:640px)]:row-start-2 [@media(max-height:540px)_and_(min-width:640px)]:self-end [@media(max-height:700px)]:p-2 [@media(max-height:700px)]:gap-1">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0"><p data-testid="mobile-selection-name" className="truncate text-sm font-semibold">{label}</p><p data-testid="mobile-selection-description" className="truncate text-[11px] text-muted-foreground [@media(max-height:700px)]:hidden">{furniture ? `${furniture.width} × ${furniture.depth} mm · ${furniture.rotation}°` : roomArea ?? (isZh ? "选户型 → 点房间 → 摆家具" : "Choose plan → room → furniture")}</p></div>
-            <Button variant="ghost" className={cn("h-9 shrink-0 px-2 text-[11px] [@media(max-height:700px)]:h-7", assessment.status === "must-adjust" && "text-destructive")} onClick={() => onOpen("rules")}>{plan.furniture.length ? status : isZh ? "待摆放" : "No furniture"}<ChevronRight /></Button>
+            <Button data-testid="mobile-assessment-btn" variant="ghost" className={cn("h-9 shrink-0 gap-1 px-2 text-[11px] [@media(max-height:700px)]:h-7", assessment.status === "must-adjust" && "text-destructive", assessment.status === "trade-off" && "text-amber-600 dark:text-amber-400")} onClick={() => onOpen("rules")}><span className="text-muted-foreground">{furniture ? isZh ? "本件 ·" : "Item ·" : isZh ? "全屋 ·" : "All ·"}</span>{plan.furniture.length ? status : isZh ? "待摆放" : "No furniture"}<ChevronRight /></Button>
           </div>
           <div className="flex items-center gap-2">
             {furniture ? <>
@@ -100,7 +95,7 @@ export function MobileWorkspace({ plan, summary, selectedEntity, roomName, roomA
         </Card>
         <nav aria-label={isZh ? "户型工具操作" : "Floor plan actions"} className="grid shrink-0 grid-cols-3 gap-2 pb-[var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))] [@media(max-height:540px)_and_(min-width:640px)]:col-start-2 [@media(max-height:540px)_and_(min-width:640px)]:row-start-3">
           <Button className="h-11 min-w-11 px-2 text-xs" data-testid="mobile-add-furniture-btn" onClick={() => onOpen("furniture-palette")}><Armchair />{isZh ? "家具" : "Furniture"}</Button>
-          <Button variant="outline" className="h-11 min-w-11 px-2 text-xs" data-testid="mobile-rules-btn" onClick={() => onOpen("rules")}><ClipboardCheck />{isZh ? "检查" : "Check"}{issueCount > 0 && <span className="text-[10px]">{issueCount}</span>}</Button>
+          <Button variant="outline" className="h-11 min-w-11 px-2 text-xs" data-testid="mobile-rules-btn" aria-label={isZh ? `全屋检查，${issueCount} 项问题` : `Check whole layout, ${issueCount} issues`} onClick={() => onOpen("rules")}><ClipboardCheck />{isZh ? "检查" : "Check"}<span className="text-[10px]">{issueCount}</span></Button>
           <Button variant="outline" className="h-11 min-w-11 px-2 text-xs" data-testid="export-plan-image-btn" onClick={onExport}><ImageIcon />{isZh ? "出图" : "Image"}</Button>
         </nav>
       </div>

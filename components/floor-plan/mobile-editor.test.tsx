@@ -27,7 +27,7 @@ class MockResizeObserver {
   }
   unobserve() {}
   disconnect() {}
-  constructor(private callback: (entries: any[]) => void) {}
+  constructor(private callback: (entries: { contentRect: { width: number; height: number }; target: Element }[]) => void) {}
 }
 
 vi.stubGlobal("ResizeObserver", MockResizeObserver);
@@ -52,6 +52,57 @@ afterEach(() => {
 });
 
 describe("Mobile Floor Plan Editor Ergonomics (AC-5, AC-4, AC-27)", () => {
+  it("summarizes the whole layout rather than silently reporting the first furniture item", () => {
+    const plan = {
+      ...VALID_STANDARD_FLOOR_PLAN,
+      openings: [],
+      furniture: [
+        { id: "safe", definitionId: "sofa-1seat", specificationId: "sofa-1seat-800x800", x: 1500, y: 2500, width: 800, depth: 800, rotation: 0 },
+        { id: "outside", definitionId: "sofa-1seat", specificationId: "sofa-1seat-800x800", x: -2000, y: -2000, width: 800, depth: 800, rotation: 0 },
+      ],
+    };
+    render(<FloorPlanShell initialActivePlan={plan} isMobile locale="zh" />);
+    expect(screen.getByTestId("floor-plan-furniture-safe")).toHaveAttribute("data-has-violation", "false");
+    expect(screen.getByTestId("floor-plan-furniture-outside")).toHaveAttribute("data-has-violation", "true");
+    expect(screen.getByTestId("mobile-rules-btn")).toHaveTextContent("1");
+    expect(screen.getByTestId("mobile-selection-card")).toHaveTextContent("需要调整");
+    fireEvent.click(screen.getByTestId("floor-plan-furniture-safe"));
+    expect(screen.getByTestId("mobile-assessment-btn")).toHaveTextContent("本件 ·摆放合适");
+    expect(screen.getByTestId("mobile-rules-btn")).toHaveAccessibleName("全屋检查，1 项问题");
+    fireEvent.click(screen.getByTestId("mobile-rules-btn"));
+    expect(within(screen.getByTestId("rule-feedback-panel")).getAllByTestId(/^rule-violation-/)).toHaveLength(1);
+    fireEvent.click(screen.getByTestId("mobile-bottom-sheet-close"));
+    fireEvent.click(screen.getByTestId("floor-plan-furniture-outside"));
+    expect(screen.getByTestId("mobile-assessment-btn")).toHaveTextContent("本件 ·需要调整");
+    fireEvent.click(screen.getByRole("button", { name: "移除家具" }));
+    expect(screen.getByTestId("mobile-rules-btn")).toHaveAccessibleName("全屋检查，0 项问题");
+    expect(screen.getByTestId("mobile-assessment-btn")).toHaveTextContent("全屋 ·摆放合适");
+  });
+
+  it("uses amber for recommended-only clearance and the same measurements in the check list", () => {
+    const plan = {
+      ...VALID_STANDARD_FLOOR_PLAN, openings: [],
+      furniture: [{ id: "tight", definitionId: "sofa-1seat", specificationId: "sofa-1seat-800x800", x: 1500, y: 4000, width: 800, depth: 800, rotation: 0 }],
+    };
+    render(<FloorPlanShell initialActivePlan={plan} isMobile locale="zh" />);
+    expect(screen.getByTestId("mobile-assessment-btn")).toHaveTextContent("全屋 ·空间略紧");
+    expect(screen.getByTestId("furniture-violation-badge-tight")).toHaveAttribute("data-assessment-status", "trade-off");
+    expect(screen.getByTestId("furniture-violation-badge-tight")).toHaveClass("text-amber-500");
+    expect(screen.getByTestId("mobile-rules-btn")).toHaveAccessibleName("全屋检查，1 项问题");
+    fireEvent.click(screen.getByTestId("mobile-rules-btn"));
+    const issue = screen.getByTestId("rule-violation-furniture-clearance");
+    expect(issue).toHaveTextContent("500 mm");
+    expect(issue).toHaveTextContent("最低 450 mm / 推荐 600 mm");
+  });
+
+  it("never displays an all-passed message for an unscaled plan without findings", () => {
+    const plan = { ...VALID_STANDARD_FLOOR_PLAN, meta: { ...VALID_STANDARD_FLOOR_PLAN.meta, scaled: false }, furniture: [], openings: [] };
+    render(<FloorPlanShell initialActivePlan={plan} isMobile locale="zh" />);
+    fireEvent.click(screen.getByTestId("mobile-rules-btn"));
+    expect(screen.getByTestId("unscaled-rule-notice")).toBeInTheDocument();
+    expect(screen.queryByTestId("rule-clean-state")).not.toBeInTheDocument();
+  });
+
   it("renders canvas as primary surface and exposes mobile touch-sized mode toggle", () => {
     render(<FloorPlanShell initialPlans={FIXTURE_PLANS} isMobile={true} />);
 
@@ -246,7 +297,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5, AC-4, AC-27)", () => {
     fireEvent.click(screen.getByRole("button", { name: "旋转家具 90 度" }));
 
     fireEvent.click(screen.getByTestId("mobile-rules-btn"));
-    expect(within(screen.getByTestId("mobile-bottom-sheet")).getByTestId("furniture-decision-panel")).toBeInTheDocument();
+    expect(within(screen.getByTestId("mobile-bottom-sheet")).getByText(/全屋检查：数字为下方问题条数/)).toBeInTheDocument();
     expect(within(screen.getByTestId("mobile-bottom-sheet")).getByTestId("rule-feedback-panel")).toBeInTheDocument();
     // Checks must remain the requested panel even though a furniture item is selected.
     expect(screen.queryByTestId("inspector-furniture-details")).not.toBeInTheDocument();

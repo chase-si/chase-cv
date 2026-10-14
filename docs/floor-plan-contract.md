@@ -190,6 +190,8 @@ Directional clearance compares one placement's clearance zone against walls, roo
 
 Domain findings contain measurements and object references, not localized prose. User-facing text and repair suggestions are derived outside the assessment contract.
 
+The product UI derives its whole-layout and per-furniture verdicts from one normalized default rule list. That list combines the findings above with advisory door keep-clear / approach checks; a door advisory therefore yields `trade-off` even when the physical assessment has no findings. The displayed issue count is the number of list entries, with symmetric furniture overlaps counted once. See [the spatial-rule review](./floor-plan-space-rules-review.md) for ownership, scope, and model limitations.
+
 ## 5. Candidate asset validation
 
 Candidate floor-plan validation guarantees only that data is safe to render and assess:

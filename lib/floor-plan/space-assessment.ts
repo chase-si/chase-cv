@@ -373,10 +373,12 @@ export function computePolygonPenetrationDepth(
         if (proj > maxB) maxB = proj;
       }
 
-      const overlap = Math.min(maxA, maxB) - Math.max(minA, minB);
-      if (overlap <= 1e-4) {
+      if (Math.min(maxA, maxB) - Math.max(minA, minB) <= 1e-4) {
         return 0;
       }
+      // When one projection contains the other, intersection width is smaller
+      // than the distance needed to separate them (e.g. furniture around a wall).
+      const overlap = Math.min(maxA - minB, maxB - minA);
       if (overlap < minOverlap) {
         minOverlap = overlap;
       }
@@ -652,6 +654,7 @@ export function assessPlacementScenario(
   };
 
   for (const item of placementData) {
+    if (unscaled) break;
     for (const side of ALL_SIDES) {
       const zone = item.clearanceZones[side];
       if (zone.recommendedMm <= 0) continue;

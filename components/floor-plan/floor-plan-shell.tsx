@@ -21,8 +21,7 @@ import {
   applyPlacementScenarioToFloorPlan,
   floorPlanToPlacementScenario,
 } from "@/lib/floor-plan/placement-scenario";
-import { assessPlacementScenario } from "@/lib/floor-plan/space-assessment";
-import { evaluatePlanRules } from "@/lib/floor-plan/rules";
+import { assessmentFromRuleResults, evaluatePlanRules } from "@/lib/floor-plan/rules";
 import {
   computePolygonArea,
   computeRoomPolygon,
@@ -50,7 +49,7 @@ import {
 } from "@/lib/floor-plan/furniture-operations";
 import { getDefaultFurnitureCatalog } from "@/lib/floor-plan/furniture-catalog";
 import { RoomList } from "./room-list";
-import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
+import { getAssessmentStatusLabel, useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { RuleFeedbackPanel } from "./rule-feedback-panel";
 import { cn } from "@/lib/utils";
 import { MobileWorkspace } from "./mobile-workspace";
@@ -230,17 +229,15 @@ export function FloorPlanShell({
 
   const effectiveTargetFurnitureId = targetFurniture?.id ?? null;
 
-  // Derive placement scenario and assess physical space for the active target placement while keeping all other furniture as obstacles (AC-3)
-  const currentScenario = React.useMemo(() => {
-    return floorPlanToPlacementScenario(currentPlan, effectiveTargetFurnitureId ?? undefined);
-  }, [currentPlan, effectiveTargetFurnitureId]);
-
+  // Both target and whole-layout verdicts come from the same normalized issues.
   const spaceAssessment = React.useMemo(() => {
-    return assessPlacementScenario(currentPlan, currentScenario, undefined, {
-      targetPlacementId: effectiveTargetFurnitureId ?? undefined,
-      focusRoomId: targetRoomId ?? undefined,
-    });
-  }, [currentPlan, currentScenario, effectiveTargetFurnitureId, targetRoomId]);
+    return assessmentFromRuleResults(currentPlan, violations, effectiveTargetFurnitureId ?? undefined);
+  }, [currentPlan, violations, effectiveTargetFurnitureId]);
+
+  const layoutAssessment = React.useMemo(
+    () => assessmentFromRuleResults(currentPlan, violations),
+    [currentPlan, violations],
+  );
 
   const targetRoom = React.useMemo(() => {
     if (!targetRoomId) return null;
@@ -600,9 +597,9 @@ export function FloorPlanShell({
     if (mobileSheetType === "rules") {
       return (
         <div className="space-y-4">
-          {targetFurniture && <FurnitureDecisionPanel plan={currentPlan} targetRoomId={targetRoomId}
-            targetFurnitureId={targetFurniture.id} ruleResults={violations} assessment={spaceAssessment}
-            selectedEntity={selectedEntity} onSelectEntity={handleSelectEntity} onChangeSpecification={handleChangeSpecification} locale={locale} />}
+          <p className="text-xs text-muted-foreground">{isZh
+            ? "全屋检查：数字为下方问题条数。同一对家具重叠计 1 项；不同方向的净距分别计数。红色表示需要调整，黄色表示空间略紧。"
+            : "Whole-layout check: the count matches the issues below. Each overlapping pair counts once; directional clearance shortfalls count separately. Red means adjust; amber means a tight fit."}</p>
         <RuleFeedbackPanel
           plan={currentPlan}
           ruleResults={violations}
@@ -665,7 +662,6 @@ export function FloorPlanShell({
     handleSelectTargetRoom,
     targetRoomId,
     targetFurnitureId,
-    targetFurniture,
     locale,
     isZh,
     i18n,
@@ -696,7 +692,7 @@ export function FloorPlanShell({
   if (isMobile) {
     return <MobileWorkspace plan={currentPlan} summary={activePlanSummary} selectedEntity={selectedEntity}
       roomName={targetRoomDetails?.displayName} roomArea={targetRoomDetails?.area.formattedAreaM2}
-      assessment={spaceAssessment} canvasMode={canvasMode} issueCount={violations.length} locale={locale}
+      assessment={selectedEntity?.type === "furniture" ? spaceAssessment : layoutAssessment} canvasMode={canvasMode} issueCount={violations.length} locale={locale}
       canvas={viewer} overlays={<>{mobilePanel}{imageDialog}</>} onModeChange={setCanvasMode} onOpen={setMobileSheetType}
       onRotate={handleRotateTargetFurniture} onDelete={handleDeleteTargetFurniture} onExport={exportImage} />;
   }
@@ -805,10 +801,9 @@ export function FloorPlanShell({
                 </p>
                 <div className="flex items-center justify-between gap-2 pt-1">
                   <span className="text-[11px] text-muted-foreground">{currentPlan.furniture.length} {isZh ? "件已摆放家具" : "placed items"}</span>
-                  <Button variant="ghost" size="sm" className={cn("h-8 px-2 text-xs", spaceAssessment.status === "must-adjust" && "text-destructive")}
+                  <Button variant="ghost" size="sm" className={cn("h-8 px-2 text-xs", layoutAssessment.status === "must-adjust" && "text-destructive")}
                     data-testid="desktop-assessment-btn" onClick={() => setMobileSheetType("rules")}>
-                    {currentPlan.furniture.length ? isZh ? ({ suitable: "摆放合适", "trade-off": "空间略紧", "must-adjust": "需要调整", unavailable: "无法评估" }[spaceAssessment.status])
-                      : ({ suitable: "Suitable", "trade-off": "Tight fit", "must-adjust": "Adjust layout", unavailable: "Unavailable" }[spaceAssessment.status]) : isZh ? "待摆放" : "No furniture"}
+                    {currentPlan.furniture.length ? getAssessmentStatusLabel(layoutAssessment.status, locale) : isZh ? "待摆放" : "No furniture"}
                   </Button>
                 </div>
               </CardHeader>

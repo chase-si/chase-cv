@@ -4,7 +4,9 @@ import {
   getVertexMap,
   getWallMap,
 } from "../geometry";
-import type { FloorPlan, SpaceRuleConfig } from "../types";
+import type { AssessmentFindingKind, FloorPlan, SpaceAssessment, SpaceRuleConfig } from "../types";
+import { assessPlacementScenario } from "../space-assessment";
+import { floorPlanToPlacementScenario } from "../placement-scenario";
 import {
   computeFurniturePolygon,
   computeMinDistanceToPolygon,
@@ -226,6 +228,10 @@ export function evaluatePlanRules(
   plan: FloorPlan,
   config?: SpaceRuleConfig,
 ): RuleResult[] {
+  // The product's default checks use the specification's minimum AND recommended
+  // directional clearances. Explicit legacy configuration retains its own thresholds.
+  if (!config) return evaluateCatalogPlanRules(plan);
+
   const boundaryViolations = evaluateFurnitureBoundaryRules(plan, config);
   const wallViolations = evaluateFurnitureWallCollisionRules(plan, config);
   const overlapViolations = evaluateFurnitureOverlapRules(plan, config);
@@ -257,4 +263,92 @@ export function evaluatePlanRules(
     const idB = b.relatedEntityIds[0] ?? "";
     return idA.localeCompare(idB);
   });
+}
+
+const FINDING_RULE_IDS: Record<AssessmentFindingKind, string> = {
+  "furniture-overlap": "furniture-overlap",
+  "wall-overlap": "furniture-wall-collision",
+  "outside-room": "furniture-boundary",
+  "below-minimum-clearance": "furniture-clearance",
+  "below-recommended-clearance": "furniture-clearance",
+};
+
+const FINDING_TITLES: Record<AssessmentFindingKind, string> = {
+  "furniture-overlap": "Furniture Overlap",
+  "wall-overlap": "Wall Collision",
+  "outside-room": "Outside Room Boundary",
+  "below-minimum-clearance": "Below Minimum Clearance",
+  "below-recommended-clearance": "Below Recommended Clearance",
+};
+
+function evaluateCatalogPlanRules(plan: FloorPlan): RuleResult[] {
+  const assessment = assessPlacementScenario(plan, floorPlanToPlacementScenario(plan), undefined, {
+    includeAllPlacements: true,
+  });
+  const issues: RuleResult[] = [];
+  const seenOverlaps = new Set<string>();
+  for (const finding of assessment.findings) {
+    // The domain emits one finding for each participant; the whole-plan list
+    // counts a physical overlap once while both pieces keep their alert marker.
+    if (finding.kind === "furniture-overlap" && finding.relatedPlacementId) {
+      const pairKey = JSON.stringify([finding.placementId, finding.relatedPlacementId].sort());
+      if (seenOverlaps.has(pairKey)) continue;
+      seenOverlaps.add(pairKey);
+    }
+    const relatedEntityIds = [finding.placementId,
+      ...(finding.relatedPlacementId ? [finding.relatedPlacementId] : []),
+      ...(finding.wallId ? [finding.wallId] : [])];
+    if (finding.kind === "furniture-overlap") {
+      relatedEntityIds.sort((a, b) => plan.furniture.findIndex((f) => f.id === a) - plan.furniture.findIndex((f) => f.id === b));
+    }
+    const affectedFurnitureIds = finding.kind === "furniture-overlap"
+      ? [finding.placementId, finding.relatedPlacementId!]
+      : [finding.placementId];
+    issues.push({
+      ruleId: FINDING_RULE_IDS[finding.kind],
+      severity: finding.kind === "below-recommended-clearance" ? "warning" : "error",
+      relatedEntityIds,
+      relatedObjectIds: relatedEntityIds,
+      affectedFurnitureIds,
+      assessmentFinding: finding,
+      measuredValue: finding.measuredMm,
+      recommendedValue: finding.recommendedMm ?? 0,
+      title: FINDING_TITLES[finding.kind],
+      message: `Layout guidance: Furniture "${finding.placementId}" ${finding.kind === "outside-room"
+        ? "is outside room boundaries" : finding.kind === "wall-overlap"
+          ? `intersects wall "${finding.wallId}"` : finding.kind === "furniture-overlap"
+            ? `overlaps furniture "${finding.relatedPlacementId}"` : `${finding.side} clearance is below ${finding.kind === "below-minimum-clearance" ? "minimum" : "recommended"} threshold`}.`,
+    });
+  }
+  // Only actual door approach/swing zones are passage checks. A small gap
+  // beside a wall or another item does not establish that it is a walking route.
+  if (!isPlanUnscaled(plan)) issues.push(...evaluateOpeningClearanceRules(plan));
+  const severityOrder = { error: 0, warning: 1, info: 2 };
+  return issues.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity] ||
+    a.ruleId.localeCompare(b.ruleId) || a.relatedEntityIds.join(":").localeCompare(b.relatedEntityIds.join(":")));
+}
+
+/** One status policy for the list, layout summary and each furniture marker. */
+export function assessmentFromRuleResults(
+  plan: FloorPlan,
+  results: RuleResult[],
+  furnitureId?: string,
+): SpaceAssessment {
+  const relevant = furnitureId
+    ? results.filter((r) => (r.affectedFurnitureIds ?? r.relatedEntityIds).includes(furnitureId))
+    : results;
+  const findings = relevant.flatMap((r) => {
+    if (!r.assessmentFinding) return [];
+    const f = r.assessmentFinding;
+    // Restore the target's side of a deduplicated symmetric overlap.
+    return [furnitureId && f.kind === "furniture-overlap" && f.placementId !== furnitureId
+      ? { ...f, placementId: furnitureId, relatedPlacementId: f.placementId }
+      : f];
+  });
+  return {
+    status: isPlanUnscaled(plan) ? "unavailable"
+      : relevant.some((r) => r.severity === "error") ? "must-adjust"
+      : relevant.some((r) => r.severity === "warning") ? "trade-off" : "suitable",
+    findings,
+  };
 }

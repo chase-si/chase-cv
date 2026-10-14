@@ -362,12 +362,20 @@ export function summarizeFurnitureDecision({
   const relevantRaw = targetFurniture
     ? allViolations.filter(
         (v) =>
-          v.relatedEntityIds.includes(targetFurniture.id) ||
-          v.relatedObjectIds?.includes(targetFurniture.id),
+          (v.affectedFurnitureIds ?? v.relatedEntityIds).includes(targetFurniture.id),
       )
     : [];
 
   const relevantIssues: FurnitureDecisionIssue[] = relevantRaw.map((v) => {
+    if (v.assessmentFinding) {
+      const finding = v.assessmentFinding;
+      return formatAssessmentFinding(
+        finding.kind === "furniture-overlap" && finding.placementId !== targetFurniture!.id
+          ? { ...finding, placementId: targetFurniture!.id, relatedPlacementId: finding.placementId }
+          : finding,
+        plan, locale,
+      );
+    }
     const isAreaRule =
       v.ruleId === "furniture-wall-collision" || v.ruleId === "furniture-overlap";
 

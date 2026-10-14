@@ -25,6 +25,7 @@ import { moveFurnitureInstance, rotateFurnitureInstance } from "@/lib/floor-plan
 import {
   computeFurnitureClearanceZones,
   computeOpeningKeepClearZone,
+  assessmentFromRuleResults,
   evaluatePlanRules,
   type RuleResult,
 } from "@/lib/floor-plan/rules";
@@ -126,7 +127,7 @@ export function FloorPlanSvgViewer({
   const violationFurnitureIds = React.useMemo(() => {
     const set = new Set<string>();
     for (const v of evaluatedViolations) {
-      for (const entityId of v.relatedEntityIds) {
+      for (const entityId of v.affectedFurnitureIds ?? v.relatedEntityIds) {
         if (plan.furniture.some((f) => f.id === entityId)) {
           set.add(entityId);
         }
@@ -153,7 +154,7 @@ export function FloorPlanSvgViewer({
     const set = new Set<string>();
     for (const v of evaluatedViolations) {
       if (v.ruleId === "furniture-clearance" || v.ruleId === "local-passage") {
-        for (const entityId of v.relatedEntityIds) {
+        for (const entityId of v.affectedFurnitureIds ?? v.relatedEntityIds) {
           if (plan.furniture.some((f) => f.id === entityId)) {
             set.add(entityId);
           }
@@ -672,6 +673,7 @@ export function FloorPlanSvgViewer({
                   onRotate={handleRotateFurniture}
                   onDragStart={handleFurnitureDragStart}
                   hasViolation={violationFurnitureIds.has(f.id)}
+                  assessmentStatus={assessmentFromRuleResults(plan, evaluatedViolations, f.id).status}
                   locale={locale}
                 />
               );
