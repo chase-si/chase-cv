@@ -89,7 +89,7 @@ export function MobileWorkspace({ plan, summary, selectedEntity, roomName, roomA
           </div>
           <div className="flex items-center gap-2">
             {furniture ? <>
-              <Button variant="outline" className="h-11 flex-1" data-testid="mobile-open-properties-btn" onClick={() => onOpen("entity")}>{isZh ? "尺寸 / 微调" : "Size / position"}</Button>
+              <Button variant="outline" className="h-11 flex-1" data-testid="mobile-open-properties-btn" onClick={() => onOpen("entity")}>{isZh ? "选择尺寸" : "Choose size"}</Button>
               <Button variant="outline" className="size-11" aria-label={isZh ? "旋转家具 90 度" : "Rotate furniture 90°"} onClick={onRotate}><RotateCw /></Button>
               <Button variant="destructive" className="size-11" aria-label={isZh ? "移除家具" : "Remove furniture"} onClick={onDelete}><Trash2 /></Button>
             </> : <>

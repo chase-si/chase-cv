@@ -54,6 +54,7 @@ import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { RuleFeedbackPanel } from "./rule-feedback-panel";
 import { cn } from "@/lib/utils";
 import { MobileWorkspace } from "./mobile-workspace";
+import { FurnitureSizePicker } from "./furniture-size-picker";
 import { FloorPlanImageDialog } from "./floor-plan-image-dialog";
 import { renderFloorPlanImage, type FloorPlanImage } from "@/lib/floor-plan/export-image";
 
@@ -508,7 +509,7 @@ export function FloorPlanShell({
         case "opening":
           return t.mobileSheet.openingProperties;
         case "furniture":
-          return t.mobileSheet.furnitureProperties;
+          return isMobile ? isZh ? "选择尺寸" : "Choose size" : t.mobileSheet.furnitureProperties;
         case "dimension":
           return t.mobileSheet.dimensionProperties;
         default:
@@ -522,10 +523,11 @@ export function FloorPlanShell({
     if (mobileSheetType === "rooms") return isZh ? "房间与已摆放家具" : "Rooms & placed furniture";
     if (mobileSheetType === "help") return isZh ? "操作指南" : "How to use";
     return t.mobileSheet.details;
-  }, [selectedEntity, mobileSheetType, t, isZh]);
+  }, [selectedEntity, mobileSheetType, t, isZh, isMobile]);
 
   const mobileSheetBadge = React.useMemo(() => {
     if (mobileSheetType === "entity" && selectedEntity) {
+      if (isMobile && selectedEntity.type === "furniture") return null;
       return (
         <Badge variant="outline" className="text-[10px] uppercase font-mono">
           {selectedEntity.type}
@@ -548,10 +550,15 @@ export function FloorPlanShell({
       );
     }
     return null;
-  }, [selectedEntity, mobileSheetType, violations, t]);
+  }, [selectedEntity, mobileSheetType, violations, t, isMobile]);
 
   const mobileSheetBody = React.useMemo(() => {
     if (mobileSheetType === "entity" && selectedEntity) {
+      if (isMobile && selectedEntity.type === "furniture") {
+        const furniture = currentPlan.furniture.find((item) => item.id === selectedEntity.id);
+        return furniture ? <FurnitureSizePicker furniture={furniture} locale={locale}
+          onChange={(specificationId) => handleChangeSpecification(furniture.id, specificationId)} /> : null;
+      }
       return (
         <FloorPlanInspector
           plan={currentPlan}
@@ -636,7 +643,7 @@ export function FloorPlanShell({
       return <div className="space-y-4 text-sm text-muted-foreground">
         <p>{isZh ? "选择户型，点击房间，再添加家具。" : "Choose a plan, select a room, then add furniture."}</p>
         <p>{isZh ? "摆放模式下单指拖动家具；浏览模式下单指移动画布。双指捏合缩放，适屏按钮回到完整户型。" : "Drag furniture in Place mode, or drag the canvas in Pan mode. Pinch to zoom, and Fit returns to the full plan."}</p>
-        <p>{isZh ? "选中家具后，在底部打开尺寸 / 微调面板，切换规格、旋转或精调位置。点击检查查看碰撞、净距和通行提醒。" : "Select furniture and open Size / position to change its specification, rotate or nudge it. Check reports collisions, clearance and passage constraints."}</p>
+        <p>{isZh ? "选中家具后，点击选择尺寸切换规格；旋转和删除在底部直接操作，位置通过拖动调整。点击检查查看碰撞、净距和通行提醒。" : "Select furniture and choose its size. Rotate or remove it from the bottom bar, and drag it to adjust the position. Check reports collisions, clearance and passage constraints."}</p>
         <p>{isZh ? "出图可保存当前布局。户型是简化模型，请以实测尺寸为准。" : "Save an image of your layout. These are simplified plans; verify real measurements."}</p>
       </div>;
     }
@@ -662,6 +669,7 @@ export function FloorPlanShell({
     locale,
     isZh,
     i18n,
+    isMobile,
   ]);
 
   if (!activePlanSummary) {

@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { buildStandardPlanSummary } from "@/lib/floor-plan/catalog";
+import { getDefaultFurnitureCatalog } from "@/lib/floor-plan/furniture-catalog";
 import { VALID_STANDARD_FLOOR_PLAN } from "@/lib/floor-plan/fixtures/valid-standard-plan";
 import {
   STUDIO_STANDARD_FLOOR_PLAN,
@@ -130,7 +131,7 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5, AC-4, AC-27)", () => {
     expect(within(sheet).getByTestId("furniture-catalog-palette")).toBeInTheDocument();
   });
 
-  it("reaches Furniture rotate and delete in mobile bottom sheet without arbitrary resize inputs (AC-4)", () => {
+  it("offers only preset sizes in the sheet and keeps rotation and removal outside", () => {
     render(<FloorPlanShell initialPlans={FIXTURE_PLANS} isMobile={true} />);
 
     // Ensure Edit Mode
@@ -144,16 +145,29 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5, AC-4, AC-27)", () => {
     expect(screen.queryByTestId("mobile-bottom-sheet")).not.toBeInTheDocument();
     fireEvent.click(screen.getByTestId("mobile-open-properties-btn"));
 
-    // Inspector opens in mobile bottom sheet
+    // The mobile panel contains only size choices.
     const sheet = screen.getByTestId("mobile-bottom-sheet");
     expect(sheet).toBeInTheDocument();
-    expect(within(sheet).getByTestId("inspector-furniture-details")).toBeInTheDocument();
-    expect(within(sheet).getByTestId("rotate-furniture-btn")).toBeInTheDocument();
-    expect(within(sheet).getByTestId("delete-furniture-btn")).toBeInTheDocument();
+    expect(within(sheet).getByTestId("furniture-size-picker")).toBeInTheDocument();
+    expect(within(sheet).queryByText("FURNITURE")).not.toBeInTheDocument();
+    expect(within(sheet).queryByTestId("rotate-furniture-btn")).not.toBeInTheDocument();
+    expect(within(sheet).queryByTestId("delete-furniture-btn")).not.toBeInTheDocument();
+    expect(within(sheet).queryByTestId("nudge-furniture-right")).not.toBeInTheDocument();
+    const originalPosition = sofa.getAttribute("transform");
+    const specification = getDefaultFurnitureCatalog().definitions.find((item) => item.id === "sofa-3seat")!.specifications.at(-1)!;
+    fireEvent.click(within(sheet).getByTestId(`inspector-spec-option-${specification.id}`));
+    expect(sofa).toHaveAttribute("data-width", String(specification.width));
+    expect(sofa).toHaveAttribute("transform", originalPosition);
 
     // AC-4: No arbitrary width or depth inputs
     expect(within(sheet).queryByTestId("furniture-width-input")).not.toBeInTheDocument();
     expect(within(sheet).queryByTestId("furniture-depth-input")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("mobile-bottom-sheet-close"));
+    expect(screen.getByTestId("mobile-open-properties-btn")).toHaveTextContent("Choose size");
+    fireEvent.click(screen.getByRole("button", { name: "Rotate furniture 90°" }));
+    expect(sofa.getAttribute("transform")).toContain("rotate(90)");
+    fireEvent.click(screen.getByRole("button", { name: "Remove furniture" }));
+    expect(screen.queryByTestId("floor-plan-furniture-f1")).not.toBeInTheDocument();
   });
 
   it("exposes Spatial Rule Feedback panel in mobile bottom sheet", () => {
@@ -227,11 +241,9 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5, AC-4, AC-27)", () => {
     const sheet = screen.getByTestId("mobile-bottom-sheet");
     const specs = within(sheet).getAllByTestId(/^inspector-spec-option-/);
     fireEvent.click(specs[specs.length - 1]);
-    fireEvent.click(within(sheet).getByTestId("nudge-furniture-right"));
-    fireEvent.click(within(sheet).getByTestId("nudge-furniture-down"));
-    fireEvent.click(within(sheet).getByTestId("rotate-furniture-btn"));
-    expect(within(sheet).getByTestId("inspector-furniture-details")).toBeInTheDocument();
+    expect(within(sheet).getByTestId("furniture-size-picker")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("mobile-bottom-sheet-close"));
+    fireEvent.click(screen.getByRole("button", { name: "旋转家具 90 度" }));
 
     fireEvent.click(screen.getByTestId("mobile-rules-btn"));
     expect(within(screen.getByTestId("mobile-bottom-sheet")).getByTestId("furniture-decision-panel")).toBeInTheDocument();
