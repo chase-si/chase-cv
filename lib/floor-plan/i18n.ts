@@ -206,10 +206,6 @@ export interface FloorPlanDictionary {
     decision: string;
     stepPanel: string;
   };
-  lab: {
-    title: string;
-    description: string;
-  };
   workflow: {
     stepperAriaLabel: string;
     roomListAriaLabel: string;
@@ -515,10 +511,6 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
     decision: "目标家具决策",
     stepPanel: "当前流程步骤",
   },
-  lab: {
-    title: "户型实验室",
-    description: "候选户型资产预览与空间验证实验室",
-  },
   workflow: {
     stepperAriaLabel: "户型与家具决策流程",
     roomListAriaLabel: "户型房间选择列表",
@@ -823,10 +815,6 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
     details: "Details",
     decision: "Furniture Decision",
     stepPanel: "Current Step",
-  },
-  lab: {
-    title: "Floor Plan Lab",
-    description: "Candidate floor plan asset preview and spatial validation lab",
   },
   workflow: {
     stepperAriaLabel: "Floor plan and furniture decision workflow",

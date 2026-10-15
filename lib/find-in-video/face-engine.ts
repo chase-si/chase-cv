@@ -19,6 +19,9 @@ export type Face = Detection & { embedding: Float32Array; noseRatio: number | nu
 type Surface = { canvas: OffscreenCanvas; context: OffscreenCanvasRenderingContext2D };
 
 const inputSize = 640;
+const modelBaseUrl = (
+  process.env.NEXT_PUBLIC_FIND_IN_VIDEO_MODEL_BASE_URL?.trim() || "/models"
+).replace(/\/+$/, "");
 const destination: Point[] = [
   [38.2946, 51.6963],
   [73.5318, 51.5014],
@@ -48,7 +51,7 @@ async function loadModel(
       code: "reading",
       values: { name, index: index + 1, total: entry.parts.length },
     });
-    const response = await fetch(`/models/${part}`);
+    const response = await fetch(`${modelBaseUrl}/${part}`);
     if (!response.ok) {
       throw new CodedError("partFailed", { part, status: response.status });
     }
