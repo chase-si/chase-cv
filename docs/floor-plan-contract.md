@@ -62,6 +62,23 @@ interface StandardFloorPlan {
 
 `boundaryWallIds` must describe one closed room boundary. Rendering must reject an invalid boundary rather than reorder or repair it.
 
+### Custom rectangular room
+
+A custom room is one independent, editable rectangle, not a standard-plan catalog entry. It keeps `FloorPlan.version: 2`, `unit: "mm"`, `meta.source: "user"`, and one room of type `other`.
+
+- User-entered width and depth are positive integer millimetres measured between inside wall faces. Walls have a fixed thickness of 120 mm; their centerlines extend outward by 60 mm. A 3000 × 4000 mm room therefore has exactly 12 m² of usable area.
+- `meta.customRoom` and the room's `customNetDimensions` hold the same `widthMm` / `depthMm`. Summary areas, room-list areas, SVG labels, principal dimensions, interior spans, and image exports all use these net dimensions. Standard plans retain their existing centerline measurement convention.
+- Doors and windows remain wall-bound openings. The editor measures from the left on horizontal walls and the top on vertical walls, from the inner wall corner to the near edge of the opening. Width must be a positive integer; offset must be a non-negative integer. Openings must fit within the clear wall length and must not overlap on the same wall; touching edges are allowed.
+- Form inputs retain their original text until complete numeric parsing and integer validation. Fractional or empty measurements cannot be applied; exponential notation representing an integer is interpreted by its full numeric value rather than truncated.
+- Valid settings drafts preview without changing the committed plan. Apply commits the relevant form; cancel, close, backdrop dismissal, Escape, and collapsing the settings panel discard its draft. Furniture gestures and shortcuts are disabled during room editing, and modal dialogs isolate background keyboard input.
+- Changing either net dimension requires confirmation and rebuilds an empty room, clearing all openings and furniture. Renaming or applying unchanged dimensions preserves the layout. No undo history is provided.
+
+The local room library uses a separate version-1 document containing complete custom room records and the last selected plan. The optional `recentCustomRoomIds` list records custom-room visits in most-recent-first order. Older version-1 documents remain readable; when history is absent, the last selected room and reverse record order provide a deterministic fallback. Deleting the active custom room selects the most recently visited surviving room, or the default standard plan if none survives.
+
+In-memory records are the working state. A failed read or write must not crash the workspace, overwrite unreadable stored data, or silently claim persistence. The UI shows that changes are unsaved, retains all in-memory rooms and layouts, and can retry saving the complete current library when storage recovers. Initial hydration finishes before persistence starts. Asset previews do not read or write the library. Standard-plan furniture layouts are not persisted.
+
+The canvas always identifies dimension units as millimetres; area retains `m²`. Custom rooms do not add arbitrary furniture sizes, polygon editing, room joining, opening drag gestures, door swing configuration, cloud sync, or file backup/restore.
+
 ## 2. Furniture catalog
 
 A furniture definition is a generic kind. A furniture specification is one predefined size of that kind. The catalog does not represent a brand, product, price, or SKU.
@@ -115,7 +132,7 @@ For every side, `0 <= minimum <= recommended`. A zero value means that side may 
 
 ## 3. Placement scenario
 
-A placement scenario combines a standard plan with user-selected furniture specifications.
+A placement scenario combines a standard plan or a custom room with user-selected furniture specifications.
 
 ```ts
 interface FurniturePlacement {

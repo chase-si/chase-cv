@@ -1,8 +1,9 @@
 import { FLOOR_PLAN_CATALOG_DATA } from "./catalog-data";
 import { computePlanTotalArea } from "./geometry";
-import type { StandardFloorPlan } from "./types";
+import type { FloorPlan, StandardFloorPlan } from "./types";
 
-export type FloorPlanCategoryKey = "all" | "1br" | "2br" | "3br";
+export type FloorPlanCategoryKey = "all" | "custom" | "1br" | "2br" | "3br";
+export type PlanCategoryKey = FloorPlanCategoryKey;
 
 export interface FloorPlanCategoryOption {
   key: FloorPlanCategoryKey;
@@ -12,6 +13,7 @@ export interface FloorPlanCategoryOption {
 
 export const FLOOR_PLAN_CATEGORIES: FloorPlanCategoryOption[] = [
   { key: "all", labelZh: "全部", labelEn: "All" },
+  { key: "custom", labelZh: "我的房间", labelEn: "My Rooms" },
   { key: "1br", labelZh: "一室", labelEn: "1BR" },
   { key: "2br", labelZh: "二室", labelEn: "2BR" },
   { key: "3br", labelZh: "三室", labelEn: "3BR" },
@@ -26,8 +28,8 @@ export interface StandardPlanSummary {
   roomCount: number;
   roomBreakdown: string;
   tags: string[];
-  categoryKey: FloorPlanCategoryKey;
-  plan: StandardFloorPlan;
+  categoryKey: PlanCategoryKey;
+  plan: FloorPlan;
 }
 
 import { getFloorPlanI18n } from "./i18n";

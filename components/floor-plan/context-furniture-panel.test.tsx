@@ -91,8 +91,8 @@ describe("ContextFurniturePanel", () => {
     expect(screen.getByTestId("recommended-furniture-sofa-2seat")).toBeInTheDocument();
 
     // Default dimensions
-    expect(screen.getByTestId("furniture-default-size-sofa-3seat")).toHaveTextContent("2100 × 900 mm");
-    expect(screen.getByTestId("furniture-default-size-sofa-2seat")).toHaveTextContent("1500 × 850 mm");
+    expect(screen.getByTestId("furniture-default-size-sofa-3seat")).toHaveTextContent("1800 × 900 mm");
+    expect(screen.getByTestId("furniture-default-size-sofa-2seat")).toHaveTextContent("1400 × 850 mm");
 
     // Click Add
     const addBtn = screen.getByTestId("add-context-furniture-sofa-3seat");

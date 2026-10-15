@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Armchair, ChevronDown, ChevronRight, CircleHelp, ClipboardCheck, Hand, Home, Image as ImageIcon, MapPin, Move, RotateCw, Trash2 } from "lucide-react";
+import { Armchair, ChevronDown, ChevronRight, CircleHelp, ClipboardCheck, DoorOpen, Hand, Home, Image as ImageIcon, MapPin, Move, RotateCw, Trash2 } from "lucide-react";
 import { ToolPageChrome } from "@/components/tool-page-chrome";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -22,15 +22,16 @@ type MobileWorkspaceProps = {
   issueCount: number;
   locale?: string;
   canvas: React.ReactNode;
+  notice?: React.ReactNode;
   overlays: React.ReactNode;
   onModeChange: (mode: "pan" | "edit") => void;
-  onOpen: (type: "catalog" | "furniture-palette" | "entity" | "rules" | "rooms" | "help") => void;
+  onOpen: (type: "catalog" | "furniture-palette" | "entity" | "rules" | "rooms" | "help" | "room-settings") => void;
   onRotate: () => void;
   onDelete: () => void;
   onExport: () => void;
 };
 
-export function MobileWorkspace({ plan, summary, selectedEntity, roomName, roomArea, assessment, canvasMode, issueCount, locale, canvas, overlays, onModeChange, onOpen, onRotate, onDelete, onExport }: MobileWorkspaceProps) {
+export function MobileWorkspace({ plan, summary, selectedEntity, roomName, roomArea, assessment, canvasMode, issueCount, locale, canvas, notice, overlays, onModeChange, onOpen, onRotate, onDelete, onExport }: MobileWorkspaceProps) {
   const i18n = useFloorPlanI18n(locale);
   const isZh = i18n.locale === "zh";
   const ref = React.useRef<HTMLDivElement>(null);
@@ -63,12 +64,25 @@ export function MobileWorkspace({ plan, summary, selectedEntity, roomName, roomA
           <Button data-testid="open-plan-selector-btn" variant="outline" className="h-auto min-h-11 w-full justify-between gap-2 px-3 py-2 text-left" aria-label={isZh ? "切换户型" : "Change Plan"} onClick={() => onOpen("catalog")}>
             <Home className="size-5 text-primary" /><span data-testid="active-plan-summary" className="min-w-0 flex-1"><span data-testid="active-plan-name" className="block truncate font-semibold">{summary.name}</span><span data-testid="active-plan-area" className="block truncate text-[11px] text-muted-foreground">{summary.tags.join(" / ")} · {summary.roomCount} {isZh ? "个功能区" : "rooms"} · {summary.formattedArea}</span></span><ChevronDown />
           </Button>
+          {notice}
           <div data-testid="floor-plan-toolbar" className="flex items-center justify-between gap-2">
             <div className="flex gap-2">
               <Button className="h-11 min-w-[44px] px-3" data-testid="mode-toggle-edit" variant={canvasMode === "edit" ? "default" : "outline"} aria-pressed={canvasMode === "edit"} onClick={() => onModeChange("edit")}><Move />{isZh ? "摆放" : "Place"}</Button>
               <Button className="h-11 min-w-[44px] px-3" data-testid="mode-toggle-pan" variant={canvasMode === "pan" ? "default" : "outline"} aria-pressed={canvasMode === "pan"} onClick={() => onModeChange("pan")}><Hand />{isZh ? "浏览" : "Pan"}</Button>
             </div>
             <div className="flex gap-2">
+              {(summary.categoryKey === "custom" || Boolean(plan.meta?.customRoom)) && (
+                <Button
+                  data-testid="mobile-room-settings-btn"
+                  variant="outline"
+                  className="h-11 px-3 text-xs gap-1"
+                  aria-label={isZh ? "门窗与尺寸" : "Room settings"}
+                  onClick={() => onOpen("room-settings")}
+                >
+                  <DoorOpen className="size-4" />
+                  <span className="max-[360px]:hidden">{isZh ? "门窗" : "Room"}</span>
+                </Button>
+              )}
               <Button data-testid="mobile-rooms-btn" variant="outline" className="h-11 min-w-11 px-3 max-[360px]:size-11 max-[360px]:px-0" aria-label={isZh ? "房间" : "Rooms"} onClick={() => onOpen("rooms")}><MapPin /><span className="max-[360px]:hidden">{isZh ? "房间" : "Rooms"}</span></Button>
               <Button variant="outline" className="size-11" aria-label={isZh ? "操作指南" : "Help"} onClick={() => onOpen("help")}><CircleHelp /></Button>
             </div>

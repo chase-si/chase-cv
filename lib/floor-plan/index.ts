@@ -15,4 +15,6 @@ export * from "./furniture-decision";
 export * from "./i18n";
 export * from "./placement-scenario";
 export * from "./space-assessment";
-
+export * from "./rectangular-room";
+export * from "./custom-room-storage";
+export * from "./custom-room-openings";

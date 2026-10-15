@@ -413,9 +413,29 @@ export function computeRoomPolygon(
 
 
 /**
- * Compute polygon area using the Shoelace formula.
+ * Calculates net clear area in mm² and m², with standard single-decimal formatted string.
  */
-export function computePolygonArea(points: Point[]): AreaResult {
+export function formatNetArea(widthMm: number, depthMm: number): AreaResult {
+  const areaMm2 = widthMm * depthMm;
+  const areaM2 = areaMm2 / 1_000_000;
+  return {
+    areaMm2,
+    areaM2,
+    formattedAreaM2: `${areaM2.toFixed(1)} m²`,
+  };
+}
+
+/**
+ * Compute polygon area using the Shoelace formula, or return exact net area if custom dimensions are provided.
+ */
+export function computePolygonArea(
+  points: Point[],
+  customNetDimensions?: { widthMm: number; depthMm: number },
+): AreaResult {
+  if (customNetDimensions && customNetDimensions.widthMm > 0 && customNetDimensions.depthMm > 0) {
+    return formatNetArea(customNetDimensions.widthMm, customNetDimensions.depthMm);
+  }
+
   if (points.length < 3) {
     return { areaMm2: 0, areaM2: 0, formattedAreaM2: "0.0 m²" };
   }
@@ -476,13 +496,19 @@ export function computePolygonCentroid(points: Point[]): Point {
  * Compute total area of all rooms in the floor plan.
  */
 export function computePlanTotalArea(plan: FloorPlan): AreaResult {
+  const custom = plan.meta.customRoom;
+  if (custom && custom.widthMm > 0 && custom.depthMm > 0) {
+    return formatNetArea(custom.widthMm, custom.depthMm);
+  }
+
   const wallMap = getWallMap(plan);
   const vertexMap = getVertexMap(plan);
 
   let totalMm2 = 0;
   for (const room of plan.rooms) {
     const poly = computeRoomPolygon(room, wallMap, vertexMap);
-    const { areaMm2 } = computePolygonArea(poly);
+    const customDim = room.customNetDimensions;
+    const { areaMm2 } = computePolygonArea(poly, customDim);
     totalMm2 += areaMm2;
   }
 
@@ -498,9 +524,38 @@ export function computePlanTotalArea(plan: FloorPlan): AreaResult {
  * Compute principal dimension annotations for the plan's overall dimensions.
  */
 export function computePrincipalDimensions(plan: FloorPlan): DimensionAnnotation[] {
+  const custom = plan.meta.customRoom;
+  const offsetMm = 600;
+
+  if (custom && custom.widthMm > 0 && custom.depthMm > 0) {
+    const widthMm = custom.widthMm;
+    const heightMm = custom.depthMm;
+    return [
+      {
+        id: "dim-total-width",
+        label: `${widthMm}`,
+        valueMm: widthMm,
+        start: { x: 0, y: 0 },
+        end: { x: widthMm, y: 0 },
+        offset: { x: 0, y: -offsetMm },
+        textPoint: { x: widthMm / 2, y: -offsetMm - 80 },
+        orientation: "horizontal",
+      },
+      {
+        id: "dim-total-height",
+        label: `${heightMm}`,
+        valueMm: heightMm,
+        start: { x: 0, y: 0 },
+        end: { x: 0, y: heightMm },
+        offset: { x: -offsetMm, y: 0 },
+        textPoint: { x: -offsetMm - 120, y: heightMm / 2 },
+        orientation: "vertical",
+      },
+    ];
+  }
+
   const bounds = computeVertexBounds(plan);
   const annotations: DimensionAnnotation[] = [];
-  const offsetMm = 600;
 
   // Horizontal dimension along top
   const widthMm = Math.round(bounds.width);
@@ -742,12 +797,21 @@ function spanToAnnotation(
 
 /**
  * Dimension each open bay inside a room: the distance between opposing wall centerlines.
- * Distances follow wall centerlines, matching the plan's outer dimensions.
+ * Standard-plan distances follow wall centerlines. Custom rectangles use their
+ * explicit net dimensions and the matching clear-space coordinates instead.
  * An L or U room gets one label per bay, not one label per wall segment.
  * Diagonal rooms return no spans.
  */
-export function computeRoomSpanDimensions(points: Point[], idPrefix: string): DimensionAnnotation[] {
+export function computeRoomSpanDimensions(
+  points: Point[],
+  idPrefix: string,
+  netDimensions?: { widthMm: number; depthMm: number },
+): DimensionAnnotation[] {
   if (points.length < 3) return [];
+  if (netDimensions) {
+    const { widthMm, depthMm } = netDimensions;
+    points = [{ x: 0, y: 0 }, { x: widthMm, y: 0 }, { x: widthMm, y: depthMm }, { x: 0, y: depthMm }];
+  }
   const axes = orthogonalEdges(points);
   if (!axes) return [];
 

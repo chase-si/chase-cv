@@ -104,8 +104,8 @@ export function SvgRoom({
   );
 
   const { formattedAreaM2 } = React.useMemo(
-    () => computePolygonArea(points),
-    [points],
+    () => computePolygonArea(points, room.customNetDimensions),
+    [points, room.customNetDimensions],
   );
 
   const centroid = React.useMemo(
