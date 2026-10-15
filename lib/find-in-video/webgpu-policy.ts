@@ -4,7 +4,7 @@ export type WebGpuEnvironment = {
   maxTouchPoints: number;
 };
 
-export const webGpuAttemptMs = 10_000;
+export const webGpuWarmupMs = 10_000;
 
 export function shouldSkipWebGpu(env: WebGpuEnvironment) {
   const ua = env.userAgent;

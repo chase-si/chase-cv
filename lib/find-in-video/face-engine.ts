@@ -7,7 +7,8 @@ import {
 } from "@/lib/find-in-video/model-options";
 
 import { CodedError, type StatusNotice } from "./coded-error";
-import { shouldSkipWebGpu, webGpuAttemptMs } from "./webgpu-policy";
+import { modelAssetBaseURL, onnxRuntimeBaseURL } from "./runtime-assets";
+import { shouldSkipWebGpu, webGpuWarmupMs } from "./webgpu-policy";
 
 type Point = [number, number];
 type Detection = {
@@ -19,9 +20,7 @@ export type Face = Detection & { embedding: Float32Array; noseRatio: number | nu
 type Surface = { canvas: OffscreenCanvas; context: OffscreenCanvasRenderingContext2D };
 
 const inputSize = 640;
-const modelBaseUrl = (
-  process.env.NEXT_PUBLIC_FIND_IN_VIDEO_MODEL_BASE_URL?.trim() || "/models"
-).replace(/\/+$/, "");
+const modelBaseUrl = modelAssetBaseURL();
 const destination: Point[] = [
   [38.2946, 51.6963],
   [73.5318, 51.5014],
@@ -34,7 +33,7 @@ ort.env.wasm.numThreads = 1;
 ort.env.wasm.proxy = false;
 ort.env.logLevel = "error";
 if (typeof location !== "undefined") {
-  ort.env.wasm.wasmPaths = `${location.origin}/onnx/`;
+  ort.env.wasm.wasmPaths = onnxRuntimeBaseURL(location.origin);
 }
 
 async function loadModel(
@@ -122,19 +121,15 @@ async function openSessions(
         bytes = await loadModel(name, manifest, progress);
         weights.set(name, bytes);
       }
-      const created = ort.InferenceSession.create(bytes, {
+      // Session creation also downloads and initializes the shared WASM runtime.
+      // Racing it against a GPU timeout leaves initialization running, so a WASM
+      // fallback can fail with "multiple calls to 'initWasm()' detected".
+      const session = await ort.InferenceSession.create(bytes, {
         executionProviders: [provider],
         graphOptimizationLevel: "all",
       });
-      let session: ort.InferenceSession;
-      try {
-        session = provider === "webgpu" ? await withTimeout(created, webGpuAttemptMs) : await created;
-      } catch (error) {
-        void created.then((late) => late.release()).catch(() => undefined);
-        throw error;
-      }
       sessions.push(session);
-      if (provider === "webgpu") await withTimeout(warmup(session), webGpuAttemptMs);
+      if (provider === "webgpu") await withTimeout(warmup(session), webGpuWarmupMs);
     }
     return sessions;
   } catch (error) {
