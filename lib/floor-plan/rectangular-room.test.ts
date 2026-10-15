@@ -34,7 +34,7 @@ describe("Rectangular Room Generation & Geometry (AC-1, AC-2)", () => {
 
     expect(record.widthMm).toBe(3000);
     expect(record.depthMm).toBe(4000);
-    expect(record.name).toBe("矩形房间");
+    expect(record.name).toBe("矩形房间 1");
 
     // 3. Topology structure: exactly 4 vertices, 4 walls, 0 openings, 1 room, 0 furniture
     expect(plan.vertices).toHaveLength(4);
@@ -52,12 +52,15 @@ describe("Rectangular Room Generation & Geometry (AC-1, AC-2)", () => {
     expect(plan.meta.isStandard).toBe(false);
   });
 
-  it("AC-1: auto-names blank or whitespace names and accepts custom names", () => {
-    const defaultZh = createRectangularRoomPlan({ name: "   ", locale: "zh" });
-    expect(defaultZh.record.name).toBe("矩形房间");
+  it("AC-1: auto-names blank names sequentially and accepts custom names", () => {
+    const defaultZh1 = createRectangularRoomPlan({ name: "   ", sequenceNumber: 1, locale: "zh" });
+    expect(defaultZh1.record.name).toBe("矩形房间 1");
 
-    const defaultEn = createRectangularRoomPlan({ name: "", locale: "en" });
-    expect(defaultEn.record.name).toBe("Rectangle Room");
+    const defaultZh2 = createRectangularRoomPlan({ sequenceNumber: 2, locale: "zh" });
+    expect(defaultZh2.record.name).toBe("矩形房间 2");
+
+    const defaultEn = createRectangularRoomPlan({ name: "", sequenceNumber: 3, locale: "en" });
+    expect(defaultEn.record.name).toBe("Rectangle Room 3");
 
     const custom = createRectangularRoomPlan({ name: "主卧实测", widthMm: 3600, depthMm: 4200 });
     expect(custom.record.name).toBe("主卧实测");

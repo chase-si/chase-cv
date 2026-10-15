@@ -3,6 +3,7 @@
 import * as React from "react";
 import { PlusSquare, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,7 @@ import {
   DEFAULT_ROOM_WIDTH_MM,
   FIXED_WALL_THICKNESS_MM,
 } from "@/lib/floor-plan/rectangular-room";
+import { formatNetArea } from "@/lib/floor-plan/geometry";
 
 export interface CreateRoomDialogProps {
   open: boolean;
@@ -74,8 +76,10 @@ export function CreateRoomDialog({
       : "Net width and depth must be positive integers in mm";
   }
 
-  const calculatedAreaM2 = isValid ? (widthNum * depthNum) / 1_000_000 : 0;
-  const formattedArea = `${calculatedAreaM2.toFixed(1)} m²`;
+  const netArea = isValid
+    ? formatNetArea(widthNum, depthNum)
+    : { areaMm2: 0, areaM2: 0, formattedAreaM2: "0.0 m²" };
+  const formattedArea = netArea.formattedAreaM2;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,9 +217,9 @@ export function CreateRoomDialog({
 
           {/* Live Preview Card */}
           {isValid ? (
-            <div
+            <Card
               data-testid="create-room-preview"
-              className="rounded-xl border border-primary/30 bg-primary/5 p-3 flex items-center justify-between"
+              className="border-primary/30 bg-primary/5 p-3 flex-row items-center justify-between gap-2 shadow-none"
             >
               <div>
                 <p className="text-xs font-semibold text-foreground">
@@ -228,14 +232,14 @@ export function CreateRoomDialog({
               <Badge variant="default" className="font-mono text-xs">
                 {formattedArea}
               </Badge>
-            </div>
+            </Card>
           ) : (
-            <div
+            <Card
               data-testid="create-room-error"
-              className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive"
+              className="border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive shadow-none"
             >
               {errorMessage}
-            </div>
+            </Card>
           )}
 
           {/* Footer Actions */}

@@ -71,7 +71,7 @@ export function FloorPlanCatalog({
           size="sm"
           data-testid="selector-create-room-btn"
           onClick={onCreateRoomClick}
-          className="h-9 w-full justify-center gap-1.5 text-xs font-medium touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+          className="h-9 w-full justify-center gap-1.5 text-xs font-medium touch-manipulation"
         >
           <PlusSquare className="h-4 w-4 text-primary" />
           <span>{i18n.locale === "zh" ? "新建长方形房间" : "Create Rectangular Room"}</span>

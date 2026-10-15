@@ -79,8 +79,20 @@ describe("Custom Rectangular Room Workflow (AC-1 ~ AC-5)", () => {
       expect(screen.queryByTestId("create-room-dialog")).not.toBeInTheDocument();
     });
 
-    expect(screen.getByTestId("active-plan-name")).toHaveTextContent("矩形房间");
+    expect(screen.getByTestId("active-plan-name")).toHaveTextContent("矩形房间 1");
     expect(screen.getByTestId("mobile-selection-description")).toHaveTextContent("12.0 m²");
+
+    // 4. Create second unnamed room: auto-names sequentially to '矩形房间 2'
+    fireEvent.click(screen.getByTestId("open-plan-selector-btn"));
+    fireEvent.click(screen.getByTestId("selector-create-room-btn"));
+    expect(screen.getByTestId("create-room-dialog")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("create-room-submit-btn"));
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("create-room-dialog")).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId("active-plan-name")).toHaveTextContent("矩形房间 2");
   });
 
   it("AC-3: supports adding, rotating, changing specification, and deleting furniture in custom room", async () => {

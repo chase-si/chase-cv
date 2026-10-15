@@ -92,7 +92,7 @@ export function FloorPlanInspector({
     const room = plan.rooms.find((r) => r.id === selectedEntity.id);
     if (!room) return null;
     const points = computeRoomPolygon(room, wallMap, vertexMap);
-    const customDim = (room as { customNetDimensions?: { widthMm: number; depthMm: number } })?.customNetDimensions;
+    const customDim = room.customNetDimensions;
     const area = computePolygonArea(points, customDim);
     return { room, points, area };
   }, [selectedEntity, plan.rooms, wallMap, vertexMap]);

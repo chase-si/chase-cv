@@ -23,7 +23,25 @@ export interface CreateRectangularRoomOptions {
   name?: string;
   widthMm?: number;
   depthMm?: number;
+  sequenceNumber?: number;
   locale?: string;
+}
+
+/**
+ * Calculates net clear area in mm² and m², with standard single-decimal formatted string.
+ */
+export function formatNetArea(widthMm: number, depthMm: number): {
+  areaMm2: number;
+  areaM2: number;
+  formattedAreaM2: string;
+} {
+  const areaMm2 = widthMm * depthMm;
+  const areaM2 = areaMm2 / 1_000_000;
+  return {
+    areaMm2,
+    areaM2,
+    formattedAreaM2: `${areaM2.toFixed(1)} m²`,
+  };
 }
 
 /**
@@ -34,6 +52,7 @@ export interface CreateRectangularRoomOptions {
  * - Wall centerlines are offset outward by half the wall thickness (60 mm).
  * - Net inner clear space equals exact widthMm × depthMm.
  * - Single room with type 'other'.
+ * - Default name generated sequentially when empty (e.g. 矩形房间 1, 矩形房间 2).
  */
 export function createRectangularRoomPlan(
   options: CreateRectangularRoomOptions = {},
@@ -56,7 +75,8 @@ export function createRectangularRoomPlan(
       : DEFAULT_ROOM_DEPTH_MM;
 
   const trimmedName = options.name?.trim();
-  const defaultName = isZh ? "矩形房间" : "Rectangle Room";
+  const seq = options.sequenceNumber ?? 1;
+  const defaultName = isZh ? `矩形房间 ${seq}` : `Rectangle Room ${seq}`;
   const resolvedName = trimmedName && trimmedName.length > 0 ? trimmedName : defaultName;
 
   const id = `custom-room-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -103,7 +123,7 @@ export function createRectangularRoomPlan(
     },
   ];
 
-  const room: Room & { customNetDimensions?: CustomRoomNetDimensions } = {
+  const room: Room = {
     id: "room-1",
     type: "other",
     name: resolvedName,
@@ -124,13 +144,10 @@ export function createRectangularRoomPlan(
       isStandard: false,
       createdAt: now,
       updatedAt: now,
-      // Record net width and depth for custom room calculations
-      ...({
-        customRoom: {
-          widthMm,
-          depthMm,
-        },
-      } as Record<string, unknown>),
+      customRoom: {
+        widthMm,
+        depthMm,
+      },
     },
     vertices,
     walls,

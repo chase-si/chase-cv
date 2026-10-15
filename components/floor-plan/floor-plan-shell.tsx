@@ -25,6 +25,7 @@ import { assessmentFromRuleResults, evaluatePlanRules } from "@/lib/floor-plan/r
 import {
   computePolygonArea,
   computeRoomPolygon,
+  formatNetArea,
   getVertexMap,
   getWallMap,
 } from "@/lib/floor-plan/geometry";
@@ -165,18 +166,21 @@ export function FloorPlanShell({
   const [isCreateRoomOpen, setIsCreateRoomOpen] = React.useState<boolean>(false);
 
   const customSummaries = React.useMemo<StandardPlanSummary[]>(() => {
-    return customRooms.map((cr) => ({
-      id: cr.id,
-      name: cr.name,
-      description: locale === "zh" ? "实测净尺寸矩形房间" : "Measured rectangular room",
-      areaM2: (cr.widthMm * cr.depthMm) / 1_000_000,
-      formattedArea: `${((cr.widthMm * cr.depthMm) / 1_000_000).toFixed(1)} m²`,
-      roomCount: 1,
-      roomBreakdown: locale === "zh" ? "1 间功能区" : "1 room",
-      categoryKey: "custom" as unknown as StandardPlanSummary["categoryKey"],
-      tags: ["user", "custom"],
-      plan: cr.plan as unknown as StandardPlanSummary["plan"],
-    }));
+    return customRooms.map((cr) => {
+      const netArea = formatNetArea(cr.widthMm, cr.depthMm);
+      return {
+        id: cr.id,
+        name: cr.name,
+        description: locale === "zh" ? "实测净尺寸矩形房间" : "Measured rectangular room",
+        areaM2: netArea.areaM2,
+        formattedArea: netArea.formattedAreaM2,
+        roomCount: 1,
+        roomBreakdown: locale === "zh" ? "1 间功能区" : "1 room",
+        categoryKey: "custom",
+        tags: ["user", "custom"],
+        plan: cr.plan,
+      };
+    });
   }, [customRooms, locale]);
 
   const plans = React.useMemo(() => {
@@ -339,6 +343,7 @@ export function FloorPlanShell({
         name: params.name,
         widthMm: params.widthMm,
         depthMm: params.depthMm,
+        sequenceNumber: customRooms.length + 1,
         locale,
       });
 
@@ -358,7 +363,7 @@ export function FloorPlanShell({
         onScenarioChange(floorPlanToPlacementScenario(plan));
       }
     },
-    [locale, initialActivePlan, initialPlans, onPlanChange, onScenarioChange, setCurrentPlan],
+    [customRooms, locale, initialActivePlan, initialPlans, onPlanChange, onScenarioChange, setCurrentPlan],
   );
 
   const handleSelectPlan = React.useCallback(
@@ -435,7 +440,7 @@ export function FloorPlanShell({
       if (isCustom && !initialActivePlan && !initialPlans && isHydrated) {
         const targetId = updatedPlan.meta.id ?? activePlanId;
         const existingRecord = customRooms.find((r) => r.id === targetId);
-        const customDim = (updatedPlan.meta as { customRoom?: { widthMm: number; depthMm: number } })?.customRoom;
+        const customDim = updatedPlan.meta.customRoom;
         const recordToSave: CustomRoomRecord = {
           id: targetId,
           name: updatedPlan.meta.name,
@@ -862,7 +867,7 @@ export function FloorPlanShell({
             data-testid="create-room-btn"
             aria-label={isZh ? "新建房间" : "Create Room"}
             onClick={() => setIsCreateRoomOpen(true)}
-            className="min-h-11 min-w-11 lg:min-h-8 lg:min-w-0 gap-1.5 text-xs font-medium touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            className="min-h-11 min-w-11 lg:min-h-8 lg:min-w-0 gap-1.5 text-xs font-medium touch-manipulation"
           >
             <PlusSquare className="h-3.5 w-3.5 text-primary" />
             <span>{isZh ? "新建房间" : "Create Room"}</span>

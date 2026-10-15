@@ -413,6 +413,19 @@ export function computeRoomPolygon(
 
 
 /**
+ * Calculates net clear area in mm² and m², with standard single-decimal formatted string.
+ */
+export function formatNetArea(widthMm: number, depthMm: number): AreaResult {
+  const areaMm2 = widthMm * depthMm;
+  const areaM2 = areaMm2 / 1_000_000;
+  return {
+    areaMm2,
+    areaM2,
+    formattedAreaM2: `${areaM2.toFixed(1)} m²`,
+  };
+}
+
+/**
  * Compute polygon area using the Shoelace formula, or return exact net area if custom dimensions are provided.
  */
 export function computePolygonArea(
@@ -420,13 +433,7 @@ export function computePolygonArea(
   customNetDimensions?: { widthMm: number; depthMm: number },
 ): AreaResult {
   if (customNetDimensions && customNetDimensions.widthMm > 0 && customNetDimensions.depthMm > 0) {
-    const areaMm2 = customNetDimensions.widthMm * customNetDimensions.depthMm;
-    const areaM2 = areaMm2 / 1_000_000;
-    return {
-      areaMm2,
-      areaM2,
-      formattedAreaM2: `${areaM2.toFixed(1)} m²`,
-    };
+    return formatNetArea(customNetDimensions.widthMm, customNetDimensions.depthMm);
   }
 
   if (points.length < 3) {
@@ -489,15 +496,9 @@ export function computePolygonCentroid(points: Point[]): Point {
  * Compute total area of all rooms in the floor plan.
  */
 export function computePlanTotalArea(plan: FloorPlan): AreaResult {
-  const custom = (plan.meta as { customRoom?: { widthMm: number; depthMm: number } })?.customRoom;
+  const custom = plan.meta.customRoom;
   if (custom && custom.widthMm > 0 && custom.depthMm > 0) {
-    const areaMm2 = custom.widthMm * custom.depthMm;
-    const areaM2 = areaMm2 / 1_000_000;
-    return {
-      areaMm2,
-      areaM2,
-      formattedAreaM2: `${areaM2.toFixed(1)} m²`,
-    };
+    return formatNetArea(custom.widthMm, custom.depthMm);
   }
 
   const wallMap = getWallMap(plan);
@@ -506,8 +507,7 @@ export function computePlanTotalArea(plan: FloorPlan): AreaResult {
   let totalMm2 = 0;
   for (const room of plan.rooms) {
     const poly = computeRoomPolygon(room, wallMap, vertexMap);
-    const customDim = (room as { customNetDimensions?: { widthMm: number; depthMm: number } })
-      .customNetDimensions;
+    const customDim = room.customNetDimensions;
     const { areaMm2 } = computePolygonArea(poly, customDim);
     totalMm2 += areaMm2;
   }
@@ -524,7 +524,7 @@ export function computePlanTotalArea(plan: FloorPlan): AreaResult {
  * Compute principal dimension annotations for the plan's overall dimensions.
  */
 export function computePrincipalDimensions(plan: FloorPlan): DimensionAnnotation[] {
-  const custom = (plan.meta as { customRoom?: { widthMm: number; depthMm: number } })?.customRoom;
+  const custom = plan.meta.customRoom;
   const offsetMm = 600;
 
   if (custom && custom.widthMm > 0 && custom.depthMm > 0) {
