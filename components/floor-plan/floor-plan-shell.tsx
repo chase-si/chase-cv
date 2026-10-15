@@ -65,7 +65,10 @@ import {
   type CustomRoomRecord,
 } from "@/lib/floor-plan/rectangular-room";
 import {
+  deleteCustomRoomRecord,
+  duplicateCustomRoomRecord,
   loadCustomRoomStorage,
+  renameCustomRoomRecord,
   saveCustomRoomRecord,
   setLastActivePlan,
 } from "@/lib/floor-plan/custom-room-storage";
@@ -260,7 +263,7 @@ export function FloorPlanShell({
     activePlanSummary?.categoryKey === "custom" ||
     Boolean(currentPlan?.meta?.customRoom);
 
-  // Hydrate custom rooms and restore last active plan from localStorage on mount (AC-4, AC-5)
+  // Hydrate custom rooms and restore last active plan from localStorage on mount (AC-4, AC-5, AC-11)
   /* eslint-disable react-hooks/set-state-in-effect */
   React.useEffect(() => {
     if (initialActivePlan || initialPlans) {
@@ -369,7 +372,7 @@ export function FloorPlanShell({
         locale,
       });
 
-      if (!initialActivePlan && !initialPlans) {
+      if (!initialActivePlan) {
         saveCustomRoomRecord(record);
       }
       setCustomRooms((prev) => [record, ...prev.filter((r) => r.id !== record.id)]);
@@ -389,7 +392,7 @@ export function FloorPlanShell({
         onScenarioChange(floorPlanToPlacementScenario(plan));
       }
     },
-    [customRooms, locale, initialActivePlan, initialPlans, onPlanChange, onScenarioChange, setCurrentPlan],
+    [customRooms, locale, initialActivePlan, onPlanChange, onScenarioChange, setCurrentPlan],
   );
 
   const handleSelectPlan = React.useCallback(
@@ -404,7 +407,7 @@ export function FloorPlanShell({
       setHighlightOpeningId(null);
 
       const isCustom = customRooms.some((r) => r.id === planId);
-      if (!initialActivePlan && !initialPlans && isHydrated) {
+      if (!initialActivePlan && isHydrated) {
         setLastActivePlan(isCustom ? "custom" : "standard", planId);
       }
 
@@ -428,7 +431,180 @@ export function FloorPlanShell({
         }
       }
     },
-    [plans, customRooms, initialActivePlan, initialPlans, isHydrated, onPlanChange, onScenarioChange, setCurrentPlan],
+    [plans, customRooms, initialActivePlan, isHydrated, onPlanChange, onScenarioChange, setCurrentPlan],
+  );
+
+  const handleRenameRoom = React.useCallback(
+    (roomId: string, newName: string) => {
+      if (!initialActivePlan) {
+        const res = renameCustomRoomRecord(roomId, newName, locale);
+        if (res.ok) {
+          setCustomRooms(res.doc.rooms);
+          if (activePlanId === roomId) {
+            const updated = res.doc.rooms.find((r) => r.id === roomId);
+            if (updated) {
+              setCurrentPlan(updated.plan);
+              onPlanChange?.(updated.plan);
+            }
+          }
+          return;
+        }
+      }
+
+      const isZhLocale = locale?.startsWith("zh") ?? true;
+      const roomIndex = customRooms.findIndex((r) => r.id === roomId);
+      const defaultName = isZhLocale
+        ? `矩形房间 ${roomIndex >= 0 ? roomIndex + 1 : ""}`.trim()
+        : `Rectangular Room ${roomIndex >= 0 ? roomIndex + 1 : ""}`.trim();
+      const effectiveName = newName.trim() || defaultName;
+      setCustomRooms((prev) =>
+        prev.map((r) => {
+          if (r.id !== roomId) return r;
+          const updatedPlan: FloorPlan = {
+            ...r.plan,
+            meta: { ...r.plan.meta, name: effectiveName, updatedAt: new Date().toISOString() },
+            rooms: r.plan.rooms.map((room, idx) => (idx === 0 ? { ...room, name: effectiveName } : room)),
+          };
+          return { ...r, name: effectiveName, updatedAt: new Date().toISOString(), plan: updatedPlan };
+        }),
+      );
+      if (activePlanId === roomId) {
+        setCurrentPlan((prev) => ({
+          ...prev,
+          meta: { ...prev.meta, name: effectiveName, updatedAt: new Date().toISOString() },
+          rooms: prev.rooms.map((room, idx) => (idx === 0 ? { ...room, name: effectiveName } : room)),
+        }));
+      }
+    },
+    [activePlanId, initialActivePlan, locale, onPlanChange],
+  );
+
+  const handleDuplicateRoom = React.useCallback(
+    (roomId: string) => {
+      let duplicated: CustomRoomRecord | undefined;
+      if (!initialActivePlan) {
+        const res = duplicateCustomRoomRecord(roomId, locale);
+        if (res.ok && res.duplicatedRecord) {
+          setCustomRooms(res.doc.rooms);
+          duplicated = res.duplicatedRecord;
+        }
+      }
+      if (!duplicated) {
+        const existing = customRooms.find((r) => r.id === roomId);
+        if (existing) {
+          const isZhLocale = locale?.startsWith("zh") ?? true;
+          const baseName = existing.name.trim() || (isZhLocale ? "矩形房间" : "Rectangular Room");
+          const copyName = `${baseName}${isZhLocale ? " 副本" : " Copy"}`;
+          const newId = `custom-room-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+          const now = new Date().toISOString();
+          const clonedPlan: FloorPlan = JSON.parse(JSON.stringify(existing.plan));
+          clonedPlan.meta.id = newId;
+          clonedPlan.meta.name = copyName;
+          clonedPlan.meta.createdAt = now;
+          clonedPlan.meta.updatedAt = now;
+          if (clonedPlan.rooms[0]) {
+            clonedPlan.rooms[0].name = copyName;
+          }
+          duplicated = {
+            id: newId,
+            name: copyName,
+            widthMm: existing.widthMm,
+            depthMm: existing.depthMm,
+            createdAt: now,
+            updatedAt: now,
+            plan: clonedPlan,
+          };
+          setCustomRooms((prev) => [duplicated!, ...prev]);
+        }
+      }
+
+      if (duplicated) {
+        setActivePlanId(duplicated.id);
+        setCurrentPlan(duplicated.plan);
+        setSelectedEntity({ type: "room", id: "room-1" });
+        setTargetRoomId("room-1");
+        setTargetFurnitureId(duplicated.plan.furniture[0]?.id ?? null);
+        setIsPlanSelectorOpen(false);
+        setMobileSheetType(null);
+        setIsEditingRoomSettings(false);
+        setDraftPlanPreview(null);
+        setHighlightWallSide(null);
+        setHighlightOpeningId(null);
+
+        onPlanChange?.(duplicated.plan);
+        if (onScenarioChange) {
+          onScenarioChange(floorPlanToPlacementScenario(duplicated.plan));
+        }
+      }
+    },
+    [customRooms, initialActivePlan, locale, onPlanChange, onScenarioChange],
+  );
+
+  const handleDeleteRoom = React.useCallback(
+    (roomId: string) => {
+      const defaultStdId = basePlans[0]?.id ?? "plan-cn-sh-ruidong-2br-67";
+      let nextActive: { type: "custom" | "standard"; id: string } | undefined;
+
+      if (!initialActivePlan) {
+        const res = deleteCustomRoomRecord(roomId, undefined, defaultStdId);
+        if (res.ok) {
+          setCustomRooms(res.doc.rooms);
+          nextActive = res.nextActive;
+        }
+      }
+      if (!nextActive) {
+        const remaining = customRooms.filter((r) => r.id !== roomId);
+        setCustomRooms(remaining);
+        if (activePlanId === roomId) {
+          if (remaining.length > 0) {
+            nextActive = { type: "custom", id: remaining[0].id };
+          } else {
+            nextActive = { type: "standard", id: defaultStdId };
+          }
+        }
+      }
+
+      if (activePlanId === roomId && nextActive) {
+        if (nextActive.type === "custom") {
+          const storageRes = loadCustomRoomStorage();
+          const nextRoom =
+            customRooms.find((r) => r.id === nextActive?.id) ??
+            (storageRes.ok
+              ? (storageRes as { ok: true; doc: { rooms: CustomRoomRecord[] } }).doc.rooms.find(
+                  (r) => r.id === nextActive?.id,
+                )
+              : null);
+          if (nextRoom) {
+            setActivePlanId(nextRoom.id);
+            setCurrentPlan(nextRoom.plan);
+            setSelectedEntity({ type: "room", id: "room-1" });
+            setTargetRoomId("room-1");
+            setTargetFurnitureId(nextRoom.plan.furniture[0]?.id ?? null);
+            onPlanChange?.(nextRoom.plan);
+            if (onScenarioChange) {
+              onScenarioChange(floorPlanToPlacementScenario(nextRoom.plan));
+            }
+          }
+        } else {
+          const fallbackStd =
+            plans.find((p) => p.id === nextActive?.id) ??
+            basePlans.find((p) => p.id === nextActive?.id) ??
+            basePlans[0];
+          if (fallbackStd) {
+            setActivePlanId(fallbackStd.id);
+            setCurrentPlan(fallbackStd.plan);
+            setSelectedEntity(null);
+            setTargetRoomId(null);
+            setTargetFurnitureId(fallbackStd.plan.furniture[0]?.id ?? null);
+            onPlanChange?.(fallbackStd.plan);
+            if (onScenarioChange) {
+              onScenarioChange(floorPlanToPlacementScenario(fallbackStd.plan));
+            }
+          }
+        }
+      }
+    },
+    [activePlanId, basePlans, customRooms, initialActivePlan, onPlanChange, onScenarioChange, plans],
   );
 
   const handleSelectTargetRoom = React.useCallback(
@@ -795,6 +971,9 @@ export function FloorPlanShell({
             handleCloseMobileSheet();
             setIsCreateRoomOpen(true);
           }}
+          onRenameRoom={handleRenameRoom}
+          onDuplicateRoom={handleDuplicateRoom}
+          onDeleteRoom={handleDeleteRoom}
           locale={locale}
         />
       );
@@ -865,6 +1044,9 @@ export function FloorPlanShell({
     handleCloseMobileSheet,
     handleAddContextFurniture,
     handleSelectTargetRoom,
+    handleRenameRoom,
+    handleDuplicateRoom,
+    handleDeleteRoom,
     targetRoomId,
     targetFurnitureId,
     locale,
@@ -882,7 +1064,12 @@ export function FloorPlanShell({
     const request = ++imageRequest.current;
     setPlanImage(null); setImageError(false); setIsImageOpen(true);
     try {
-      const result = await renderFloorPlanImage(svgRef.current, currentPlan, activePlanSummary.name, locale);
+      const hasAreaInName = /\d+(\.\d+)?\s*(m²|㎡)/i.test(activePlanSummary.name);
+      const exportTitle =
+        !hasAreaInName && activePlanSummary.formattedArea
+          ? `${activePlanSummary.name} (${activePlanSummary.formattedArea})`
+          : activePlanSummary.name;
+      const result = await renderFloorPlanImage(svgRef.current, currentPlan, exportTitle, locale);
       if (request === imageRequest.current) setPlanImage(result);
     } catch { if (request === imageRequest.current) setImageError(true); }
   };
@@ -1261,6 +1448,9 @@ export function FloorPlanShell({
         activePlanId={activePlanId}
         onSelectPlan={handleSelectPlan}
         onCreateRoomClick={() => setIsCreateRoomOpen(true)}
+        onRenameRoom={handleRenameRoom}
+        onDuplicateRoom={handleDuplicateRoom}
+        onDeleteRoom={handleDeleteRoom}
         locale={locale}
         t={t}
       />
