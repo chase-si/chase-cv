@@ -81,9 +81,10 @@ export const VALID_STANDARD_FLOOR_PLAN: StandardFloorPlan = {
     {
       id: "f1",
       definitionId: "sofa-3seat",
+      specificationId: "sofa-3seat-1800x900",
       x: 800,
       y: 1200,
-      width: 2100,
+      width: 1800,
       depth: 900,
       rotation: 0,
     },

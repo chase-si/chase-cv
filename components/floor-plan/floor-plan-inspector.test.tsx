@@ -119,7 +119,7 @@ describe("FloorPlanInspector Component (AC-6, AC-7)", () => {
     );
 
     expect(screen.getByTestId("inspector-furniture-details")).toBeInTheDocument();
-    expect(screen.getByTestId("inspector-furniture-dimensions")).toHaveTextContent("2100 × 900 mm");
+    expect(screen.getByTestId("inspector-furniture-dimensions")).toHaveTextContent("1800 × 900 mm");
 
     // AC-4: No arbitrary width or depth inputs
     expect(screen.queryByTestId("furniture-width-input")).not.toBeInTheDocument();
@@ -147,7 +147,7 @@ describe("FloorPlanInspector Component (AC-6, AC-7)", () => {
     const planWithRotatedSofa = {
       ...VALID_STANDARD_FLOOR_PLAN,
       furniture: VALID_STANDARD_FLOOR_PLAN.furniture.map((f) =>
-        f.id === "f1" ? { ...f, x: 1350, y: 1650, rotation: 90, specificationId: "sofa-3seat-2100" } : f,
+        f.id === "f1" ? { ...f, x: 1350, y: 1650, rotation: 90, specificationId: "sofa-3seat-1800x900" } : f,
       ),
     };
 
@@ -161,17 +161,17 @@ describe("FloorPlanInspector Component (AC-6, AC-7)", () => {
     );
 
     expect(screen.getByTestId("inspector-furniture-specifications")).toBeInTheDocument();
-    const spec2100 = screen.getByTestId("inspector-spec-option-sofa-3seat-2100");
-    const spec2400 = screen.getByTestId("inspector-spec-option-sofa-3seat-2400");
-    expect(spec2100).toHaveTextContent("2100 × 900 mm");
-    expect(spec2400).toHaveTextContent("2400 × 950 mm");
+    const spec1800 = screen.getByTestId("inspector-spec-option-sofa-3seat-1800x900");
+    const spec2000 = screen.getByTestId("inspector-spec-option-sofa-3seat-2000x950");
+    expect(spec1800).toHaveTextContent("1800 × 900 mm");
+    expect(spec2000).toHaveTextContent("2000 × 950 mm");
 
-    fireEvent.click(spec2400);
+    fireEvent.click(spec2000);
     expect(handleUpdatePlan).toHaveBeenCalledTimes(1);
     const updatedPlan = handleUpdatePlan.mock.calls[0][0];
     const updatedSofa = updatedPlan.furniture.find((f: any) => f.id === "f1");
-    expect(updatedSofa.specificationId).toBe("sofa-3seat-2400");
-    expect(updatedSofa.width).toBe(2400);
+    expect(updatedSofa.specificationId).toBe("sofa-3seat-2000x950");
+    expect(updatedSofa.width).toBe(2000);
     expect(updatedSofa.depth).toBe(950);
     expect(updatedSofa.x).toBe(1350);
     expect(updatedSofa.y).toBe(1650);

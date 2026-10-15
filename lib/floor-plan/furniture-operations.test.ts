@@ -56,7 +56,7 @@ describe("Furniture Operations (AC-4, AC-5, AC-10, AC-11)", () => {
         expect(result.instance.x).toBe(3500);
         expect(result.instance.y).toBe(4200);
         expect(result.instance.rotation).toBe(180);
-        expect(result.instance.width).toBe(2100);
+        expect(result.instance.width).toBe(1800);
         expect(result.instance.depth).toBe(900);
       }
     });

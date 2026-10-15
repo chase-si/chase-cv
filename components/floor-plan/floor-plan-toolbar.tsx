@@ -18,7 +18,7 @@ export type FloorPlanToolbarProps = {
   canvasMode: "pan" | "edit";
   t: FloorPlanDictionary;
   onCanvasModeChange: (mode: "pan" | "edit") => void;
-  onOpenMobileSheet: (type: "entity" | "furniture-palette" | "rules" | "catalog") => void;
+  onOpenMobileSheet: (type: "entity" | "furniture-palette" | "rules" | "catalog" | "room-settings") => void;
   onOpenPlanSelector?: () => void;
   onClearSelection: () => void;
   onOpenFurnitureCatalog?: () => void;

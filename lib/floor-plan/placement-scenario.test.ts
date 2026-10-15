@@ -256,7 +256,7 @@ describe("AC-3: Multi-furniture Coexistence & Target Placement Evaluation Contra
     expect(evalSofa.targetPlacement?.id).toBe("placement-sofa");
     expect(evalSofa.summary.hasTargetFurniture).toBe(true);
     expect(evalSofa.summary.furnitureName).toBe("sofa-3seat");
-    expect(evalSofa.summary.dimensions?.formatted).toBe("2100 × 900 mm");
+    expect(evalSofa.summary.dimensions?.formatted).toBe("1800 × 900 mm");
 
     for (const issue of evalSofa.summary.relevantIssues) {
       const involvesSofa =

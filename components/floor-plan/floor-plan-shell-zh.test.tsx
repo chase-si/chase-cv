@@ -144,11 +144,11 @@ describe("FloorPlanShell Chinese Localization (locale='zh')", () => {
     // Select sofa f1 to inspect English specifications and actions
     fireEvent.click(screen.getByTestId("floor-plan-furniture-f1"));
     expect(screen.getByTestId("target-furniture-name")).toHaveTextContent("3-Seat Sofa");
-    expect(screen.getByTestId("inspector-spec-option-sofa-3seat-2100")).toHaveTextContent(
-      "2100 × 900 mm",
+    expect(screen.getByTestId("inspector-spec-option-sofa-3seat-1800x900")).toHaveTextContent(
+      "1800 × 900 mm",
     );
-    expect(screen.getByTestId("inspector-spec-option-sofa-3seat-2400")).toHaveTextContent(
-      "2400 × 950 mm",
+    expect(screen.getByTestId("inspector-spec-option-sofa-3seat-2000x950")).toHaveTextContent(
+      "2000 × 950 mm",
     );
     expect(screen.getByTestId("rotate-furniture-btn")).toHaveTextContent("Rotate 90°");
     expect(screen.getByTestId("delete-furniture-btn")).toHaveTextContent("Delete");

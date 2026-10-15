@@ -44,8 +44,8 @@ export function FloorPlanCatalog({
       "3br": 0,
     };
     for (const p of plans) {
-      if (p.categoryKey && counts[p.categoryKey] !== undefined) {
-        counts[p.categoryKey]++;
+      if (p.categoryKey && p.categoryKey in counts) {
+        counts[p.categoryKey as FloorPlanCategoryKey]++;
       }
     }
     return counts;

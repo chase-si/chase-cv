@@ -27,22 +27,7 @@ export interface CreateRectangularRoomOptions {
   locale?: string;
 }
 
-/**
- * Calculates net clear area in mm² and m², with standard single-decimal formatted string.
- */
-export function formatNetArea(widthMm: number, depthMm: number): {
-  areaMm2: number;
-  areaM2: number;
-  formattedAreaM2: string;
-} {
-  const areaMm2 = widthMm * depthMm;
-  const areaM2 = areaMm2 / 1_000_000;
-  return {
-    areaMm2,
-    areaM2,
-    formattedAreaM2: `${areaM2.toFixed(1)} m²`,
-  };
-}
+export { formatNetArea } from "./geometry";
 
 /**
  * Creates a normalized FloorPlan v2 and CustomRoomRecord for an independent rectangular room (AC-1, AC-2).
