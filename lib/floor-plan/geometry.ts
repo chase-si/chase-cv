@@ -797,12 +797,21 @@ function spanToAnnotation(
 
 /**
  * Dimension each open bay inside a room: the distance between opposing wall centerlines.
- * Distances follow wall centerlines, matching the plan's outer dimensions.
+ * Standard-plan distances follow wall centerlines. Custom rectangles use their
+ * explicit net dimensions and the matching clear-space coordinates instead.
  * An L or U room gets one label per bay, not one label per wall segment.
  * Diagonal rooms return no spans.
  */
-export function computeRoomSpanDimensions(points: Point[], idPrefix: string): DimensionAnnotation[] {
+export function computeRoomSpanDimensions(
+  points: Point[],
+  idPrefix: string,
+  netDimensions?: { widthMm: number; depthMm: number },
+): DimensionAnnotation[] {
   if (points.length < 3) return [];
+  if (netDimensions) {
+    const { widthMm, depthMm } = netDimensions;
+    points = [{ x: 0, y: 0 }, { x: widthMm, y: 0 }, { x: widthMm, y: depthMm }, { x: 0, y: depthMm }];
+  }
   const axes = orthogonalEdges(points);
   if (!axes) return [];
 

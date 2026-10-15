@@ -39,6 +39,35 @@ class MockStorage implements Storage {
   }
 }
 
+describe("Review regressions: storage failures and recent-room fallback", () => {
+  it("returns a failure result when getItem throws", () => {
+    const storage = new MockStorage();
+    vi.spyOn(storage, "getItem").mockImplementation(() => {
+      throw new DOMException("denied", "SecurityError");
+    });
+    expect(loadCustomRoomStorage(storage)).toMatchObject({ ok: false });
+  });
+
+  it("restores the most recently visited surviving room after deletion and reload", () => {
+    const storage = new MockStorage();
+    const rooms = ["A", "B", "C"].map((name) => createRectangularRoomPlan({ name }).record);
+    for (const room of rooms) saveCustomRoomRecord(room, storage);
+    setLastActivePlan("custom", rooms[1].id, storage);
+    setLastActivePlan("custom", rooms[2].id, storage);
+    const result = deleteCustomRoomRecord(rooms[2].id, storage);
+    expect(result.nextActive?.id).toBe(rooms[1].id);
+    expect(loadCustomRoomStorage(storage)).toMatchObject({ ok: true, doc: { lastActive: { id: rooms[1].id } } });
+  });
+
+  it("reads existing version-1 libraries without visit history and preserves their layouts", () => {
+    const storage = new MockStorage();
+    const record = createRectangularRoomPlan({ name: "旧房间" }).record;
+    storage.setItem(CUSTOM_ROOM_STORAGE_KEY, JSON.stringify({ version: 1, rooms: [record], lastActive: { type: "custom", id: record.id } }));
+    const loaded = loadCustomRoomStorage(storage);
+    expect(loaded).toMatchObject({ ok: true, doc: { rooms: [record], lastActive: { id: record.id }, recentCustomRoomIds: [record.id] } });
+  });
+});
+
 describe("Resilient Custom Room Local Storage (AC-4, AC-5)", () => {
   let mockStorage: MockStorage;
 

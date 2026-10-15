@@ -22,6 +22,7 @@ type MobileWorkspaceProps = {
   issueCount: number;
   locale?: string;
   canvas: React.ReactNode;
+  notice?: React.ReactNode;
   overlays: React.ReactNode;
   onModeChange: (mode: "pan" | "edit") => void;
   onOpen: (type: "catalog" | "furniture-palette" | "entity" | "rules" | "rooms" | "help" | "room-settings") => void;
@@ -30,7 +31,7 @@ type MobileWorkspaceProps = {
   onExport: () => void;
 };
 
-export function MobileWorkspace({ plan, summary, selectedEntity, roomName, roomArea, assessment, canvasMode, issueCount, locale, canvas, overlays, onModeChange, onOpen, onRotate, onDelete, onExport }: MobileWorkspaceProps) {
+export function MobileWorkspace({ plan, summary, selectedEntity, roomName, roomArea, assessment, canvasMode, issueCount, locale, canvas, notice, overlays, onModeChange, onOpen, onRotate, onDelete, onExport }: MobileWorkspaceProps) {
   const i18n = useFloorPlanI18n(locale);
   const isZh = i18n.locale === "zh";
   const ref = React.useRef<HTMLDivElement>(null);
@@ -63,6 +64,7 @@ export function MobileWorkspace({ plan, summary, selectedEntity, roomName, roomA
           <Button data-testid="open-plan-selector-btn" variant="outline" className="h-auto min-h-11 w-full justify-between gap-2 px-3 py-2 text-left" aria-label={isZh ? "切换户型" : "Change Plan"} onClick={() => onOpen("catalog")}>
             <Home className="size-5 text-primary" /><span data-testid="active-plan-summary" className="min-w-0 flex-1"><span data-testid="active-plan-name" className="block truncate font-semibold">{summary.name}</span><span data-testid="active-plan-area" className="block truncate text-[11px] text-muted-foreground">{summary.tags.join(" / ")} · {summary.roomCount} {isZh ? "个功能区" : "rooms"} · {summary.formattedArea}</span></span><ChevronDown />
           </Button>
+          {notice}
           <div data-testid="floor-plan-toolbar" className="flex items-center justify-between gap-2">
             <div className="flex gap-2">
               <Button className="h-11 min-w-[44px] px-3" data-testid="mode-toggle-edit" variant={canvasMode === "edit" ? "default" : "outline"} aria-pressed={canvasMode === "edit"} onClick={() => onModeChange("edit")}><Move />{isZh ? "摆放" : "Place"}</Button>

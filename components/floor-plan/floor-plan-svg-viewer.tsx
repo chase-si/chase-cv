@@ -172,7 +172,7 @@ export function FloorPlanSvgViewer({
   const roomSpanDimensions = React.useMemo(
     () =>
       roomPolygons.flatMap(({ room, points }) =>
-        computeRoomSpanDimensions(points, `room-${room.id}`),
+        computeRoomSpanDimensions(points, `room-${room.id}`, room.customNetDimensions),
       ),
     [roomPolygons],
   );

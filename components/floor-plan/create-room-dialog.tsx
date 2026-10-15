@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { Dialog } from "@base-ui/react/dialog";
 import { PlusSquare, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardScrollArea } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,8 @@ export function CreateRoomDialog({
   const [name, setName] = React.useState("");
   const [widthStr, setWidthStr] = React.useState(String(DEFAULT_ROOM_WIDTH_MM));
   const [depthStr, setDepthStr] = React.useState(String(DEFAULT_ROOM_DEPTH_MM));
+  const popupRef = React.useRef<HTMLDivElement>(null);
+  const nameRef = React.useRef<HTMLInputElement>(null);
 
   // Reset inputs when opened
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -46,17 +49,23 @@ export function CreateRoomDialog({
   }, [open]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Handle escape key
   React.useEffect(() => {
     if (!open) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onOpenChange(false);
-      }
+    const viewport = window.visualViewport;
+    const updateViewport = () => {
+      const popup = popupRef.current;
+      if (!popup) return;
+      popup.style.setProperty("--create-room-height", `${viewport?.height ?? window.innerHeight}px`);
+      popup.style.setProperty("--create-room-top", `${viewport?.offsetTop ?? 0}px`);
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onOpenChange]);
+    updateViewport();
+    viewport?.addEventListener("resize", updateViewport);
+    viewport?.addEventListener("scroll", updateViewport);
+    return () => {
+      viewport?.removeEventListener("resize", updateViewport);
+      viewport?.removeEventListener("scroll", updateViewport);
+    };
+  }, [open]);
 
   if (!open) return null;
 
@@ -94,23 +103,22 @@ export function CreateRoomDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6">
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
       {/* Backdrop */}
-      <div
+      <Dialog.Backdrop
         data-testid="create-room-backdrop"
         className="fixed inset-0 bg-foreground/30 backdrop-blur-xs transition-opacity"
-        onClick={() => onOpenChange(false)}
-        aria-hidden="true"
       />
 
       {/* Modal Popup */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="create-room-title"
+      <Dialog.Popup
+        ref={popupRef}
+        render={<Card />}
+        initialFocus={nameRef}
         data-testid="create-room-dialog"
         className={cn(
-          "relative z-10 flex w-full max-w-lg flex-col rounded-2xl border border-border bg-card p-0 shadow-2xl text-card-foreground outline-hidden overflow-hidden",
+          "fixed top-[calc(var(--create-room-top,0px)+var(--create-room-height,100dvh)/2)] left-1/2 z-50 flex max-h-[calc(var(--create-room-height,100dvh)-2rem)] w-[calc(100%-1.5rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col gap-0 border-border bg-card p-0 shadow-2xl text-card-foreground outline-hidden",
           className,
         )}
       >
@@ -121,13 +129,13 @@ export function CreateRoomDialog({
               <PlusSquare className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <h2
+              <Dialog.Title render={<h2 />}
                 id="create-room-title"
                 data-testid="create-room-title"
                 className="text-sm font-semibold tracking-tight text-foreground truncate"
               >
                 {isZh ? "新建矩形房间" : "Create Rectangular Room"}
-              </h2>
+              </Dialog.Title>
               <p className="text-[11px] text-muted-foreground truncate">
                 {isZh
                   ? "按实测墙内净尺寸快速建立独立房间"
@@ -150,7 +158,8 @@ export function CreateRoomDialog({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+        <CardScrollArea className="min-h-0 flex-1 space-y-4 p-5">
           {/* Room Name */}
           <div className="space-y-1.5">
             <label
@@ -160,6 +169,7 @@ export function CreateRoomDialog({
               {isZh ? "房间名称（选填）" : "Room Name (Optional)"}
             </label>
             <Input
+              ref={nameRef}
               id="create-room-name-input"
               data-testid="create-room-name-input"
               value={name}
@@ -242,8 +252,9 @@ export function CreateRoomDialog({
             </Card>
           )}
 
+        </CardScrollArea>
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/70">
+          <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border/70 px-5 py-3">
             <Button
               type="button"
               variant="outline"
@@ -264,7 +275,8 @@ export function CreateRoomDialog({
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

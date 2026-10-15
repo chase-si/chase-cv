@@ -37,7 +37,7 @@ export function RoomList({
   const roomItems = React.useMemo(() => {
     return plan.rooms.map((room) => {
       const points = computeRoomPolygon(room, wallMap, vertexMap);
-      const { formattedAreaM2 } = computePolygonArea(points);
+      const { formattedAreaM2 } = computePolygonArea(points, room.customNetDimensions);
       const displayName =
         room.name ??
         (locale === "zh"

@@ -21,7 +21,7 @@ Flow **logic** lives under `lib/flow/`; presentation tokens in `lib/flow/svg-pre
 
 ## Floor-plan language
 
-The floor-plan product helps a user compare predefined furniture specifications inside a curated plan. Domain logic, types, and validators live under `lib/floor-plan/`; the target contract is documented in `docs/floor-plan-contract.md`.
+The floor-plan product helps a user compare predefined furniture specifications inside a curated plan or a measured custom room. Domain logic, types, and validators live under `lib/floor-plan/`; the target contract is documented in `docs/floor-plan-contract.md`.
 
 **Floor plan**:
 A scale-aware residential topology made from vertices, walls, ordered room boundaries, and wall-bound openings in real-world units.
@@ -34,6 +34,14 @@ _Avoid_: Standard plan, imported image
 **Standard plan**:
 A curated, read-only floor plan available for furniture placement.
 _Avoid_: Candidate plan, placement scenario
+
+**Custom room**:
+An independent, user-created rectangular floor plan representing one measured room. Its dimensions and wall-bound openings can be edited separately from furniture placement.
+_Avoid_: Standard plan, multi-room dwelling, arbitrary polygon
+
+**Net room dimensions**:
+The clear width and depth between the inside faces of opposing walls. These dimensions describe the usable room space and determine its net area.
+_Avoid_: Wall centerline dimensions, exterior dimensions, building area
 
 **Room boundary**:
 An ordered, closed cycle of walls enclosing one room.
@@ -56,7 +64,7 @@ One selected furniture specification at a position and orientation inside a floo
 _Avoid_: Furniture definition, furniture specification
 
 **Placement scenario**:
-A standard plan together with the furniture placements currently being compared.
+A standard plan or custom room together with the furniture placements currently being compared.
 _Avoid_: Standard plan, furniture catalog
 
 **Physical collision**:

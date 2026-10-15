@@ -42,13 +42,23 @@ export interface RoomSettingsPanelProps {
   className?: string;
 }
 
+type OpeningInput = Omit<CustomOpeningDraft, "widthMm" | "offsetMm"> & {
+  widthMm: string;
+  offsetMm: string;
+};
+
+const toOpeningInput = (draft: CustomOpeningDraft): OpeningInput => ({
+  ...draft, widthMm: String(draft.widthMm), offsetMm: String(draft.offsetMm),
+});
+
+const parseMeasurement = (value: string) => value.trim() === "" ? NaN : Number(value);
+
 export function RoomSettingsPanel({
   plan,
   onApplyPlan,
   onCancel,
   onDraftPreviewChange,
   locale = "zh",
-  isMobile = false,
   className,
 }: RoomSettingsPanelProps) {
   const isZh = locale.startsWith("zh");
@@ -67,9 +77,12 @@ export function RoomSettingsPanel({
   const [activeTab, setActiveTab] = React.useState<"openings" | "dimensions">("openings");
 
   // Openings draft state
-  const [drafts, setDrafts] = React.useState<CustomOpeningDraft[]>(() =>
-    convertOpeningsToDrafts(plan.openings, roomWidthMm, roomDepthMm),
+  const [openingInputs, setOpeningInputs] = React.useState<OpeningInput[]>(() =>
+    convertOpeningsToDrafts(plan.openings, roomWidthMm, roomDepthMm).map(toOpeningInput),
   );
+  const drafts = React.useMemo<CustomOpeningDraft[]>(() => openingInputs.map((input) => ({
+    ...input, widthMm: parseMeasurement(input.widthMm), offsetMm: parseMeasurement(input.offsetMm),
+  })), [openingInputs]);
   const [activeOpeningId, setActiveOpeningId] = React.useState<string | null>(null);
 
   // Dimensions state
@@ -116,8 +129,8 @@ export function RoomSettingsPanel({
         notify(null, activeWallSide, activeOpeningId);
       }
     } else if (activeTab === "dimensions") {
-      const w = parseInt(dimWidthStr, 10);
-      const d = parseInt(dimDepthStr, 10);
+      const w = parseMeasurement(dimWidthStr);
+      const d = parseMeasurement(dimDepthStr);
       if (Number.isInteger(w) && w > 0 && Number.isInteger(d) && d > 0) {
         // Preview empty room with new dimensions (AC-6: 尺寸草稿期间预览空房间)
         const rebuildRes = rebuildRectangularRoomDimensions(plan, {
@@ -149,22 +162,21 @@ export function RoomSettingsPanel({
   // Handlers for openings
   const handleAddOpening = (type: "door" | "window") => {
     const newDraft = createDefaultOpeningDraft(type, activeWallSide ?? "top");
-    const nextDrafts = [...drafts, newDraft];
-    setDrafts(nextDrafts);
+    setOpeningInputs((prev) => [...prev, toOpeningInput(newDraft)]);
     setActiveOpeningId(newDraft.id);
   };
 
   const handleUpdateDraft = (
     id: string,
-    patch: Partial<Omit<CustomOpeningDraft, "id">>,
+    patch: Partial<Omit<OpeningInput, "id">>,
   ) => {
-    setDrafts((prev) =>
+    setOpeningInputs((prev) =>
       prev.map((d) => (d.id === id ? { ...d, ...patch } : d)),
     );
   };
 
   const handleDeleteDraft = (id: string) => {
-    setDrafts((prev) => prev.filter((d) => d.id !== id));
+    setOpeningInputs((prev) => prev.filter((d) => d.id !== id));
     if (activeOpeningId === id) {
       setActiveOpeningId(null);
     }
@@ -185,8 +197,8 @@ export function RoomSettingsPanel({
   };
 
   // Handlers for dimensions
-  const parsedWidth = parseInt(dimWidthStr, 10);
-  const parsedDepth = parseInt(dimDepthStr, 10);
+  const parsedWidth = parseMeasurement(dimWidthStr);
+  const parsedDepth = parseMeasurement(dimDepthStr);
   const isDimValid =
     Number.isInteger(parsedWidth) &&
     parsedWidth > 0 &&
@@ -310,11 +322,9 @@ export function RoomSettingsPanel({
                 </span>
               </div>
             ) : (
-              drafts.map((draft, idx) => {
+              openingInputs.map((draft, idx) => {
                 const itemErrors = validation.errors[draft.id];
                 const isActive = activeOpeningId === draft.id;
-                const isHorizontal = draft.wall === "top" || draft.wall === "bottom";
-                const wallLen = isHorizontal ? roomWidthMm : roomDepthMm;
 
                 return (
                   <Card
@@ -413,7 +423,7 @@ export function RoomSettingsPanel({
                           value={draft.widthMm}
                           onChange={(e) =>
                             handleUpdateDraft(draft.id, {
-                              widthMm: parseInt(e.target.value, 10) || 0,
+                              widthMm: e.target.value,
                             })
                           }
                           className={cn(
@@ -437,7 +447,7 @@ export function RoomSettingsPanel({
                           value={draft.offsetMm}
                           onChange={(e) =>
                             handleUpdateDraft(draft.id, {
-                              offsetMm: parseInt(e.target.value, 10) || 0,
+                              offsetMm: e.target.value,
                             })
                           }
                           className={cn(
@@ -562,6 +572,9 @@ export function RoomSettingsPanel({
             </div>
 
             {/* Area Preview */}
+            {!isDimValid && <p role="alert" className="text-xs text-destructive">
+              {isZh ? "净宽和净深须为大于 0 的整数毫米" : "Net dimensions must be positive integers in mm"}
+            </p>}
             {previewNetArea && (
               <Card className="p-3 bg-muted/40 border-border/70 space-y-1">
                 <div className="flex items-center justify-between text-xs">
