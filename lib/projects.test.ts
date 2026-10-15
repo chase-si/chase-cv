@@ -10,6 +10,7 @@ describe("project navigation and homepage showcase order", () => {
       "imageToUi",
       "flowEditor",
       "findInVideo",
+      "floorPlan",
     ]);
   });
 

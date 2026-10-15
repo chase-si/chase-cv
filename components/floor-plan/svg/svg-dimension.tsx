@@ -7,12 +7,14 @@ interface SvgDimensionProps {
   dimension: DimensionAnnotation;
   selectedEntity?: SelectedEntity | null;
   onSelect?: EntitySelectHandler;
+  labelFontSize?: number;
 }
 
 export function SvgDimension({
   dimension,
   selectedEntity,
   onSelect,
+  labelFontSize = 110,
 }: SvgDimensionProps) {
   const { label, start, end, offset, textPoint, orientation } = dimension;
 
@@ -31,6 +33,7 @@ export function SvgDimension({
 
   // 45-degree architectural tick mark half-length (in mm)
   const tickSize = 80;
+  const labelWidth = Math.max(440, labelFontSize * (label.length * 0.65 + 1));
 
   return (
     <g
@@ -103,10 +106,10 @@ export function SvgDimension({
         transform={`translate(${textPoint.x}, ${textPoint.y})${orientation === "vertical" ? " rotate(-90)" : ""}`}
       >
         <rect
-          x="-220"
-          y="-90"
-          width="440"
-          height="160"
+          x={-labelWidth / 2}
+          y={-labelFontSize * 0.82}
+          width={labelWidth}
+          height={labelFontSize * 1.45}
           rx="30"
           fill={isSelected ? "rgba(59, 130, 246, 0.15)" : "var(--background, #ffffff)"}
           stroke={isSelected ? "#2563eb" : "#cbd5e1"}
@@ -115,12 +118,12 @@ export function SvgDimension({
         />
         <text
           x="0"
-          y="20"
+          y={labelFontSize * 0.18}
           textAnchor="middle"
-          fontSize="110"
+          fontSize={labelFontSize}
           fontWeight="600"
           fill={isSelected ? "#1d4ed8" : "#475569"}
-          className="font-mono"
+          className="font-mono dark:fill-muted-foreground"
         >
           {label}
         </text>

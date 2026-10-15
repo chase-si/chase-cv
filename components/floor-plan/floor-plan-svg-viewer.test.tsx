@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FloorPlanSvgViewer } from "./floor-plan-svg-viewer";
 import { VALID_STANDARD_FLOOR_PLAN } from "@/lib/floor-plan/fixtures/valid-standard-plan";
@@ -64,6 +64,70 @@ describe("FloorPlanSvgViewer (AC-3 & AC-4)", () => {
     expect(screen.getByTestId("floor-plan-dimensions-layer")).toBeInTheDocument();
     expect(screen.getByTestId("floor-plan-dimension-dim-total-width")).toBeInTheDocument();
     expect(screen.getByTestId("floor-plan-dimension-dim-total-height")).toBeInTheDocument();
+    expect(screen.queryByTestId("floor-plan-dimension-room-r1-h-0")).not.toBeInTheDocument();
+  });
+
+  it("shows room length and width only after the canvas toggle is turned on", () => {
+    const onSelect = vi.fn();
+    render(
+      <FloorPlanSvgViewer
+        plan={VALID_STANDARD_FLOOR_PLAN}
+        selectedEntity={null}
+        onSelect={onSelect}
+      />,
+    );
+
+    const toggle = screen.getByRole("button", { name: "Show room dimensions" });
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    expect(screen.queryByTestId("floor-plan-dimension-room-r1-h-0")).not.toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByTestId("floor-plan-dimension-room-r1-h-0")).toHaveTextContent("3000");
+    expect(screen.getByTestId("floor-plan-dimension-room-r1-v-0")).toHaveTextContent("5000");
+    expect(screen.getByTestId("floor-plan-dimension-room-r2-h-0")).toHaveTextContent("3000");
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    expect(screen.queryByTestId("floor-plan-dimension-room-r1-h-0")).not.toBeInTheDocument();
+    expect(screen.getByTestId("floor-plan-dimension-dim-total-width")).toBeInTheDocument();
+  });
+
+  it("moves furniture when touch drags arrive before the next render", () => {
+    const onUpdatePlan = vi.fn();
+    render(
+      <FloorPlanSvgViewer
+        plan={VALID_STANDARD_FLOOR_PLAN}
+        selectedEntity={null}
+        onSelect={vi.fn()}
+        onUpdatePlan={onUpdatePlan}
+        canvasMode="edit"
+      />,
+    );
+
+    const furniture = screen.getByTestId("floor-plan-furniture-f1");
+    const svg = screen.getByTestId("floor-plan-svg-canvas");
+    const pointer = (type: string, x: number, y: number) =>
+      new PointerEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        clientX: x,
+        clientY: y,
+        pointerId: 1,
+        button: 0,
+        pointerType: "touch",
+      });
+
+    act(() => {
+      furniture.dispatchEvent(pointer("pointerdown", 40, 40));
+      svg.dispatchEvent(pointer("pointermove", 140, 40));
+      svg.dispatchEvent(pointer("pointerup", 140, 40));
+    });
+
+    expect(onUpdatePlan).toHaveBeenCalled();
+    const moved = onUpdatePlan.mock.calls[0][0].furniture.find((item: { id: string }) => item.id === "f1");
+    expect(moved.x).toBeGreaterThan(800);
+    expect(moved.y).toBe(1200);
   });
 
   it("provides zoom in, zoom out, and fit to view controls (AC-4)", () => {
@@ -166,9 +230,22 @@ describe("FloorPlanSvgViewer (AC-3 & AC-4)", () => {
       />,
     );
 
-    // Opening clearance overlay should appear when door1 is selected
+    // Entry door reserves the inward swing side and has no outdoor passage side.
     expect(screen.getByTestId("floor-plan-clearance-layer")).toBeInTheDocument();
-    expect(screen.getByTestId("opening-clearance-overlay-door1")).toBeInTheDocument();
+    const overlay = screen.getByTestId("opening-clearance-overlay-door1");
+    expect(overlay.querySelectorAll("[data-keep-clear-kind='swing']")).toHaveLength(1);
+    expect(overlay.querySelectorAll("[data-keep-clear-kind='passage']")).toHaveLength(0);
+
+    rerender(
+      <FloorPlanSvgViewer
+        plan={VALID_STANDARD_FLOOR_PLAN}
+        selectedEntity={{ type: "opening", id: "door2" }}
+        onSelect={onSelect}
+      />,
+    );
+    const roomDoor = screen.getByTestId("opening-clearance-overlay-door2");
+    expect(roomDoor.querySelectorAll("[data-keep-clear-kind='swing']")).toHaveLength(1);
+    expect(roomDoor.querySelectorAll("[data-keep-clear-kind='passage']")).toHaveLength(1);
 
     // Rerender with active violation
     const violationResult = [

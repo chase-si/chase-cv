@@ -8,12 +8,14 @@ import {
   computePolygonCentroid,
   computePrincipalDimensions,
   computeRoomPolygon,
+  computeRoomSpanDimensions,
   computeWallGeometry,
   getVertexMap,
   getWallMap,
 } from "./geometry";
 import { VALID_STANDARD_FLOOR_PLAN } from "./fixtures/valid-standard-plan";
 import { STUDIO_STANDARD_FLOOR_PLAN, THREE_BED_STANDARD_FLOOR_PLAN } from "./fixtures/standard-plans";
+import { FLOOR_PLAN_CATALOG_DATA } from "./catalog-data";
 
 describe("FloorPlan geometry calculations", () => {
   it("computes accurate plan bounds including walls and furniture", () => {
@@ -137,6 +139,130 @@ describe("FloorPlan geometry calculations", () => {
     expect(widthDim!.valueMm).toBe(6000);
     expect(heightDim).toBeDefined();
     expect(heightDim!.valueMm).toBe(5000);
+  });
+
+  it("annotates the width and depth of a rectangular room", () => {
+    const wallMap = getWallMap(VALID_STANDARD_FLOOR_PLAN);
+    const vertexMap = getVertexMap(VALID_STANDARD_FLOOR_PLAN);
+    const room = VALID_STANDARD_FLOOR_PLAN.rooms.find((item) => item.id === "r1")!;
+    const dimensions = computeRoomSpanDimensions(
+      computeRoomPolygon(room, wallMap, vertexMap),
+      "room-r1",
+    );
+
+    expect(dimensions.map((dimension) => [dimension.orientation, dimension.valueMm, dimension.id])).toEqual([
+      ["horizontal", 3000, "room-r1-h-0"],
+      ["vertical", 5000, "room-r1-v-0"],
+    ]);
+    expect(dimensions[0].start.y).toBeGreaterThan(0);
+    expect(dimensions[0].start.y).toBeLessThan(5000);
+    expect(dimensions[0].start.y).toBe(dimensions[0].end.y);
+    expect(dimensions[1].start.x).toBeGreaterThan(0);
+    expect(dimensions[1].start.x).toBeLessThan(3000);
+  });
+
+  it("annotates each bay of an L-shaped room instead of one bounding box", () => {
+    const dimensions = computeRoomSpanDimensions(
+      [
+        { x: 0, y: 0 },
+        { x: 6000, y: 0 },
+        { x: 6000, y: 3000 },
+        { x: 4000, y: 3000 },
+        { x: 4000, y: 5000 },
+        { x: 0, y: 5000 },
+      ],
+      "room-l",
+    );
+
+    expect(dimensions.filter((dimension) => dimension.orientation === "horizontal").map((dimension) => dimension.valueMm).sort((a, b) => a - b)).toEqual([4000, 6000]);
+    expect(dimensions.filter((dimension) => dimension.orientation === "vertical").map((dimension) => dimension.valueMm).sort((a, b) => a - b)).toEqual([3000, 5000]);
+
+    const upperWidth = dimensions.find((dimension) => dimension.valueMm === 4000 && dimension.orientation === "horizontal")!;
+    expect(upperWidth.start.x).toBe(0);
+    expect(upperWidth.end.x).toBe(4000);
+    expect(upperWidth.start.y).toBeGreaterThan(3000);
+    expect(upperWidth.start.y).toBeLessThan(5000);
+  });
+
+  it("keeps one span when a straight wall is split by an extra vertex", () => {
+    const dimensions = computeRoomSpanDimensions(
+      [
+        { x: 0, y: 0 },
+        { x: 1500, y: 0 },
+        { x: 3000, y: 0 },
+        { x: 3000, y: 2000 },
+        { x: 0, y: 2000 },
+      ],
+      "room-split",
+    );
+
+    expect(dimensions.map((dimension) => [dimension.orientation, dimension.valueMm])).toEqual([
+      ["horizontal", 3000],
+      ["vertical", 2000],
+    ]);
+  });
+
+  it("annotates both arms of a U-shaped room", () => {
+    const dimensions = computeRoomSpanDimensions(
+      [
+        { x: 0, y: 0 },
+        { x: 2000, y: 0 },
+        { x: 2000, y: 3000 },
+        { x: 4000, y: 3000 },
+        { x: 4000, y: 0 },
+        { x: 6000, y: 0 },
+        { x: 6000, y: 4000 },
+        { x: 0, y: 4000 },
+      ],
+      "room-u",
+    );
+
+    expect(
+      dimensions
+        .filter((dimension) => dimension.orientation === "horizontal")
+        .map((dimension) => dimension.valueMm)
+        .sort((a, b) => a - b),
+    ).toEqual([2000, 2000, 6000]);
+    expect(
+      dimensions
+        .filter((dimension) => dimension.orientation === "vertical")
+        .map((dimension) => dimension.valueMm)
+        .sort((a, b) => a - b),
+    ).toEqual([1000, 4000, 4000]);
+  });
+
+  it("returns no spans for a diagonal room", () => {
+    expect(
+      computeRoomSpanDimensions(
+        [
+          { x: 0, y: 0 },
+          { x: 3000, y: 0 },
+          { x: 1500, y: 2000 },
+        ],
+        "room-diagonal",
+      ),
+    ).toEqual([]);
+  });
+
+  it("annotates every orthogonal catalog room", () => {
+    for (const plan of FLOOR_PLAN_CATALOG_DATA) {
+      const wallMap = getWallMap(plan);
+      const vertexMap = getVertexMap(plan);
+      for (const room of plan.rooms) {
+        const points = computeRoomPolygon(room, wallMap, vertexMap);
+        const dimensions = computeRoomSpanDimensions(points, room.id);
+        if (points.length < 3) {
+          expect(dimensions).toEqual([]);
+          continue;
+        }
+        expect(dimensions.some((dimension) => dimension.orientation === "horizontal")).toBe(true);
+        expect(dimensions.some((dimension) => dimension.orientation === "vertical")).toBe(true);
+        for (const dimension of dimensions) {
+          expect(dimension.valueMm).toBeGreaterThanOrEqual(150);
+          expect(dimension.label).toBe(String(dimension.valueMm));
+        }
+      }
+    }
   });
 
   it("computes stable plan fit bounds with padding for dimensions", () => {

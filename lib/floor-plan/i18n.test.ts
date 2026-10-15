@@ -49,6 +49,60 @@ describe("Floor Plan i18n module", () => {
     expect(zh.getRuleTitle("opening-keep-clear", "Clear")).toBe("门窗开启通行净区受阻");
     expect(zh.getRuleTitle("furniture-clearance", "Clearance")).toBe("家具使用净距不足");
     expect(zh.getRuleTitle("passage-clearance", "Passage")).toBe("通道通行净宽不足");
+    expect(zh.getRuleTitle("local-passage", "Local Passage Clearance")).toBe("通道通行净宽不足");
+
+    expect(
+      zh.getRuleMessage({
+        ruleId: "opening-keep-clear",
+        severity: "warning",
+        relatedEntityIds: ["door1", "f1"],
+        relatedObjectIds: ["door1", "f1"],
+        measuredValue: 350,
+        recommendedValue: "900 mm",
+        title: "Opening Keep-Clear Zone",
+        message:
+          'Layout guidance: Door "door1" keep-clear zone is encroached by furniture "f1" (desk). Clear distance is 350 mm (recommended at least 900 mm).',
+      }),
+    ).toBe("布局建议：门“door1”的开启净区被书桌工作台占用，当前净距 350 mm，建议至少 900 mm。");
+    expect(
+      zh.getRuleMessage({
+        ruleId: "furniture-clearance",
+        severity: "warning",
+        relatedEntityIds: ["f1", "w1"],
+        relatedObjectIds: ["f1", "w1"],
+        measuredValue: 200,
+        recommendedValue: "600 mm",
+        title: "Furniture Clearance Guidance",
+        message:
+          'Layout guidance: Furniture "f1" (bed-double) left side clearance is encroached by wall "w1". Clear distance is 200 mm (recommended at least 600 mm).',
+      }),
+    ).toBe("布局建议：双人床 (1.8m)的左侧净距被墙体“w1”占用，当前净距 200 mm，建议至少 600 mm。");
+    expect(
+      zh.getRuleMessage({
+        ruleId: "local-passage",
+        severity: "warning",
+        relatedEntityIds: ["f1", "f2"],
+        relatedObjectIds: ["f1", "f2"],
+        measuredValue: 400,
+        recommendedValue: "600 mm",
+        title: "Local Passage Clearance",
+        message:
+          'Layout guidance: Local passage width between "f1" (sofa-3seat) and "f2" (bookcase) is 400 mm (recommended at least 600 mm for secondary passage).',
+      }),
+    ).toBe("布局建议：三人位沙发与书架书柜之间的局部通道宽度为 400 mm，次要通道建议至少 600 mm。");
+    expect(
+      zh.getRuleMessage({
+        ruleId: "local-passage",
+        severity: "warning",
+        relatedEntityIds: ["door1", "f1"],
+        relatedObjectIds: ["door1", "f1"],
+        measuredValue: 100,
+        recommendedValue: "600 mm",
+        title: "Door Passage Clearance",
+        message:
+          'Layout guidance: Door passage in front of "door1" is blocked by furniture "f1" (desk). Clear distance is 100 mm (recommended at least 600 mm for secondary passage).',
+      }),
+    ).toBe("布局建议：门“door1”前的通行路线被书桌工作台占用，当前净距 100 mm，建议至少 600 mm。");
 
     // Workflow stages translation
     expect(zh.t.workflow.steps.plan).toBe("户型");

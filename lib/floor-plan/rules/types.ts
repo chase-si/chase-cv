@@ -1,4 +1,4 @@
-import type { RuleSeverity } from "../types";
+import type { AssessmentFinding, RuleSeverity } from "../types";
 
 export type SpatialRuleId =
   | "furniture-boundary"
@@ -30,4 +30,8 @@ export interface RuleResult {
   recommendedValue?: number | string;
   title: string;
   message: string;
+  /** Structured source for catalog-based checks; localized at the UI boundary. */
+  assessmentFinding?: AssessmentFinding;
+  /** Furniture whose own placement fails, excluding an obstacle used as context. */
+  affectedFurnitureIds?: string[];
 }

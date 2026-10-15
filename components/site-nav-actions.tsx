@@ -3,6 +3,7 @@
 import * as React from "react";
 import {
   ChevronDown,
+  DraftingCompass,
   GitFork,
   ImageIcon,
   Menu,
@@ -27,6 +28,7 @@ const projectIcons = {
   duduScanner: ScanSearch,
   flowEditor: Workflow,
   findInVideo: ScanFace,
+  floorPlan: DraftingCompass,
 } satisfies Record<ProjectId, React.ComponentType<React.SVGProps<SVGSVGElement>>>;
 
 type ProjectMenuItemsProps = {

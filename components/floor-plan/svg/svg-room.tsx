@@ -14,6 +14,7 @@ interface SvgRoomProps {
   selectedEntity: SelectedEntity | null;
   targetRoomId?: string | null;
   onSelect: EntitySelectHandler;
+  labelFontSize?: number;
 }
 
 const ROOM_THEMES: Record<
@@ -95,6 +96,7 @@ export function SvgRoom({
   selectedEntity,
   targetRoomId,
   onSelect,
+  labelFontSize,
 }: SvgRoomProps) {
   const points = React.useMemo(
     () => computeRoomPolygon(room, wallMap, vertexMap),
@@ -121,6 +123,8 @@ export function SvgRoom({
   const pointsString = points.map((p) => `${p.x},${p.y}`).join(" ");
   const theme = ROOM_THEMES[room.type] ?? ROOM_THEMES.other;
   const displayName = room.name ?? theme.defaultName;
+  const font = labelFontSize ?? 140;
+  const labelWidth = labelFontSize ? Math.max(700, (displayName.length + 1.5) * font) : 700;
 
   return (
     <g
@@ -148,10 +152,10 @@ export function SvgRoom({
         className="pointer-events-none select-none text-center"
       >
         <rect
-          x="-350"
-          y="-160"
-          width="700"
-          height="320"
+          x={-labelWidth / 2}
+          y={-font * 1.14}
+          width={labelWidth}
+          height={font * 2.28}
           rx="60"
           fill="var(--card, #ffffff)"
           fillOpacity="0.85"
@@ -160,9 +164,9 @@ export function SvgRoom({
         />
         <text
           x="0"
-          y="-30"
+          y={-font * 0.21}
           textAnchor="middle"
-          fontSize="140"
+          fontSize={font}
           fontWeight="600"
           fill="currentColor"
           className="fill-foreground font-sans tracking-tight"
@@ -171,12 +175,12 @@ export function SvgRoom({
         </text>
         <text
           x="0"
-          y="110"
+          y={font * 0.79}
           textAnchor="middle"
-          fontSize="110"
+          fontSize={font * 0.79}
           fontWeight="500"
           fill={theme.labelColor}
-          className="font-mono tracking-normal"
+          className="font-mono tracking-normal dark:fill-muted-foreground"
         >
           {formattedAreaM2}
         </text>

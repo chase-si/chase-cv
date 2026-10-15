@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { StandardFloorPlan } from "./types";
+import type { AssessmentStatus, StandardFloorPlan } from "./types";
 import type { RuleResult } from "./rules/types";
 
 export type FloorPlanLocale = "en" | "zh";
@@ -189,6 +189,8 @@ export interface FloorPlanDictionary {
     fitView: string;
     reset: string;
     unscaledNotice: string;
+    roomSpans: string;
+    showRoomSpans: string;
   };
   mobileSheet: {
     roomProperties: string;
@@ -203,10 +205,6 @@ export interface FloorPlanDictionary {
     details: string;
     decision: string;
     stepPanel: string;
-  };
-  lab: {
-    title: string;
-    description: string;
   };
   workflow: {
     stepperAriaLabel: string;
@@ -476,10 +474,10 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
   },
   rules: {
     title: "空间规范审查",
-    allPassed: "所有房间边界、活动净距、门窗避让及家具摆放规范检查通过。",
+    allPassed: "当前家具布局在已配置的空间检查中未发现问题。",
     unscaledNotice: "未标定真实尺寸：依赖毫米绝对尺度的间距规则已抑制。",
     measured: "实测值：",
-    recommended: "规范建议：",
+    recommended: "建议值：",
     affected: "关联实体：",
     titles: {
       boundaryViolation: "房间边界越界",
@@ -496,6 +494,8 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
     fitView: "适屏居中",
     reset: "重置缩放",
     unscaledNotice: "未标定真实比例（显示相对像素坐标）",
+    roomSpans: "长宽",
+    showRoomSpans: "显示房间长宽",
   },
   mobileSheet: {
     roomProperties: "房间属性",
@@ -510,10 +510,6 @@ export const FLOOR_PLAN_ZH: FloorPlanDictionary = {
     details: "详细信息",
     decision: "目标家具决策",
     stepPanel: "当前流程步骤",
-  },
-  lab: {
-    title: "户型实验室",
-    description: "候选户型资产预览与空间验证实验室",
   },
   workflow: {
     stepperAriaLabel: "户型与家具决策流程",
@@ -783,7 +779,7 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
   },
   rules: {
     title: "Spatial Rules",
-    allPassed: "All room boundaries, clearances, passages, and spatial rules passed.",
+    allPassed: "No issues found in the configured checks for this furniture layout.",
     unscaledNotice: "Uncalibrated scale: Dimension-dependent clearance rules are suppressed.",
     measured: "Measured:",
     recommended: "Recommended:",
@@ -803,6 +799,8 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
     fitView: "Fit to view",
     reset: "Reset zoom",
     unscaledNotice: "Uncalibrated geometry (relative pixel scale)",
+    roomSpans: "Size",
+    showRoomSpans: "Show room dimensions",
   },
   mobileSheet: {
     roomProperties: "Room Properties",
@@ -817,10 +815,6 @@ export const FLOOR_PLAN_EN: FloorPlanDictionary = {
     details: "Details",
     decision: "Furniture Decision",
     stepPanel: "Current Step",
-  },
-  lab: {
-    title: "Floor Plan Lab",
-    description: "Candidate floor plan asset preview and spatial validation lab",
   },
   workflow: {
     stepperAriaLabel: "Floor plan and furniture decision workflow",
@@ -984,6 +978,7 @@ export const FURNITURE_CATEGORY_LABELS_EN: Record<string, string> = {
 export const FURNITURE_NAMES_ZH: Record<string, string> = {
   "bed-double": "双人床 (1.8m)",
   "bed-single": "单人床 (1.2m)",
+  "sofa-1seat": "单人位沙发",
   "sofa-3seat": "三人位沙发",
   "sofa-2seat": "双人位沙发",
   "armchair": "单人扶手椅",
@@ -1011,6 +1006,7 @@ export const FURNITURE_NAMES_ZH: Record<string, string> = {
 export const FURNITURE_NAMES_EN: Record<string, string> = {
   "bed-double": "Double Bed (1.8m)",
   "bed-single": "Single Bed (1.2m)",
+  "sofa-1seat": "1-Seat Sofa",
   "sofa-3seat": "3-Seat Sofa",
   "sofa-2seat": "2-Seat Loveseat",
   "armchair": "Armchair",
@@ -1066,6 +1062,100 @@ export const PLAN_TAGS_ZH: Record<string, string> = {
   "3BR": "三室",
 };
 
+interface QuotedRuleEntity {
+  id: string;
+  definitionId?: string;
+}
+
+function quotedRuleEntities(message: string): QuotedRuleEntity[] {
+  const entities: QuotedRuleEntity[] = [];
+  for (const match of message.matchAll(/"([^"]+)"(?:\s*\(([^)]+)\))?/g)) {
+    const definitionId = match[2];
+    entities.push({
+      id: match[1],
+      definitionId: definitionId && !definitionId.includes(" ") ? definitionId : undefined,
+    });
+  }
+  return entities;
+}
+
+function zhFurnitureLabel(entity?: QuotedRuleEntity): string {
+  if (!entity) return "相关家具";
+  const localized = entity.definitionId ? FURNITURE_NAMES_ZH[entity.definitionId] : undefined;
+  if (localized) return localized;
+  return entity.definitionId ?? entity.id;
+}
+
+function zhClearanceSide(message: string): string {
+  const match = message.match(/\b((?:left|right) side|front|back|foot)\s+clearance/i);
+  const side = match?.[1].toLowerCase();
+  if (side?.startsWith("left")) return "左侧";
+  if (side?.startsWith("right")) return "右侧";
+  if (side === "front") return "前方";
+  if (side === "back" || side === "foot") return "后方";
+  return "该侧";
+}
+
+function zhMeasured(rule: RuleResult, unit: "mm" | "mm²"): string {
+  return rule.measuredValue === undefined ? "" : `${rule.measuredValue} ${unit}`;
+}
+
+function zhRecommended(rule: RuleResult): string {
+  if (rule.recommendedValue === undefined) return "";
+  if (typeof rule.recommendedValue === "number") return `${rule.recommendedValue} mm`;
+  if (rule.recommendedValue === "Inside room") return "房间内部";
+  return String(rule.recommendedValue);
+}
+
+function zhRuleMessage(rule: RuleResult): string {
+  const entities = quotedRuleEntities(rule.message);
+  const measuredMm = zhMeasured(rule, "mm");
+  const measuredArea = zhMeasured(rule, "mm²");
+  const recommended = zhRecommended(rule);
+
+  switch (rule.ruleId) {
+    case "furniture-boundary":
+    case "opening-boundary":
+    case "wall-boundary": {
+      const name = zhFurnitureLabel(entities[0]);
+      if (rule.message.includes("no rooms defined")) {
+        return `户型尚未划分房间，无法判断家具“${name}”是否位于房间内。`;
+      }
+      if (rule.measuredValue !== undefined && rule.measuredValue > 0) {
+        return `家具“${name}”超出房间边界 ${measuredMm}，请移入封闭房间内。`;
+      }
+      return `家具“${name}”超出房间边界，请移入封闭房间内。`;
+    }
+    case "furniture-wall-collision": {
+      const wallId = entities[1]?.id;
+      const wall = wallId ? `墙体“${wallId}”` : "墙体";
+      return `家具“${zhFurnitureLabel(entities[0])}”与${wall}发生穿插${measuredArea ? `，重叠面积 ${measuredArea}` : ""}，请将家具移离墙体。`;
+    }
+    case "furniture-overlap":
+      return `家具“${zhFurnitureLabel(entities[0])}”与“${zhFurnitureLabel(entities[1])}”发生重叠${measuredArea ? `，重叠面积 ${measuredArea}` : ""}，请调整位置或旋转方向。`;
+    case "opening-keep-clear":
+      return `布局建议：门“${entities[0]?.id ?? "门洞"}”的开启净区被${zhFurnitureLabel(entities[1])}占用${measuredMm ? `，当前净距 ${measuredMm}` : ""}${recommended ? `，建议至少 ${recommended}` : ""}。`;
+    case "furniture-clearance": {
+      const obstacle = /encroached by wall/i.test(rule.message)
+        ? `墙体“${entities[1]?.id ?? "墙体"}”`
+        : zhFurnitureLabel(entities[1]);
+      return `布局建议：${zhFurnitureLabel(entities[0])}的${zhClearanceSide(rule.message)}净距被${obstacle}占用${measuredMm ? `，当前净距 ${measuredMm}` : ""}${recommended ? `，建议至少 ${recommended}` : ""}。`;
+    }
+    case "local-passage":
+    case "passage-clearance": {
+      if (/door passage/i.test(rule.message)) {
+        return `布局建议：门“${entities[0]?.id ?? "门洞"}”前的通行路线被${zhFurnitureLabel(entities[1])}占用${measuredMm ? `，当前净距 ${measuredMm}` : ""}${recommended ? `，建议至少 ${recommended}` : ""}。`;
+      }
+      const other = / and wall /i.test(rule.message)
+        ? `墙体“${entities[1]?.id ?? "墙体"}”`
+        : zhFurnitureLabel(entities[1]);
+      return `布局建议：${zhFurnitureLabel(entities[0])}与${other}之间的局部通道宽度为 ${measuredMm || "未知"}${recommended ? `，次要通道建议至少 ${recommended}` : ""}。`;
+    }
+    default:
+      return rule.message;
+  }
+}
+
 export function getFloorPlanLocale(requested?: string): FloorPlanLocale {
   if (!requested) {
     if (typeof window !== "undefined" && window.location.pathname.startsWith("/zh")) {
@@ -1120,6 +1210,7 @@ export function getFloorPlanI18n(locale?: string) {
         case "furniture-clearance":
           return dict.rules.titles.furnitureClearance;
         case "passage-clearance":
+        case "local-passage":
           return dict.rules.titles.passageClearance;
         default:
           return fallbackTitle;
@@ -1127,25 +1218,7 @@ export function getFloorPlanI18n(locale?: string) {
     },
     getRuleMessage(rule: RuleResult) {
       if (currentLocale !== "zh") return rule.message;
-      const fName = rule.relatedEntityIds[0]
-        ? FURNITURE_NAMES_ZH[rule.relatedEntityIds[0]] ?? rule.relatedEntityIds[0]
-        : "";
-      switch (rule.ruleId) {
-        case "furniture-boundary":
-          return `家具“${fName || rule.relatedEntityIds[0]}”超出房间边界范围，请将其移入封闭房间内。`;
-        case "furniture-wall-collision":
-          return `家具“${fName || rule.relatedEntityIds[0]}”与墙体结构发生重叠干涉，请适当挪移家具。`;
-        case "furniture-overlap":
-          return `家具之间发生空间重叠冲突，请调整家具位置或旋转方向。`;
-        case "opening-keep-clear":
-          return `家具阻挡了门窗洞口的通行与开启避让扇面，请保持通道畅通。`;
-        case "furniture-clearance":
-          return `家具前方活动使用净距不足规范建议值，可能造成通行拥堵。`;
-        case "passage-clearance":
-          return `室内主要交通动线通道净宽小于通行标准要求。`;
-        default:
-          return rule.message;
-      }
+      return zhRuleMessage(rule);
     },
     formatRoomBreakdown(plan: StandardFloorPlan) {
       const counts: Record<string, number> = {};
@@ -1190,4 +1263,14 @@ export function getFloorPlanI18n(locale?: string) {
 
 export function useFloorPlanI18n(localeProp?: string) {
   return React.useMemo(() => getFloorPlanI18n(localeProp), [localeProp]);
+}
+
+export function getAssessmentStatusLabel(status: AssessmentStatus, locale?: string): string {
+  const isZh = getFloorPlanLocale(locale) === "zh";
+  return {
+    suitable: isZh ? "摆放合适" : "Suitable",
+    "trade-off": isZh ? "空间略紧" : "Tight fit",
+    "must-adjust": isZh ? "需要调整" : "Adjust layout",
+    unavailable: isZh ? "无法评估" : "Unavailable",
+  }[status];
 }

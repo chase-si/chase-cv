@@ -160,7 +160,8 @@ describe("Spatial Rule Evaluator (US-12, US-14, AC-12, AC-14)", () => {
       expect(v.message).toMatch(/intersect/i);
       expect(typeof v.measuredValue).toBe("number");
       expect(v.measuredValue).toBeGreaterThan(0);
-      expect(v.recommendedValue).toBe("0 mm²");
+      expect(v.recommendedValue).toBe(0);
+      expect(v.assessmentFinding?.kind).toBe("wall-overlap");
     });
 
     it("does not report collision when furniture touches wall edge without overlapping interior", () => {
@@ -221,7 +222,8 @@ describe("Spatial Rule Evaluator (US-12, US-14, AC-12, AC-14)", () => {
       expect(v.message).toMatch(/overlap/i);
       expect(typeof v.measuredValue).toBe("number");
       expect(v.measuredValue).toBeGreaterThan(0);
-      expect(v.recommendedValue).toBe("0 mm²");
+      expect(v.recommendedValue).toBe(0);
+      expect(v.assessmentFinding?.kind).toBe("furniture-overlap");
     });
 
     it("reports error when two furniture items overlap with 90° rotation (SAT check)", () => {

@@ -10,6 +10,7 @@ const MAJOR_CONTENT_UPDATES = {
   imageToUi: "2026-02-15",
   flow: "2026-02-20",
   findInVideo: "2026-10-09",
+  floorPlan: "2026-10-14",
   duduScanner: "2026-08-13",
   magicCursorHub: "2026-01-20",
   magicCursorEffect: "2026-01-20",
@@ -30,6 +31,7 @@ const coreIndexedSeoRoutes: readonly IndexedSeoRoute[] = [
   createIndexedSeoRoute("/image-to-ui", MAJOR_CONTENT_UPDATES.imageToUi),
   createIndexedSeoRoute("/flow", MAJOR_CONTENT_UPDATES.flow),
   createIndexedSeoRoute("/find-in-video", MAJOR_CONTENT_UPDATES.findInVideo),
+  createIndexedSeoRoute("/floor-plan", MAJOR_CONTENT_UPDATES.floorPlan),
   createIndexedSeoRoute("/dudu-scanner", MAJOR_CONTENT_UPDATES.duduScanner),
   createIndexedSeoRoute("/magic-cursor", MAJOR_CONTENT_UPDATES.magicCursorHub),
 ];

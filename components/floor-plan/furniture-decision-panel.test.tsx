@@ -351,13 +351,13 @@ describe("FurnitureDecisionPanel Component (AC-14, AC-15, AC-16, AC-17)", () => 
 
       const minIssue = screen.getByTestId("decision-issue-below-minimum-clearance");
       expect(minIssue).toBeInTheDocument();
-      expect(minIssue).toHaveTextContent("前方 (front)");
+      expect(minIssue).toHaveTextContent("前方");
       expect(minIssue).toHaveTextContent("450 mm");
       expect(minIssue).toHaveTextContent("最低 600 mm / 推荐 900 mm");
 
       const recIssue = screen.getByTestId("decision-issue-below-recommended-clearance");
       expect(recIssue).toBeInTheDocument();
-      expect(recIssue).toHaveTextContent("左侧 (left)");
+      expect(recIssue).toHaveTextContent("左侧");
       expect(recIssue).toHaveTextContent("650 mm");
       expect(recIssue).toHaveTextContent("最低 600 mm / 推荐 750 mm");
     });
@@ -458,7 +458,7 @@ describe("FurnitureDecisionPanel Component (AC-14, AC-15, AC-16, AC-17)", () => 
 
       // Target f2's findings are rendered
       const clearanceIssue = screen.getByTestId("decision-issue-below-minimum-clearance");
-      expect(clearanceIssue).toHaveTextContent("前侧");
+      expect(clearanceIssue).toHaveTextContent("前方");
       expect(clearanceIssue).toHaveTextContent("w3");
       expect(clearanceIssue).toHaveTextContent("420 mm");
       expect(clearanceIssue).toHaveTextContent("600 mm");

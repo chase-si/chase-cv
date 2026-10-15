@@ -149,6 +149,9 @@ export function FurnitureDecisionPanel({
     if (!assessment || !decision.hasTargetFurniture) {
       return decision.summary;
     }
+    if (assessment.status !== "unavailable" && formattedFindings.length === 0 && decision.relevantIssues.length > 0) {
+      return decision.summary;
+    }
     const dimText = decision.dimensions ? `（${decision.dimensions.formatted}）` : "";
     const dimTextEn = decision.dimensions ? ` (${decision.dimensions.formatted})` : "";
     const primaryFinding = formattedFindings[0];
@@ -181,6 +184,7 @@ export function FurnitureDecisionPanel({
     decision.dimensions,
     decision.furnitureName,
     decision.hasTargetFurniture,
+    decision.relevantIssues.length,
     decision.roomName,
     decision.summary,
     formattedFindings,
@@ -198,7 +202,11 @@ export function FurnitureDecisionPanel({
         issue.ruleId !== "furniture-overlap" &&
         issue.ruleId !== "furniture-wall-collision" &&
         issue.ruleId !== "furniture-boundary" &&
-        issue.ruleId !== "furniture-clearance",
+        issue.ruleId !== "furniture-clearance" &&
+        issue.ruleId !== "wall-overlap" &&
+        issue.ruleId !== "outside-room" &&
+        issue.ruleId !== "below-minimum-clearance" &&
+        issue.ruleId !== "below-recommended-clearance",
     );
 
     return [...formattedFindings, ...nonPhysicalLegacyIssues];
@@ -524,7 +532,7 @@ export function FurnitureDecisionPanel({
                           className="rounded border border-border/60 bg-background/80 p-1"
                         >
                           <span className="text-muted-foreground block">
-                            {isZh ? "最低 / 推荐标准" : "Min / Recommended"}
+                            {isZh ? "最低 / 推荐" : "Min / Recommended"}
                           </span>
                           <span className="font-mono font-semibold text-foreground">
                             {issue.recommendedFormatted}

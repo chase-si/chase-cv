@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Compass, Plus } from "lucide-react";
+import { Compass, Image as ImageIcon, Plus } from "lucide-react";
 import { ToolPageChrome } from "@/components/tool-page-chrome";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,7 @@ import {
   applyPlacementScenarioToFloorPlan,
   floorPlanToPlacementScenario,
 } from "@/lib/floor-plan/placement-scenario";
-import { assessPlacementScenario } from "@/lib/floor-plan/space-assessment";
-import { evaluatePlanRules } from "@/lib/floor-plan/rules";
+import { assessmentFromRuleResults, evaluatePlanRules } from "@/lib/floor-plan/rules";
 import {
   computePolygonArea,
   computeRoomPolygon,
@@ -50,9 +49,13 @@ import {
 } from "@/lib/floor-plan/furniture-operations";
 import { getDefaultFurnitureCatalog } from "@/lib/floor-plan/furniture-catalog";
 import { RoomList } from "./room-list";
-import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
+import { getAssessmentStatusLabel, useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { RuleFeedbackPanel } from "./rule-feedback-panel";
 import { cn } from "@/lib/utils";
+import { MobileWorkspace } from "./mobile-workspace";
+import { FurnitureSizePicker } from "./furniture-size-picker";
+import { FloorPlanImageDialog } from "./floor-plan-image-dialog";
+import { renderFloorPlanImage, type FloorPlanImage } from "@/lib/floor-plan/export-image";
 
 export interface FloorPlanShellProps {
   initialPlans?: StandardPlanSummary[];
@@ -60,7 +63,7 @@ export interface FloorPlanShellProps {
   initialScenario?: PlacementScenario;
   onPlanChange?: (plan: FloorPlan) => void;
   onScenarioChange?: (scenario: PlacementScenario) => void;
-  storage?: any; // Deprecated prop retained for backward compatibility
+  storage?: unknown; // Deprecated prop retained for backward compatibility
   isMobile?: boolean;
   locale?: string;
 }
@@ -174,8 +177,13 @@ export function FloorPlanShell({
 
   // Mobile bottom properties surface state: "entity" | "furniture-palette" | "rules" | "catalog" | "decision" | null
   const [mobileSheetType, setMobileSheetType] = React.useState<
-    "entity" | "furniture-palette" | "rules" | "catalog" | "decision" | null
+    "entity" | "furniture-palette" | "rules" | "catalog" | "decision" | "rooms" | "help" | null
   >(null);
+  const svgRef = React.useRef<SVGSVGElement>(null);
+  const imageRequest = React.useRef(0);
+  const [isImageOpen, setIsImageOpen] = React.useState(false);
+  const [planImage, setPlanImage] = React.useState<FloorPlanImage | null>(null);
+  const [imageError, setImageError] = React.useState(false);
 
   const activePlanSummary = React.useMemo(
     () => plans.find((p) => p.id === activePlanId) ?? plans[0],
@@ -198,6 +206,8 @@ export function FloorPlanShell({
       const base = initialScenario
         ? applyPlacementScenarioToFloorPlan(initialActivePlan, initialScenario)
         : initialActivePlan;
+      // The asset preview supplies replacement topology/scenario props; reset its editor state together.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrentPlan(base);
       setActivePlanId(initialActivePlan.meta.id ?? "plan-preview");
       if (initialScenario?.targetPlacementId !== undefined) {
@@ -219,17 +229,15 @@ export function FloorPlanShell({
 
   const effectiveTargetFurnitureId = targetFurniture?.id ?? null;
 
-  // Derive placement scenario and assess physical space for the active target placement while keeping all other furniture as obstacles (AC-3)
-  const currentScenario = React.useMemo(() => {
-    return floorPlanToPlacementScenario(currentPlan, effectiveTargetFurnitureId ?? undefined);
-  }, [currentPlan, effectiveTargetFurnitureId]);
-
+  // Both target and whole-layout verdicts come from the same normalized issues.
   const spaceAssessment = React.useMemo(() => {
-    return assessPlacementScenario(currentPlan, currentScenario, undefined, {
-      targetPlacementId: effectiveTargetFurnitureId ?? undefined,
-      focusRoomId: targetRoomId ?? undefined,
-    });
-  }, [currentPlan, currentScenario, effectiveTargetFurnitureId, targetRoomId]);
+    return assessmentFromRuleResults(currentPlan, violations, effectiveTargetFurnitureId ?? undefined);
+  }, [currentPlan, violations, effectiveTargetFurnitureId]);
+
+  const layoutAssessment = React.useMemo(
+    () => assessmentFromRuleResults(currentPlan, violations),
+    [currentPlan, violations],
+  );
 
   const targetRoom = React.useMemo(() => {
     if (!targetRoomId) return null;
@@ -281,11 +289,9 @@ export function FloorPlanShell({
   const handleSelectTargetRoom = React.useCallback(
     (roomId: string) => {
       setTargetRoomId(roomId);
-      if (!isMobile) {
-        setSelectedEntity({ type: "room", id: roomId });
-      }
+      setSelectedEntity({ type: "room", id: roomId });
     },
-    [isMobile],
+    [],
   );
 
   const handleSelectEntity = React.useCallback(
@@ -300,15 +306,11 @@ export function FloorPlanShell({
           onScenarioChange(scenario);
         }
       }
-      if (entity && isMobile) {
-        setMobileSheetType("entity");
-      }
     },
-    [currentPlan, isMobile, onScenarioChange],
+    [currentPlan, onScenarioChange],
   );
 
   const handleCloseMobileSheet = React.useCallback(() => {
-    setSelectedEntity(null);
     setMobileSheetType(null);
   }, []);
 
@@ -404,10 +406,11 @@ export function FloorPlanShell({
   // Delete / Backspace to remove selected/target furniture
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (canvasMode === "pan" || mobileSheetType !== null || isImageOpen || isPlanSelectorOpen || isFurnitureCatalogOpen) return;
       const activeEl = document.activeElement;
       if (
         activeEl &&
-        (activeEl.tagName === "INPUT" ||
+        (activeEl.tagName === "INPUT" || activeEl.tagName === "SELECT" ||
           activeEl.tagName === "TEXTAREA" ||
           (activeEl as HTMLElement).isContentEditable)
       ) {
@@ -481,14 +484,20 @@ export function FloorPlanShell({
     currentPlan,
     selectedEntity,
     targetFurnitureId,
+    targetFurniture,
     effectiveTargetFurnitureId,
     handleUpdatePlan,
+    canvasMode,
+    mobileSheetType,
+    isImageOpen,
+    isPlanSelectorOpen,
+    isFurnitureCatalogOpen,
   ]);
 
-  const isMobileSheetOpen = isMobile && mobileSheetType !== null;
+  const isMobileSheetOpen = mobileSheetType !== null;
 
   const mobileSheetTitle = React.useMemo(() => {
-    if (selectedEntity) {
+    if (mobileSheetType === "entity" && selectedEntity) {
       switch (selectedEntity.type) {
         case "room":
           return t.mobileSheet.roomProperties;
@@ -497,7 +506,7 @@ export function FloorPlanShell({
         case "opening":
           return t.mobileSheet.openingProperties;
         case "furniture":
-          return t.mobileSheet.furnitureProperties;
+          return isMobile ? isZh ? "选择尺寸" : "Choose size" : t.mobileSheet.furnitureProperties;
         case "dimension":
           return t.mobileSheet.dimensionProperties;
         default:
@@ -508,11 +517,14 @@ export function FloorPlanShell({
     if (mobileSheetType === "rules") return t.mobileSheet.spatialRules;
     if (mobileSheetType === "catalog") return t.mobileSheet.standardPlans;
     if (mobileSheetType === "decision") return t.mobileSheet.decision;
+    if (mobileSheetType === "rooms") return isZh ? "房间与已摆放家具" : "Rooms & placed furniture";
+    if (mobileSheetType === "help") return isZh ? "操作指南" : "How to use";
     return t.mobileSheet.details;
-  }, [selectedEntity, mobileSheetType, t]);
+  }, [selectedEntity, mobileSheetType, t, isZh, isMobile]);
 
   const mobileSheetBadge = React.useMemo(() => {
-    if (selectedEntity) {
+    if (mobileSheetType === "entity" && selectedEntity) {
+      if (isMobile && selectedEntity.type === "furniture") return null;
       return (
         <Badge variant="outline" className="text-[10px] uppercase font-mono">
           {selectedEntity.type}
@@ -535,10 +547,15 @@ export function FloorPlanShell({
       );
     }
     return null;
-  }, [selectedEntity, mobileSheetType, violations, t]);
+  }, [selectedEntity, mobileSheetType, violations, t, isMobile]);
 
   const mobileSheetBody = React.useMemo(() => {
-    if (selectedEntity) {
+    if (mobileSheetType === "entity" && selectedEntity) {
+      if (isMobile && selectedEntity.type === "furniture") {
+        const furniture = currentPlan.furniture.find((item) => item.id === selectedEntity.id);
+        return furniture ? <FurnitureSizePicker furniture={furniture} locale={locale}
+          onChange={(specificationId) => handleChangeSpecification(furniture.id, specificationId)} /> : null;
+      }
       return (
         <FloorPlanInspector
           plan={currentPlan}
@@ -571,11 +588,7 @@ export function FloorPlanShell({
       return (
         <FurnitureCatalogPalette
           plan={currentPlan}
-          onUpdatePlan={handleUpdatePlan}
-          onSelect={(entity) => {
-            handleSelectEntity(entity);
-            handleCloseMobileSheet();
-          }}
+          onSelectDefinition={handleAddContextFurniture}
           onClose={handleCloseMobileSheet}
           locale={locale}
         />
@@ -583,6 +596,10 @@ export function FloorPlanShell({
     }
     if (mobileSheetType === "rules") {
       return (
+        <div className="space-y-4">
+          <p className="text-xs text-muted-foreground">{isZh
+            ? "全屋检查：数字为下方问题条数。同一对家具重叠计 1 项；不同方向的净距分别计数。红色表示需要调整，黄色表示空间略紧。"
+            : "Whole-layout check: the count matches the issues below. Each overlapping pair counts once; directional clearance shortfalls count separately. Red means adjust; amber means a tight fit."}</p>
         <RuleFeedbackPanel
           plan={currentPlan}
           ruleResults={violations}
@@ -590,6 +607,7 @@ export function FloorPlanShell({
           onSelect={handleSelectEntity}
           locale={locale}
         />
+        </div>
       );
     }
     if (mobileSheetType === "catalog") {
@@ -605,6 +623,27 @@ export function FloorPlanShell({
         />
       );
     }
+    if (mobileSheetType === "rooms") {
+      return <div className="space-y-4">
+        <RoomList plan={currentPlan} targetRoomId={targetRoomId} locale={locale}
+          onSelectRoom={(id) => { handleSelectTargetRoom(id); setMobileSheetType(null); }} />
+        {currentPlan.furniture.length > 0 && <div className="space-y-2"><p className="text-sm font-semibold">{isZh ? "已摆放家具" : "Placed furniture"}</p>
+          {currentPlan.furniture.map((item) => <Button key={item.id} variant={selectedEntity?.id === item.id ? "default" : "outline"}
+            className="h-11 w-full justify-start" data-testid={`select-target-furniture-${item.id}`}
+            aria-pressed={selectedEntity?.id === item.id} onClick={() => { handleSelectEntity({ type: "furniture", id: item.id }); setMobileSheetType(null); }}>
+            {i18n.getFurnitureName(item.definitionId)} · {item.width} × {item.depth} mm
+          </Button>)}
+        </div>}
+      </div>;
+    }
+    if (mobileSheetType === "help") {
+      return <div className="space-y-4 text-sm text-muted-foreground">
+        <p>{isZh ? "选择户型，点击房间，再添加家具。" : "Choose a plan, select a room, then add furniture."}</p>
+        <p>{isZh ? "摆放模式下单指拖动家具；浏览模式下单指移动画布。双指捏合缩放，适屏按钮回到完整户型。" : "Drag furniture in Place mode, or drag the canvas in Pan mode. Pinch to zoom, and Fit returns to the full plan."}</p>
+        <p>{isZh ? "选中家具后，点击选择尺寸切换规格；旋转和删除在底部直接操作，位置通过拖动调整。点击检查查看碰撞、净距和通行提醒。" : "Select furniture and choose its size. Rotate or remove it from the bottom bar, and drag it to adjust the position. Check reports collisions, clearance and passage constraints."}</p>
+        <p>{isZh ? "出图可保存当前布局。户型是简化模型，请以实测尺寸为准。" : "Save an image of your layout. These are simplified plans; verify real measurements."}</p>
+      </div>;
+    }
     return null;
   }, [
     selectedEntity,
@@ -619,13 +658,43 @@ export function FloorPlanShell({
     activePlanId,
     handleSelectPlan,
     handleCloseMobileSheet,
+    handleAddContextFurniture,
+    handleSelectTargetRoom,
     targetRoomId,
     targetFurnitureId,
     locale,
+    isZh,
+    i18n,
+    isMobile,
   ]);
 
   if (!activePlanSummary) {
     return null;
+  }
+
+  const exportImage = async () => {
+    if (!svgRef.current) return;
+    const request = ++imageRequest.current;
+    setPlanImage(null); setImageError(false); setIsImageOpen(true);
+    try {
+      const result = await renderFloorPlanImage(svgRef.current, currentPlan, activePlanSummary.name, locale);
+      if (request === imageRequest.current) setPlanImage(result);
+    } catch { if (request === imageRequest.current) setImageError(true); }
+  };
+  const imageDialog = <FloorPlanImageDialog open={isImageOpen} onClose={() => { imageRequest.current++; setIsImageOpen(false); }}
+    image={planImage} error={imageError} locale={locale} name={activePlanSummary.name} />;
+  const mobilePanel = <MobileBottomSheet open={isMobileSheetOpen} onClose={handleCloseMobileSheet}
+    title={mobileSheetTitle} badge={mobileSheetBadge} desktop={!isMobile} closeLabel={isZh ? "关闭面板" : "Close bottom sheet"}>{mobileSheetBody}</MobileBottomSheet>;
+  const viewer = <FloorPlanSvgViewer plan={currentPlan} selectedEntity={selectedEntity} onSelect={handleSelectEntity}
+    canvasMode={canvasMode} violations={violations} targetRoomId={targetRoomId} onUpdatePlan={handleUpdatePlan}
+    locale={locale} svgRef={svgRef} compact={isMobile} className="min-h-0 h-full w-full flex-1" />;
+
+  if (isMobile) {
+    return <MobileWorkspace plan={currentPlan} summary={activePlanSummary} selectedEntity={selectedEntity}
+      roomName={targetRoomDetails?.displayName} roomArea={targetRoomDetails?.area.formattedAreaM2}
+      assessment={selectedEntity?.type === "furniture" ? spaceAssessment : layoutAssessment} canvasMode={canvasMode} issueCount={violations.length} locale={locale}
+      canvas={viewer} overlays={<>{mobilePanel}{imageDialog}</>} onModeChange={setCanvasMode} onOpen={setMobileSheetType}
+      onRotate={handleRotateTargetFurniture} onDelete={handleDeleteTargetFurniture} onExport={exportImage} />;
   }
 
   return (
@@ -638,6 +707,7 @@ export function FloorPlanShell({
       }
       actions={
         <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" data-testid="export-plan-image-btn" onClick={exportImage}><ImageIcon />{isZh ? "出图" : "Save image"}</Button>
           <Button
             type="button"
             variant="outline"
@@ -667,7 +737,7 @@ export function FloorPlanShell({
     >
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden lg:h-full">
         {/* Streamlined Workspace: Mobile Canvas-Primary Stack, Desktop 2-Pane */}
-        <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[22rem_minmax(0,1fr)] lg:grid-rows-1 lg:items-stretch lg:h-full">
+        <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[20rem_minmax(0,1fr)] xl:grid-cols-[21rem_minmax(0,1fr)] lg:grid-rows-1 lg:items-stretch lg:h-full">
           {/* Primary Floor-Plan Canvas Section (Order 1 on Mobile, Right Pane on Desktop) */}
           <section
             data-testid="floor-plan-canvas-section"
@@ -689,17 +759,7 @@ export function FloorPlanShell({
             <Card
               className="relative flex min-h-[340px] flex-1 flex-col overflow-hidden p-0 sm:min-h-[460px] lg:min-h-0 lg:h-full"
             >
-              <FloorPlanSvgViewer
-                plan={currentPlan}
-                selectedEntity={selectedEntity}
-                onSelect={handleSelectEntity}
-                canvasMode={canvasMode}
-                violations={violations}
-                targetRoomId={targetRoomId}
-                onUpdatePlan={handleUpdatePlan}
-                locale={locale}
-                className="flex-1 min-h-0 w-full h-full"
-              />
+              {viewer}
             </Card>
           </section>
 
@@ -708,7 +768,7 @@ export function FloorPlanShell({
             data-testid="desktop-context-pane"
             className="order-2 flex min-h-0 flex-col gap-3 lg:order-1 lg:h-full"
           >
-            <Card className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+            <Card className="flex h-full min-h-0 flex-1 flex-col gap-0 overflow-hidden py-0">
               <CardHeader
                 data-testid="active-plan-summary"
                 className="shrink-0 border-b border-border/70 p-3 space-y-1"
@@ -739,6 +799,13 @@ export function FloorPlanShell({
                 >
                   {activePlanSummary.roomBreakdown}
                 </p>
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <span className="text-[11px] text-muted-foreground">{currentPlan.furniture.length} {isZh ? "件已摆放家具" : "placed items"}</span>
+                  <Button variant="ghost" size="sm" className={cn("h-8 px-2 text-xs", layoutAssessment.status === "must-adjust" && "text-destructive")}
+                    data-testid="desktop-assessment-btn" onClick={() => setMobileSheetType("rules")}>
+                    {currentPlan.furniture.length ? getAssessmentStatusLabel(layoutAssessment.status, locale) : isZh ? "待摆放" : "No furniture"}
+                  </Button>
+                </div>
               </CardHeader>
 
               <CardScrollArea className="min-h-0 flex-1 p-3 space-y-4">
@@ -780,23 +847,21 @@ export function FloorPlanShell({
                   </div>
                 )}
 
+                {/* Keep the selected object's controls above the furniture catalog. */}
+                {!isMobileSheetOpen && selectedEntity && (
+                  <FloorPlanInspector plan={currentPlan} onUpdatePlan={handleUpdatePlan}
+                    onChangeSpecification={handleChangeSpecification} selectedEntity={selectedEntity}
+                    onSelect={handleSelectEntity} violations={violations} locale={locale} showRules={false} />
+                )}
+
                 {/* 3. Context Furniture Options */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
+                <details open={selectedEntity?.type !== "furniture"} className="group/recommendations space-y-2">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-lg py-1 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                     <span className="text-[11px] font-medium text-foreground">
                       {isZh ? "添加家具" : "Add Furniture"}
                     </span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      aria-label={isZh ? "查看全部家具" : "Browse All Furniture"}
-                      onClick={() => setIsFurnitureCatalogOpen(true)}
-                      className="min-h-11 min-w-11 lg:h-6 lg:min-h-0 lg:min-w-0 px-2 text-[10px] text-primary touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-                    >
-                      {isZh ? "查看全部" : "Browse All"}
-                    </Button>
-                  </div>
+                    <Plus className="size-4 transition-transform group-open/recommendations:rotate-45" />
+                  </summary>
                   <ContextFurniturePanel
                     plan={currentPlan}
                     targetRoomId={targetRoomId}
@@ -804,7 +869,7 @@ export function FloorPlanShell({
                     onOpenFullCatalog={() => setIsFurnitureCatalogOpen(true)}
                     locale={locale}
                   />
-                </div>
+                </details>
 
                 {/* 3.5 Placed Furniture & Active Assessment Target Switcher (AC-3) */}
                 {currentPlan.furniture.length > 0 && (
@@ -861,7 +926,10 @@ export function FloorPlanShell({
 
                 {/* 4. Target Furniture Decision & Spatial Assessment */}
                 {targetFurniture && !(isMobile && mobileSheetType === "decision") && (
-                  <div data-testid="decision-target-furniture" className="space-y-3 pt-1 border-t border-border/60">
+                  <details data-testid="decision-target-furniture" className="group/assessment space-y-3 border-t border-border/60 pt-2">
+                    <summary className="flex cursor-pointer list-none items-center justify-between py-1 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                      {isZh ? "详细空间检查" : "Detailed assessment"}<Plus className="size-4 transition-transform group-open/assessment:rotate-45" />
+                    </summary>
                     <FurnitureDecisionPanel
                       plan={currentPlan}
                       targetRoomId={targetRoomId}
@@ -873,11 +941,11 @@ export function FloorPlanShell({
                       onChangeSpecification={handleChangeSpecification}
                       locale={locale}
                     />
-                  </div>
+                  </details>
                 )}
 
                 {/* 5. Entity Inspector (when wall, room, or furniture is selected or target furniture is active) */}
-                {!isMobileSheetOpen && (selectedEntity || targetFurniture) && (
+                {!isMobileSheetOpen && !selectedEntity && targetFurniture && (
                   <div className="pt-2 border-t border-border/60">
                     <FloorPlanInspector
                       plan={currentPlan}
@@ -937,14 +1005,8 @@ export function FloorPlanShell({
       />
 
       {/* Mobile Bottom Properties Surface */}
-      <MobileBottomSheet
-        open={isMobileSheetOpen}
-        onClose={handleCloseMobileSheet}
-        title={mobileSheetTitle}
-        badge={mobileSheetBadge}
-      >
-        {mobileSheetBody}
-      </MobileBottomSheet>
+      {imageDialog}
+      {mobilePanel}
     </ToolPageChrome>
   );
 }

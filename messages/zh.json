@@ -198,13 +198,7 @@
       "title": "标准户型空间验证器 | Chase's CV",
       "description": "标准户型库浏览与响应式 SVG 空间验证，精确验证房间边界、洞口位置及家具活动间距。",
       "ogImageAlt": "标准户型空间验证器：浏览标准户型并验证空间尺寸",
-      "applicationName": "标准户型空间验证器",
-      "lab": {
-        "title": "户型实验室 | Chase's CV",
-        "description": "候选户型资产预览与空间验证实验室",
-        "ogImageAlt": "户型实验室：候选户型资产预览与空间验证",
-        "applicationName": "户型实验室"
-      }
+      "applicationName": "标准户型空间验证器"
     },
     "findInVideo": {
       "title": "视频人物查找 — 用参考图定位视频中的人 | Chase's CV",
@@ -240,6 +234,10 @@
         "findInVideo": {
           "name": "视频人物查找",
           "description": "在浏览器里根据参考图查找视频中的人物。"
+        },
+        "floorPlan": {
+          "name": "户型验证",
+          "description": "在标准户型里摆放家具，检查空间是否放得下。"
         }
       }
     },
@@ -1119,10 +1117,6 @@
       "spatialRules": "空间规范反馈",
       "standardPlans": "标准户型库",
       "details": "详细信息"
-    },
-    "lab": {
-      "title": "户型实验室",
-      "description": "候选户型资产预览与空间验证实验室"
     }
   },
   "findInVideo": {

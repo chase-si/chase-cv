@@ -14,8 +14,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { FloorPlan, SpaceRuleConfig } from "@/lib/floor-plan/types";
-import { evaluatePlanRules, type RuleResult } from "@/lib/floor-plan/rules";
-import { getPlanEntityLabel } from "@/lib/floor-plan/furniture-decision";
+import { evaluatePlanRules, isPlanUnscaled, type RuleResult } from "@/lib/floor-plan/rules";
+import { formatAssessmentFinding, getPlanEntityLabel } from "@/lib/floor-plan/furniture-decision";
 import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
 import { cn } from "@/lib/utils";
 import type { EntitySelectHandler, SelectedEntity } from "./types";
@@ -44,6 +44,7 @@ export function RuleFeedbackPanel({
   const i18n = useFloorPlanI18n(locale);
   const t = i18n.t.rules;
   const b = i18n.t.badges;
+  const unscaled = isPlanUnscaled(plan);
 
   const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
 
@@ -54,11 +55,6 @@ export function RuleFeedbackPanel({
 
   const errorCount = React.useMemo(
     () => violations.filter((v) => v.severity === "error").length,
-    [violations],
-  );
-
-  const warningCount = React.useMemo(
-    () => violations.filter((v) => v.severity === "warning").length,
     [violations],
   );
 
@@ -98,7 +94,7 @@ export function RuleFeedbackPanel({
       {/* Header with Title, Count Badge, and Toggle */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          {violations.length === 0 ? (
+          {unscaled ? <Info className="h-4 w-4 text-muted-foreground shrink-0" /> : violations.length === 0 ? (
             <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
           ) : errorCount > 0 ? (
             <ShieldAlert className="h-4 w-4 text-destructive shrink-0" />
@@ -153,7 +149,7 @@ export function RuleFeedbackPanel({
       </div>
 
       {/* Uncalibrated Scale Advisory Notice (AC-21) */}
-      {plan.meta?.unscaled && (
+      {unscaled && (
         <div
           data-testid="unscaled-rule-notice"
           className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1.5"
@@ -166,7 +162,9 @@ export function RuleFeedbackPanel({
       {/* Violations List or Empty State */}
       {isExpanded && (
         <div className="space-y-2 pt-1 animate-in fade-in-50">
-          {violations.length === 0 ? (
+          {violations.length === 0 && (unscaled || plan.furniture.length === 0) ? (
+            <p className="p-2.5 text-xs text-muted-foreground">{unscaled ? t.unscaledNotice : i18n.locale === "zh" ? "尚未摆放家具，添加后开始空间检查。" : "Add furniture to start checking the layout."}</p>
+          ) : violations.length === 0 ? (
             <div
               data-testid="rule-clean-state"
               className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-2.5 text-xs text-emerald-700 dark:text-emerald-300"
@@ -179,13 +177,14 @@ export function RuleFeedbackPanel({
           ) : (
             <div data-testid="rule-violations-list" className="space-y-2">
               {violations.map((v, idx) => {
+                const formatted = v.assessmentFinding ? formatAssessmentFinding(v.assessmentFinding, plan, locale) : null;
                 const isError = v.severity === "error";
                 const isWarning = v.severity === "warning";
 
                 const isAreaRule =
                   v.ruleId === "furniture-wall-collision" || v.ruleId === "furniture-overlap";
                 const formattedMeasured =
-                  v.measuredValue !== undefined
+                  formatted ? formatted.measuredFormatted : v.measuredValue !== undefined
                     ? isAreaRule
                       ? `${v.measuredValue} mm²`
                       : `${v.measuredValue} mm`
@@ -208,7 +207,7 @@ export function RuleFeedbackPanel({
                         {isError && <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />}
                         {isWarning && <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />}
                         {!isError && !isWarning && <Info className="h-3.5 w-3.5 text-primary shrink-0" />}
-                        <span>{i18n.getRuleTitle(v.ruleId, v.title)}</span>
+                        <span>{formatted?.title ?? i18n.getRuleTitle(v.ruleId, v.title)}</span>
                       </div>
                       <Badge
                         variant="outline"
@@ -224,7 +223,7 @@ export function RuleFeedbackPanel({
 
                     {/* Explanatory Message */}
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      {i18n.getRuleMessage(v)}
+                      {formatted?.message ?? i18n.getRuleMessage(v)}
                     </p>
 
                     {/* Measured & Recommended Values (AC-14) */}
@@ -248,7 +247,7 @@ export function RuleFeedbackPanel({
                           >
                             <span className="text-muted-foreground block">{t.recommended}</span>
                             <span className="font-mono font-semibold text-foreground">
-                              {v.recommendedValue}
+                              {formatted?.recommendedFormatted ?? v.recommendedValue}
                             </span>
                           </div>
                         )}

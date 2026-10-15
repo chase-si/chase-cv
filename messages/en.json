@@ -198,13 +198,7 @@
       "title": "Floor Plan Space Validator | Chase's CV",
       "description": "Browse standard floor plans in a responsive SVG viewer and verify spatial dimensions.",
       "ogImageAlt": "Floor Plan Space Validator: browse standard plans and verify spatial dimensions",
-      "applicationName": "Floor Plan Space Validator",
-      "lab": {
-        "title": "Floor Plan Lab | Chase's CV",
-        "description": "Candidate floor plan asset preview and spatial validation lab",
-        "ogImageAlt": "Floor Plan Lab: candidate floor plan asset preview",
-        "applicationName": "Floor Plan Lab"
-      }
+      "applicationName": "Floor Plan Space Validator"
     },
     "findInVideo": {
       "title": "Find in Video — Locate People from Reference Photos | Chase's CV",
@@ -240,6 +234,10 @@
         "findInVideo": {
           "name": "Find in Video",
           "description": "Find people in a local video from reference photos, in the browser."
+        },
+        "floorPlan": {
+          "name": "Floor Plan",
+          "description": "Place furniture on standard floor plans and check the fit."
         }
       }
     },
@@ -1119,10 +1117,6 @@
       "spatialRules": "Spatial Rule Feedback",
       "standardPlans": "Standard Plans",
       "details": "Details"
-    },
-    "lab": {
-      "title": "Floor Plan Lab",
-      "description": "Candidate floor plan asset preview and spatial validation lab"
     }
   },
   "findInVideo": {

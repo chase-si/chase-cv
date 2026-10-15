@@ -74,14 +74,27 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
     ],
   },
   {
-    id: "sofa-3seat",
-    name: "3-Seat Sofa",
+    id: "sofa-1seat",
+    name: "1-Seat Sofa",
     category: "sofa",
     specifications: [
       {
-        id: "sofa-3seat-2100",
-        name: "2100 × 900 mm",
-        width: 2100,
+        id: "sofa-1seat-800x800",
+        name: "800 × 800 mm",
+        width: 800,
+        depth: 800,
+        height: 850,
+        clearance: {
+          front: { minimum: 450, recommended: 600 },
+          back: { minimum: 0, recommended: 100 },
+          left: { minimum: 100, recommended: 300 },
+          right: { minimum: 100, recommended: 300 },
+        },
+      },
+      {
+        id: "sofa-1seat-900x900",
+        name: "900 × 900 mm",
+        width: 900,
         depth: 900,
         height: 850,
         clearance: {
@@ -92,10 +105,10 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
         },
       },
       {
-        id: "sofa-3seat-2400",
-        name: "2400 × 950 mm",
-        width: 2400,
-        depth: 950,
+        id: "sofa-1seat-1000x900",
+        name: "1000 × 900 mm",
+        width: 1000,
+        depth: 900,
         height: 850,
         clearance: {
           front: { minimum: 450, recommended: 600 },
@@ -108,13 +121,13 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
   },
   {
     id: "sofa-2seat",
-    name: "2-Seat Loveseat",
+    name: "2-Seat Sofa",
     category: "sofa",
     specifications: [
       {
-        id: "sofa-2seat-1500",
-        name: "1500 × 850 mm",
-        width: 1500,
+        id: "sofa-2seat-1400x850",
+        name: "1400 × 850 mm",
+        width: 1400,
         depth: 850,
         height: 850,
         clearance: {
@@ -125,10 +138,82 @@ export const STANDARD_FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = Ob
         },
       },
       {
-        id: "sofa-2seat-1300",
-        name: "1300 × 800 mm",
-        width: 1300,
-        depth: 800,
+        id: "sofa-2seat-1600x900",
+        name: "1600 × 900 mm",
+        width: 1600,
+        depth: 900,
+        height: 850,
+        clearance: {
+          front: { minimum: 450, recommended: 600 },
+          back: { minimum: 0, recommended: 100 },
+          left: { minimum: 100, recommended: 300 },
+          right: { minimum: 100, recommended: 300 },
+        },
+      },
+      {
+        id: "sofa-2seat-1800x900",
+        name: "1800 × 900 mm",
+        width: 1800,
+        depth: 900,
+        height: 850,
+        clearance: {
+          front: { minimum: 450, recommended: 600 },
+          back: { minimum: 0, recommended: 100 },
+          left: { minimum: 100, recommended: 300 },
+          right: { minimum: 100, recommended: 300 },
+        },
+      },
+    ],
+  },
+  {
+    id: "sofa-3seat",
+    name: "3-Seat Sofa",
+    category: "sofa",
+    specifications: [
+      {
+        id: "sofa-3seat-1800x900",
+        name: "1800 × 900 mm",
+        width: 1800,
+        depth: 900,
+        height: 850,
+        clearance: {
+          front: { minimum: 450, recommended: 600 },
+          back: { minimum: 0, recommended: 100 },
+          left: { minimum: 100, recommended: 300 },
+          right: { minimum: 100, recommended: 300 },
+        },
+      },
+      {
+        id: "sofa-3seat-2000x950",
+        name: "2000 × 950 mm",
+        width: 2000,
+        depth: 950,
+        height: 850,
+        clearance: {
+          front: { minimum: 450, recommended: 600 },
+          back: { minimum: 0, recommended: 100 },
+          left: { minimum: 100, recommended: 300 },
+          right: { minimum: 100, recommended: 300 },
+        },
+      },
+      {
+        id: "sofa-3seat-2200x1000",
+        name: "2200 × 1000 mm",
+        width: 2200,
+        depth: 1000,
+        height: 850,
+        clearance: {
+          front: { minimum: 450, recommended: 600 },
+          back: { minimum: 0, recommended: 100 },
+          left: { minimum: 100, recommended: 300 },
+          right: { minimum: 100, recommended: 300 },
+        },
+      },
+      {
+        id: "sofa-3seat-2400x1000",
+        name: "2400 × 1000 mm",
+        width: 2400,
+        depth: 1000,
         height: 850,
         clearance: {
           front: { minimum: 450, recommended: 600 },

@@ -1,19 +1,20 @@
 "use client";
 
 import * as React from "react";
-import { Maximize2, Minus, Plus, RotateCcw } from "lucide-react";
+import { Maximize2, Minus, Plus, Ruler } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { FloorPlan } from "@/lib/floor-plan";
 import {
   computeFloorPlanBounds,
   computePlanFitBounds,
   computePrincipalDimensions,
+  computeRoomPolygon,
+  computeRoomSpanDimensions,
   getVertexMap,
   getWallMap,
 } from "@/lib/floor-plan/geometry";
 import {
   calculateFitToView,
-  clampZoom,
   DEFAULT_VIEW_TRANSFORM,
   type ViewTransform,
   zoomByFactor,
@@ -24,6 +25,7 @@ import { moveFurnitureInstance, rotateFurnitureInstance } from "@/lib/floor-plan
 import {
   computeFurnitureClearanceZones,
   computeOpeningKeepClearZone,
+  assessmentFromRuleResults,
   evaluatePlanRules,
   type RuleResult,
 } from "@/lib/floor-plan/rules";
@@ -45,6 +47,8 @@ interface FloorPlanSvgViewerProps {
   violations?: RuleResult[];
   canvasMode?: "pan" | "edit";
   className?: string;
+  compact?: boolean;
+  svgRef?: React.Ref<SVGSVGElement>;
 }
 
 export function FloorPlanSvgViewer({
@@ -58,6 +62,8 @@ export function FloorPlanSvgViewer({
   violations: propViolations,
   canvasMode = "edit",
   className = "",
+  compact = false,
+  svgRef,
 }: FloorPlanSvgViewerProps) {
   const i18n = useFloorPlanI18n(locale);
   const t = i18n.t.svgViewer;
@@ -66,11 +72,17 @@ export function FloorPlanSvgViewer({
   const [viewportSize, setViewportSize] = React.useState({ width: 800, height: 600 });
   const [transform, setTransform] = React.useState<ViewTransform>(DEFAULT_VIEW_TRANSFORM);
   const [isDragging, setIsDragging] = React.useState(false);
+  const [showRoomSpans, setShowRoomSpans] = React.useState(false);
   const dragStartRef = React.useRef({ x: 0, y: 0 });
   const initialPanRef = React.useRef({ panX: 0, panY: 0 });
   const isPointerDownRef = React.useRef(false);
+  const activePointers = React.useRef(new Map<number, { x: number; y: number }>());
+  const pinchRef = React.useRef<{
+    distance: number; center: { x: number; y: number }; transform: ViewTransform;
+  } | null>(null);
+  const suppressClickRef = React.useRef(false);
 
-  const [draggingFurniture, setDraggingFurniture] = React.useState<{
+  type FurnitureDrag = {
     id: string;
     startX: number;
     startY: number;
@@ -78,13 +90,34 @@ export function FloorPlanSvgViewer({
     initialY: number;
     currentX: number;
     currentY: number;
-  } | null>(null);
+  };
+  const [draggingFurniture, setDraggingFurniture] = React.useState<FurnitureDrag | null>(null);
+  // Touch moves can arrive before React rerenders the drag state. Read this ref so the first move drags furniture instead of panning the canvas.
+  const draggingFurnitureRef = React.useRef<FurnitureDrag | null>(null);
+  const ignoreLostCaptureRef = React.useRef(false);
 
   const vertexMap = React.useMemo(() => getVertexMap(plan), [plan]);
   const wallMap = React.useMemo(() => getWallMap(plan), [plan]);
+  const roomPolygons = React.useMemo(
+    () =>
+      plan.rooms
+        .map((room) => ({
+          room,
+          points: computeRoomPolygon(room, wallMap, vertexMap),
+        }))
+        .filter((rp) => rp.points.length >= 3),
+    [plan.rooms, wallMap, vertexMap],
+  );
   const bounds = React.useMemo(() => computeFloorPlanBounds(plan), [plan]);
   const fitBounds = React.useMemo(() => computePlanFitBounds(plan), [plan]);
   const dimensions = React.useMemo(() => computePrincipalDimensions(plan), [plan]);
+  const roomSpanDimensions = React.useMemo(
+    () =>
+      roomPolygons.flatMap(({ room, points }) =>
+        computeRoomSpanDimensions(points, `room-${room.id}`),
+      ),
+    [roomPolygons],
+  );
 
   const evaluatedViolations = React.useMemo(
     () => propViolations ?? evaluatePlanRules(plan),
@@ -94,7 +127,7 @@ export function FloorPlanSvgViewer({
   const violationFurnitureIds = React.useMemo(() => {
     const set = new Set<string>();
     for (const v of evaluatedViolations) {
-      for (const entityId of v.relatedEntityIds) {
+      for (const entityId of v.affectedFurnitureIds ?? v.relatedEntityIds) {
         if (plan.furniture.some((f) => f.id === entityId)) {
           set.add(entityId);
         }
@@ -106,7 +139,7 @@ export function FloorPlanSvgViewer({
   const openingViolationIds = React.useMemo(() => {
     const set = new Set<string>();
     for (const v of evaluatedViolations) {
-      if (v.ruleId === "opening-keep-clear") {
+      if (v.ruleId === "opening-keep-clear" || v.ruleId === "local-passage") {
         for (const entityId of v.relatedEntityIds) {
           if (plan.openings.some((o) => o.id === entityId)) {
             set.add(entityId);
@@ -121,7 +154,7 @@ export function FloorPlanSvgViewer({
     const set = new Set<string>();
     for (const v of evaluatedViolations) {
       if (v.ruleId === "furniture-clearance" || v.ruleId === "local-passage") {
-        for (const entityId of v.relatedEntityIds) {
+        for (const entityId of v.affectedFurnitureIds ?? v.relatedEntityIds) {
           if (plan.furniture.some((f) => f.id === entityId)) {
             set.add(entityId);
           }
@@ -142,7 +175,7 @@ export function FloorPlanSvgViewer({
 
   const viewportSizeRef = React.useRef({ width: 0, height: 0 });
   const fitToViewRef = React.useRef(fitToView);
-  fitToViewRef.current = fitToView;
+  React.useEffect(() => { fitToViewRef.current = fitToView; }, [fitToView]);
 
   // Measure container and auto-fit on initial mount & container resize
   React.useEffect(() => {
@@ -217,7 +250,7 @@ export function FloorPlanSvgViewer({
     furniture: FloorPlan["furniture"][number],
   ) => {
     if (!isInteractiveEdit || canvasMode === "pan") return;
-    setDraggingFurniture({
+    const drag: FurnitureDrag = {
       id: furniture.id,
       startX: e.clientX,
       startY: e.clientY,
@@ -225,7 +258,9 @@ export function FloorPlanSvgViewer({
       initialY: furniture.y,
       currentX: furniture.x,
       currentY: furniture.y,
-    });
+    };
+    draggingFurnitureRef.current = drag;
+    setDraggingFurniture(drag);
   };
 
   const handleRotateFurniture = (furnitureId: string, stepDeg: number = 90) => {
@@ -239,6 +274,25 @@ export function FloorPlanSvgViewer({
   const hasMovedRef = React.useRef(false);
 
   // Pan interaction handlers
+  const handlePointerDownCapture = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (e.button !== 0) return;
+    suppressClickRef.current = false;
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (activePointers.current.size >= 2) {
+      e.preventDefault(); e.stopPropagation();
+      const [a, b] = [...activePointers.current.values()];
+      const rect = e.currentTarget.getBoundingClientRect();
+      pinchRef.current = { distance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
+        center: { x: (a.x + b.x) / 2 - rect.left, y: (a.y + b.y) / 2 - rect.top }, transform };
+      draggingFurnitureRef.current = null;
+      setDraggingFurniture(null); isPointerDownRef.current = false;
+      suppressClickRef.current = true;
+      ignoreLostCaptureRef.current = true;
+      try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* Pointer may have ended. */ }
+      queueMicrotask(() => { ignoreLostCaptureRef.current = false; });
+    }
+  };
+
   const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
     if (e.button !== 0) return; // Only primary button
     isPointerDownRef.current = true;
@@ -248,12 +302,30 @@ export function FloorPlanSvgViewer({
   };
 
   const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (draggingFurniture) {
-      const deltaX = (e.clientX - draggingFurniture.startX) / transform.scale;
-      const deltaY = (e.clientY - draggingFurniture.startY) / transform.scale;
-      const nextX = Math.round(draggingFurniture.initialX + deltaX);
-      const nextY = Math.round(draggingFurniture.initialY + deltaY);
-      setDraggingFurniture((prev) => (prev ? { ...prev, currentX: nextX, currentY: nextY } : null));
+    if (activePointers.current.has(e.pointerId)) activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinchRef.current && activePointers.current.size >= 2) {
+      const [a, b] = [...activePointers.current.values()];
+      const rect = e.currentTarget.getBoundingClientRect();
+      const pinch = pinchRef.current;
+      const center = { x: (a.x + b.x) / 2 - rect.left, y: (a.y + b.y) / 2 - rect.top };
+      const next = zoomByFactor(pinch.transform, Math.hypot(a.x - b.x, a.y - b.y) / pinch.distance, pinch.center);
+      setTransform({ ...next, panX: next.panX + center.x - pinch.center.x, panY: next.panY + center.y - pinch.center.y });
+      return;
+    }
+    if (pinchRef.current) return;
+    const activeDrag = draggingFurnitureRef.current;
+    if (activeDrag) {
+      if (Math.hypot(e.clientX - activeDrag.startX, e.clientY - activeDrag.startY) <= 4) return;
+      suppressClickRef.current = true;
+      const deltaX = (e.clientX - activeDrag.startX) / transform.scale;
+      const deltaY = (e.clientY - activeDrag.startY) / transform.scale;
+      const nextDrag = {
+        ...activeDrag,
+        currentX: Math.round(activeDrag.initialX + deltaX),
+        currentY: Math.round(activeDrag.initialY + deltaY),
+      };
+      draggingFurnitureRef.current = nextDrag;
+      setDraggingFurniture(nextDrag);
       return;
     }
 
@@ -264,14 +336,10 @@ export function FloorPlanSvgViewer({
     if (!hasMovedRef.current && Math.hypot(deltaX, deltaY) > 4) {
       hasMovedRef.current = true;
       setIsDragging(true);
-      try {
-        e.currentTarget.setPointerCapture(e.pointerId);
-      } catch {
-        // Ignore if pointer capture fails
-      }
     }
 
     if (hasMovedRef.current) {
+      suppressClickRef.current = true;
       setTransform((prev) => ({
         ...prev,
         panX: initialPanRef.current.panX + deltaX,
@@ -280,23 +348,32 @@ export function FloorPlanSvgViewer({
     }
   };
 
-  const handlePointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (draggingFurniture) {
+  const handlePointerUp = (e: React.PointerEvent<SVGSVGElement>, cancelled = false) => {
+    activePointers.current.delete(e.pointerId);
+    if (pinchRef.current) {
+      if (activePointers.current.size === 0) pinchRef.current = null;
+      draggingFurnitureRef.current = null;
+      setDraggingFurniture(null); isPointerDownRef.current = false; setIsDragging(false);
+      return;
+    }
+    const finishedDrag = draggingFurnitureRef.current;
+    if (finishedDrag) {
       const moved = Math.hypot(
-        draggingFurniture.currentX - draggingFurniture.initialX,
-        draggingFurniture.currentY - draggingFurniture.initialY,
+        finishedDrag.currentX - finishedDrag.initialX,
+        finishedDrag.currentY - finishedDrag.initialY,
       ) > 5;
-      if (moved && onUpdatePlan) {
+      if (!cancelled && moved && onUpdatePlan) {
         const res = moveFurnitureInstance(
           plan,
-          draggingFurniture.id,
-          draggingFurniture.currentX,
-          draggingFurniture.currentY,
+          finishedDrag.id,
+          finishedDrag.currentX,
+          finishedDrag.currentY,
         );
         if (res.success) {
           onUpdatePlan(res.plan, "Move furniture");
         }
       }
+      draggingFurnitureRef.current = null;
       setDraggingFurniture(null);
     }
 
@@ -324,15 +401,12 @@ export function FloorPlanSvgViewer({
     setTransform((prev) => zoomByFactor(prev, 1 / 1.25, anchor));
   };
 
-  const handleResetZoom = () => {
-    fitToView(viewportSize.width, viewportSize.height);
-  };
-
-  const displayZoomPercentage = Math.round(transform.scale * 1000);
+  const fitted = calculateFitToView(fitBounds, viewportSize.width, viewportSize.height, 0.05);
+  const displayZoomPercentage = Math.round(transform.scale / fitted.scale * 100);
 
   const handleSelect = React.useCallback<EntitySelectHandler>(
     (entity) => {
-      if (canvasMode === "pan") return;
+      if (canvasMode === "pan" || pinchRef.current) return;
       onSelect(entity);
     },
     [canvasMode, onSelect],
@@ -343,20 +417,29 @@ export function FloorPlanSvgViewer({
       ref={containerRef}
       data-testid="floor-plan-viewer-surface"
       className={cn(
-        "relative w-full h-full min-h-[320px] lg:min-h-0 overflow-hidden bg-slate-50/60 dark:bg-slate-950/60 select-none",
+        "relative w-full h-full overflow-hidden bg-card select-none",
+        compact ? "min-h-0" : "min-h-[320px] lg:min-h-0",
+        "dark:[&_[data-entity-type=wall]_polygon]:fill-muted-foreground dark:[&_[data-entity-type=wall]_polygon]:stroke-foreground dark:[&_[data-entity-type=wall][data-selected=true]_polygon]:fill-primary dark:[&_[data-entity-type=furniture]_text]:fill-foreground",
         className,
       )}
     >
       {/* Interactive SVG Canvas */}
       <svg
+        ref={svgRef}
         data-testid="floor-plan-svg-canvas"
         className={`w-full h-full block touch-none ${
           isDragging ? "cursor-grabbing" : canvasMode === "pan" ? "cursor-grab" : "cursor-default"
         }`}
         onPointerDown={handlePointerDown}
+        onPointerDownCapture={handlePointerDownCapture}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
+        onPointerCancel={(e) => handlePointerUp(e, true)}
+        onLostPointerCapture={(e) => {
+          if (ignoreLostCaptureRef.current || !activePointers.current.has(e.pointerId)) return;
+          handlePointerUp(e, false);
+        }}
+        onClickCapture={(e) => { if (suppressClickRef.current) { e.stopPropagation(); suppressClickRef.current = false; } }}
         onClick={(e) => {
           // Deselect when clicking canvas background
           if (e.target === e.currentTarget) {
@@ -420,6 +503,7 @@ export function FloorPlanSvgViewer({
                 selectedEntity={selectedEntity}
                 targetRoomId={targetRoomId}
                 onSelect={handleSelect}
+                labelFontSize={compact ? Math.max(140, Math.min(350, 11 / transform.scale)) : undefined}
               />
             ))}
           </g>
@@ -453,14 +537,27 @@ export function FloorPlanSvgViewer({
 
               if (!isSelected && !hasViolation) return null;
 
-              const zone = computeOpeningKeepClearZone(op, wall, vertexMap);
-              if (!zone) return null;
-
-              const sideAStr = zone.sideAPoints.map((p) => `${p.x},${p.y}`).join(" ");
-              const sideBStr = zone.sideBPoints.map((p) => `${p.x},${p.y}`).join(" ");
+              const zone = computeOpeningKeepClearZone(op, wall, vertexMap, 900, roomPolygons);
+              if (!zone || (zone.activeSides.length === 0 && zone.passageSides.length === 0)) {
+                return null;
+              }
 
               const strokeColor = hasViolation ? "#f59e0b" : "#3b82f6";
               const fillColor = hasViolation ? "rgba(245, 158, 11, 0.12)" : "rgba(59, 130, 246, 0.08)";
+              const zones = [
+                ...zone.activeSides.map((side) => ({
+                  key: `swing-${side}`,
+                  kind: "swing" as const,
+                  side,
+                  points: side === "a" ? zone.sideAPoints : zone.sideBPoints,
+                })),
+                ...zone.passageSides.map((side) => ({
+                  key: `passage-${side}`,
+                  kind: "passage" as const,
+                  side,
+                  points: side === "a" ? zone.passageSideAPoints : zone.passageSideBPoints,
+                })),
+              ];
 
               return (
                 <g
@@ -468,20 +565,18 @@ export function FloorPlanSvgViewer({
                   data-testid={`opening-clearance-overlay-${op.id}`}
                   data-violation={hasViolation ? "true" : "false"}
                 >
-                  <polygon
-                    points={sideAStr}
-                    fill={fillColor}
-                    stroke={strokeColor}
-                    strokeWidth={14}
-                    strokeDasharray="40 20"
-                  />
-                  <polygon
-                    points={sideBStr}
-                    fill={fillColor}
-                    stroke={strokeColor}
-                    strokeWidth={14}
-                    strokeDasharray="40 20"
-                  />
+                  {zones.map((zoneShape) => (
+                    <polygon
+                      key={zoneShape.key}
+                      data-keep-clear-side={zoneShape.side}
+                      data-keep-clear-kind={zoneShape.kind}
+                      points={zoneShape.points.map((p) => `${p.x},${p.y}`).join(" ")}
+                      fill={fillColor}
+                      stroke={strokeColor}
+                      strokeWidth={zoneShape.kind === "swing" ? 14 : 10}
+                      strokeDasharray={zoneShape.kind === "swing" ? "40 20" : "18 14"}
+                    />
+                  ))}
                 </g>
               );
             })}
@@ -578,6 +673,7 @@ export function FloorPlanSvgViewer({
                   onRotate={handleRotateFurniture}
                   onDragStart={handleFurnitureDragStart}
                   hasViolation={violationFurnitureIds.has(f.id)}
+                  assessmentStatus={assessmentFromRuleResults(plan, evaluatedViolations, f.id).status}
                   locale={locale}
                 />
               );
@@ -589,10 +685,18 @@ export function FloorPlanSvgViewer({
             data-testid="floor-plan-dimensions-layer"
             className={canvasMode === "pan" ? "pointer-events-none" : undefined}
           >
+            {showRoomSpans && roomSpanDimensions.map((dim) => (
+              <SvgDimension
+                key={dim.id}
+                dimension={dim}
+                labelFontSize={compact ? Math.max(110, Math.min(220, 8 / transform.scale)) : 110}
+              />
+            ))}
             {dimensions.map((dim) => (
               <SvgDimension
                 key={dim.id}
                 dimension={dim}
+                labelFontSize={compact ? Math.max(110, Math.min(350, 10 / transform.scale)) : undefined}
                 selectedEntity={selectedEntity}
                 onSelect={handleSelect}
               />
@@ -604,8 +708,23 @@ export function FloorPlanSvgViewer({
       {/* Floating Canvas Controls Overlay */}
       <div
         data-testid="floor-plan-viewer-controls"
-        className="absolute bottom-4 right-4 z-10 flex items-center gap-1.5 rounded-xl border border-border bg-card/90 p-1.5 shadow-md backdrop-blur-md"
+        className="absolute bottom-3 right-3 z-10 flex items-center gap-2 lg:bottom-4 lg:right-4"
       >
+        <Button
+          type="button"
+          size="sm"
+          variant={showRoomSpans ? "default" : "outline"}
+          aria-pressed={showRoomSpans}
+          aria-label={t.showRoomSpans}
+          title={t.showRoomSpans}
+          data-testid="toggle-room-spans"
+          onClick={() => setShowRoomSpans((visible) => !visible)}
+          className={cn("h-11 min-h-[44px] lg:h-8 lg:min-h-0 px-3 text-xs font-medium gap-1 touch-manipulation", compact && "w-11 min-w-11 px-0")}
+        >
+          <Ruler className="h-3.5 w-3.5" />
+          {!compact && <span>{t.roomSpans}</span>}
+        </Button>
+
         <Button
           type="button"
           size="sm"
@@ -617,13 +736,6 @@ export function FloorPlanSvgViewer({
         >
           <Plus className="h-4 w-4" />
         </Button>
-
-        <span
-          data-testid="zoom-level-badge"
-          className="min-w-14 text-center font-mono text-xs font-medium text-muted-foreground select-none"
-        >
-          {displayZoomPercentage}%
-        </span>
 
         <Button
           type="button"
@@ -637,8 +749,6 @@ export function FloorPlanSvgViewer({
           <Minus className="h-4 w-4" />
         </Button>
 
-        <div className="mx-1 h-4 w-px bg-border" />
-
         <Button
           type="button"
           size="sm"
@@ -646,34 +756,21 @@ export function FloorPlanSvgViewer({
           aria-label={t.fitView}
           title={t.fitView}
           onClick={() => fitToView(viewportSize.width, viewportSize.height)}
-          className="h-11 min-h-[44px] lg:h-8 lg:min-h-0 px-3 text-xs font-medium gap-1 touch-manipulation"
+          className={cn("h-11 min-h-[44px] lg:h-8 lg:min-h-0 px-3 text-xs font-medium gap-1 touch-manipulation", compact && "w-11 min-w-11 px-0")}
         >
           <Maximize2 className="h-3.5 w-3.5" />
-          <span>{i18n.locale === "zh" ? "适屏" : "Fit"}</span>
+          {!compact && <span>{i18n.locale === "zh" ? "适屏" : "Fit"}</span>}
         </Button>
 
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          aria-label={t.reset}
-          title={t.reset}
-          onClick={handleResetZoom}
-          className="h-11 w-11 min-h-[44px] min-w-[44px] lg:h-8 lg:w-8 lg:min-h-0 lg:min-w-0 p-0 text-muted-foreground touch-manipulation"
-        >
-          <RotateCcw className="h-3.5 w-3.5" />
-        </Button>
       </div>
 
       {/* Instructions / Status hint */}
-      <div className="absolute top-3 left-3 z-10 hidden sm:flex items-center gap-2 rounded-lg bg-card/85 px-2.5 py-1 text-xs text-muted-foreground border border-border/70 backdrop-blur-xs pointer-events-none">
-        <span className="font-medium text-foreground">{i18n.getPlanName(plan.meta.id || plan.meta.templateId || "", plan.meta.name)}</span>
-        <span>•</span>
-        <span>
-          {i18n.locale === "zh"
-            ? "拖拽平移画布，滚轮缩放，点击构件查看参数"
-            : "Drag to pan, scroll to zoom, click entities to inspect"}
+      <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex items-start justify-between gap-2 text-[11px] text-muted-foreground">
+        <span className="rounded-lg border border-border bg-card/90 px-2 py-1">
+          {compact ? i18n.locale === "zh" ? canvasMode === "pan" ? "单指移动画布 · 双指缩放" : "拖动家具 · 双指缩放" : canvasMode === "pan" ? "Drag to pan · Pinch to zoom" : "Drag furniture · Pinch to zoom"
+            : i18n.locale === "zh" ? "拖动家具摆放 · 滚轮缩放 · 点击查看详情" : "Drag furniture · Scroll to zoom · Click to inspect"}
         </span>
+        <span data-testid="zoom-level-badge" className="rounded-lg border border-border bg-card/90 px-2 py-1 font-mono">{displayZoomPercentage}%</span>
       </div>
     </div>
   );
