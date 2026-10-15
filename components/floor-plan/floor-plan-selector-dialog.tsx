@@ -16,6 +16,9 @@ export interface FloorPlanSelectorDialogProps {
   activePlanId: string;
   onSelectPlan: (planId: string) => void;
   onCreateRoomClick?: () => void;
+  onRenameRoom?: (planId: string, newName: string) => void;
+  onDuplicateRoom?: (planId: string) => void;
+  onDeleteRoom?: (planId: string) => void;
   locale?: string;
   t: FloorPlanDictionary;
   className?: string;
@@ -28,6 +31,9 @@ export function FloorPlanSelectorDialog({
   activePlanId,
   onSelectPlan,
   onCreateRoomClick,
+  onRenameRoom,
+  onDuplicateRoom,
+  onDeleteRoom,
   locale,
   t,
   className,
@@ -133,6 +139,20 @@ export function FloorPlanSelectorDialog({
             plans={plans}
             activePlanId={activePlanId}
             onSelectPlan={handleSelect}
+            onCreateRoomClick={
+              onCreateRoomClick
+                ? () => {
+                    onOpenChange(false);
+                    onCreateRoomClick();
+                  }
+                : undefined
+            }
+            onRenameRoom={onRenameRoom}
+            onDuplicateRoom={(id) => {
+              onDuplicateRoom?.(id);
+              onOpenChange(false);
+            }}
+            onDeleteRoom={onDeleteRoom}
             locale={locale}
           />
         </CardScrollArea>

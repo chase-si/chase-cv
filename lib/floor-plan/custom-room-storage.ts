@@ -1,4 +1,5 @@
 import type { CustomRoomRecord } from "./rectangular-room";
+import type { FloorPlan } from "./types";
 import { validateFloorPlan } from "./validators";
 
 export const CUSTOM_ROOM_STORAGE_KEY = "floor_plan_custom_rooms_v1";
@@ -253,3 +254,198 @@ export function setLastActivePlan(
 
   return saveCustomRoomStorage(nextDoc, storage);
 }
+
+export type DuplicateCustomRoomResult =
+  | { ok: true; doc: CustomRoomStorageDoc; duplicatedRecord: CustomRoomRecord }
+  | { ok: false; error: string; duplicatedRecord?: undefined };
+
+export type DeleteCustomRoomResult =
+  | {
+      ok: true;
+      doc: CustomRoomStorageDoc;
+      nextActive?: LastActivePlanSelection;
+    }
+  | { ok: false; error: string; nextActive?: undefined };
+
+/**
+ * Duplicates a custom room record with deep copy of dimensions, openings, and furniture (AC-12).
+ * Generates an isolated unique ID, sets localized copy name, and makes the duplicate active.
+ */
+export function duplicateCustomRoomRecord(
+  id: string,
+  locale?: string,
+  storage?: Storage,
+): DuplicateCustomRoomResult {
+  const currentRes = loadCustomRoomStorage(storage);
+  if (!currentRes.ok) {
+    return {
+      ok: false,
+      error: `Cannot duplicate room: previous storage state is invalid (${currentRes.error})`,
+    };
+  }
+
+  const existing = currentRes.doc.rooms.find((r) => r.id === id);
+  if (!existing) {
+    return {
+      ok: false,
+      error: `Room '${id}' not found in storage`,
+    };
+  }
+
+  const isZh = locale?.startsWith("zh") ?? true;
+  const rawBaseName = existing.name.trim();
+  const defaultBaseName = isZh ? "矩形房间" : "Rectangular Room";
+  const baseName = rawBaseName || defaultBaseName;
+  const copySuffix = isZh ? " 副本" : " Copy";
+  const newName = `${baseName}${copySuffix}`;
+
+  const newId = `custom-room-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const now = new Date().toISOString();
+
+  // Deep clone plan
+  const clonedPlan: FloorPlan = JSON.parse(JSON.stringify(existing.plan));
+  clonedPlan.meta.id = newId;
+  clonedPlan.meta.name = newName;
+  clonedPlan.meta.createdAt = now;
+  clonedPlan.meta.updatedAt = now;
+  if (clonedPlan.rooms[0]) {
+    clonedPlan.rooms[0].name = newName;
+  }
+
+  const duplicatedRecord: CustomRoomRecord = {
+    id: newId,
+    name: newName,
+    widthMm: existing.widthMm,
+    depthMm: existing.depthMm,
+    createdAt: now,
+    updatedAt: now,
+    plan: clonedPlan,
+  };
+
+  const nextRooms = [duplicatedRecord, ...currentRes.doc.rooms];
+  const nextDoc: CustomRoomStorageDoc = {
+    version: CUSTOM_ROOM_STORAGE_VERSION,
+    lastActive: {
+      type: "custom",
+      id: newId,
+    },
+    rooms: nextRooms,
+  };
+
+  const saveRes = saveCustomRoomStorage(nextDoc, storage);
+  if (!saveRes.ok) {
+    return { ok: false, error: saveRes.error };
+  }
+
+  return { ok: true, doc: nextDoc, duplicatedRecord };
+}
+
+/**
+ * Renames a custom room record without clearing openings or furniture layout (AC-12).
+ * Auto-names sequentially or with fallback if blank.
+ */
+export function renameCustomRoomRecord(
+  id: string,
+  newName: string,
+  locale?: string,
+  storage?: Storage,
+): StorageSaveResult {
+  const currentRes = loadCustomRoomStorage(storage);
+  if (!currentRes.ok) {
+    return {
+      ok: false,
+      error: `Cannot rename room: previous storage state is invalid (${currentRes.error})`,
+    };
+  }
+
+  const existingIdx = currentRes.doc.rooms.findIndex((r) => r.id === id);
+  if (existingIdx === -1) {
+    return {
+      ok: false,
+      error: `Room '${id}' not found in storage`,
+    };
+  }
+
+  const isZh = locale?.startsWith("zh") ?? true;
+  const trimmed = newName.trim();
+  const effectiveName =
+    trimmed || (isZh ? `矩形房间 ${existingIdx + 1}` : `Rectangular Room ${existingIdx + 1}`);
+  const now = new Date().toISOString();
+
+  const existing = currentRes.doc.rooms[existingIdx];
+  const updatedPlan: FloorPlan = {
+    ...existing.plan,
+    meta: {
+      ...existing.plan.meta,
+      name: effectiveName,
+      updatedAt: now,
+    },
+    rooms: existing.plan.rooms.map((room, idx) =>
+      idx === 0 ? { ...room, name: effectiveName } : room,
+    ),
+  };
+
+  const updatedRecord: CustomRoomRecord = {
+    ...existing,
+    name: effectiveName,
+    updatedAt: now,
+    plan: updatedPlan,
+  };
+
+  const nextRooms = currentRes.doc.rooms.map((r, i) => (i === existingIdx ? updatedRecord : r));
+  const nextDoc: CustomRoomStorageDoc = {
+    ...currentRes.doc,
+    rooms: nextRooms,
+  };
+
+  return saveCustomRoomStorage(nextDoc, storage);
+}
+
+/**
+ * Deletes a custom room record from storage (AC-12).
+ * If the active plan was deleted, enters the next available custom room or falls back to standard plan.
+ */
+export function deleteCustomRoomRecord(
+  id: string,
+  storage?: Storage,
+  defaultStandardPlanId: string = "plan-cn-sh-ruidong-2br-67",
+): DeleteCustomRoomResult {
+  const currentRes = loadCustomRoomStorage(storage);
+  if (!currentRes.ok) {
+    return {
+      ok: false,
+      error: `Cannot delete room: previous storage state is invalid (${currentRes.error})`,
+    };
+  }
+
+  const remainingRooms = currentRes.doc.rooms.filter((r) => r.id !== id);
+  let nextActive = currentRes.doc.lastActive;
+
+  if (currentRes.doc.lastActive?.type === "custom" && currentRes.doc.lastActive.id === id) {
+    if (remainingRooms.length > 0) {
+      nextActive = {
+        type: "custom",
+        id: remainingRooms[0].id,
+      };
+    } else {
+      nextActive = {
+        type: "standard",
+        id: defaultStandardPlanId,
+      };
+    }
+  }
+
+  const nextDoc: CustomRoomStorageDoc = {
+    version: CUSTOM_ROOM_STORAGE_VERSION,
+    lastActive: nextActive,
+    rooms: remainingRooms,
+  };
+
+  const saveRes = saveCustomRoomStorage(nextDoc, storage);
+  if (!saveRes.ok) {
+    return { ok: false, error: saveRes.error };
+  }
+
+  return { ok: true, doc: nextDoc, nextActive };
+}
+

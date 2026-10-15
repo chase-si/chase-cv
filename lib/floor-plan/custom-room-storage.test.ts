@@ -2,7 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   CUSTOM_ROOM_STORAGE_KEY,
   CUSTOM_ROOM_STORAGE_VERSION,
+  deleteCustomRoomRecord,
+  duplicateCustomRoomRecord,
   loadCustomRoomStorage,
+  renameCustomRoomRecord,
   saveCustomRoomRecord,
   setLastActivePlan,
 } from "./custom-room-storage";
@@ -185,4 +188,140 @@ describe("Resilient Custom Room Local Storage (AC-4, AC-5)", () => {
       });
     }
   });
+
+  it("AC-12: duplicateCustomRoomRecord deep copies dimensions, openings, furniture, generates new id, and sets as last active", () => {
+    const original = createRectangularRoomPlan({
+      name: "主卧",
+      widthMm: 3600,
+      depthMm: 4800,
+    });
+    // Add opening and furniture to original plan
+    original.record.plan.openings = [
+      { id: "op-1", type: "door", wallId: "w-top", position: 0.5, width: 900 },
+    ];
+    original.record.plan.furniture = [
+      { id: "f-1", definitionId: "bed-double", x: 1200, y: 1500, width: 1500, depth: 2000, rotation: 0 },
+    ];
+    saveCustomRoomRecord(original.record, mockStorage);
+
+    // Duplicate in zh
+    const dupRes = duplicateCustomRoomRecord(original.record.id, "zh", mockStorage);
+    expect(dupRes.ok).toBe(true);
+    expect(dupRes.duplicatedRecord).toBeDefined();
+    expect(dupRes.duplicatedRecord?.id).not.toBe(original.record.id);
+    expect(dupRes.duplicatedRecord?.name).toBe("主卧 副本");
+    expect(dupRes.duplicatedRecord?.widthMm).toBe(3600);
+    expect(dupRes.duplicatedRecord?.depthMm).toBe(4800);
+    expect(dupRes.duplicatedRecord?.plan.openings).toHaveLength(1);
+    expect(dupRes.duplicatedRecord?.plan.furniture).toHaveLength(1);
+
+    // Verify localStorage has both rooms and lastActive is the duplicate
+    const loaded = loadCustomRoomStorage(mockStorage);
+    expect(loaded.ok).toBe(true);
+    if (loaded.ok) {
+      expect(loaded.doc.rooms).toHaveLength(2);
+      expect(loaded.doc.lastActive).toEqual({
+        type: "custom",
+        id: dupRes.duplicatedRecord!.id,
+      });
+
+      // Mutate duplicated room furniture - verify original is unaffected
+      const dupRecord = dupRes.duplicatedRecord!;
+      dupRecord.plan.furniture[0].x = 9999;
+      saveCustomRoomRecord(dupRecord, mockStorage);
+
+      const reloaded = loadCustomRoomStorage(mockStorage);
+      if (reloaded.ok) {
+        const origInStorage = reloaded.doc.rooms.find((r) => r.id === original.record.id);
+        expect(origInStorage?.plan.furniture[0].x).toBe(1200);
+      }
+    }
+  });
+
+  it("AC-12: duplicateCustomRoomRecord in en uses 'Copy' suffix and auto-names if name is empty", () => {
+    const unnamed = createRectangularRoomPlan({
+      name: "",
+      widthMm: 3000,
+      depthMm: 4000,
+      locale: "en",
+    });
+    saveCustomRoomRecord(unnamed.record, mockStorage);
+
+    const dupRes = duplicateCustomRoomRecord(unnamed.record.id, "en", mockStorage);
+    expect(dupRes.ok).toBe(true);
+    expect(dupRes.duplicatedRecord?.name).toContain("Copy");
+  });
+
+  it("AC-12: renameCustomRoomRecord updates name without clearing openings or furniture, and auto-names when blank", () => {
+    const room = createRectangularRoomPlan({
+      name: "旧名字",
+      widthMm: 3000,
+      depthMm: 4000,
+    });
+    room.record.plan.furniture = [
+      { id: "f-1", definitionId: "bed-single", x: 1000, y: 1000, width: 1200, depth: 2000, rotation: 0 },
+    ];
+    saveCustomRoomRecord(room.record, mockStorage);
+
+    // Rename to new valid name
+    const renameRes = renameCustomRoomRecord(room.record.id, "新主卧", "zh", mockStorage);
+    expect(renameRes.ok).toBe(true);
+
+    let loaded = loadCustomRoomStorage(mockStorage);
+    if (loaded.ok) {
+      const found = loaded.doc.rooms.find((r) => r.id === room.record.id);
+      expect(found?.name).toBe("新主卧");
+      expect(found?.plan.meta.name).toBe("新主卧");
+      // Preserves furniture layout (AC-12: 改名不清空布局)
+      expect(found?.plan.furniture).toHaveLength(1);
+    }
+
+    // Rename with blank string -> auto-names
+    const blankRenameRes = renameCustomRoomRecord(room.record.id, "   ", "zh", mockStorage);
+    expect(blankRenameRes.ok).toBe(true);
+
+    loaded = loadCustomRoomStorage(mockStorage);
+    if (loaded.ok) {
+      const found = loaded.doc.rooms.find((r) => r.id === room.record.id);
+      expect(found?.name.trim().length).toBeGreaterThan(0);
+      expect(found?.name).not.toBe("   ");
+    }
+  });
+
+  it("AC-12: deleteCustomRoomRecord removes room, switches to other custom room or falls back to default standard plan", () => {
+    const room1 = createRectangularRoomPlan({ name: "房间 1" });
+    const room2 = createRectangularRoomPlan({ name: "房间 2" });
+    saveCustomRoomRecord(room1.record, mockStorage);
+    saveCustomRoomRecord(room2.record, mockStorage);
+
+    // Current active is room2
+    setLastActivePlan("custom", room2.record.id, mockStorage);
+
+    // Delete room2 (active room)
+    const delRes1 = deleteCustomRoomRecord(room2.record.id, mockStorage);
+    expect(delRes1.ok).toBe(true);
+    expect(delRes1.nextActive?.type).toBe("custom");
+    expect(delRes1.nextActive?.id).toBe(room1.record.id);
+
+    let loaded = loadCustomRoomStorage(mockStorage);
+    if (loaded.ok) {
+      expect(loaded.doc.rooms).toHaveLength(1);
+      expect(loaded.doc.lastActive).toEqual({
+        type: "custom",
+        id: room1.record.id,
+      });
+    }
+
+    // Delete room1 (last remaining custom room)
+    const delRes2 = deleteCustomRoomRecord(room1.record.id, mockStorage);
+    expect(delRes2.ok).toBe(true);
+    expect(delRes2.nextActive?.type).toBe("standard");
+
+    loaded = loadCustomRoomStorage(mockStorage);
+    if (loaded.ok) {
+      expect(loaded.doc.rooms).toHaveLength(0);
+      expect(loaded.doc.lastActive?.type).toBe("standard");
+    }
+  });
 });
+

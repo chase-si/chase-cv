@@ -852,7 +852,19 @@ export function FloorPlanSvgViewer({
           <Maximize2 className="h-3.5 w-3.5" />
           {!compact && <span>{i18n.locale === "zh" ? "适屏" : "Fit"}</span>}
         </Button>
+      </div>
 
+      {/* Permanent Millimeter Unit Notice (AC-13) */}
+      <div
+        data-testid="canvas-unit-notice"
+        className={cn(
+          "pointer-events-none absolute z-10 rounded-lg border border-border bg-card/90 px-2.5 py-1 text-[11px] font-medium text-muted-foreground shadow-2xs backdrop-blur-xs select-none",
+          compact
+            ? "bottom-16 right-3 lg:bottom-4 lg:left-4"
+            : "bottom-3 left-3 lg:bottom-4 lg:left-4",
+        )}
+      >
+        {i18n.locale === "zh" ? "尺寸单位：mm" : "Dimensions: mm"}
       </div>
 
       {/* Instructions / Status hint */}
