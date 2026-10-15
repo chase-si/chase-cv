@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Compass, X } from "lucide-react";
+import { Compass, PlusSquare, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CardScrollArea } from "@/components/ui/card";
 import type { StandardPlanSummary } from "@/lib/floor-plan/catalog";
@@ -15,6 +15,7 @@ export interface FloorPlanSelectorDialogProps {
   plans: StandardPlanSummary[];
   activePlanId: string;
   onSelectPlan: (planId: string) => void;
+  onCreateRoomClick?: () => void;
   locale?: string;
   t: FloorPlanDictionary;
   className?: string;
@@ -26,6 +27,7 @@ export function FloorPlanSelectorDialog({
   plans,
   activePlanId,
   onSelectPlan,
+  onCreateRoomClick,
   locale,
   t,
   className,
@@ -94,17 +96,35 @@ export function FloorPlanSelectorDialog({
             </div>
           </div>
 
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            data-testid="plan-selector-close-btn"
-            onClick={() => onOpenChange(false)}
-            className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground touch-manipulation"
-            aria-label={t.actions.close}
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {onCreateRoomClick && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                data-testid="selector-create-room-btn"
+                onClick={() => {
+                  onOpenChange(false);
+                  onCreateRoomClick();
+                }}
+                className="h-8 gap-1.5 px-2.5 text-xs font-medium touch-manipulation"
+              >
+                <PlusSquare className="h-3.5 w-3.5 text-primary" />
+                <span>{locale === "zh" ? "新建房间" : "New Room"}</span>
+              </Button>
+            )}
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              data-testid="plan-selector-close-btn"
+              onClick={() => onOpenChange(false)}
+              className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground touch-manipulation"
+              aria-label={t.actions.close}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Scrollable Catalog Body */}
