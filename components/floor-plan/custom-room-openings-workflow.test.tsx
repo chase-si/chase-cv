@@ -202,4 +202,33 @@ describe("Custom Room Openings & Settings Workflow (AC-6, AC-7, AC-8, AC-9, AC-1
     expect(screen.queryByTestId("floor-plan-opening-op1")).not.toBeInTheDocument();
     expect(screen.getByTestId("floor-plan-dimension-dim-total-width")).toHaveTextContent("3600");
   });
+
+  it("AC-10: mobile workspace renders mobile room settings button and opens bottom sheet with RoomSettingsPanel", () => {
+    const { plan: customPlan } = createRectangularRoomPlan({
+      widthMm: 3200,
+      depthMm: 4500,
+      name: "移动端主卧",
+    });
+
+    render(
+      <FloorPlanShell
+        initialPlans={FIXTURE_PLANS}
+        initialActivePlan={customPlan}
+        locale="zh"
+        isMobile={true}
+      />,
+    );
+
+    // Mobile button is present
+    const mobileBtn = screen.getByTestId("mobile-room-settings-btn");
+    expect(mobileBtn).toBeInTheDocument();
+
+    // Click mobile room settings button
+    fireEvent.click(mobileBtn);
+
+    // Mobile bottom sheet opens containing room-settings-panel
+    expect(screen.getByTestId("mobile-bottom-sheet")).toBeInTheDocument();
+    expect(screen.getByTestId("room-settings-panel")).toBeInTheDocument();
+  });
 });
+

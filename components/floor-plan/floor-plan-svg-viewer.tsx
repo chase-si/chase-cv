@@ -769,8 +769,7 @@ export function FloorPlanSvgViewer({
                 cx={measurementOrigin.x}
                 cy={measurementOrigin.y}
                 r={44}
-                fill="#2563eb"
-                stroke="#ffffff"
+                className="fill-primary stroke-background"
                 strokeWidth={8}
               />
               <circle
@@ -778,7 +777,7 @@ export function FloorPlanSvgViewer({
                 cy={measurementOrigin.y}
                 r={72}
                 fill="none"
-                stroke="#3b82f6"
+                className="stroke-primary"
                 strokeWidth={6}
                 strokeDasharray="24 12"
                 opacity={0.8}
@@ -786,10 +785,8 @@ export function FloorPlanSvgViewer({
               <text
                 x={measurementOrigin.textX}
                 y={measurementOrigin.textY}
-                fill="#2563eb"
+                className="fill-primary font-mono font-bold"
                 fontSize={110}
-                fontWeight="bold"
-                fontFamily="monospace"
                 textAnchor={measurementOrigin.textAnchor}
               >
                 {measurementOrigin.label}

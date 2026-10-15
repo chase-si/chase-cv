@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardScrollArea, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -301,7 +301,7 @@ export function RoomSettingsPanel({
           </p>
 
           {/* Openings list */}
-          <div className="flex-1 min-h-0 overflow-y-auto space-y-2.5 pr-1">
+          <CardScrollArea className="flex-1 min-h-0 space-y-2.5 pr-1">
             {drafts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground border border-dashed rounded-xl p-4">
                 <SquareDashed className="size-8 stroke-1 text-muted-foreground/60 mb-1.5" />
@@ -466,7 +466,7 @@ export function RoomSettingsPanel({
                 );
               })
             )}
-          </div>
+          </CardScrollArea>
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 pt-2 border-t border-border shrink-0">
@@ -506,7 +506,7 @@ export function RoomSettingsPanel({
               : "Rebuilding dimensions will clear furniture and openings. Renaming preserves layout."}
           </p>
 
-          <div className="flex-1 min-h-0 space-y-3 pr-1">
+          <CardScrollArea className="flex-1 min-h-0 space-y-3 pr-1">
             {/* Room Name */}
             <div className="space-y-1">
               <label
@@ -591,7 +591,7 @@ export function RoomSettingsPanel({
                 </p>
               </div>
             )}
-          </div>
+          </CardScrollArea>
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 pt-2 border-t border-border shrink-0">

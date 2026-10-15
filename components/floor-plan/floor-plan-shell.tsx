@@ -982,8 +982,6 @@ export function FloorPlanShell({
               onOpenPlanSelector={() => setIsPlanSelectorOpen(true)}
               onOpenFurnitureCatalog={() => setIsFurnitureCatalogOpen(true)}
               onClearSelection={() => setSelectedEntity(null)}
-              isCustomRoom={isCustomRoom}
-              isZh={isZh}
             />
 
             <Card

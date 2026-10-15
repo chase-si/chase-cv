@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, AlertTriangle, DoorOpen, Hand, MousePointer2 } from "lucide-react";
+import { AlertCircle, AlertTriangle, Hand, MousePointer2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -22,11 +22,9 @@ export type FloorPlanToolbarProps = {
   onOpenPlanSelector?: () => void;
   onClearSelection: () => void;
   onOpenFurnitureCatalog?: () => void;
-  isCustomRoom?: boolean;
-  isZh?: boolean;
 };
 
-export function FloorPlanToolbar({ className, currentPlan, violations, canvasMode, t, onCanvasModeChange, onOpenMobileSheet, isCustomRoom, isZh }: FloorPlanToolbarProps) {
+export function FloorPlanToolbar({ className, currentPlan, violations, canvasMode, t, onCanvasModeChange, onOpenMobileSheet }: FloorPlanToolbarProps) {
   const hasErrors = violations.some((v) => v.severity === "error");
   return <Card data-testid="floor-plan-toolbar" className={cn("shrink-0 flex-row items-center justify-between gap-3 p-2", className)}>
     <div className="flex items-center gap-2">
@@ -38,13 +36,6 @@ export function FloorPlanToolbar({ className, currentPlan, violations, canvasMod
         aria-pressed={canvasMode === "pan"} onClick={() => onCanvasModeChange("pan")} title={t.canvasModes.panTooltip} className="h-9 px-3">
         <Hand />{t.canvasModes.pan}
       </Button>
-      {isCustomRoom && (
-        <Button size="sm" variant="outline" data-testid="mobile-room-settings-btn"
-          onClick={() => onOpenMobileSheet("room-settings")} className="h-9 px-2.5 text-xs gap-1 lg:hidden">
-          <DoorOpen className="size-3.5" />
-          <span>{isZh ? "房间设置" : "Room"}</span>
-        </Button>
-      )}
     </div>
     <div className="flex min-w-0 items-center gap-2">
       {currentPlan.meta?.unscaled && <Badge data-testid="shell-unscaled-badge" variant="outline" title={t.badges.unscaledAdvisory}>{t.badges.uncalibrated}</Badge>}
