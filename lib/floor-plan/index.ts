@@ -17,3 +17,4 @@ export * from "./placement-scenario";
 export * from "./space-assessment";
 export * from "./rectangular-room";
 export * from "./custom-room-storage";
+export * from "./custom-room-openings";

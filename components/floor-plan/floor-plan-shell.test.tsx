@@ -171,7 +171,7 @@ describe("FloorPlanShell Integration (Streamlined MVP Architecture)", () => {
     fireEvent.click(sofa);
 
     expect(screen.getByTestId("inspector-furniture-details")).toBeInTheDocument();
-    expect(screen.getByTestId("inspector-furniture-dimensions")).toHaveTextContent("2100 × 900 mm");
+    expect(screen.getByTestId("inspector-furniture-dimensions")).toHaveTextContent("1800 × 900 mm");
 
     // AC-4: No arbitrary inputs
     expect(screen.queryByTestId("furniture-width-input")).not.toBeInTheDocument();

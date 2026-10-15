@@ -327,10 +327,10 @@ describe("Mobile Floor Plan Editor Ergonomics (AC-5, AC-4, AC-27)", () => {
     expect(targetBtnF1.className).toContain("focus-visible:ring-2");
 
     // 3. Specification switch buttons have accessible name, focus ring, aria-pressed, and data-selected
-    const specBtn = screen.getByTestId("switch-specification-sofa-3seat-2100");
+    const specBtn = screen.getByTestId("switch-specification-sofa-3seat-1800x900");
     expect(specBtn).toHaveAttribute("aria-pressed", "true");
     expect(specBtn).toHaveAttribute("data-selected", "true");
-    expect(specBtn.getAttribute("aria-label")).toContain("2100 × 900 mm");
+    expect(specBtn.getAttribute("aria-label")).toContain("1800 × 900 mm");
     expect(specBtn.className).toContain("focus-visible:ring-2");
 
     // 4. Assessment status region has role='status', aria-live='polite', and accessible label

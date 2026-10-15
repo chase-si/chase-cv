@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Compass, Image as ImageIcon, Plus, PlusSquare } from "lucide-react";
+import { Compass, DoorOpen, Image as ImageIcon, Plus, PlusSquare } from "lucide-react";
 import { ToolPageChrome } from "@/components/tool-page-chrome";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,14 @@ import {
   CardScrollArea,
   CardTitle,
 } from "@/components/ui/card";
+import { RoomSettingsPanel } from "./room-settings-panel";
+import type { CustomRoomWallSide } from "@/lib/floor-plan/custom-room-openings";
 import {
   getStandardPlans,
   resolvePlanCategory,
   type StandardPlanSummary,
 } from "@/lib/floor-plan/catalog";
-import type { FloorPlan, PlacementScenario } from "@/lib/floor-plan/types";
+import type { FloorPlan, PlacementScenario, StandardFloorPlan } from "@/lib/floor-plan/types";
 import {
   applyPlacementScenarioToFloorPlan,
   floorPlanToPlacementScenario,
@@ -150,7 +152,7 @@ export function FloorPlanShell({
           ? `${initialActivePlan.rooms.length} 间功能区`
           : `${initialActivePlan.rooms.length} rooms`,
       categoryKey: resolvePlanCategory(
-        initialActivePlan as StandardPlanSummary["plan"],
+        initialActivePlan as unknown as StandardFloorPlan,
       ),
       tags: [initialActivePlan.meta.source],
       plan: initialActivePlan as unknown as StandardPlanSummary["plan"],
@@ -213,10 +215,26 @@ export function FloorPlanShell({
   // Canvas mode: "pan" vs "edit"
   const [canvasMode, setCanvasMode] = React.useState<"pan" | "edit">("edit");
 
-  // Mobile bottom properties surface state: "entity" | "furniture-palette" | "rules" | "catalog" | "decision" | null
+  // Mobile bottom properties surface state: "entity" | "furniture-palette" | "rules" | "catalog" | "decision" | "rooms" | "help" | "room-settings" | null
   const [mobileSheetType, setMobileSheetType] = React.useState<
-    "entity" | "furniture-palette" | "rules" | "catalog" | "decision" | "rooms" | "help" | null
+    "entity" | "furniture-palette" | "rules" | "catalog" | "decision" | "rooms" | "help" | "room-settings" | null
   >(null);
+
+  // Custom room settings editing state & draft preview (AC-6, AC-7, AC-9)
+  const [isEditingRoomSettings, setIsEditingRoomSettings] = React.useState<boolean>(false);
+  const [draftPlanPreview, setDraftPlanPreview] = React.useState<FloorPlan | null>(null);
+  const [highlightWallSide, setHighlightWallSide] = React.useState<CustomRoomWallSide | null>(null);
+  const [highlightOpeningId, setHighlightOpeningId] = React.useState<string | null>(null);
+
+  const handleDraftPreviewChange = React.useCallback(
+    (draft: FloorPlan | null, wallSide?: CustomRoomWallSide | null, opId?: string | null) => {
+      setDraftPlanPreview(draft);
+      setHighlightWallSide(wallSide ?? null);
+      setHighlightOpeningId(opId ?? null);
+    },
+    [],
+  );
+
   const svgRef = React.useRef<SVGSVGElement>(null);
   const imageRequest = React.useRef(0);
   const [isImageOpen, setIsImageOpen] = React.useState(false);
@@ -237,6 +255,10 @@ export function FloorPlanShell({
     }
     return base;
   });
+
+  const isCustomRoom =
+    activePlanSummary?.categoryKey === "custom" ||
+    Boolean(currentPlan?.meta?.customRoom);
 
   // Hydrate custom rooms and restore last active plan from localStorage on mount (AC-4, AC-5)
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -357,6 +379,10 @@ export function FloorPlanShell({
       setTargetRoomId("room-1");
       setTargetFurnitureId(null);
       setMobileSheetType(null);
+      setIsEditingRoomSettings(false);
+      setDraftPlanPreview(null);
+      setHighlightWallSide(null);
+      setHighlightOpeningId(null);
 
       onPlanChange?.(plan);
       if (onScenarioChange) {
@@ -372,6 +398,10 @@ export function FloorPlanShell({
       setSelectedEntity(null);
       setTargetRoomId(null);
       setMobileSheetType(null);
+      setIsEditingRoomSettings(false);
+      setDraftPlanPreview(null);
+      setHighlightWallSide(null);
+      setHighlightOpeningId(null);
 
       const isCustom = customRooms.some((r) => r.id === planId);
       if (!initialActivePlan && !initialPlans && isHydrated) {
@@ -435,17 +465,18 @@ export function FloorPlanShell({
 
       const isCustom =
         customRooms.some((r) => r.id === updatedPlan.meta.id || r.id === activePlanId) ||
-        updatedPlan.meta.source === "user";
+        updatedPlan.meta.source === "user" ||
+        Boolean(updatedPlan.meta.customRoom);
 
-      if (isCustom && !initialActivePlan && !initialPlans && isHydrated) {
+      if (isCustom && !initialActivePlan && isHydrated) {
         const targetId = updatedPlan.meta.id ?? activePlanId;
         const existingRecord = customRooms.find((r) => r.id === targetId);
         const customDim = updatedPlan.meta.customRoom;
         const recordToSave: CustomRoomRecord = {
           id: targetId,
           name: updatedPlan.meta.name,
-          widthMm: existingRecord?.widthMm ?? customDim?.widthMm ?? 3000,
-          depthMm: existingRecord?.depthMm ?? customDim?.depthMm ?? 4000,
+          widthMm: customDim?.widthMm ?? existingRecord?.widthMm ?? 3000,
+          depthMm: customDim?.depthMm ?? existingRecord?.depthMm ?? 4000,
           createdAt: existingRecord?.createdAt ?? updatedPlan.meta.createdAt ?? new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           plan: updatedPlan,
@@ -659,6 +690,7 @@ export function FloorPlanShell({
     if (mobileSheetType === "decision") return t.mobileSheet.decision;
     if (mobileSheetType === "rooms") return isZh ? "房间与已摆放家具" : "Rooms & placed furniture";
     if (mobileSheetType === "help") return isZh ? "操作指南" : "How to use";
+    if (mobileSheetType === "room-settings") return isZh ? "房间设置与门窗" : "Room Settings";
     return t.mobileSheet.details;
   }, [selectedEntity, mobileSheetType, t, isZh, isMobile]);
 
@@ -788,6 +820,35 @@ export function FloorPlanShell({
         <p>{isZh ? "出图可保存当前布局。户型是简化模型，请以实测尺寸为准。" : "Save an image of your layout. These are simplified plans; verify real measurements."}</p>
       </div>;
     }
+    if (mobileSheetType === "room-settings") {
+      return (
+        <div className="min-h-0 h-[60vh] max-h-[500px]">
+          <RoomSettingsPanel
+            plan={currentPlan}
+            onApplyPlan={(newPlan) => {
+              if (newPlan.furniture.length === 0) {
+                setSelectedEntity(null);
+                setTargetFurnitureId(null);
+              }
+              handleUpdatePlan(newPlan, "Apply room settings");
+              setMobileSheetType(null);
+              setDraftPlanPreview(null);
+              setHighlightWallSide(null);
+              setHighlightOpeningId(null);
+            }}
+            onCancel={() => {
+              setMobileSheetType(null);
+              setDraftPlanPreview(null);
+              setHighlightWallSide(null);
+              setHighlightOpeningId(null);
+            }}
+            onDraftPreviewChange={handleDraftPreviewChange}
+            locale={locale}
+            isMobile={true}
+          />
+        </div>
+      );
+    }
     return null;
   }, [
     selectedEntity,
@@ -837,9 +898,12 @@ export function FloorPlanShell({
   );
   const mobilePanel = <MobileBottomSheet open={isMobileSheetOpen} onClose={handleCloseMobileSheet}
     title={mobileSheetTitle} badge={mobileSheetBadge} desktop={!isMobile} closeLabel={isZh ? "关闭面板" : "Close bottom sheet"}>{mobileSheetBody}</MobileBottomSheet>;
-  const viewer = <FloorPlanSvgViewer plan={currentPlan} selectedEntity={selectedEntity} onSelect={handleSelectEntity}
+  const displayPlan = draftPlanPreview ?? currentPlan;
+  const viewer = <FloorPlanSvgViewer plan={displayPlan} selectedEntity={selectedEntity} onSelect={handleSelectEntity}
     canvasMode={canvasMode} violations={violations} targetRoomId={targetRoomId} onUpdatePlan={handleUpdatePlan}
-    locale={locale} svgRef={svgRef} compact={isMobile} className="min-h-0 h-full w-full flex-1" />;
+    locale={locale} svgRef={svgRef} compact={isMobile} className="min-h-0 h-full w-full flex-1"
+    isDraftMode={Boolean(draftPlanPreview || isEditingRoomSettings)}
+    highlightWallSide={highlightWallSide} />;
 
   if (isMobile) {
     return <MobileWorkspace plan={currentPlan} summary={activePlanSummary} selectedEntity={selectedEntity}
@@ -918,6 +982,8 @@ export function FloorPlanShell({
               onOpenPlanSelector={() => setIsPlanSelectorOpen(true)}
               onOpenFurnitureCatalog={() => setIsFurnitureCatalogOpen(true)}
               onClearSelection={() => setSelectedEntity(null)}
+              isCustomRoom={isCustomRoom}
+              isZh={isZh}
             />
 
             <Card
@@ -965,14 +1031,55 @@ export function FloorPlanShell({
                 </p>
                 <div className="flex items-center justify-between gap-2 pt-1">
                   <span className="text-[11px] text-muted-foreground">{currentPlan.furniture.length} {isZh ? "件已摆放家具" : "placed items"}</span>
-                  <Button variant="ghost" size="sm" className={cn("h-8 px-2 text-xs", layoutAssessment.status === "must-adjust" && "text-destructive")}
-                    data-testid="desktop-assessment-btn" onClick={() => setMobileSheetType("rules")}>
-                    {currentPlan.furniture.length ? getAssessmentStatusLabel(layoutAssessment.status, locale) : isZh ? "待摆放" : "No furniture"}
-                  </Button>
+                  <div className="flex items-center gap-1.5">
+                    {isCustomRoom && (
+                      <Button
+                        type="button"
+                        variant={isEditingRoomSettings ? "default" : "outline"}
+                        size="sm"
+                        data-testid="edit-room-settings-btn"
+                        className="h-8 px-2 text-xs gap-1"
+                        onClick={() => setIsEditingRoomSettings((prev) => !prev)}
+                      >
+                        <DoorOpen className="h-3.5 w-3.5" />
+                        <span>{isZh ? "门窗与尺寸" : "Settings"}</span>
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="sm" className={cn("h-8 px-2 text-xs", layoutAssessment.status === "must-adjust" && "text-destructive")}
+                      data-testid="desktop-assessment-btn" onClick={() => setMobileSheetType("rules")}>
+                      {currentPlan.furniture.length ? getAssessmentStatusLabel(layoutAssessment.status, locale) : isZh ? "待摆放" : "No furniture"}
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
 
-              <CardScrollArea className="min-h-0 flex-1 p-3 space-y-4">
+              {isEditingRoomSettings ? (
+                <div className="min-h-0 flex-1 flex flex-col p-3 overflow-hidden">
+                  <RoomSettingsPanel
+                    plan={currentPlan}
+                    onApplyPlan={(newPlan) => {
+                      if (newPlan.furniture.length === 0) {
+                        setSelectedEntity(null);
+                        setTargetFurnitureId(null);
+                      }
+                      handleUpdatePlan(newPlan, "Apply room settings");
+                      setIsEditingRoomSettings(false);
+                      setDraftPlanPreview(null);
+                      setHighlightWallSide(null);
+                      setHighlightOpeningId(null);
+                    }}
+                    onCancel={() => {
+                      setIsEditingRoomSettings(false);
+                      setDraftPlanPreview(null);
+                      setHighlightWallSide(null);
+                      setHighlightOpeningId(null);
+                    }}
+                    onDraftPreviewChange={handleDraftPreviewChange}
+                    locale={locale}
+                  />
+                </div>
+              ) : (
+                <CardScrollArea className="min-h-0 flex-1 p-3 space-y-4">
                 {/* 1. Target Room Selection */}
                 <div className="space-y-1.5">
                   <span className="text-[11px] font-medium text-foreground block">
@@ -1142,6 +1249,7 @@ export function FloorPlanShell({
                   </div>
                 )}
               </CardScrollArea>
+              )}
             </Card>
           </aside>
         </div>

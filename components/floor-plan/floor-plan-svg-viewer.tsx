@@ -35,6 +35,10 @@ import { SvgOpening } from "./svg/svg-opening";
 import { SvgRoom } from "./svg/svg-room";
 import { SvgWall } from "./svg/svg-wall";
 import { useFloorPlanI18n } from "@/lib/floor-plan/i18n";
+import {
+  type CustomRoomWallSide,
+  WALL_SIDE_TO_ID,
+} from "@/lib/floor-plan/custom-room-openings";
 
 interface FloorPlanSvgViewerProps {
   locale?: string;
@@ -49,6 +53,7 @@ interface FloorPlanSvgViewerProps {
   className?: string;
   compact?: boolean;
   svgRef?: React.Ref<SVGSVGElement>;
+  highlightWallSide?: CustomRoomWallSide | null;
 }
 
 export function FloorPlanSvgViewer({
@@ -64,9 +69,62 @@ export function FloorPlanSvgViewer({
   className = "",
   compact = false,
   svgRef,
+  highlightWallSide = null,
 }: FloorPlanSvgViewerProps) {
   const i18n = useFloorPlanI18n(locale);
   const t = i18n.t.svgViewer;
+
+  const highlightWallId = highlightWallSide ? WALL_SIDE_TO_ID[highlightWallSide] : null;
+
+  const measurementOrigin = React.useMemo(() => {
+    if (!highlightWallSide) return null;
+    const isZh = locale?.startsWith("zh") ?? true;
+    const customRoom = plan.meta.customRoom ?? plan.rooms[0]?.customNetDimensions;
+    if (!customRoom) return null;
+    const { widthMm: roomW, depthMm: roomD } = customRoom;
+
+    if (highlightWallSide === "top") {
+      return {
+        x: 0,
+        y: 0,
+        textX: 80,
+        textY: -35,
+        textAnchor: "start" as const,
+        label: isZh ? "起点 (0 mm) →" : "Origin (0 mm) →",
+      };
+    }
+    if (highlightWallSide === "bottom") {
+      return {
+        x: 0,
+        y: roomD,
+        textX: 80,
+        textY: roomD + 120,
+        textAnchor: "start" as const,
+        label: isZh ? "起点 (0 mm) →" : "Origin (0 mm) →",
+      };
+    }
+    if (highlightWallSide === "right") {
+      return {
+        x: roomW,
+        y: 0,
+        textX: roomW + 70,
+        textY: 80,
+        textAnchor: "start" as const,
+        label: isZh ? "起点 (0 mm) ↓" : "Origin (0 mm) ↓",
+      };
+    }
+    if (highlightWallSide === "left") {
+      return {
+        x: 0,
+        y: 0,
+        textX: -70,
+        textY: 80,
+        textAnchor: "end" as const,
+        label: isZh ? "起点 (0 mm) ↓" : "Origin (0 mm) ↓",
+      };
+    }
+    return null;
+  }, [highlightWallSide, plan.meta.customRoom, plan.rooms, locale]);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [viewportSize, setViewportSize] = React.useState({ width: 800, height: 600 });
@@ -249,7 +307,7 @@ export function FloorPlanSvgViewer({
     e: React.PointerEvent,
     furniture: FloorPlan["furniture"][number],
   ) => {
-    if (!isInteractiveEdit || canvasMode === "pan") return;
+    if (!isInteractiveEdit || canvasMode === "pan" || isDraftMode) return;
     const drag: FurnitureDrag = {
       id: furniture.id,
       startX: e.clientX,
@@ -520,6 +578,7 @@ export function FloorPlanSvgViewer({
                 vertexMap={vertexMap}
                 selectedEntity={selectedEntity}
                 onSelect={handleSelect}
+                isHighlighted={highlightWallId === wall.id}
               />
             ))}
           </g>
@@ -702,6 +761,41 @@ export function FloorPlanSvgViewer({
               />
             ))}
           </g>
+
+          {/* Measurement Origin & Direction Cue (AC-7) */}
+          {measurementOrigin && (
+            <g data-testid="measurement-origin-cue" className="pointer-events-none select-none">
+              <circle
+                cx={measurementOrigin.x}
+                cy={measurementOrigin.y}
+                r={44}
+                fill="#2563eb"
+                stroke="#ffffff"
+                strokeWidth={8}
+              />
+              <circle
+                cx={measurementOrigin.x}
+                cy={measurementOrigin.y}
+                r={72}
+                fill="none"
+                stroke="#3b82f6"
+                strokeWidth={6}
+                strokeDasharray="24 12"
+                opacity={0.8}
+              />
+              <text
+                x={measurementOrigin.textX}
+                y={measurementOrigin.textY}
+                fill="#2563eb"
+                fontSize={110}
+                fontWeight="bold"
+                fontFamily="monospace"
+                textAnchor={measurementOrigin.textAnchor}
+              >
+                {measurementOrigin.label}
+              </text>
+            </g>
+          )}
         </g>
       </svg>
 
