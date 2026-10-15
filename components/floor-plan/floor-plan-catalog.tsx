@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, Layers } from "lucide-react";
+import { Check, Layers, PlusSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -17,6 +17,7 @@ interface FloorPlanCatalogProps {
   plans: StandardPlanSummary[];
   activePlanId: string;
   onSelectPlan: (planId: string) => void;
+  onCreateRoomClick?: () => void;
   className?: string;
   locale?: string;
 }
@@ -25,6 +26,7 @@ export function FloorPlanCatalog({
   plans,
   activePlanId,
   onSelectPlan,
+  onCreateRoomClick,
   className = "",
   locale,
 }: FloorPlanCatalogProps) {
@@ -62,6 +64,20 @@ export function FloorPlanCatalog({
       data-testid="floor-plan-catalog"
       className={`flex flex-col gap-3 p-1 ${className}`}
     >
+      {onCreateRoomClick && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          data-testid="selector-create-room-btn"
+          onClick={onCreateRoomClick}
+          className="h-9 w-full justify-center gap-1.5 text-xs font-medium touch-manipulation"
+        >
+          <PlusSquare className="h-4 w-4 text-primary" />
+          <span>{i18n.locale === "zh" ? "新建长方形房间" : "Create Rectangular Room"}</span>
+        </Button>
+      )}
+
       {/* Category Filter Pills */}
       <div
         data-testid="catalog-category-filters"

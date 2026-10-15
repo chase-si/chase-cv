@@ -71,9 +71,11 @@ export function FloorPlanInspector({
 
   const [showFurniturePalette, setShowFurniturePalette] = React.useState(false);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   React.useEffect(() => {
     setShowFurniturePalette(false);
   }, [selectedEntity]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Selected Wall details
   const selectedWall = React.useMemo(() => {
@@ -90,7 +92,8 @@ export function FloorPlanInspector({
     const room = plan.rooms.find((r) => r.id === selectedEntity.id);
     if (!room) return null;
     const points = computeRoomPolygon(room, wallMap, vertexMap);
-    const area = computePolygonArea(points);
+    const customDim = room.customNetDimensions;
+    const area = computePolygonArea(points, customDim);
     return { room, points, area };
   }, [selectedEntity, plan.rooms, wallMap, vertexMap]);
 

@@ -69,6 +69,7 @@ export interface Room {
   type: RoomType;
   name?: string;
   boundaryWallIds: string[]; // ordered cycle of directed wall references
+  customNetDimensions?: { widthMm: number; depthMm: number };
 }
 
 export type FurnitureRotation = 0 | 90 | 180 | 270;
@@ -113,6 +114,7 @@ export interface FloorPlanMeta {
   thumbnail?: string;
   description?: string;
   unscaled?: boolean;
+  customRoom?: { widthMm: number; depthMm: number };
   scaled?: boolean;
   scaleMmPerPixel?: number;
 }
